@@ -157,37 +157,20 @@ const RegisterPage = () => {
     navigate('/login');
   };
 
-  const handleGoHome = () => {
-    console.log('RegisterPage: Navegando para home');
-    navigate('/');
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <button 
-            onClick={handleGoHome}
-            className="flex items-center justify-center mb-4 hover:opacity-80 transition-opacity duration-200"
-          >
-            <img 
-              src="/32132123.png" 
-              alt="Rifaqui Logo" 
-              className="w-11 h-11 object-contain"
-            />
-            <span className="ml-3 text-2xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
-          </button>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-300">
-            Criar sua conta
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300 transition-colors duration-300">
-            Comece a criar suas rifas em poucos minutos
-          </p>
-        </div>
-
         {/* Registration Form */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 transition-colors duration-300">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-300">
+              Criar sua conta
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 transition-colors duration-300">
+              Comece a criar suas rifas em poucos minutos
+            </p>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Error Message */}
             {error && (
