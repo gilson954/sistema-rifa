@@ -1,12 +1,14 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import DashboardHeader from './DashboardHeader';
+import Sidebar from './Sidebar';
 
 const DashboardLayout = () => {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
-      <DashboardHeader />
-      <Outlet />
+    <div className="min-h-screen bg-gray-950 flex">
+      <Sidebar />
+      <div className="flex-1">
+        <Outlet />
+      </div>
     </div>
   );
 };
