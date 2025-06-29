@@ -274,7 +274,11 @@ const AffiliatesManagementPage = () => {
             <button
               onClick={handleSaveAffiliate}
               disabled={!newAffiliate.email.trim()}
-              className="w-full bg-gray-400 hover:bg-gray-500 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 mt-6"
+              className={`w-full py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 mt-6 ${
+                newAffiliate.email.trim()
+                  ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                  : 'bg-gray-400 cursor-not-allowed text-white'
+              }`}
             >
               <span>Enviar convite</span>
               <ArrowRight className="h-4 w-4" />
