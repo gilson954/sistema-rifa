@@ -17,23 +17,69 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
+// Configuração otimizada do cliente Supabase
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false
+    detectSessionInUrl: false,
+    flowType: 'pkce'
+  },
+  db: {
+    schema: 'public'
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'rifaqui-web-app'
+    }
   }
 });
 
-// Teste de conexão
-supabase.auth.getSession().then(({ data, error }) => {
-  console.log('🔌 Teste de conexão Supabase:');
-  console.log('  - Conectado:', error ? '❌ Erro' : '✅ Sucesso');
-  if (error) {
-    console.error('  - Erro:', error);
-  } else {
-    console.log('  - Sessão atual:', data.session ? 'Existe' : 'Nenhuma');
+// Teste de conexão melhorado
+const testConnection = async () => {
+  try {
+    console.log('🔌 Testando conexão com Supabase...');
+    
+    // Teste 1: Verificar se consegue fazer uma query simples
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('count')
+      .limit(1);
+    
+    if (error) {
+      console.error('❌ Erro na query de teste:', error);
+      console.error('❌ Detalhes do erro:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+      return false;
+    }
+    
+    console.log('✅ Query de teste bem-sucedida:', data);
+    
+    // Teste 2: Verificar autenticação
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error('❌ Erro ao verificar sessão:', sessionError);
+      return false;
+    }
+    
+    console.log('✅ Verificação de sessão bem-sucedida');
+    console.log('  - Sessão ativa:', sessionData.session ? 'Sim' : 'Não');
+    
+    return true;
+  } catch (error) {
+    console.error('💥 Erro inesperado no teste de conexão:', error);
+    return false;
   }
+};
+
+// Executar teste de conexão
+testConnection().then(success => {
+  console.log('🔌 Resultado do teste de conexão:', success ? '✅ Sucesso' : '❌ Falhou');
 });
 
 // Tipos TypeScript para o banco de dados
