@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Info, CheckCircle, AlertTriangle, ArrowRight, ChevronDown, Upload } from 'lucide-react';
+import { ArrowLeft, Info, CheckCircle, AlertTriangle, ArrowRight, ChevronDown, Upload, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const PaymentIntegrationsPage = () => {
   const navigate = useNavigate();
-  const [showPixConfig, setShowPixConfig] = useState(false);
-  const [showEfiConfig, setShowEfiConfig] = useState(false);
+  const [isPixModalOpen, setIsPixModalOpen] = useState(false);
+  const [isEfiModalOpen, setIsEfiModalOpen] = useState(false);
   const [pixConfig, setPixConfig] = useState({
     isActive: false,
     keyType: 'CPF',
@@ -66,13 +66,11 @@ const PaymentIntegrationsPage = () => {
   };
 
   const handlePixConfig = () => {
-    setShowPixConfig(!showPixConfig);
-    setShowEfiConfig(false);
+    setIsPixModalOpen(true);
   };
 
   const handleEfiConfig = () => {
-    setShowEfiConfig(!showEfiConfig);
-    setShowPixConfig(false);
+    setIsEfiModalOpen(true);
   };
 
   const handleSavePix = () => {
@@ -83,7 +81,7 @@ const PaymentIntegrationsPage = () => {
     }
 
     console.log('Saving PIX configuration:', pixConfig);
-    setShowPixConfig(false);
+    setIsPixModalOpen(false);
     alert('Configuração PIX salva com sucesso!');
   };
 
@@ -95,7 +93,7 @@ const PaymentIntegrationsPage = () => {
     }
 
     console.log('Saving Efi Bank configuration:', efiConfig);
-    setShowEfiConfig(false);
+    setIsEfiModalOpen(false);
     alert('Configuração Efi Bank salva com sucesso!');
   };
 
@@ -108,6 +106,14 @@ const PaymentIntegrationsPage = () => {
 
   const handleWhatsAppSupport = () => {
     window.open('https://wa.me/5562981127960', '_blank');
+  };
+
+  const handleClosePixModal = () => {
+    setIsPixModalOpen(false);
+  };
+
+  const handleCloseEfiModal = () => {
+    setIsEfiModalOpen(false);
   };
 
   const paymentProviders = [
@@ -267,7 +273,7 @@ const PaymentIntegrationsPage = () => {
             </p>
           </div>
 
-          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between transition-colors duration-300 mb-4">
+          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between transition-colors duration-300">
             <div className="flex items-center space-x-4">
               <div className={`w-3 h-3 rounded-full ${isPixConfigured ? 'bg-green-500' : 'bg-red-500'}`}></div>
               <div className="flex items-center space-x-3">
@@ -286,215 +292,6 @@ const PaymentIntegrationsPage = () => {
               {isPixConfigured ? 'Editar' : 'Configurar'}
             </button>
           </div>
-
-          {/* PIX Configuration Panel */}
-          {showPixConfig && (
-            <div className="bg-gray-900 rounded-lg p-6 text-white mb-4">
-              {/* Alert */}
-              <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-4 mb-6 flex items-start space-x-3">
-                <AlertTriangle className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-blue-300 text-sm">
-                    <span className="font-semibold">Atenção</span>
-                  </p>
-                  <p className="text-blue-200 text-sm">
-                    Pedidos com este meio de pagamento NÃO liberam automaticamente, você terá que aprovar as compras manualmente.
-                  </p>
-                </div>
-              </div>
-
-              {/* Active Toggle */}
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-white font-medium">Ativo</span>
-                <button
-                  onClick={() => setPixConfig({ ...pixConfig, isActive: !pixConfig.isActive })}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
-                    pixConfig.isActive ? 'bg-purple-600' : 'bg-gray-600'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
-                      pixConfig.isActive ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* Key Type */}
-              <div className="mb-6">
-                <label className="block text-white font-medium mb-3">
-                  Tipo de chave
-                </label>
-                <div className="relative">
-                  <select
-                    value={pixConfig.keyType}
-                    onChange={(e) => setPixConfig({ ...pixConfig, keyType: e.target.value })}
-                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none"
-                  >
-                    <option value="CPF">CPF</option>
-                    <option value="CNPJ">CNPJ</option>
-                    <option value="Email">Email</option>
-                    <option value="Telefone">Telefone</option>
-                    <option value="Chave Aleatória">Chave Aleatória</option>
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                </div>
-              </div>
-
-              {/* PIX Key */}
-              <div className="mb-6">
-                <label className="block text-white font-medium mb-3">
-                  Chave pix *
-                </label>
-                <input
-                  type="text"
-                  value={pixConfig.pixKey}
-                  onChange={(e) => setPixConfig({ ...pixConfig, pixKey: e.target.value })}
-                  placeholder="Digite sua chave pix"
-                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  required
-                />
-              </div>
-
-              {/* Account Holder */}
-              <div className="mb-8">
-                <label className="block text-white font-medium mb-3">
-                  Titular da conta *
-                </label>
-                <input
-                  type="text"
-                  value={pixConfig.accountHolder}
-                  onChange={(e) => setPixConfig({ ...pixConfig, accountHolder: e.target.value })}
-                  placeholder="Digite o titular da conta"
-                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  required
-                />
-              </div>
-
-              {/* Save Button */}
-              <button
-                onClick={handleSavePix}
-                disabled={!pixConfig.pixKey.trim() || !pixConfig.accountHolder.trim()}
-                className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
-              >
-                <span>Salvar pix</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
-          )}
-
-          {/* Efi Bank Configuration Panel */}
-          {showEfiConfig && (
-            <div className="bg-gray-900 rounded-lg p-6 text-white mb-4">
-              {/* Header */}
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <div className="text-lg font-semibold text-white">efi BANK</div>
-              </div>
-
-              {/* Active Toggle */}
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-white font-medium">Ativo</span>
-                <button
-                  onClick={() => setEfiConfig({ ...efiConfig, isActive: !efiConfig.isActive })}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
-                    efiConfig.isActive ? 'bg-purple-600' : 'bg-gray-600'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
-                      efiConfig.isActive ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* Client ID */}
-              <div className="mb-6">
-                <label className="block text-white font-medium mb-3">
-                  Chave Client ID
-                </label>
-                <input
-                  type="text"
-                  value={efiConfig.clientId}
-                  onChange={(e) => setEfiConfig({ ...efiConfig, clientId: e.target.value })}
-                  placeholder="Cole aqui"
-                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* Client Secret */}
-              <div className="mb-6">
-                <label className="block text-white font-medium mb-3">
-                  Chave Client Secret
-                </label>
-                <input
-                  type="text"
-                  value={efiConfig.clientSecret}
-                  onChange={(e) => setEfiConfig({ ...efiConfig, clientSecret: e.target.value })}
-                  placeholder="Cole aqui"
-                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* PIX Key Efi */}
-              <div className="mb-6">
-                <label className="block text-white font-medium mb-3">
-                  Chave pix Efi
-                </label>
-                <input
-                  type="text"
-                  value={efiConfig.pixKey}
-                  onChange={(e) => setEfiConfig({ ...efiConfig, pixKey: e.target.value })}
-                  placeholder="Cole aqui"
-                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* Certificate Upload */}
-              <div className="mb-8">
-                <label className="block text-white font-medium mb-3">
-                  Anexe o certificado Efi bank
-                </label>
-                <div className="relative">
-                  <input
-                    type="file"
-                    accept=".p12,.pfx"
-                    onChange={handleCertificateUpload}
-                    className="hidden"
-                    id="certificate-upload"
-                  />
-                  <label
-                    htmlFor="certificate-upload"
-                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-gray-400 cursor-pointer hover:bg-gray-700 transition-colors duration-200 flex items-center space-x-2"
-                  >
-                    <Upload className="h-4 w-4" />
-                    <span>
-                      {efiConfig.certificate ? efiConfig.certificate.name : 'Escolher arquivo Nenhum arquivo escolhido'}
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Save Button */}
-              <button
-                onClick={handleSaveEfi}
-                disabled={!efiConfig.clientId.trim() || !efiConfig.clientSecret.trim() || !efiConfig.pixKey.trim()}
-                className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
-              >
-                <span>Salvar Chave</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
-
-              {/* Info Link */}
-              <div className="mt-4 text-center">
-                <button className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200 flex items-center space-x-2 mx-auto">
-                  <Info className="h-4 w-4" />
-                  <span>Clique aqui para ir direto a página do banco Efi clique aqui</span>
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Help Section */}
@@ -518,6 +315,244 @@ const PaymentIntegrationsPage = () => {
           </div>
         </div>
       </div>
+
+      {/* PIX Configuration Modal */}
+      {isPixModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div 
+            className="bg-gray-900 rounded-lg p-6 w-full max-w-md text-white max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-white">
+                Configurar PIX Manual
+              </h2>
+              <button
+                onClick={handleClosePixModal}
+                className="p-1 hover:bg-gray-800 rounded transition-colors duration-200"
+              >
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Alert */}
+            <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-4 mb-6 flex items-start space-x-3">
+              <AlertTriangle className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-blue-300 text-sm">
+                  <span className="font-semibold">Atenção</span>
+                </p>
+                <p className="text-blue-200 text-sm">
+                  Pedidos com este meio de pagamento NÃO liberam automaticamente, você terá que aprovar as compras manualmente.
+                </p>
+              </div>
+            </div>
+
+            {/* Active Toggle */}
+            <div className="flex items-center justify-between mb-6">
+              <span className="text-white font-medium">Ativo</span>
+              <button
+                onClick={() => setPixConfig({ ...pixConfig, isActive: !pixConfig.isActive })}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+                  pixConfig.isActive ? 'bg-purple-600' : 'bg-gray-600'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                    pixConfig.isActive ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Key Type */}
+            <div className="mb-6">
+              <label className="block text-white font-medium mb-3">
+                Tipo de chave
+              </label>
+              <div className="relative">
+                <select
+                  value={pixConfig.keyType}
+                  onChange={(e) => setPixConfig({ ...pixConfig, keyType: e.target.value })}
+                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none"
+                >
+                  <option value="CPF">CPF</option>
+                  <option value="CNPJ">CNPJ</option>
+                  <option value="Email">Email</option>
+                  <option value="Telefone">Telefone</option>
+                  <option value="Chave Aleatória">Chave Aleatória</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* PIX Key */}
+            <div className="mb-6">
+              <label className="block text-white font-medium mb-3">
+                Chave pix *
+              </label>
+              <input
+                type="text"
+                value={pixConfig.pixKey}
+                onChange={(e) => setPixConfig({ ...pixConfig, pixKey: e.target.value })}
+                placeholder="Digite sua chave pix"
+                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                required
+              />
+            </div>
+
+            {/* Account Holder */}
+            <div className="mb-8">
+              <label className="block text-white font-medium mb-3">
+                Titular da conta *
+              </label>
+              <input
+                type="text"
+                value={pixConfig.accountHolder}
+                onChange={(e) => setPixConfig({ ...pixConfig, accountHolder: e.target.value })}
+                placeholder="Digite o titular da conta"
+                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                required
+              />
+            </div>
+
+            {/* Save Button */}
+            <button
+              onClick={handleSavePix}
+              disabled={!pixConfig.pixKey.trim() || !pixConfig.accountHolder.trim()}
+              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+            >
+              <span>Salvar pix</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Efi Bank Configuration Modal */}
+      {isEfiModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div 
+            className="bg-gray-900 rounded-lg p-6 w-full max-w-md text-white max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <h2 className="text-lg font-semibold text-white">efi BANK</h2>
+              </div>
+              <button
+                onClick={handleCloseEfiModal}
+                className="p-1 hover:bg-gray-800 rounded transition-colors duration-200"
+              >
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Active Toggle */}
+            <div className="flex items-center justify-between mb-6">
+              <span className="text-white font-medium">Ativo</span>
+              <button
+                onClick={() => setEfiConfig({ ...efiConfig, isActive: !efiConfig.isActive })}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+                  efiConfig.isActive ? 'bg-purple-600' : 'bg-gray-600'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                    efiConfig.isActive ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Client ID */}
+            <div className="mb-6">
+              <label className="block text-white font-medium mb-3">
+                Chave Client ID
+              </label>
+              <input
+                type="text"
+                value={efiConfig.clientId}
+                onChange={(e) => setEfiConfig({ ...efiConfig, clientId: e.target.value })}
+                placeholder="Cole aqui"
+                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Client Secret */}
+            <div className="mb-6">
+              <label className="block text-white font-medium mb-3">
+                Chave Client Secret
+              </label>
+              <input
+                type="text"
+                value={efiConfig.clientSecret}
+                onChange={(e) => setEfiConfig({ ...efiConfig, clientSecret: e.target.value })}
+                placeholder="Cole aqui"
+                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* PIX Key Efi */}
+            <div className="mb-6">
+              <label className="block text-white font-medium mb-3">
+                Chave pix Efi
+              </label>
+              <input
+                type="text"
+                value={efiConfig.pixKey}
+                onChange={(e) => setEfiConfig({ ...efiConfig, pixKey: e.target.value })}
+                placeholder="Cole aqui"
+                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Certificate Upload */}
+            <div className="mb-8">
+              <label className="block text-white font-medium mb-3">
+                Anexe o certificado Efi bank
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept=".p12,.pfx"
+                  onChange={handleCertificateUpload}
+                  className="hidden"
+                  id="certificate-upload"
+                />
+                <label
+                  htmlFor="certificate-upload"
+                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-gray-400 cursor-pointer hover:bg-gray-700 transition-colors duration-200 flex items-center space-x-2"
+                >
+                  <Upload className="h-4 w-4" />
+                  <span>
+                    {efiConfig.certificate ? efiConfig.certificate.name : 'Escolher arquivo Nenhum arquivo escolhido'}
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <button
+              onClick={handleSaveEfi}
+              disabled={!efiConfig.clientId.trim() || !efiConfig.clientSecret.trim() || !efiConfig.pixKey.trim()}
+              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 mb-4"
+            >
+              <span>Salvar Chave</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+
+            {/* Info Link */}
+            <div className="text-center">
+              <button className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200 flex items-center space-x-2 mx-auto">
+                <Info className="h-4 w-4" />
+                <span>Clique aqui para ir direto a página do banco Efi clique aqui</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
