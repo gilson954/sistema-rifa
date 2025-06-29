@@ -57,30 +57,30 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="w-80 bg-white dark:bg-gray-900 min-h-screen flex flex-col border-r border-gray-200 dark:border-gray-800 transition-colors duration-300">
+    <div className="w-60 bg-gray-900 min-h-screen flex flex-col">
       {/* Logo */}
-      <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+      <div className="p-6 border-b border-gray-800">
         <div className="flex items-center">
           <img 
             src="/32132123.png" 
             alt="Rifaqui Logo" 
             className="w-8 h-8 object-contain"
           />
-          <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white transition-colors duration-300">Rifaqui</span>
+          <span className="ml-2 text-xl font-bold text-white">Rifaqui</span>
         </div>
       </div>
 
       {/* User Profile */}
-      <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+      <div className="p-6 border-b border-gray-800">
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
             U
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-gray-900 dark:text-white font-medium truncate transition-colors duration-300">
+            <p className="text-white font-medium truncate">
               Usuário Demo
             </p>
-            <p className="text-gray-500 dark:text-gray-400 text-sm truncate transition-colors duration-300">
+            <p className="text-gray-400 text-sm truncate">
               demo@rifaqui.com
             </p>
           </div>
@@ -98,7 +98,7 @@ const Sidebar = () => {
                   className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 ${
                     item.active
                       ? 'bg-purple-600 text-white'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                   }`}
                 >
                   <IconComponent className="h-5 w-5" />
@@ -111,10 +111,10 @@ const Sidebar = () => {
       </nav>
 
       {/* Home Button */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+      <div className="p-4 border-t border-gray-800">
         <button
           onClick={handleGoHome}
-          className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
+          className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200"
         >
           <Home className="h-5 w-5" />
           <span className="font-medium">Sair</span>
