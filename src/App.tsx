@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import DashboardLayout from './components/DashboardLayout';
 import HomePage from './pages/HomePage';
 import DashboardPage from './pages/DashboardPage';
+import PaymentIntegrationsPage from './pages/PaymentIntegrationsPage';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         {/* Dashboard */}
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardPage />} />
+          <Route path="integrations" element={<PaymentIntegrationsPage />} />
         </Route>
       </Routes>
     </Router>
