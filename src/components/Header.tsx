@@ -19,6 +19,10 @@ const Header = () => {
     }
   };
 
+  const handleRegisterClick = () => {
+    navigate('/register');
+  };
+
   const handleGoHome = () => {
     if (location.pathname === '/') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -96,6 +100,14 @@ const Header = () => {
             >
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </button>
+            {!user && (
+              <button 
+                onClick={handleRegisterClick}
+                className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+              >
+                Criar conta
+              </button>
+            )}
             <button 
               onClick={handleAuthClick}
               className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium"
@@ -147,6 +159,14 @@ const Header = () => {
                     {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                   </button>
                 </div>
+                {!user && (
+                  <button 
+                    onClick={handleRegisterClick}
+                    className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-left hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                  >
+                    Criar conta
+                  </button>
+                )}
                 <button 
                   onClick={handleAuthClick}
                   className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium text-left"
