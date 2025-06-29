@@ -33,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     },
     {
       icon: CreditCard,
-      label: 'Configure seu pix',
+      label: 'Métodos de pagamentos',
       path: '/dashboard/integrations'
     },
     {
