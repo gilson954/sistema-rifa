@@ -28,7 +28,7 @@ const PixelsAnalyticsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="bg-gray-900 text-white -mx-4 -mt-6 min-h-screen">
       {/* Header */}
       <div className="flex items-center space-x-4 p-6 border-b border-gray-800">
         <button
