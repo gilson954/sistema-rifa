@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { 
   Bell, 
   Sun, 
@@ -17,7 +16,6 @@ import {
 import { useTheme } from '../context/ThemeContext';
 
 const DashboardPage = () => {
-  const { profile } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [showRevenue, setShowRevenue] = useState(false);
 
@@ -37,7 +35,7 @@ const DashboardPage = () => {
       <div className="flex items-center justify-between p-6 border-b border-gray-800">
         <div className="flex items-center space-x-4">
           <h1 className="text-2xl font-bold">
-            👋 Olá, {profile?.name || 'Usuário'}
+            👋 Olá, Usuário Demo
           </h1>
         </div>
         

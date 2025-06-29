@@ -16,7 +16,7 @@ const Features = () => {
   const navigate = useNavigate();
 
   const handleCreateCampaign = () => {
-    navigate('/register');
+    navigate('/dashboard');
   };
 
   const features = [

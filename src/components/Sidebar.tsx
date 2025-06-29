@@ -8,16 +8,13 @@ import {
   Palette, 
   User, 
   HelpCircle, 
-  LogOut 
+  Home
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 
 const Sidebar = () => {
-  const { profile, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    await logout();
+  const handleGoHome = () => {
     navigate('/');
   };
 
@@ -77,14 +74,14 @@ const Sidebar = () => {
       <div className="p-6 border-b border-gray-800">
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-            {profile?.name?.charAt(0).toUpperCase() || 'U'}
+            U
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-white font-medium truncate">
-              {profile?.name || 'Usuário'}
+              Usuário Demo
             </p>
             <p className="text-gray-400 text-sm truncate">
-              {profile?.email || 'email@exemplo.com'}
+              demo@rifaqui.com
             </p>
           </div>
         </div>
@@ -113,14 +110,14 @@ const Sidebar = () => {
         </ul>
       </nav>
 
-      {/* Logout */}
+      {/* Home Button */}
       <div className="p-4 border-t border-gray-800">
         <button
-          onClick={handleLogout}
+          onClick={handleGoHome}
           className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200"
         >
-          <LogOut className="h-5 w-5" />
-          <span className="font-medium">Sair do app</span>
+          <Home className="h-5 w-5" />
+          <span className="font-medium">Voltar ao site</span>
         </button>
       </div>
     </div>

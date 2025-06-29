@@ -9,12 +9,8 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleLoginClick = () => {
-    navigate('/login');
-  };
-
-  const handleRegisterClick = () => {
-    navigate('/register');
+  const handleDashboardClick = () => {
+    navigate('/dashboard');
   };
 
   const handleGoHome = () => {
@@ -95,16 +91,10 @@ const Header = () => {
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </button>
             <button 
-              onClick={handleLoginClick}
-              className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 font-medium"
-            >
-              Entrar
-            </button>
-            <button 
-              onClick={handleRegisterClick}
+              onClick={handleDashboardClick}
               className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium"
             >
-              Criar Conta
+              Acessar Dashboard
             </button>
           </div>
 
@@ -143,12 +133,6 @@ const Header = () => {
               </button>
               <div className="flex flex-col space-y-2 pt-4 border-t border-gray-100 dark:border-gray-800">
                 <div className="flex items-center justify-between">
-                  <button 
-                    onClick={handleLoginClick}
-                    className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 font-medium text-left"
-                  >
-                    Entrar
-                  </button>
                   <button
                     onClick={toggleTheme}
                     className="p-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -158,10 +142,10 @@ const Header = () => {
                   </button>
                 </div>
                 <button 
-                  onClick={handleRegisterClick}
+                  onClick={handleDashboardClick}
                   className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium text-left"
                 >
-                  Criar Conta
+                  Acessar Dashboard
                 </button>
               </div>
             </div>
