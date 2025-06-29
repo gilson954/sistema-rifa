@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   LayoutGrid, 
@@ -12,8 +12,11 @@ import {
   X,
   Trophy,
   Users,
-  Menu
+  Menu,
+  LogOut
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 
 interface SidebarProps {
   onClose?: () => void;
@@ -21,10 +24,37 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [profile, setProfile] = useState<{ name: string; email: string } | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      // Fetch user profile
+      const fetchProfile = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('name, email')
+          .eq('id', user.id)
+          .single();
+        
+        if (data) {
+          setProfile(data);
+        }
+      };
+
+      fetchProfile();
+    }
+  }, [user]);
 
   const handleGoHome = () => {
     navigate('/');
+    onClose?.();
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
     onClose?.();
     setIsMobileMenuOpen(false);
   };
@@ -33,6 +63,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     setIsMobileMenuOpen(false);
     onClose?.();
   };
+
+  const displayName = profile?.name || user?.user_metadata?.name || 'Usuário';
+  const displayEmail = profile?.email || user?.email || 'usuario@rifaqui.com';
 
   const menuItems = [
     {
@@ -133,14 +166,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         <div className="p-6 border-b border-gray-800">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
-              U
+              {displayName.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-white font-medium truncate">
-                Usuário Demo
+                {displayName}
               </p>
               <p className="text-gray-400 text-sm truncate">
-                demo@rifaqui.com
+                {displayEmail}
               </p>
             </div>
           </div>
@@ -171,19 +204,27 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                 </li>
               );
             })}
-            
-            {/* Sair Button */}
-            <li>
-              <button
-                onClick={handleGoHome}
-                className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200"
-              >
-                <Home className="h-5 w-5 flex-shrink-0" />
-                <span className="font-medium truncate">Sair</span>
-              </button>
-            </li>
           </ul>
         </nav>
+
+        {/* Bottom Actions */}
+        <div className="p-4 border-t border-gray-800 space-y-2">
+          <button
+            onClick={handleGoHome}
+            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200"
+          >
+            <Home className="h-5 w-5 flex-shrink-0" />
+            <span className="font-medium truncate">Página Inicial</span>
+          </button>
+          
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-red-600 hover:text-white transition-colors duration-200"
+          >
+            <LogOut className="h-5 w-5 flex-shrink-0" />
+            <span className="font-medium truncate">Sair</span>
+          </button>
+        </div>
       </div>
     </>
   );

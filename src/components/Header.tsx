@@ -2,15 +2,21 @@ import React from 'react';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleDashboardClick = () => {
-    navigate('/dashboard');
+  const handleAuthClick = () => {
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
   };
 
   const handleGoHome = () => {
@@ -91,10 +97,10 @@ const Header = () => {
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </button>
             <button 
-              onClick={handleDashboardClick}
+              onClick={handleAuthClick}
               className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium"
             >
-              Acessar Dashboard
+              {user ? 'Dashboard' : 'Entrar'}
             </button>
           </div>
 
@@ -142,10 +148,10 @@ const Header = () => {
                   </button>
                 </div>
                 <button 
-                  onClick={handleDashboardClick}
+                  onClick={handleAuthClick}
                   className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium text-left"
                 >
-                  Acessar Dashboard
+                  {user ? 'Dashboard' : 'Entrar'}
                 </button>
               </div>
             </div>
