@@ -331,7 +331,7 @@ const CustomizationPage = () => {
                 type="text"
                 value={newDomain}
                 onChange={(e) => setNewDomain(e.target.value)}
-                placeholder="ex: rifaup.com.br"
+                placeholder="Exemplo: rifaqui.com.br"
                 className="w-full bg-gray-700 border border-purple-500 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
               />
             </div>
