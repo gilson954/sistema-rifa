@@ -6,16 +6,16 @@ const RankingPage = () => {
   const [selectedFilter, setSelectedFilter] = useState('sem-filtro');
 
   return (
-    <div>
+    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300 min-h-[calc(100vh-176px)]">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300 mb-6">
+      <div className="border-b border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Ranking
         </h1>
       </div>
 
       {/* Main Content */}
-      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300">
+      <div className="p-6">
         {/* Campaign Selection */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
