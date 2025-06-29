@@ -6,9 +6,9 @@ const PaymentIntegrationsPage = () => {
   const navigate = useNavigate();
   const [isPixModalOpen, setIsPixModalOpen] = useState(false);
   const [isEfiModalOpen, setIsEfiModalOpen] = useState(false);
-  const [isFluxsisModalOpen, setIsFluxsisModalOpen] = useState(false);
-  const [isPay2mModalOpen, setIsPay2mModalOpen] = useState(false);
   const [isPaggueModalOpen, setIsPaggueModalOpen] = useState(false);
+  const [isPay2mModalOpen, setIsPay2mModalOpen] = useState(false);
+  const [isFluxsisModalOpen, setIsFluxsisModalOpen] = useState(false);
   const [isMercadoPagoModalOpen, setIsMercadoPagoModalOpen] = useState(false);
 
   const [pixConfig, setPixConfig] = useState({
@@ -26,11 +26,11 @@ const PaymentIntegrationsPage = () => {
     certificate: null as File | null
   });
 
-  const [fluxsisConfig, setFluxsisConfig] = useState({
+  const [paggueConfig, setPaggueConfig] = useState({
     isActive: false,
-    clientId: '',
+    clientKey: '',
     clientSecret: '',
-    pixKey: ''
+    signatureToken: ''
   });
 
   const [pay2mConfig, setPay2mConfig] = useState({
@@ -39,11 +39,11 @@ const PaymentIntegrationsPage = () => {
     clientSecret: ''
   });
 
-  const [paggueConfig, setPaggueConfig] = useState({
+  const [fluxsisConfig, setFluxsisConfig] = useState({
     isActive: false,
-    clientKey: '',
+    clientId: '',
     clientSecret: '',
-    signatureToken: ''
+    pixKey: ''
   });
 
   const [mercadoPagoConfig, setMercadoPagoConfig] = useState({
@@ -73,13 +73,13 @@ const PaymentIntegrationsPage = () => {
       }
     }
 
-    const savedFluxsisConfig = localStorage.getItem('fluxsisConfig');
-    if (savedFluxsisConfig) {
+    const savedPaggueConfig = localStorage.getItem('paggueConfig');
+    if (savedPaggueConfig) {
       try {
-        const parsedConfig = JSON.parse(savedFluxsisConfig);
-        setFluxsisConfig(parsedConfig);
+        const parsedConfig = JSON.parse(savedPaggueConfig);
+        setPaggueConfig(parsedConfig);
       } catch (error) {
-        console.error('Error parsing saved Fluxsis config:', error);
+        console.error('Error parsing saved Paggue config:', error);
       }
     }
 
@@ -93,13 +93,13 @@ const PaymentIntegrationsPage = () => {
       }
     }
 
-    const savedPaggueConfig = localStorage.getItem('paggueConfig');
-    if (savedPaggueConfig) {
+    const savedFluxsisConfig = localStorage.getItem('fluxsisConfig');
+    if (savedFluxsisConfig) {
       try {
-        const parsedConfig = JSON.parse(savedPaggueConfig);
-        setPaggueConfig(parsedConfig);
+        const parsedConfig = JSON.parse(savedFluxsisConfig);
+        setFluxsisConfig(parsedConfig);
       } catch (error) {
-        console.error('Error parsing saved Paggue config:', error);
+        console.error('Error parsing saved Fluxsis config:', error);
       }
     }
 
@@ -121,14 +121,14 @@ const PaymentIntegrationsPage = () => {
     // Update payment configuration status
     const isPixConfigured = pixConfig.isActive && pixConfig.pixKey.trim() && pixConfig.accountHolder.trim();
     const isEfiConfigured = efiConfig.isActive && efiConfig.clientId.trim() && efiConfig.clientSecret.trim() && efiConfig.pixKey.trim();
-    const isFluxsisConfigured = fluxsisConfig.isActive && fluxsisConfig.clientId.trim() && fluxsisConfig.clientSecret.trim() && fluxsisConfig.pixKey.trim();
-    const isPay2mConfigured = pay2mConfig.isActive && pay2mConfig.clientKey.trim() && pay2mConfig.clientSecret.trim();
     const isPaggueConfigured = paggueConfig.isActive && paggueConfig.clientKey.trim() && paggueConfig.clientSecret.trim() && paggueConfig.signatureToken.trim();
+    const isPay2mConfigured = pay2mConfig.isActive && pay2mConfig.clientKey.trim() && pay2mConfig.clientSecret.trim();
+    const isFluxsisConfigured = fluxsisConfig.isActive && fluxsisConfig.clientId.trim() && fluxsisConfig.clientSecret.trim() && fluxsisConfig.pixKey.trim();
     const isMercadoPagoConfigured = mercadoPagoConfig.isActive && mercadoPagoConfig.integrationKey.trim();
     
-    const isPaymentConfigured = isPixConfigured || isEfiConfigured || isFluxsisConfigured || isPay2mConfigured || isPaggueConfigured || isMercadoPagoConfigured;
+    const isPaymentConfigured = isPixConfigured || isEfiConfigured || isPaggueConfigured || isPay2mConfigured || isFluxsisConfigured || isMercadoPagoConfigured;
     localStorage.setItem('isPaymentConfigured', JSON.stringify(isPaymentConfigured));
-  }, [pixConfig, efiConfig, fluxsisConfig, pay2mConfig, paggueConfig, mercadoPagoConfig]);
+  }, [pixConfig, efiConfig, paggueConfig, pay2mConfig, fluxsisConfig, mercadoPagoConfig]);
 
   useEffect(() => {
     localStorage.setItem('efiConfig', JSON.stringify({
@@ -138,16 +138,16 @@ const PaymentIntegrationsPage = () => {
   }, [efiConfig]);
 
   useEffect(() => {
-    localStorage.setItem('fluxsisConfig', JSON.stringify(fluxsisConfig));
-  }, [fluxsisConfig]);
+    localStorage.setItem('paggueConfig', JSON.stringify(paggueConfig));
+  }, [paggueConfig]);
 
   useEffect(() => {
     localStorage.setItem('pay2mConfig', JSON.stringify(pay2mConfig));
   }, [pay2mConfig]);
 
   useEffect(() => {
-    localStorage.setItem('paggueConfig', JSON.stringify(paggueConfig));
-  }, [paggueConfig]);
+    localStorage.setItem('fluxsisConfig', JSON.stringify(fluxsisConfig));
+  }, [fluxsisConfig]);
 
   useEffect(() => {
     localStorage.setItem('mercadoPagoConfig', JSON.stringify(mercadoPagoConfig));
@@ -165,16 +165,16 @@ const PaymentIntegrationsPage = () => {
     setIsEfiModalOpen(true);
   };
 
-  const handleFluxsisConfig = () => {
-    setIsFluxsisModalOpen(true);
+  const handlePaggueConfig = () => {
+    setIsPaggueModalOpen(true);
   };
 
   const handlePay2mConfig = () => {
     setIsPay2mModalOpen(true);
   };
 
-  const handlePaggueConfig = () => {
-    setIsPaggueModalOpen(true);
+  const handleFluxsisConfig = () => {
+    setIsFluxsisModalOpen(true);
   };
 
   const handleMercadoPagoConfig = () => {
@@ -182,60 +182,72 @@ const PaymentIntegrationsPage = () => {
   };
 
   const handleSavePix = () => {
+    // Validate required fields
     if (!pixConfig.pixKey.trim() || !pixConfig.accountHolder.trim()) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
+
     console.log('Saving PIX configuration:', pixConfig);
     setIsPixModalOpen(false);
     alert('Configuração PIX salva com sucesso!');
   };
 
   const handleSaveEfi = () => {
+    // Validate required fields
     if (!efiConfig.clientId.trim() || !efiConfig.clientSecret.trim() || !efiConfig.pixKey.trim()) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
+
     console.log('Saving Efi Bank configuration:', efiConfig);
     setIsEfiModalOpen(false);
     alert('Configuração Efi Bank salva com sucesso!');
   };
 
-  const handleSaveFluxsis = () => {
-    if (!fluxsisConfig.clientId.trim() || !fluxsisConfig.clientSecret.trim() || !fluxsisConfig.pixKey.trim()) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
-      return;
-    }
-    console.log('Saving Fluxsis configuration:', fluxsisConfig);
-    setIsFluxsisModalOpen(false);
-    alert('Configuração Fluxsis salva com sucesso!');
-  };
-
-  const handleSavePay2m = () => {
-    if (!pay2mConfig.clientKey.trim() || !pay2mConfig.clientSecret.trim()) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
-      return;
-    }
-    console.log('Saving Pay2m configuration:', pay2mConfig);
-    setIsPay2mModalOpen(false);
-    alert('Configuração Pay2m salva com sucesso!');
-  };
-
   const handleSavePaggue = () => {
+    // Validate required fields
     if (!paggueConfig.clientKey.trim() || !paggueConfig.clientSecret.trim() || !paggueConfig.signatureToken.trim()) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
+
     console.log('Saving Paggue configuration:', paggueConfig);
     setIsPaggueModalOpen(false);
     alert('Configuração Paggue salva com sucesso!');
   };
 
+  const handleSavePay2m = () => {
+    // Validate required fields
+    if (!pay2mConfig.clientKey.trim() || !pay2mConfig.clientSecret.trim()) {
+      alert('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    console.log('Saving Pay2m configuration:', pay2mConfig);
+    setIsPay2mModalOpen(false);
+    alert('Configuração Pay2m salva com sucesso!');
+  };
+
+  const handleSaveFluxsis = () => {
+    // Validate required fields
+    if (!fluxsisConfig.clientId.trim() || !fluxsisConfig.clientSecret.trim() || !fluxsisConfig.pixKey.trim()) {
+      alert('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    console.log('Saving Fluxsis configuration:', fluxsisConfig);
+    setIsFluxsisModalOpen(false);
+    alert('Configuração Fluxsis salva com sucesso!');
+  };
+
   const handleSaveMercadoPago = () => {
+    // Validate required fields
     if (!mercadoPagoConfig.integrationKey.trim()) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
+
     console.log('Saving Mercado Pago configuration:', mercadoPagoConfig);
     setIsMercadoPagoModalOpen(false);
     alert('Configuração Mercado Pago salva com sucesso!');
@@ -260,58 +272,63 @@ const PaymentIntegrationsPage = () => {
     setIsEfiModalOpen(false);
   };
 
-  const handleCloseFluxsisModal = () => {
-    setIsFluxsisModalOpen(false);
+  const handleClosePaggueModal = () => {
+    setIsPaggueModalOpen(false);
   };
 
   const handleClosePay2mModal = () => {
     setIsPay2mModalOpen(false);
   };
 
-  const handleClosePaggueModal = () => {
-    setIsPaggueModalOpen(false);
+  const handleCloseFluxsisModal = () => {
+    setIsFluxsisModalOpen(false);
   };
 
   const handleCloseMercadoPagoModal = () => {
     setIsMercadoPagoModalOpen(false);
   };
 
-  // Check if payment methods are configured
-  const isPixConfigured = pixConfig.isActive && pixConfig.pixKey.trim() && pixConfig.accountHolder.trim();
-  const isEfiConfigured = efiConfig.isActive && efiConfig.clientId.trim() && efiConfig.clientSecret.trim() && efiConfig.pixKey.trim();
-  const isFluxsisConfigured = fluxsisConfig.isActive && fluxsisConfig.clientId.trim() && fluxsisConfig.clientSecret.trim() && fluxsisConfig.pixKey.trim();
-  const isPay2mConfigured = pay2mConfig.isActive && pay2mConfig.clientKey.trim() && pay2mConfig.clientSecret.trim();
-  const isPaggueConfigured = paggueConfig.isActive && paggueConfig.clientKey.trim() && paggueConfig.clientSecret.trim() && paggueConfig.signatureToken.trim();
-  const isMercadoPagoConfigured = mercadoPagoConfig.isActive && mercadoPagoConfig.integrationKey.trim();
-
   const paymentProviders = [
     {
       name: 'Fluxsis',
-      status: isFluxsisConfigured ? 'active' : 'inactive',
+      logo: '/api/placeholder/120/40',
+      status: 'inactive',
       recommended: true,
-      handler: handleFluxsisConfig
+      handler: handleFluxsisConfig,
+      isConfigured: fluxsisConfig.isActive && fluxsisConfig.clientId.trim() && fluxsisConfig.clientSecret.trim() && fluxsisConfig.pixKey.trim()
     },
     {
       name: 'Pay2m',
-      status: isPay2mConfigured ? 'active' : 'inactive',
-      handler: handlePay2mConfig
+      logo: '/api/placeholder/120/40',
+      status: 'inactive',
+      handler: handlePay2mConfig,
+      isConfigured: pay2mConfig.isActive && pay2mConfig.clientKey.trim() && pay2mConfig.clientSecret.trim()
     },
     {
       name: 'Paggue',
-      status: isPaggueConfigured ? 'active' : 'inactive',
-      handler: handlePaggueConfig
+      logo: '/api/placeholder/120/40',
+      status: 'inactive',
+      handler: handlePaggueConfig,
+      isConfigured: paggueConfig.isActive && paggueConfig.clientKey.trim() && paggueConfig.clientSecret.trim() && paggueConfig.signatureToken.trim()
     },
     {
       name: 'Mercado Pago',
-      status: isMercadoPagoConfigured ? 'active' : 'inactive',
-      handler: handleMercadoPagoConfig
+      logo: '/api/placeholder/120/40',
+      status: 'inactive',
+      handler: handleMercadoPagoConfig,
+      isConfigured: mercadoPagoConfig.isActive && mercadoPagoConfig.integrationKey.trim()
     },
     {
       name: 'Efí Bank',
-      status: isEfiConfigured ? 'active' : 'inactive',
-      handler: handleEfiConfig
+      logo: '/api/placeholder/120/40',
+      status: 'inactive',
+      handler: handleEfiConfig,
+      isConfigured: efiConfig.isActive && efiConfig.clientId.trim() && efiConfig.clientSecret.trim() && efiConfig.pixKey.trim()
     }
   ];
+
+  // Check if payment methods are configured
+  const isPixConfigured = pixConfig.isActive && pixConfig.pixKey.trim() && pixConfig.accountHolder.trim();
 
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300 min-h-[calc(100vh-176px)]">
@@ -344,7 +361,7 @@ const PaymentIntegrationsPage = () => {
             Arraste os métodos de pagamento para definir a ordem de processamento.
           </p>
           
-          {!isPixConfigured && !isEfiConfigured && !isFluxsisConfigured && !isPay2mConfigured && !isPaggueConfigured && !isMercadoPagoConfigured ? (
+          {!paymentProviders.some(p => p.isConfigured) && !isPixConfigured ? (
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 flex items-center space-x-2">
               <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
               <span className="text-sm text-yellow-800 dark:text-yellow-200">
@@ -361,46 +378,14 @@ const PaymentIntegrationsPage = () => {
                   </span>
                 </div>
               )}
-              {isEfiConfigured && (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center space-x-2">
+              {paymentProviders.filter(p => p.isConfigured).map((provider) => (
+                <div key={provider.name} className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center space-x-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
                   <span className="text-sm text-green-800 dark:text-green-200">
-                    Efi Bank configurado e ativo
+                    {provider.name} configurado e ativo
                   </span>
                 </div>
-              )}
-              {isFluxsisConfigured && (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-sm text-green-800 dark:text-green-200">
-                    Fluxsis configurado e ativo
-                  </span>
-                </div>
-              )}
-              {isPay2mConfigured && (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-sm text-green-800 dark:text-green-200">
-                    Pay2m configurado e ativo
-                  </span>
-                </div>
-              )}
-              {isPaggueConfigured && (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-sm text-green-800 dark:text-green-200">
-                    Paggue configurado e ativo
-                  </span>
-                </div>
-              )}
-              {isMercadoPagoConfigured && (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-sm text-green-800 dark:text-green-200">
-                    Mercado Pago configurado e ativo
-                  </span>
-                </div>
-              )}
+              ))}
             </div>
           )}
         </div>
@@ -429,7 +414,7 @@ const PaymentIntegrationsPage = () => {
               >
                 <div className="flex items-center space-x-4">
                   <div className={`w-3 h-3 rounded-full ${
-                    provider.status === 'active' ? 'bg-green-500' : 'bg-red-500'
+                    provider.isConfigured ? 'bg-green-500' : 'bg-red-500'
                   }`}></div>
                   <div className="w-24 h-8 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
                     <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
@@ -441,7 +426,7 @@ const PaymentIntegrationsPage = () => {
                       Recomendado
                     </span>
                   )}
-                  {provider.status === 'active' && (
+                  {provider.isConfigured && (
                     <span className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-2 py-1 rounded text-xs font-medium">
                       Configurado
                     </span>
@@ -451,7 +436,7 @@ const PaymentIntegrationsPage = () => {
                   onClick={provider.handler}
                   className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
                 >
-                  {provider.status === 'active' ? 'Editar' : 'Configurar'}
+                  {provider.isConfigured ? 'Editar' : 'Configurar'}
                 </button>
               </div>
             ))}
@@ -750,6 +735,218 @@ const PaymentIntegrationsPage = () => {
         </div>
       )}
 
+      {/* Paggue Configuration Modal */}
+      {isPaggueModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div 
+            className="bg-gray-900 rounded-lg p-6 w-full max-w-md text-white max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <h2 className="text-lg font-semibold text-white">Paggue</h2>
+              </div>
+              <button
+                onClick={handleClosePaggueModal}
+                className="p-1 hover:bg-gray-800 rounded transition-colors duration-200"
+              >
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Alert */}
+            <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-4 mb-6 flex items-start space-x-3">
+              <AlertTriangle className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-blue-300 text-sm">
+                  <span className="font-semibold">Atenção</span>
+                </p>
+                <p className="text-blue-200 text-sm">
+                  Esta forma de pagamento tem enfrentado problemas com bloqueios imprevistos. Se possível, prefira utilizar as outras formas de pagamento.
+                </p>
+              </div>
+            </div>
+
+            {/* Active Toggle */}
+            <div className="flex items-center justify-between mb-6">
+              <span className="text-white font-medium">Ativo</span>
+              <button
+                onClick={() => setPaggueConfig({ ...paggueConfig, isActive: !paggueConfig.isActive })}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+                  paggueConfig.isActive ? 'bg-purple-600' : 'bg-gray-600'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                    paggueConfig.isActive ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Client Key */}
+            <div className="mb-6">
+              <label className="block text-white font-medium mb-3">
+                Client_key
+              </label>
+              <input
+                type="text"
+                value={paggueConfig.clientKey}
+                onChange={(e) => setPaggueConfig({ ...paggueConfig, clientKey: e.target.value })}
+                placeholder="Cole aqui a chave"
+                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Client Secret */}
+            <div className="mb-6">
+              <label className="block text-white font-medium mb-3">
+                Client_secret
+              </label>
+              <input
+                type="text"
+                value={paggueConfig.clientSecret}
+                onChange={(e) => setPaggueConfig({ ...paggueConfig, clientSecret: e.target.value })}
+                placeholder="Cole aqui a chave"
+                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Token de assinatura */}
+            <div className="mb-8">
+              <label className="block text-white font-medium mb-3">
+                Token de assinatura
+              </label>
+              <input
+                type="text"
+                value={paggueConfig.signatureToken}
+                onChange={(e) => setPaggueConfig({ ...paggueConfig, signatureToken: e.target.value })}
+                placeholder="Cole aqui a chave"
+                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Save Button */}
+            <button
+              onClick={handleSavePaggue}
+              disabled={!paggueConfig.clientKey.trim() || !paggueConfig.clientSecret.trim() || !paggueConfig.signatureToken.trim()}
+              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 mb-4"
+            >
+              <span>Salvar Chave</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+
+            {/* Info Link */}
+            <div className="text-center">
+              <button className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200 flex items-center space-x-2 mx-auto">
+                <Info className="h-4 w-4" />
+                <span>Para ir direto a página do banco paggue clique aqui</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pay2m Configuration Modal */}
+      {isPay2mModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div 
+            className="bg-gray-900 rounded-lg p-6 w-full max-w-md text-white max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <h2 className="text-lg font-semibold text-white">Pay2m</h2>
+              </div>
+              <button
+                onClick={handleClosePay2mModal}
+                className="p-1 hover:bg-gray-800 rounded transition-colors duration-200"
+              >
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Alert */}
+            <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-4 mb-6 flex items-start space-x-3">
+              <AlertTriangle className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-blue-300 text-sm">
+                  <span className="font-semibold">Atenção</span>
+                </p>
+                <p className="text-blue-200 text-sm">
+                  O valor mínimo para compras com o Pay2M é de R$ 1,00. Para compras abaixo desse valor, configure um segundo método de pagamento.
+                </p>
+              </div>
+            </div>
+
+            {/* Active Toggle */}
+            <div className="flex items-center justify-between mb-6">
+              <span className="text-white font-medium">Ativo</span>
+              <button
+                onClick={() => setPay2mConfig({ ...pay2mConfig, isActive: !pay2mConfig.isActive })}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+                  pay2mConfig.isActive ? 'bg-purple-600' : 'bg-gray-600'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                    pay2mConfig.isActive ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Client Key */}
+            <div className="mb-6">
+              <label className="block text-white font-medium mb-3">
+                Client_key
+              </label>
+              <input
+                type="text"
+                value={pay2mConfig.clientKey}
+                onChange={(e) => setPay2mConfig({ ...pay2mConfig, clientKey: e.target.value })}
+                placeholder="Cole aqui a chave"
+                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Client Secret */}
+            <div className="mb-8">
+              <label className="block text-white font-medium mb-3">
+                Client_secret
+              </label>
+              <input
+                type="text"
+                value={pay2mConfig.clientSecret}
+                onChange={(e) => setPay2mConfig({ ...pay2mConfig, clientSecret: e.target.value })}
+                placeholder="Cole aqui a chave"
+                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Save Button */}
+            <button
+              onClick={handleSavePay2m}
+              disabled={!pay2mConfig.clientKey.trim() || !pay2mConfig.clientSecret.trim()}
+              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 mb-4"
+            >
+              <span>Salvar Chave</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+
+            {/* Info Link */}
+            <div className="text-center">
+              <button className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200 flex items-center space-x-2 mx-auto">
+                <Info className="h-4 w-4" />
+                <span>Para ir direto a página do Pay2M clique aqui</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Fluxsis Configuration Modal */}
       {isFluxsisModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -760,8 +957,8 @@ const PaymentIntegrationsPage = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <h2 className="text-lg font-semibold text-white">FLUXSIS</h2>
-                <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+                <h2 className="text-lg font-semibold text-white">Fluxsis</h2>
+                <span className="bg-green-600 text-white px-2 py-1 rounded text-xs font-medium">
                   Recomendado
                 </span>
               </div>
@@ -853,218 +1050,6 @@ const PaymentIntegrationsPage = () => {
         </div>
       )}
 
-      {/* Pay2m Configuration Modal */}
-      {isPay2mModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div 
-            className="bg-gray-900 rounded-lg p-6 w-full max-w-md text-white max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <h2 className="text-lg font-semibold text-white">Pay2m</h2>
-              </div>
-              <button
-                onClick={handleClosePay2mModal}
-                className="p-1 hover:bg-gray-800 rounded transition-colors duration-200"
-              >
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            </div>
-
-            {/* Alert */}
-            <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-4 mb-6 flex items-start space-x-3">
-              <AlertTriangle className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-blue-300 text-sm">
-                  <span className="font-semibold">Atenção</span>
-                </p>
-                <p className="text-blue-200 text-sm">
-                  O valor mínimo para compras com o Pay2M é de R$ 1,00. Para compras abaixo desse valor, configure um segundo método de pagamento.
-                </p>
-              </div>
-            </div>
-
-            {/* Active Toggle */}
-            <div className="flex items-center justify-between mb-6">
-              <span className="text-white font-medium">Ativo</span>
-              <button
-                onClick={() => setPay2mConfig({ ...pay2mConfig, isActive: !pay2mConfig.isActive })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
-                  pay2mConfig.isActive ? 'bg-purple-600' : 'bg-gray-600'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
-                    pay2mConfig.isActive ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Client_key */}
-            <div className="mb-6">
-              <label className="block text-white font-medium mb-3">
-                Client_key
-              </label>
-              <input
-                type="text"
-                value={pay2mConfig.clientKey}
-                onChange={(e) => setPay2mConfig({ ...pay2mConfig, clientKey: e.target.value })}
-                placeholder="Cole aqui a chave"
-                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Client_secret */}
-            <div className="mb-8">
-              <label className="block text-white font-medium mb-3">
-                Client_secret
-              </label>
-              <input
-                type="text"
-                value={pay2mConfig.clientSecret}
-                onChange={(e) => setPay2mConfig({ ...pay2mConfig, clientSecret: e.target.value })}
-                placeholder="Cole aqui a chave"
-                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Save Button */}
-            <button
-              onClick={handleSavePay2m}
-              disabled={!pay2mConfig.clientKey.trim() || !pay2mConfig.clientSecret.trim()}
-              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 mb-4"
-            >
-              <span>Salvar Chave</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
-
-            {/* Info Link */}
-            <div className="text-center">
-              <button className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200 flex items-center space-x-2 mx-auto">
-                <Info className="h-4 w-4" />
-                <span>Para ir direto a página do Pay2M clique aqui</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Paggue Configuration Modal */}
-      {isPaggueModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div 
-            className="bg-gray-900 rounded-lg p-6 w-full max-w-md text-white max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <h2 className="text-lg font-semibold text-white">paggue</h2>
-              </div>
-              <button
-                onClick={handleClosePaggueModal}
-                className="p-1 hover:bg-gray-800 rounded transition-colors duration-200"
-              >
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            </div>
-
-            {/* Alert */}
-            <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-4 mb-6 flex items-start space-x-3">
-              <AlertTriangle className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-blue-300 text-sm">
-                  <span className="font-semibold">Atenção</span>
-                </p>
-                <p className="text-blue-200 text-sm">
-                  Esta forma de pagamento tem enfrentado problemas com bloqueios imprevistos. Se possível, prefira utilizar as outras formas de pagamento.
-                </p>
-              </div>
-            </div>
-
-            {/* Active Toggle */}
-            <div className="flex items-center justify-between mb-6">
-              <span className="text-white font-medium">Ativo</span>
-              <button
-                onClick={() => setPaggueConfig({ ...paggueConfig, isActive: !paggueConfig.isActive })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
-                  paggueConfig.isActive ? 'bg-purple-600' : 'bg-gray-600'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
-                    paggueConfig.isActive ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Client_key */}
-            <div className="mb-6">
-              <label className="block text-white font-medium mb-3">
-                Client_key
-              </label>
-              <input
-                type="text"
-                value={paggueConfig.clientKey}
-                onChange={(e) => setPaggueConfig({ ...paggueConfig, clientKey: e.target.value })}
-                placeholder="Cole aqui a chave"
-                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Client_secret */}
-            <div className="mb-6">
-              <label className="block text-white font-medium mb-3">
-                Client_secret
-              </label>
-              <input
-                type="text"
-                value={paggueConfig.clientSecret}
-                onChange={(e) => setPaggueConfig({ ...paggueConfig, clientSecret: e.target.value })}
-                placeholder="Cole aqui a chave"
-                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Token de assinatura */}
-            <div className="mb-8">
-              <label className="block text-white font-medium mb-3">
-                Token de assinatura
-              </label>
-              <input
-                type="text"
-                value={paggueConfig.signatureToken}
-                onChange={(e) => setPaggueConfig({ ...paggueConfig, signatureToken: e.target.value })}
-                placeholder="Cole aqui a chave"
-                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Save Button */}
-            <button
-              onClick={handleSavePaggue}
-              disabled={!paggueConfig.clientKey.trim() || !paggueConfig.clientSecret.trim() || !paggueConfig.signatureToken.trim()}
-              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 mb-4"
-            >
-              <span>Salvar Chave</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
-
-            {/* Info Link */}
-            <div className="text-center">
-              <button className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200 flex items-center space-x-2 mx-auto">
-                <Info className="h-4 w-4" />
-                <span>Para ir direto a página do banco paggue clique aqui</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Mercado Pago Configuration Modal */}
       {isMercadoPagoModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1083,6 +1068,19 @@ const PaymentIntegrationsPage = () => {
               >
                 <X className="h-5 w-5 text-gray-400" />
               </button>
+            </div>
+
+            {/* Alert */}
+            <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-4 mb-6 flex items-start space-x-3">
+              <AlertTriangle className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-blue-300 text-sm">
+                  <span className="font-semibold">Atenção</span>
+                </p>
+                <p className="text-blue-200 text-sm">
+                  Esta forma de pagamento tem enfrentado problemas com bloqueios imprevistos. Se possível, prefira utilizar as outras formas de pagamento.
+                </p>
+              </div>
             </div>
 
             {/* Active Toggle */}
