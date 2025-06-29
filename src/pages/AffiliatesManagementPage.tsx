@@ -149,7 +149,10 @@ const AffiliatesManagementPage = () => {
               {/* Email Field */}
               <div>
                 <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">
-                  Endereço de e-mail do afiliado <span className="text-blue-500">?</span>
+                  Endereço de e-mail do afiliado{' '}
+                  <span className="inline-flex items-center justify-center w-4 h-4 bg-blue-500 text-white text-xs rounded-full font-bold">
+                    ?
+                  </span>
                 </label>
                 <input
                   type="email"
@@ -168,7 +171,10 @@ const AffiliatesManagementPage = () => {
               {/* Commission Type */}
               <div>
                 <label className="block text-sm text-gray-600 dark:text-gray-400 mb-3">
-                  Comissão <span className="text-blue-500">?</span>
+                  Comissão{' '}
+                  <span className="inline-flex items-center justify-center w-4 h-4 bg-blue-500 text-white text-xs rounded-full font-bold">
+                    ?
+                  </span>
                 </label>
 
                 {/* Percentage Option */}
