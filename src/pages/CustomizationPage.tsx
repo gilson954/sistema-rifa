@@ -51,9 +51,9 @@ const CustomizationPage = () => {
   };
 
   return (
-    <div className="bg-gray-900 text-white -mx-4 -mt-6 min-h-screen">
+    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
       {/* Tab Navigation */}
-      <div className="border-b border-gray-800">
+      <div className="border-b border-gray-200 dark:border-gray-800">
         <div className="flex space-x-0">
           {tabs.map((tab) => (
             <button
@@ -61,8 +61,8 @@ const CustomizationPage = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors duration-200 ${
                 activeTab === tab.id
-                  ? 'text-purple-400 border-purple-400'
-                  : 'text-gray-400 border-transparent hover:text-gray-300'
+                  ? 'text-purple-600 dark:text-purple-400 border-purple-600 dark:border-purple-400'
+                  : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
               {tab.label}
@@ -78,10 +78,10 @@ const CustomizationPage = () => {
           <div className="space-y-8">
             {/* Theme Selection */}
             <div>
-              <h2 className="text-xl font-semibold text-white mb-2">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 Cor de tema
               </h2>
-              <p className="text-gray-400 mb-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Selecione um tema para deixar sua rifa ainda mais elegante
               </p>
 
@@ -92,10 +92,10 @@ const CustomizationPage = () => {
                   className={`cursor-pointer rounded-lg p-4 transition-all duration-200 ${
                     selectedTheme === 'claro'
                       ? 'ring-2 ring-purple-500'
-                      : 'hover:ring-1 hover:ring-gray-600'
+                      : 'hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600'
                   }`}
                 >
-                  <div className="w-32 h-24 bg-white rounded-lg p-3 mb-3">
+                  <div className="w-32 h-24 bg-white rounded-lg p-3 mb-3 border border-gray-200">
                     <div className="space-y-2">
                       <div 
                         className="h-2 rounded w-3/4"
@@ -132,7 +132,7 @@ const CustomizationPage = () => {
                   className={`cursor-pointer rounded-lg p-4 transition-all duration-200 ${
                     selectedTheme === 'escuro'
                       ? 'ring-2 ring-purple-500'
-                      : 'hover:ring-1 hover:ring-gray-600'
+                      : 'hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600'
                   }`}
                 >
                   <div className="w-32 h-24 bg-gray-800 rounded-lg p-3 mb-3">
@@ -170,11 +170,11 @@ const CustomizationPage = () => {
 
             {/* Color Selection */}
             <div>
-              <h2 className="text-xl font-semibold text-white mb-2">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 Cor principal
               </h2>
-              <p className="text-gray-400 mb-6">
-                A cor selecionada será aplicada a textos e detalhes da sua rifa, <span className="text-white font-medium">não recomendamos branco ou preto</span>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                A cor selecionada será aplicada a textos e detalhes da sua rifa, <span className="text-gray-900 dark:text-white font-medium">não recomendamos branco ou preto</span>
               </p>
 
               <div className="flex flex-wrap gap-3 mb-8">
@@ -184,7 +184,7 @@ const CustomizationPage = () => {
                     onClick={() => setSelectedColor(color)}
                     className={`w-10 h-10 rounded-full transition-all duration-200 ${
                       selectedColor === color
-                        ? 'ring-2 ring-white ring-offset-2 ring-offset-gray-900 scale-110'
+                        ? 'ring-2 ring-gray-900 dark:ring-white ring-offset-2 ring-offset-white dark:ring-offset-gray-900 scale-110'
                         : 'hover:scale-105'
                     }`}
                     style={{ backgroundColor: color }}
@@ -197,10 +197,10 @@ const CustomizationPage = () => {
                     type="color"
                     value={selectedColor}
                     onChange={(e) => setSelectedColor(e.target.value)}
-                    className="w-10 h-10 rounded-full border-2 border-gray-600 cursor-pointer opacity-0 absolute inset-0"
+                    className="w-10 h-10 rounded-full border-2 border-gray-300 dark:border-gray-600 cursor-pointer opacity-0 absolute inset-0"
                   />
-                  <div className="w-10 h-10 rounded-full border-2 border-gray-600 flex items-center justify-center bg-gray-800 hover:bg-gray-700 transition-colors duration-200">
-                    <div className="w-6 h-6 rounded-full border border-gray-500 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
+                    <div className="w-6 h-6 rounded-full border border-gray-400 dark:border-gray-500 flex items-center justify-center">
                       <div className="w-2 h-2 bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 rounded-full"></div>
                     </div>
                   </div>
@@ -208,19 +208,19 @@ const CustomizationPage = () => {
               </div>
 
               {/* Color Preview */}
-              <div className="mb-6 p-4 bg-gray-800 rounded-lg">
-                <p className="text-sm text-gray-400 mb-2">Cor selecionada:</p>
+              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Cor selecionada:</p>
                 <div className="flex items-center space-x-3">
                   <div 
-                    className="w-8 h-8 rounded-full border-2 border-gray-600"
+                    className="w-8 h-8 rounded-full border-2 border-gray-300 dark:border-gray-600"
                     style={{ backgroundColor: selectedColor }}
                   ></div>
-                  <span className="text-white font-mono text-sm">{selectedColor.toUpperCase()}</span>
+                  <span className="text-gray-900 dark:text-white font-mono text-sm">{selectedColor.toUpperCase()}</span>
                 </div>
               </div>
 
               {/* Save Button */}
-              <button className="bg-gray-800 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2">
+              <button className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2">
                 <span>Salvar alterações</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
@@ -231,27 +231,27 @@ const CustomizationPage = () => {
         {/* Sua logo Tab */}
         {activeTab === 'sua-logo' && (
           <div>
-            <h2 className="text-2xl font-semibold text-white mb-2">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
               Sua logo
             </h2>
-            <p className="text-gray-400 mb-8">
-              Aqui você pode <span className="text-yellow-400">adicionar sua logo</span> e deixar suas campanhas ainda mais elegantes
+            <p className="text-gray-600 dark:text-gray-400 mb-8">
+              Aqui você pode <span className="text-yellow-600 dark:text-yellow-400">adicionar sua logo</span> e deixar suas campanhas ainda mais elegantes
             </p>
 
-            <div className="bg-gray-800 rounded-lg p-8">
-              <h3 className="text-lg font-semibold text-white mb-2">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-8">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 Logo
               </h3>
-              <p className="text-gray-400 mb-6">
-                Recomendamos as dimensões: <span className="text-white font-medium">largura:100px e altura:50px</span>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Recomendamos as dimensões: <span className="text-gray-900 dark:text-white font-medium">largura:100px e altura:50px</span>
               </p>
 
               {/* Upload Area */}
-              <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-gray-500 transition-colors duration-200">
-                <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200">
+                <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Upload className="h-8 w-8 text-gray-400" />
                 </div>
-                <p className="text-gray-400 mb-4">
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
                   Arraste e solte sua logo aqui ou clique para selecionar
                 </p>
                 <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 mx-auto">
@@ -268,10 +268,10 @@ const CustomizationPage = () => {
           <div>
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-2xl font-semibold text-white mb-2">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
                   Domínio personalizado
                 </h2>
-                <p className="text-gray-400">
+                <p className="text-gray-600 dark:text-gray-400">
                   Você pode adicionar até 3 domínios personalizados para suas rifas
                 </p>
               </div>
@@ -284,17 +284,17 @@ const CustomizationPage = () => {
               </button>
             </div>
 
-            <div className="bg-gray-800 rounded-lg p-8">
-              <h3 className="text-lg font-medium text-gray-400 mb-6">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-8">
+              <h3 className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-6">
                 Domínios configurados
               </h3>
 
               {/* Empty State */}
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <div className="w-8 h-8 border-2 border-gray-500 rounded border-dashed"></div>
+                <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-8 h-8 border-2 border-gray-400 dark:border-gray-500 rounded border-dashed"></div>
                 </div>
-                <p className="text-gray-400">
+                <p className="text-gray-600 dark:text-gray-400">
                   Você ainda não possui domínios configurados
                 </p>
               </div>
@@ -306,25 +306,25 @@ const CustomizationPage = () => {
       {/* New Domain Modal */}
       {showDomainModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Novo domínio
               </h2>
               <button
                 onClick={handleCloseDomainModal}
-                className="p-1 hover:bg-gray-700 rounded transition-colors duration-200"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
               >
                 <X className="h-5 w-5 text-gray-400" />
               </button>
             </div>
             
-            <p className="text-sm text-gray-400 mb-6">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
               Adicione um novo domínio para suas rifas
             </p>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Insira seu domínio
               </label>
               <input
@@ -332,18 +332,18 @@ const CustomizationPage = () => {
                 value={newDomain}
                 onChange={(e) => setNewDomain(e.target.value)}
                 placeholder="Exemplo: rifaqui.com.br"
-                className="w-full bg-gray-700 border border-purple-500 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                className="w-full bg-white dark:bg-gray-700 border border-purple-500 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
               />
             </div>
 
-            <p className="text-xs text-gray-400 mb-6">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
               Não use https ou (/) barras, insira somente o domínio
             </p>
 
             <button
               onClick={handleSaveDomain}
               disabled={!newDomain.trim()}
-              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200"
+              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200"
             >
               Salvar
             </button>

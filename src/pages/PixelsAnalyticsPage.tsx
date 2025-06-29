@@ -28,16 +28,16 @@ const PixelsAnalyticsPage = () => {
   };
 
   return (
-    <div className="bg-gray-900 text-white -mx-4 -mt-6 min-h-screen">
+    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
       {/* Header */}
-      <div className="flex items-center space-x-4 p-6 border-b border-gray-800">
+      <div className="flex items-center space-x-4 p-6 border-b border-gray-200 dark:border-gray-800">
         <button
           onClick={handleGoBack}
-          className="p-2 hover:bg-gray-800 rounded-lg transition-colors duration-200"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
         >
-          <ArrowLeft className="h-5 w-5 text-gray-400" />
+          <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
         </button>
-        <h1 className="text-xl font-medium text-white">
+        <h1 className="text-xl font-medium text-gray-900 dark:text-white">
           Seus Pixels
         </h1>
       </div>
@@ -45,30 +45,30 @@ const PixelsAnalyticsPage = () => {
       {/* Main Content */}
       <div className="p-6 space-y-4">
         {/* Facebook Pixel Card */}
-        <div className="bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-750 transition-colors duration-200">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
           <div className="flex items-center space-x-4">
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
               <Facebook className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white mb-1">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                 Facebook Pixel
               </h3>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Mensure e otimiza públicos dos seus anúncios do Facebook.
               </p>
             </div>
           </div>
           <button
             onClick={() => setShowFacebookModal(true)}
-            className="p-2 hover:bg-gray-700 rounded-lg transition-colors duration-200"
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
           >
-            <Plus className="h-5 w-5 text-gray-400" />
+            <Plus className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
 
         {/* Google Analytics Card */}
-        <div className="bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-750 transition-colors duration-200">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
           <div className="flex items-center space-x-4">
             <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
               <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -79,19 +79,19 @@ const PixelsAnalyticsPage = () => {
               </svg>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white mb-1">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                 Google Analytics
               </h3>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Monitore quem acessa sua rifa, dispositivos, cidades e outros dados.
               </p>
             </div>
           </div>
           <button
             onClick={() => setShowGoogleModal(true)}
-            className="p-2 hover:bg-gray-700 rounded-lg transition-colors duration-200"
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
           >
-            <Plus className="h-5 w-5 text-gray-400" />
+            <Plus className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
       </div>
@@ -99,25 +99,25 @@ const PixelsAnalyticsPage = () => {
       {/* Facebook Pixel Modal */}
       {showFacebookModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Adicionar Facebook Pixel
               </h2>
               <button
                 onClick={() => setShowFacebookModal(false)}
-                className="p-1 hover:bg-gray-700 rounded transition-colors duration-200"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
               >
                 <X className="h-5 w-5 text-gray-400" />
               </button>
             </div>
             
-            <p className="text-sm text-gray-400 mb-6">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
               Mensure e otimiza públicos dos seus anúncios do Facebook.
             </p>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Cole chave pixel
               </label>
               <input
@@ -125,7 +125,7 @@ const PixelsAnalyticsPage = () => {
                 value={facebookPixelKey}
                 onChange={(e) => setFacebookPixelKey(e.target.value)}
                 placeholder="Sua chave"
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
               />
             </div>
 
@@ -143,25 +143,25 @@ const PixelsAnalyticsPage = () => {
       {/* Google Analytics Modal */}
       {showGoogleModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Adicionar Google Analytics
               </h2>
               <button
                 onClick={() => setShowGoogleModal(false)}
-                className="p-1 hover:bg-gray-700 rounded transition-colors duration-200"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
               >
                 <X className="h-5 w-5 text-gray-400" />
               </button>
             </div>
             
-            <p className="text-sm text-gray-400 mb-6">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
               Monitore quem acessa sua rifa, dispositivos, cidades e outros dados.
             </p>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Cole chave pixel
               </label>
               <input
@@ -169,7 +169,7 @@ const PixelsAnalyticsPage = () => {
                 value={googleAnalyticsKey}
                 onChange={(e) => setGoogleAnalyticsKey(e.target.value)}
                 placeholder="Sua chave"
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
               />
             </div>
 

@@ -48,28 +48,28 @@ const TutorialsPage = () => {
   ];
 
   return (
-    <div className="bg-gray-900 text-white -mx-4 -mt-6 min-h-screen p-6">
+    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
       {/* FAQ Section */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold text-white mb-2">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
           Dúvidas frequentes
         </h2>
-        <p className="text-gray-400 mb-6">
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
           Confira nossas respostas para as perguntas mais comuns sobre o RifaUp
         </p>
 
         <div className="space-y-2">
           {faqs.map((faq, index) => (
-            <div key={index} className="bg-gray-800 rounded-lg overflow-hidden">
+            <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
               <button
                 onClick={() => toggleFAQ(index)}
-                className="w-full px-4 py-4 text-left flex items-center justify-between hover:bg-gray-750 transition-colors duration-200"
+                className="w-full px-4 py-4 text-left flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200"
               >
-                <span className="text-white font-medium pr-4">
+                <span className="text-gray-900 dark:text-white font-medium pr-4">
                   {faq.question}
                 </span>
                 <ChevronRight 
-                  className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
+                  className={`h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
                     openFAQ === index ? 'rotate-90' : ''
                   }`}
                 />
@@ -77,7 +77,7 @@ const TutorialsPage = () => {
               
               {openFAQ === index && (
                 <div className="px-4 pb-4">
-                  <p className="text-gray-300 text-sm leading-relaxed">
+                  <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                     {faq.answer}
                   </p>
                 </div>
@@ -88,24 +88,24 @@ const TutorialsPage = () => {
       </div>
 
       {/* Feature Request Section */}
-      <div className="bg-gray-800 rounded-lg p-6">
-        <h2 className="text-xl font-semibold text-white mb-2">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
           Precisa de ajuda?
         </h2>
-        <p className="text-gray-400 mb-6">
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
           Envie um email ou chame nosso suporte, queremos que sua experiência seja fantástica.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4">
           <button 
             onClick={handleWhatsAppSupport}
-            className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+            className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
           >
             <MessageCircle className="h-5 w-5" />
             <span>Chamar suporte</span>
           </button>
           
-          <button className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2">
+          <button className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2">
             <Mail className="h-5 w-5" />
             <span>Enviar email</span>
           </button>

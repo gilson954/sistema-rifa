@@ -3,7 +3,7 @@ import { Users, UserPlus, ExternalLink } from 'lucide-react';
 
 const AffiliationsPage = () => {
   return (
-    <div className="max-w-6xl mx-auto">
+    <div>
       {/* Two Column Layout */}
       <div className="grid md:grid-cols-2 gap-8">
         {/* Left Column - É organizador? */}

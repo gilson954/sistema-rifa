@@ -8,7 +8,7 @@ const RankingPage = () => {
   return (
     <div>
       {/* Header */}
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300 -mx-4 -mt-6 mb-6">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300 mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Ranking
         </h1>

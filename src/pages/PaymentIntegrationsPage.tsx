@@ -41,7 +41,7 @@ const PaymentIntegrationsPage = () => {
   return (
     <div>
       {/* Header */}
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300 -mx-4 -mt-6 mb-6">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300 mb-6">
         <div className="flex items-center space-x-4">
           <button
             onClick={handleGoBack}
@@ -56,7 +56,7 @@ const PaymentIntegrationsPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl">
+      <div>
         {/* Processing Order Section */}
         <div className="mb-8">
           <div className="flex items-center space-x-2 mb-4">
