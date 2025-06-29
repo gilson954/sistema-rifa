@@ -6,8 +6,8 @@ const ManualPixConfigPage = () => {
   const navigate = useNavigate();
   const [isActive, setIsActive] = useState(false);
   const [keyType, setKeyType] = useState('CPF');
-  const [pixKey, setPixKey] = useState('01685596177');
-  const [accountHolder, setAccountHolder] = useState('Gilson Rezende Silva Filho');
+  const [pixKey, setPixKey] = useState('');
+  const [accountHolder, setAccountHolder] = useState('');
 
   const handleGoBack = () => {
     navigate('/dashboard/integrations');
@@ -124,7 +124,8 @@ const ManualPixConfigPage = () => {
               type="text"
               value={pixKey}
               onChange={(e) => setPixKey(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="Digite sua chave PIX"
+              className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
 
@@ -137,7 +138,8 @@ const ManualPixConfigPage = () => {
               type="text"
               value={accountHolder}
               onChange={(e) => setAccountHolder(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="Nome completo do titular"
+              className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
 
