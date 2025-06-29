@@ -117,7 +117,7 @@ const Sidebar = () => {
           className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200"
         >
           <Home className="h-5 w-5" />
-          <span className="font-medium">Voltar ao site</span>
+          <span className="font-medium">Sair</span>
         </button>
       </div>
     </div>
