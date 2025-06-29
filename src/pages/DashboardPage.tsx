@@ -6,9 +6,15 @@ import {
   Share2,
   Play
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const DashboardPage = () => {
   const [showRevenue, setShowRevenue] = useState(false);
+  const navigate = useNavigate();
+
+  const handleConfigurePayment = () => {
+    navigate('/dashboard/integrations');
+  };
 
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 sm:p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300 min-h-[calc(100vh-200px)]">
@@ -29,7 +35,10 @@ const DashboardPage = () => {
                 </p>
               </div>
             </div>
-            <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 rounded-lg font-medium transition-colors duration-200 w-full sm:w-auto">
+            <button 
+              onClick={handleConfigurePayment}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 rounded-lg font-medium transition-colors duration-200 w-full sm:w-auto"
+            >
               Configurar
             </button>
           </div>
