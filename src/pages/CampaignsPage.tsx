@@ -9,8 +9,7 @@ import {
   Calendar,
   DollarSign,
   Users,
-  TrendingUp,
-  LayoutGrid
+  TrendingUp
 } from 'lucide-react';
 
 const CampaignsPage = () => {
