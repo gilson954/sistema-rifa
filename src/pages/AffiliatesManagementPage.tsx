@@ -9,7 +9,8 @@ const AffiliatesManagementPage = () => {
   const [newAffiliate, setNewAffiliate] = useState({
     email: '',
     commissionType: 'percentage', // 'percentage' or 'fixed'
-    commissionValue: 10
+    commissionValue: 10,
+    fixedCommissionValue: ''
   });
 
   const handleGoBack = () => {
@@ -27,7 +28,8 @@ const AffiliatesManagementPage = () => {
     setNewAffiliate({
       email: '',
       commissionType: 'percentage',
-      commissionValue: 10
+      commissionValue: 10,
+      fixedCommissionValue: ''
     });
   };
 
@@ -36,7 +38,8 @@ const AffiliatesManagementPage = () => {
     setNewAffiliate({
       email: '',
       commissionType: 'percentage',
-      commissionValue: 10
+      commissionValue: 10,
+      fixedCommissionValue: ''
     });
   };
 
@@ -221,6 +224,22 @@ const AffiliatesManagementPage = () => {
                         }}
                       />
                     </div>
+                  </div>
+                )}
+
+                {/* Fixed Amount Input */}
+                {newAffiliate.commissionType === 'fixed' && (
+                  <div className="mb-4">
+                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      Valor
+                    </label>
+                    <input
+                      type="text"
+                      value={newAffiliate.fixedCommissionValue}
+                      onChange={(e) => setNewAffiliate({ ...newAffiliate, fixedCommissionValue: e.target.value })}
+                      placeholder="R$ 0,00"
+                      className="w-full bg-white dark:bg-gray-700 border border-green-500 rounded-lg px-4 py-3 text-green-600 dark:text-green-400 placeholder-green-400 dark:placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200"
+                    />
                   </div>
                 )}
               </div>
