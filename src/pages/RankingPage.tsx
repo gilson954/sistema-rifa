@@ -6,16 +6,16 @@ const RankingPage = () => {
   const [selectedFilter, setSelectedFilter] = useState('sem-filtro');
 
   return (
-    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300 min-h-[calc(100vh-176px)]">
+    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300 min-h-[calc(100vh-200px)]">
       {/* Header */}
-      <div className="border-b border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+      <div className="border-b border-gray-200 dark:border-gray-800 p-4 sm:p-6 transition-colors duration-300">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
           Ranking
         </h1>
       </div>
 
       {/* Main Content */}
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {/* Campaign Selection */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -130,8 +130,8 @@ const RankingPage = () => {
                   key={item.position}
                   className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                 >
-                  <div className="flex items-center space-x-4">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                  <div className="flex items-center space-x-4 min-w-0 flex-1">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
                       item.position === 1 ? 'bg-yellow-500 text-white' :
                       item.position === 2 ? 'bg-gray-400 text-white' :
                       item.position === 3 ? 'bg-orange-600 text-white' :
@@ -139,8 +139,8 @@ const RankingPage = () => {
                     }`}>
                       {item.position}
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 dark:text-white truncate">
                         {item.name}
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -148,8 +148,8 @@ const RankingPage = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
                       {item.amount}
                     </p>
                   </div>
