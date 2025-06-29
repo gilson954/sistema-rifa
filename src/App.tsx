@@ -9,6 +9,7 @@ import RankingPage from './pages/RankingPage';
 import AffiliationsPage from './pages/AffiliationsPage';
 import PixelsAnalyticsPage from './pages/PixelsAnalyticsPage';
 import CustomizationPage from './pages/CustomizationPage';
+import AccountPage from './pages/AccountPage';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="affiliations" element={<AffiliationsPage />} />
           <Route path="analytics" element={<PixelsAnalyticsPage />} />
           <Route path="customize" element={<CustomizationPage />} />
+          <Route path="account" element={<AccountPage />} />
         </Route>
       </Routes>
     </Router>
