@@ -8,6 +8,10 @@ const TutorialsPage = () => {
     setOpenFAQ(openFAQ === index ? null : index);
   };
 
+  const handleWhatsAppSupport = () => {
+    window.open('https://wa.me/5562981127960', '_blank');
+  };
+
   const faqs = [
     {
       question: "Como criar uma rifa online?",
@@ -93,7 +97,10 @@ const TutorialsPage = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4">
-          <button className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2">
+          <button 
+            onClick={handleWhatsAppSupport}
+            className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+          >
             <MessageCircle className="h-5 w-5" />
             <span>Chamar suporte</span>
           </button>
