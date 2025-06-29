@@ -9,9 +9,7 @@ import {
   Camera,
   Clock,
   Share2,
-  Settings,
-  ChevronLeft,
-  ChevronRight
+  Settings
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
@@ -152,17 +150,6 @@ const DashboardPage = () => {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Pagination */}
-        <div className="flex items-center justify-end space-x-4">
-          <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors duration-200">
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <span className="text-gray-600 dark:text-gray-300 transition-colors duration-300">Página 1</span>
-          <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors duration-200">
-            <ChevronRight className="h-5 w-5" />
-          </button>
         </div>
       </div>
     </div>
