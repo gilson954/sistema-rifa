@@ -140,19 +140,19 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
               </li>
             );
           })}
+          
+          {/* Sair Button - Now inside the navigation menu */}
+          <li>
+            <button
+              onClick={handleGoHome}
+              className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200"
+            >
+              <Home className="h-5 w-5" />
+              <span className="font-medium">Sair</span>
+            </button>
+          </li>
         </ul>
       </nav>
-
-      {/* Home Button */}
-      <div className="p-4 border-t border-gray-800">
-        <button
-          onClick={handleGoHome}
-          className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200"
-        >
-          <Home className="h-5 w-5" />
-          <span className="font-medium">Sair</span>
-        </button>
-      </div>
     </div>
   );
 };
