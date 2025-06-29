@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutGrid, 
   CreditCard, 
@@ -18,6 +18,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleGoHome = () => {
     navigate('/');
@@ -108,18 +109,41 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         <ul className="space-y-2">
           {menuItems.map((item, index) => {
             const IconComponent = item.icon;
+            
+            // Special handling for Campanhas - should be active when on dashboard or integrations
+            const isCampanhasItem = item.path === '/dashboard';
+            const shouldBeActive = isCampanhasItem 
+              ? location.pathname === '/dashboard' || location.pathname === '/dashboard/integrations'
+              : false;
+            
+            // Special handling for Configure seu pix - should never be active
+            const isPixItem = item.path === '/dashboard/integrations';
+            
             return (
               <li key={index}>
                 <NavLink
                   to={item.path}
                   onClick={onClose}
-                  className={({ isActive }) =>
-                    `w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 ${
-                      isActive
+                  className={({ isActive }) => {
+                    let active = false;
+                    
+                    if (isCampanhasItem) {
+                      // Campanhas should be active when on dashboard or integrations page
+                      active = shouldBeActive;
+                    } else if (isPixItem) {
+                      // Configure seu pix should never be active
+                      active = false;
+                    } else {
+                      // Other items use default behavior
+                      active = isActive;
+                    }
+                    
+                    return `w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 ${
+                      active
                         ? 'bg-purple-600 text-white'
                         : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                    }`
-                  }
+                    }`;
+                  }}
                 >
                   <IconComponent className="h-5 w-5" />
                   <span className="font-medium">{item.label}</span>
