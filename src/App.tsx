@@ -10,6 +10,7 @@ import AffiliationsPage from './pages/AffiliationsPage';
 import PixelsAnalyticsPage from './pages/PixelsAnalyticsPage';
 import CustomizationPage from './pages/CustomizationPage';
 import AccountPage from './pages/AccountPage';
+import SocialMediaPage from './pages/SocialMediaPage';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="integrations" element={<PaymentIntegrationsPage />} />
           <Route path="ranking" element={<RankingPage />} />
           <Route path="affiliations" element={<AffiliationsPage />} />
+          <Route path="social-media" element={<SocialMediaPage />} />
           <Route path="analytics" element={<PixelsAnalyticsPage />} />
           <Route path="customize" element={<CustomizationPage />} />
           <Route path="account" element={<AccountPage />} />
