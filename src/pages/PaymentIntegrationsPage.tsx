@@ -62,6 +62,10 @@ const PaymentIntegrationsPage = () => {
     alert('Configuração PIX salva com sucesso!');
   };
 
+  const handleWhatsAppSupport = () => {
+    window.open('https://wa.me/5562981127960', '_blank');
+  };
+
   const paymentProviders = [
     {
       name: 'Fluxsis',
@@ -324,7 +328,10 @@ const PaymentIntegrationsPage = () => {
               <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
                 Nossa equipe está disponível para ajudar você a configurar suas integrações de pagamento.
               </p>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
+              <button 
+                onClick={handleWhatsAppSupport}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+              >
                 Falar com Suporte
               </button>
             </div>
