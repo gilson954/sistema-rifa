@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   LayoutGrid, 
   CreditCard, 
@@ -8,56 +8,72 @@ import {
   Palette, 
   User, 
   HelpCircle, 
-  Home
+  Home,
+  X
 } from 'lucide-react';
 
-const Sidebar = () => {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const navigate = useNavigate();
 
   const handleGoHome = () => {
     navigate('/');
+    onClose?.();
   };
 
   const menuItems = [
     {
       icon: LayoutGrid,
       label: 'Campanhas',
-      active: true
+      path: '/dashboard'
     },
     {
       icon: CreditCard,
       label: 'Configure seu pix',
-      active: false
+      path: '/dashboard/configure-pix'
     },
     {
       icon: Share2,
       label: 'Redes sociais',
-      active: false
+      path: '/dashboard/social-media'
     },
     {
       icon: BarChart3,
       label: 'Pixels e Analytics',
-      active: false
+      path: '/dashboard/analytics'
     },
     {
       icon: Palette,
       label: 'Personalizar rifas',
-      active: false
+      path: '/dashboard/customize'
     },
     {
       icon: User,
       label: 'Minha conta',
-      active: false
+      path: '/dashboard/account'
     },
     {
       icon: HelpCircle,
       label: 'Suporte e tutoriais',
-      active: false
+      path: '/dashboard/support'
     }
   ];
 
   return (
     <div className="w-60 bg-gray-900 min-h-screen flex flex-col">
+      {/* Mobile Close Button */}
+      <div className="md:hidden flex justify-end p-4">
+        <button
+          onClick={onClose}
+          className="text-gray-400 hover:text-white transition-colors duration-200"
+        >
+          <X className="h-6 w-6" />
+        </button>
+      </div>
+
       {/* Logo */}
       <div className="p-6 border-b border-gray-800">
         <div className="flex items-center">
@@ -94,16 +110,20 @@ const Sidebar = () => {
             const IconComponent = item.icon;
             return (
               <li key={index}>
-                <button
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 ${
-                    item.active
-                      ? 'bg-purple-600 text-white'
-                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                  }`}
+                <NavLink
+                  to={item.path}
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    `w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 ${
+                      isActive
+                        ? 'bg-purple-600 text-white'
+                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                    }`
+                  }
                 >
                   <IconComponent className="h-5 w-5" />
                   <span className="font-medium">{item.label}</span>
-                </button>
+                </NavLink>
               </li>
             );
           })}
