@@ -10,7 +10,8 @@ import {
   HelpCircle, 
   Home,
   X,
-  Trophy
+  Trophy,
+  Users
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -40,6 +41,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       icon: Trophy,
       label: 'Ranking',
       path: '/dashboard/ranking'
+    },
+    {
+      icon: Users,
+      label: 'Afiliações',
+      path: '/dashboard/affiliations'
     },
     {
       icon: Share2,

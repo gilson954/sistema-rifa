@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage';
 import DashboardPage from './pages/DashboardPage';
 import PaymentIntegrationsPage from './pages/PaymentIntegrationsPage';
 import RankingPage from './pages/RankingPage';
+import AffiliationsPage from './pages/AffiliationsPage';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route index element={<DashboardPage />} />
           <Route path="integrations" element={<PaymentIntegrationsPage />} />
           <Route path="ranking" element={<RankingPage />} />
+          <Route path="affiliations" element={<AffiliationsPage />} />
         </Route>
       </Routes>
     </Router>
