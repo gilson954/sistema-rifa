@@ -4,7 +4,6 @@ import Layout from './components/Layout';
 import DashboardLayout from './components/DashboardLayout';
 import HomePage from './pages/HomePage';
 import DashboardPage from './pages/DashboardPage';
-import CampaignsPage from './pages/CampaignsPage';
 import PaymentIntegrationsPage from './pages/PaymentIntegrationsPage';
 
 function App() {
@@ -19,7 +18,6 @@ function App() {
         {/* Dashboard */}
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardPage />} />
-          <Route path="campaigns" element={<CampaignsPage />} />
           <Route path="integrations" element={<PaymentIntegrationsPage />} />
         </Route>
       </Routes>
