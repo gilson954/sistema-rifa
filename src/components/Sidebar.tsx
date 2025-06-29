@@ -26,9 +26,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
 
   const menuItems = [
     {
+      icon: Home,
+      label: 'Home',
+      path: '/dashboard'
+    },
+    {
       icon: LayoutGrid,
       label: 'Campanhas',
-      path: '/dashboard'
+      path: '/dashboard/campaigns'
     },
     {
       icon: CreditCard,
@@ -131,7 +136,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         </ul>
       </nav>
 
-      {/* Home Button */}
+      {/* Exit Button */}
       <div className="p-4 border-t border-gray-800">
         <button
           onClick={handleGoHome}
