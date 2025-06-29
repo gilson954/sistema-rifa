@@ -1,16 +1,29 @@
-import React from 'react';
-import { ArrowLeft, Info, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Info, CheckCircle, AlertTriangle, ArrowRight, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const PaymentIntegrationsPage = () => {
   const navigate = useNavigate();
+  const [showPixConfig, setShowPixConfig] = useState(false);
+  const [pixConfig, setPixConfig] = useState({
+    isActive: false,
+    keyType: 'CPF',
+    pixKey: '',
+    accountHolder: ''
+  });
 
   const handleGoBack = () => {
     navigate('/dashboard');
   };
 
   const handlePixConfig = () => {
-    navigate('/dashboard/pix-manual-config');
+    setShowPixConfig(!showPixConfig);
+  };
+
+  const handleSavePix = () => {
+    // Handle saving PIX configuration
+    console.log('Saving PIX configuration:', pixConfig);
+    setShowPixConfig(false);
   };
 
   const paymentProviders = [
@@ -135,13 +148,11 @@ const PaymentIntegrationsPage = () => {
             </p>
           </div>
 
-          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between transition-colors duration-300">
+          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between transition-colors duration-300 mb-4">
             <div className="flex items-center space-x-4">
               <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              <div className="w-16 h-8 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
-                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                  PIX
-                </span>
+              <div className="flex items-center space-x-3">
+                <div className="text-2xl font-bold text-teal-400">pix</div>
               </div>
             </div>
             <button 
@@ -151,6 +162,99 @@ const PaymentIntegrationsPage = () => {
               Configurar
             </button>
           </div>
+
+          {/* PIX Configuration Panel */}
+          {showPixConfig && (
+            <div className="bg-gray-900 rounded-lg p-6 text-white">
+              {/* Alert */}
+              <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-4 mb-6 flex items-start space-x-3">
+                <AlertTriangle className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-blue-300 text-sm">
+                    <span className="font-semibold">Atenção</span>
+                  </p>
+                  <p className="text-blue-200 text-sm">
+                    Pedidos com este meio de pagamento NÃO liberam automaticamente, você terá que aprovar as compras manualmente.
+                  </p>
+                </div>
+              </div>
+
+              {/* Active Toggle */}
+              <div className="flex items-center justify-between mb-6">
+                <span className="text-white font-medium">Ativo</span>
+                <button
+                  onClick={() => setPixConfig({ ...pixConfig, isActive: !pixConfig.isActive })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+                    pixConfig.isActive ? 'bg-purple-600' : 'bg-gray-600'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                      pixConfig.isActive ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Key Type */}
+              <div className="mb-6">
+                <label className="block text-white font-medium mb-3">
+                  Tipo de chave
+                </label>
+                <div className="relative">
+                  <select
+                    value={pixConfig.keyType}
+                    onChange={(e) => setPixConfig({ ...pixConfig, keyType: e.target.value })}
+                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none"
+                  >
+                    <option value="CPF">CPF</option>
+                    <option value="CNPJ">CNPJ</option>
+                    <option value="Email">Email</option>
+                    <option value="Telefone">Telefone</option>
+                    <option value="Chave Aleatória">Chave Aleatória</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* PIX Key */}
+              <div className="mb-6">
+                <label className="block text-white font-medium mb-3">
+                  Chave pix
+                </label>
+                <input
+                  type="text"
+                  value={pixConfig.pixKey}
+                  onChange={(e) => setPixConfig({ ...pixConfig, pixKey: e.target.value })}
+                  placeholder="Digite sua chave pix"
+                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Account Holder */}
+              <div className="mb-8">
+                <label className="block text-white font-medium mb-3">
+                  Titular da conta
+                </label>
+                <input
+                  type="text"
+                  value={pixConfig.accountHolder}
+                  onChange={(e) => setPixConfig({ ...pixConfig, accountHolder: e.target.value })}
+                  placeholder="Digite o titular da conta"
+                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Save Button */}
+              <button
+                onClick={handleSavePix}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+              >
+                <span>Salvar pix</span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Help Section */}
