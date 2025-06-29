@@ -174,7 +174,7 @@ const CustomizationPage = () => {
                 Cor principal
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                A cor selecionada será aplicada a textos e detalhes da sua rifa, <span className="text-gray-900 dark:text-white font-medium">não recomendamos branco ou preto</span>
+                A cor selecionada será aplicada a textos e detalhes da sua rifa
               </p>
 
               <div className="flex flex-wrap gap-3 mb-8">
