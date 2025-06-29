@@ -1,14 +1,14 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
-  Home, 
+  LayoutGrid, 
   CreditCard, 
   Share2, 
   BarChart3, 
   Palette, 
   User, 
   HelpCircle, 
-  LogOut,
+  Home,
   X
 } from 'lucide-react';
 
@@ -19,7 +19,12 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const navigate = useNavigate();
 
-  const handleGoToLanding = () => {
+  const handleGoHome = () => {
+    navigate('/');
+    onClose?.();
+  };
+
+  const handleCampaignsClick = () => {
     navigate('/');
     onClose?.();
   };
@@ -28,7 +33,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     {
       icon: Home,
       label: 'Home',
-      path: '/dashboard'
+      path: '/',
+      isExternal: true
+    },
+    {
+      icon: LayoutGrid,
+      label: 'Campanhas',
+      path: '/',
+      isExternal: true
     },
     {
       icon: CreditCard,
@@ -108,6 +120,21 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         <ul className="space-y-2">
           {menuItems.map((item, index) => {
             const IconComponent = item.icon;
+            
+            if (item.isExternal) {
+              return (
+                <li key={index}>
+                  <button
+                    onClick={item.label === 'Home' ? handleGoHome : handleCampaignsClick}
+                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 text-gray-300 hover:bg-gray-800 hover:text-white"
+                  >
+                    <IconComponent className="h-5 w-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </button>
+                </li>
+              );
+            }
+            
             return (
               <li key={index}>
                 <NavLink
@@ -131,16 +158,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         </ul>
       </nav>
 
-      {/* Logout Button */}
-      <div className="p-4 border-t border-gray-800">
-        <button
-          onClick={handleGoToLanding}
-          className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200"
-        >
-          <LogOut className="h-5 w-5" />
-          <span className="font-medium">Sair</span>
-        </button>
-      </div>
+      {/* Bottom section removed since Home is now in the main menu */}
     </div>
   );
 };
