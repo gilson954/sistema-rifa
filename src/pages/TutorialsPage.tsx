@@ -45,21 +45,6 @@ const TutorialsPage = () => {
 
   return (
     <div className="bg-gray-900 text-white -mx-4 -mt-6 min-h-screen p-6">
-      {/* Support Section */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold text-white mb-2">
-          Suporte personalizado?
-        </h2>
-        <p className="text-gray-400 mb-6">
-          Conte com nossa equipe para te ajudar em todas as etapas da sua rifa!
-        </p>
-        
-        <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2">
-          <MessageCircle className="h-5 w-5" />
-          <span>WhatsApp</span>
-        </button>
-      </div>
-
       {/* FAQ Section */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold text-white mb-2">
