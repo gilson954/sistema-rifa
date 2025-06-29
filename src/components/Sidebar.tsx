@@ -57,8 +57,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     },
     {
       icon: HelpCircle,
-      label: 'Suporte e tutoriais',
-      path: '/dashboard/support'
+      label: 'Tutoriais',
+      path: '/dashboard/tutorials'
     }
   ];
 
