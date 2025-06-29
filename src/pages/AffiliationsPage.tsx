@@ -1,7 +1,19 @@
 import React from 'react';
 import { Users, UserPlus, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const AffiliationsPage = () => {
+  const navigate = useNavigate();
+
+  const handleOrganizerClick = () => {
+    navigate('/dashboard/affiliations/manage');
+  };
+
+  const handleAffiliateClick = () => {
+    // Navigate to affiliate management page (could be a different page)
+    navigate('/dashboard/affiliations/manage');
+  };
+
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300 min-h-[calc(100vh-176px)]">
       {/* Two Column Layout */}
@@ -21,7 +33,10 @@ const AffiliationsPage = () => {
               Aqui aparecem os usuários que possuem afiliação com você.
             </p>
             
-            <button className="bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center space-x-2 mx-auto">
+            <button 
+              onClick={handleOrganizerClick}
+              className="bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center space-x-2 mx-auto"
+            >
               <span>Clique aqui!</span>
               <ExternalLink className="h-4 w-4" />
             </button>
@@ -55,7 +70,10 @@ const AffiliationsPage = () => {
               Aqui aparecem os usuários que você possui afiliação.
             </p>
             
-            <button className="bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center space-x-2 mx-auto">
+            <button 
+              onClick={handleAffiliateClick}
+              className="bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center space-x-2 mx-auto"
+            >
               <span>Clique aqui!</span>
               <ExternalLink className="h-4 w-4" />
             </button>

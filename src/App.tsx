@@ -7,6 +7,7 @@ import DashboardPage from './pages/DashboardPage';
 import PaymentIntegrationsPage from './pages/PaymentIntegrationsPage';
 import RankingPage from './pages/RankingPage';
 import AffiliationsPage from './pages/AffiliationsPage';
+import AffiliatesManagementPage from './pages/AffiliatesManagementPage';
 import PixelsAnalyticsPage from './pages/PixelsAnalyticsPage';
 import CustomizationPage from './pages/CustomizationPage';
 import AccountPage from './pages/AccountPage';
@@ -28,6 +29,7 @@ function App() {
           <Route path="integrations" element={<PaymentIntegrationsPage />} />
           <Route path="ranking" element={<RankingPage />} />
           <Route path="affiliations" element={<AffiliationsPage />} />
+          <Route path="affiliations/manage" element={<AffiliatesManagementPage />} />
           <Route path="social-media" element={<SocialMediaPage />} />
           <Route path="analytics" element={<PixelsAnalyticsPage />} />
           <Route path="customize" element={<CustomizationPage />} />
