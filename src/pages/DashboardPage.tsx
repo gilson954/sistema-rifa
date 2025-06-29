@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Eye, 
   EyeOff, 
@@ -10,7 +10,22 @@ import { useNavigate } from 'react-router-dom';
 
 const DashboardPage = () => {
   const [showRevenue, setShowRevenue] = useState(false);
+  const [displayPaymentSetupCard, setDisplayPaymentSetupCard] = useState(true);
   const navigate = useNavigate();
+
+  // Check if payment is configured on component mount
+  useEffect(() => {
+    const isPaymentConfigured = localStorage.getItem('isPaymentConfigured');
+    if (isPaymentConfigured) {
+      try {
+        const configured = JSON.parse(isPaymentConfigured);
+        setDisplayPaymentSetupCard(!configured);
+      } catch (error) {
+        console.error('Error parsing payment configuration status:', error);
+        setDisplayPaymentSetupCard(true);
+      }
+    }
+  }, []);
 
   const handleConfigurePayment = () => {
     navigate('/dashboard/integrations');
@@ -19,30 +34,32 @@ const DashboardPage = () => {
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 sm:p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300 min-h-[calc(100vh-200px)]">
       <div className="space-y-6">
-        {/* Payment Setup Card */}
-        <div className="bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/50 dark:to-blue-900/50 border border-purple-200 dark:border-purple-700/50 rounded-lg p-4 shadow-sm transition-colors duration-300">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-start sm:items-center space-x-4 flex-1 min-w-0">
-              <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Share2 className="h-6 w-6 text-white" />
+        {/* Payment Setup Card - Only show if payment is not configured */}
+        {displayPaymentSetupCard && (
+          <div className="bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/50 dark:to-blue-900/50 border border-purple-200 dark:border-purple-700/50 rounded-lg p-4 shadow-sm transition-colors duration-300">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start sm:items-center space-x-4 flex-1 min-w-0">
+                <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Share2 className="h-6 w-6 text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white transition-colors duration-300">
+                    Forma de recebimento
+                  </h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 transition-colors duration-300">
+                    Você ainda não configurou uma forma para receber os pagamentos na sua conta
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white transition-colors duration-300">
-                  Forma de recebimento
-                </h3>
-                <p className="text-sm text-gray-700 dark:text-gray-300 transition-colors duration-300">
-                  Você ainda não configurou uma forma para receber os pagamentos na sua conta
-                </p>
-              </div>
+              <button 
+                onClick={handleConfigurePayment}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 rounded-lg font-medium transition-colors duration-200 w-full sm:w-auto"
+              >
+                Configurar
+              </button>
             </div>
-            <button 
-              onClick={handleConfigurePayment}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 rounded-lg font-medium transition-colors duration-200 w-full sm:w-auto"
-            >
-              Configurar
-            </button>
           </div>
-        </div>
+        )}
 
         {/* Revenue Card */}
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 shadow-sm transition-colors duration-300">

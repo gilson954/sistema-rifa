@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Info, CheckCircle, AlertTriangle, ArrowRight, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,6 +12,28 @@ const PaymentIntegrationsPage = () => {
     accountHolder: ''
   });
 
+  // Load PIX configuration from localStorage on component mount
+  useEffect(() => {
+    const savedPixConfig = localStorage.getItem('pixConfig');
+    if (savedPixConfig) {
+      try {
+        const parsedConfig = JSON.parse(savedPixConfig);
+        setPixConfig(parsedConfig);
+      } catch (error) {
+        console.error('Error parsing saved PIX config:', error);
+      }
+    }
+  }, []);
+
+  // Save PIX configuration to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('pixConfig', JSON.stringify(pixConfig));
+    
+    // Update payment configuration status
+    const isPaymentConfigured = pixConfig.isActive && pixConfig.pixKey.trim() && pixConfig.accountHolder.trim();
+    localStorage.setItem('isPaymentConfigured', JSON.stringify(isPaymentConfigured));
+  }, [pixConfig]);
+
   const handleGoBack = () => {
     navigate('/dashboard');
   };
@@ -21,9 +43,23 @@ const PaymentIntegrationsPage = () => {
   };
 
   const handleSavePix = () => {
+    // Validate required fields
+    if (!pixConfig.pixKey.trim() || !pixConfig.accountHolder.trim()) {
+      alert('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
     // Handle saving PIX configuration
     console.log('Saving PIX configuration:', pixConfig);
+    
+    // Update payment configuration status
+    const isPaymentConfigured = pixConfig.isActive && pixConfig.pixKey.trim() && pixConfig.accountHolder.trim();
+    localStorage.setItem('isPaymentConfigured', JSON.stringify(isPaymentConfigured));
+    
     setShowPixConfig(false);
+    
+    // Show success message
+    alert('Configuração PIX salva com sucesso!');
   };
 
   const paymentProviders = [
@@ -54,6 +90,9 @@ const PaymentIntegrationsPage = () => {
       status: 'inactive'
     }
   ];
+
+  // Check if PIX is configured and active
+  const isPixConfigured = pixConfig.isActive && pixConfig.pixKey.trim() && pixConfig.accountHolder.trim();
 
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300 min-h-[calc(100vh-176px)]">
@@ -86,12 +125,21 @@ const PaymentIntegrationsPage = () => {
             Arraste os métodos de pagamento para definir a ordem de processamento.
           </p>
           
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 flex items-center space-x-2">
-            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-            <span className="text-sm text-yellow-800 dark:text-yellow-200">
-              Nenhum método de pagamento ativo até o momento
-            </span>
-          </div>
+          {!isPixConfigured ? (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 flex items-center space-x-2">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+              <span className="text-sm text-yellow-800 dark:text-yellow-200">
+                Nenhum método de pagamento ativo até o momento
+              </span>
+            </div>
+          ) : (
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center space-x-2">
+              <CheckCircle className="w-5 h-5 text-green-500" />
+              <span className="text-sm text-green-800 dark:text-green-200">
+                PIX Manual configurado e ativo
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Automatic Download Section */}
@@ -150,16 +198,21 @@ const PaymentIntegrationsPage = () => {
 
           <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between transition-colors duration-300 mb-4">
             <div className="flex items-center space-x-4">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div className={`w-3 h-3 rounded-full ${isPixConfigured ? 'bg-green-500' : 'bg-red-500'}`}></div>
               <div className="flex items-center space-x-3">
                 <div className="text-2xl font-bold text-teal-400">pix</div>
+                {isPixConfigured && (
+                  <span className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-2 py-1 rounded text-xs font-medium">
+                    Configurado
+                  </span>
+                )}
               </div>
             </div>
             <button 
               onClick={handlePixConfig}
               className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
             >
-              Configurar
+              {isPixConfigured ? 'Editar' : 'Configurar'}
             </button>
           </div>
 
@@ -220,7 +273,7 @@ const PaymentIntegrationsPage = () => {
               {/* PIX Key */}
               <div className="mb-6">
                 <label className="block text-white font-medium mb-3">
-                  Chave pix
+                  Chave pix *
                 </label>
                 <input
                   type="text"
@@ -228,13 +281,14 @@ const PaymentIntegrationsPage = () => {
                   onChange={(e) => setPixConfig({ ...pixConfig, pixKey: e.target.value })}
                   placeholder="Digite sua chave pix"
                   className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
                 />
               </div>
 
               {/* Account Holder */}
               <div className="mb-8">
                 <label className="block text-white font-medium mb-3">
-                  Titular da conta
+                  Titular da conta *
                 </label>
                 <input
                   type="text"
@@ -242,13 +296,15 @@ const PaymentIntegrationsPage = () => {
                   onChange={(e) => setPixConfig({ ...pixConfig, accountHolder: e.target.value })}
                   placeholder="Digite o titular da conta"
                   className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
                 />
               </div>
 
               {/* Save Button */}
               <button
                 onClick={handleSavePix}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+                disabled={!pixConfig.pixKey.trim() || !pixConfig.accountHolder.trim()}
+                className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
               >
                 <span>Salvar pix</span>
                 <ArrowRight className="h-4 w-4" />
