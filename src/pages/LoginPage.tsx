@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Bug } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import DebugPanel from '../components/DebugPanel';
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [showDebug, setShowDebug] = useState(false);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -18,7 +16,7 @@ const LoginPage = () => {
   // Pegar a rota de onde o usuário veio (se foi redirecionado)
   const from = location.state?.from?.pathname || '/dashboard';
 
-  console.log('🔑 LoginPage: Estado atual:', {
+  console.log('LoginPage: Estado atual:', {
     isAuthLoading,
     from,
     email: !!email,
@@ -33,46 +31,35 @@ const LoginPage = () => {
     e.preventDefault();
     setError('');
 
-    console.log('🔑 LoginPage: Iniciando tentativa de login para:', email);
+    console.log('LoginPage: Iniciando tentativa de login para:', email);
 
     const result = await login(email, password);
     
-    console.log('🔑 LoginPage: Resultado do login:', result);
+    console.log('LoginPage: Resultado do login:', result);
 
     if (result.success) {
-      console.log('✅ LoginPage: Login bem-sucedido, redirecionando para:', from);
+      console.log('LoginPage: Login bem-sucedido, redirecionando para:', from);
       // Redirecionar para onde o usuário estava tentando ir, ou dashboard
       navigate(from, { replace: true });
     } else {
-      console.log('❌ LoginPage: Erro no login:', result.error);
+      console.log('LoginPage: Erro no login:', result.error);
       setError(result.error || 'Erro ao fazer login');
     }
   };
 
   const handleRegisterClick = () => {
-    console.log('📝 LoginPage: Navegando para registro');
+    console.log('LoginPage: Navegando para registro');
     navigate('/register');
   };
 
   const handleForgotPasswordClick = () => {
-    console.log('🔄 LoginPage: Navegando para recuperação de senha');
+    console.log('LoginPage: Navegando para recuperação de senha');
     navigate('/forgot-password');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
       <div className="w-full max-w-md">
-        {/* Debug Button */}
-        <div className="mb-4 text-center">
-          <button
-            onClick={() => setShowDebug(true)}
-            className="inline-flex items-center px-3 py-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors duration-200"
-          >
-            <Bug className="h-3 w-3 mr-1" />
-            Debug Login
-          </button>
-        </div>
-
         {/* Login Form */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 transition-colors duration-300">
           <div className="text-center mb-8">
@@ -200,9 +187,6 @@ const LoginPage = () => {
           <p>© 2024 Rifaqui - Todos os direitos reservados</p>
         </div>
       </div>
-
-      {/* Debug Panel */}
-      <DebugPanel isOpen={showDebug} onClose={() => setShowDebug(false)} />
     </div>
   );
 };
