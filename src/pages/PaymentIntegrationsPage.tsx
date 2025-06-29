@@ -39,9 +39,9 @@ const PaymentIntegrationsPage = () => {
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300 min-h-[calc(100vh-176px)]">
+    <div>
       {/* Header */}
-      <div className="border-b border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300 mb-6">
         <div className="flex items-center space-x-4">
           <button
             onClick={handleGoBack}
@@ -56,7 +56,7 @@ const PaymentIntegrationsPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="p-6">
+      <div>
         {/* Processing Order Section */}
         <div className="mb-8">
           <div className="flex items-center space-x-2 mb-4">
@@ -97,7 +97,7 @@ const PaymentIntegrationsPage = () => {
             {paymentProviders.map((provider, index) => (
               <div
                 key={index}
-                className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between transition-colors duration-300"
+                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 flex items-center justify-between transition-colors duration-300"
               >
                 <div className="flex items-center space-x-4">
                   <div className="w-3 h-3 bg-red-500 rounded-full"></div>
@@ -131,7 +131,7 @@ const PaymentIntegrationsPage = () => {
             </p>
           </div>
 
-          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between transition-colors duration-300">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 flex items-center justify-between transition-colors duration-300">
             <div className="flex items-center space-x-4">
               <div className="w-3 h-3 bg-red-500 rounded-full"></div>
               <div className="w-16 h-8 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
