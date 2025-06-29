@@ -5,6 +5,7 @@ import DashboardLayout from './components/DashboardLayout';
 import HomePage from './pages/HomePage';
 import DashboardPage from './pages/DashboardPage';
 import PaymentIntegrationsPage from './pages/PaymentIntegrationsPage';
+import ManualPixConfigPage from './pages/ManualPixConfigPage';
 import RankingPage from './pages/RankingPage';
 import AffiliationsPage from './pages/AffiliationsPage';
 import AffiliatesManagementPage from './pages/AffiliatesManagementPage';
@@ -28,6 +29,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="integrations" element={<PaymentIntegrationsPage />} />
+          <Route path="pix-manual-config" element={<ManualPixConfigPage />} />
           <Route path="ranking" element={<RankingPage />} />
           <Route path="affiliations" element={<AffiliationsPage />} />
           <Route path="affiliations/manage" element={<AffiliatesManagementPage />} />

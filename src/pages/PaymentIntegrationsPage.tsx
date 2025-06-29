@@ -9,6 +9,10 @@ const PaymentIntegrationsPage = () => {
     navigate('/dashboard');
   };
 
+  const handlePixConfig = () => {
+    navigate('/dashboard/pix-manual-config');
+  };
+
   const paymentProviders = [
     {
       name: 'Fluxsis',
@@ -140,7 +144,10 @@ const PaymentIntegrationsPage = () => {
                 </span>
               </div>
             </div>
-            <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
+            <button 
+              onClick={handlePixConfig}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+            >
               Configurar
             </button>
           </div>
