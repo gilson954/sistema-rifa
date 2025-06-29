@@ -24,23 +24,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     onClose?.();
   };
 
-  const handleCampaignsClick = () => {
-    navigate('/');
-    onClose?.();
-  };
-
   const menuItems = [
-    {
-      icon: Home,
-      label: 'Home',
-      path: '/',
-      isExternal: true
-    },
     {
       icon: LayoutGrid,
       label: 'Campanhas',
-      path: '/',
-      isExternal: true
+      path: '/dashboard'
     },
     {
       icon: CreditCard,
@@ -120,21 +108,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         <ul className="space-y-2">
           {menuItems.map((item, index) => {
             const IconComponent = item.icon;
-            
-            if (item.isExternal) {
-              return (
-                <li key={index}>
-                  <button
-                    onClick={item.label === 'Home' ? handleGoHome : handleCampaignsClick}
-                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 text-gray-300 hover:bg-gray-800 hover:text-white"
-                  >
-                    <IconComponent className="h-5 w-5" />
-                    <span className="font-medium">{item.label}</span>
-                  </button>
-                </li>
-              );
-            }
-            
             return (
               <li key={index}>
                 <NavLink
@@ -158,7 +131,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         </ul>
       </nav>
 
-      {/* Bottom section removed since Home is now in the main menu */}
+      {/* Home Button */}
+      <div className="p-4 border-t border-gray-800">
+        <button
+          onClick={handleGoHome}
+          className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200"
+        >
+          <Home className="h-5 w-5" />
+          <span className="font-medium">Sair</span>
+        </button>
+      </div>
     </div>
   );
 };
