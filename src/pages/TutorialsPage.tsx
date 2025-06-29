@@ -86,7 +86,7 @@ const TutorialsPage = () => {
       {/* Feature Request Section */}
       <div className="bg-gray-800 rounded-lg p-6">
         <h2 className="text-xl font-semibold text-white mb-2">
-          Precisa de uma nova funcionalidade?
+          Precisa de ajuda?
         </h2>
         <p className="text-gray-400 mb-6">
           Envie um email ou chame nosso suporte, queremos que sua experiência seja fantástica.
