@@ -28,7 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const menuItems = [
     {
       icon: LayoutGrid,
-      label: 'Campanhas',
+      label: 'Campanhas (Home)',
       path: '/dashboard'
     },
     {
