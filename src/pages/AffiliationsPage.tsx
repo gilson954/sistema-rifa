@@ -10,8 +10,7 @@ const AffiliationsPage = () => {
   };
 
   const handleAffiliateClick = () => {
-    // Navigate to affiliate management page (could be a different page)
-    navigate('/dashboard/affiliations/manage');
+    navigate('/dashboard/affiliations/area');
   };
 
   return (
