@@ -119,6 +119,14 @@ const AffiliatesManagementPage = () => {
             <span>Adicionar</span>
           </button>
         </div>
+
+        {/* Empty State */}
+        <div className="text-center py-16">
+          <div className="text-6xl mb-4">:(</div>
+          <p className="text-gray-500 dark:text-gray-400 text-lg">
+            Você ainda não adicionou nenhum afiliado!
+          </p>
+        </div>
       </div>
 
       {/* Add Affiliate Modal */}
