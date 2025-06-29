@@ -11,6 +11,7 @@ import PixelsAnalyticsPage from './pages/PixelsAnalyticsPage';
 import CustomizationPage from './pages/CustomizationPage';
 import AccountPage from './pages/AccountPage';
 import SocialMediaPage from './pages/SocialMediaPage';
+import TutorialsPage from './pages/TutorialsPage';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="analytics" element={<PixelsAnalyticsPage />} />
           <Route path="customize" element={<CustomizationPage />} />
           <Route path="account" element={<AccountPage />} />
+          <Route path="tutorials" element={<TutorialsPage />} />
         </Route>
       </Routes>
     </Router>
