@@ -3,6 +3,7 @@ import { Pencil, Upload, Link, Trash2, X, ArrowRight, ChevronDown } from 'lucide
 
 const AccountPage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [userData, setUserData] = useState({
     name: 'Gilson Rezende',
     cpf: '',
@@ -14,10 +15,20 @@ const AccountPage = () => {
     setShowEditModal(true);
   };
 
+  const handleAddPhoto = () => {
+    setShowPhotoModal(true);
+  };
+
   const handleSaveData = () => {
     // Handle saving user data
     console.log('Saving user data:', userData);
     setShowEditModal(false);
+  };
+
+  const handleUploadPhoto = () => {
+    // Handle photo upload
+    console.log('Uploading photo');
+    setShowPhotoModal(false);
   };
 
   const handleSendResetLink = () => {
@@ -83,7 +94,10 @@ const AccountPage = () => {
             </div>
           </div>
 
-          <button className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2">
+          <button 
+            onClick={handleAddPhoto}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+          >
             <span>Adicionar</span>
             <Upload className="h-4 w-4" />
           </button>
@@ -214,6 +228,53 @@ const AccountPage = () => {
               className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 mt-6"
             >
               <span>Adicionar</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Photo Upload Modal */}
+      {showPhotoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-white">
+                Adicionar foto de perfil
+              </h2>
+              <button
+                onClick={() => setShowPhotoModal(false)}
+                className="p-1 hover:bg-gray-700 rounded transition-colors duration-200"
+              >
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            </div>
+            
+            <p className="text-sm text-gray-400 mb-6">
+              Personalize sua rifa com uma foto de perfil
+            </p>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-300 mb-4">
+                Selecione vários arquivos
+              </label>
+              
+              {/* File Upload Area */}
+              <div className="border-2 border-dashed border-purple-500 rounded-lg p-8 text-center hover:border-purple-400 transition-colors duration-200 cursor-pointer">
+                <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Upload className="h-6 w-6 text-white" />
+                </div>
+                <p className="text-gray-400 text-sm">
+                  Clique para selecionar arquivos ou arraste e solte aqui
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={handleUploadPhoto}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+            >
+              <span>Finalizar</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
