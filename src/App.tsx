@@ -7,6 +7,7 @@ import DashboardPage from './pages/DashboardPage';
 import PaymentIntegrationsPage from './pages/PaymentIntegrationsPage';
 import RankingPage from './pages/RankingPage';
 import AffiliationsPage from './pages/AffiliationsPage';
+import PixelsAnalyticsPage from './pages/PixelsAnalyticsPage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="integrations" element={<PaymentIntegrationsPage />} />
           <Route path="ranking" element={<RankingPage />} />
           <Route path="affiliations" element={<AffiliationsPage />} />
+          <Route path="analytics" element={<PixelsAnalyticsPage />} />
         </Route>
       </Routes>
     </Router>
