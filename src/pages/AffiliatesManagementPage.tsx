@@ -10,7 +10,7 @@ const AffiliatesManagementPage = () => {
     email: '',
     commissionType: 'percentage', // 'percentage' or 'fixed'
     commissionValue: 10,
-    fixedCommissionValue: 'R$ 0,00'
+    fixedCommissionValue: 0 // Changed to number
   });
 
   const handleGoBack = () => {
@@ -29,7 +29,7 @@ const AffiliatesManagementPage = () => {
       email: '',
       commissionType: 'percentage',
       commissionValue: 10,
-      fixedCommissionValue: 'R$ 0,00'
+      fixedCommissionValue: 0
     });
   };
 
@@ -39,7 +39,7 @@ const AffiliatesManagementPage = () => {
       email: '',
       commissionType: 'percentage',
       commissionValue: 10,
-      fixedCommissionValue: 'R$ 0,00'
+      fixedCommissionValue: 0
     });
   };
 
@@ -47,30 +47,30 @@ const AffiliatesManagementPage = () => {
     setNewAffiliate({ ...newAffiliate, commissionValue: value });
   };
 
-  // Currency formatting function
-  const formatCurrency = (value: string) => {
-    // Remove all non-numeric characters
-    const numericValue = value.replace(/\D/g, '');
-    
-    // If empty, return default
-    if (!numericValue) {
-      return 'R$ 0,00';
-    }
-    
-    // Convert to number (treating as cents)
-    const cents = parseInt(numericValue, 10);
-    
-    // Convert cents to reais
-    const reais = cents / 100;
-    
-    // Format as Brazilian currency
-    return `R$ ${reais.toFixed(2).replace('.', ',')}`;
+  // Enhanced currency formatting function using Intl.NumberFormat
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
   };
 
   const handleFixedAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    const formattedValue = formatCurrency(inputValue);
-    setNewAffiliate({ ...newAffiliate, fixedCommissionValue: formattedValue });
+    
+    // Remove all non-numeric characters except comma and period
+    let cleanValue = inputValue.replace(/[^\d,.-]/g, '');
+    
+    // Replace comma with period for proper parsing
+    cleanValue = cleanValue.replace(',', '.');
+    
+    // Parse the cleaned value as a float
+    const numericValue = parseFloat(cleanValue) || 0;
+    
+    // Update the state with the numeric value
+    setNewAffiliate({ ...newAffiliate, fixedCommissionValue: numericValue });
   };
 
   return (
@@ -261,10 +261,10 @@ const AffiliatesManagementPage = () => {
                     </label>
                     <input
                       type="text"
-                      value={newAffiliate.fixedCommissionValue}
+                      value={formatCurrency(newAffiliate.fixedCommissionValue)}
                       onChange={handleFixedAmountChange}
                       placeholder="R$ 0,00"
-                      className="w-full bg-white dark:bg-gray-700 border border-green-500 rounded-lg px-4 py-3 text-green-600 dark:text-green-400 placeholder-green-400 dark:placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200"
+                      className="w-full bg-white dark:bg-gray-700 border border-purple-500 rounded-lg px-4 py-3 text-purple-600 dark:text-purple-400 placeholder-purple-400 dark:placeholder-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
                     />
                   </div>
                 )}
