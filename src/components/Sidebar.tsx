@@ -53,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     },
     {
       icon: Palette,
-      label: 'Personalizar rifas',
+      label: 'Personalização',
       path: '/dashboard/customize'
     },
     {
