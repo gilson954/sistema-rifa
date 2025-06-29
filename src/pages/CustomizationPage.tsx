@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Upload, Plus, ArrowRight } from 'lucide-react';
+import { Upload, Plus, ArrowRight, X } from 'lucide-react';
 
 const CustomizationPage = () => {
   const [activeTab, setActiveTab] = useState('cores-tema');
   const [selectedTheme, setSelectedTheme] = useState('claro');
   const [selectedColor, setSelectedColor] = useState('#3B82F6');
+  const [showDomainModal, setShowDomainModal] = useState(false);
+  const [newDomain, setNewDomain] = useState('');
 
   const colors = [
     '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16', '#22C55E',
@@ -32,6 +34,20 @@ const CustomizationPage = () => {
     const lighterB = Math.round(b + (255 - b) * 0.3);
     
     return `rgb(${lighterR}, ${lighterG}, ${lighterB})`;
+  };
+
+  const handleSaveDomain = () => {
+    if (newDomain.trim()) {
+      // Handle saving the domain
+      console.log('Saving domain:', newDomain);
+      setShowDomainModal(false);
+      setNewDomain('');
+    }
+  };
+
+  const handleCloseDomainModal = () => {
+    setShowDomainModal(false);
+    setNewDomain('');
   };
 
   return (
@@ -259,7 +275,10 @@ const CustomizationPage = () => {
                   Você pode adicionar até 3 domínios personalizados para suas rifas
                 </p>
               </div>
-              <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2">
+              <button 
+                onClick={() => setShowDomainModal(true)}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+              >
                 <span>Criar</span>
                 <Plus className="h-4 w-4" />
               </button>
@@ -283,6 +302,54 @@ const CustomizationPage = () => {
           </div>
         )}
       </div>
+
+      {/* New Domain Modal */}
+      {showDomainModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-white">
+                Novo domínio
+              </h2>
+              <button
+                onClick={handleCloseDomainModal}
+                className="p-1 hover:bg-gray-700 rounded transition-colors duration-200"
+              >
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            </div>
+            
+            <p className="text-sm text-gray-400 mb-6">
+              Adicione um novo domínio para suas rifas
+            </p>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Insira seu domínio
+              </label>
+              <input
+                type="text"
+                value={newDomain}
+                onChange={(e) => setNewDomain(e.target.value)}
+                placeholder="ex: rifaup.com.br"
+                className="w-full bg-gray-700 border border-purple-500 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+              />
+            </div>
+
+            <p className="text-xs text-gray-400 mb-6">
+              Não use https ou (/) barras, insira somente o domínio
+            </p>
+
+            <button
+              onClick={handleSaveDomain}
+              disabled={!newDomain.trim()}
+              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200"
+            >
+              Salvar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
