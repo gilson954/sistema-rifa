@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import DashboardLayout from './components/DashboardLayout';
 import HomePage from './pages/HomePage';
+import DashboardPage from './pages/DashboardPage';
 import CampaignsPage from './pages/CampaignsPage';
 import ConfigurePixPage from './pages/ConfigurePixPage';
 import SocialMediaPage from './pages/SocialMediaPage';
@@ -22,7 +23,7 @@ function App() {
 
         {/* Dashboard */}
         <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<CampaignsPage />} />
+          <Route index element={<DashboardPage />} />
           <Route path="campaigns" element={<CampaignsPage />} />
           <Route path="configure-pix" element={<ConfigurePixPage />} />
           <Route path="social-media" element={<SocialMediaPage />} />
