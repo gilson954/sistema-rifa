@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
-import { X, RefreshCw, Database, User, Key, AlertTriangle, CheckCircle } from 'lucide-react';
+import { X, RefreshCw, Database, User, Key } from 'lucide-react';
 
 interface DebugPanelProps {
   isOpen: boolean;
@@ -9,13 +9,10 @@ interface DebugPanelProps {
 }
 
 const DebugPanel: React.FC<DebugPanelProps> = ({ isOpen, onClose }) => {
-  const { user, profile, session, isAuthenticated, isAuthLoading, isInitialAuthCheckDone, login } = useAuth();
+  const { user, profile, session, isAuthenticated, isAuthLoading, isInitialAuthCheckDone } = useAuth();
   const [envVars, setEnvVars] = useState<any>({});
   const [dbTest, setDbTest] = useState<any>(null);
   const [authTest, setAuthTest] = useState<any>(null);
-  const [testLoading, setTestLoading] = useState(false);
-  const [testEmail, setTestEmail] = useState('test@example.com');
-  const [testPassword, setTestPassword] = useState('123456');
 
   useEffect(() => {
     if (isOpen) {
@@ -32,33 +29,14 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ isOpen, onClose }) => {
   }, [isOpen]);
 
   const testDatabase = async () => {
-    console.log('🧪 DebugPanel: Iniciando teste de banco...');
     try {
-      // Teste mais detalhado
-      const { data, error, status, statusText } = await supabase
-        .from('profiles')
-        .select('count')
-        .limit(1);
-      
-      console.log('🧪 DebugPanel: Resultado do teste de banco:', {
-        data,
-        error,
-        status,
-        statusText
-      });
-
+      const { data, error } = await supabase.from('profiles').select('count').limit(1);
       setDbTest({
         success: !error,
         error: error?.message,
-        errorCode: error?.code,
-        errorDetails: error?.details,
-        errorHint: error?.hint,
-        status,
-        statusText,
         data: data
       });
     } catch (err) {
-      console.error('🧪 DebugPanel: Erro no teste de banco:', err);
       setDbTest({
         success: false,
         error: err instanceof Error ? err.message : 'Erro desconhecido',
@@ -68,15 +46,8 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ isOpen, onClose }) => {
   };
 
   const testAuth = async () => {
-    console.log('🧪 DebugPanel: Iniciando teste de auth...');
     try {
       const { data, error } = await supabase.auth.getSession();
-      
-      console.log('🧪 DebugPanel: Resultado do teste de auth:', {
-        data,
-        error
-      });
-
       setAuthTest({
         success: !error,
         error: error?.message,
@@ -84,36 +55,12 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ isOpen, onClose }) => {
         user: data.session?.user
       });
     } catch (err) {
-      console.error('🧪 DebugPanel: Erro no teste de auth:', err);
       setAuthTest({
         success: false,
         error: err instanceof Error ? err.message : 'Erro desconhecido',
         session: null,
         user: null
       });
-    }
-  };
-
-  const testLogin = async () => {
-    if (!testEmail || !testPassword) return;
-    
-    setTestLoading(true);
-    console.log('🧪 DebugPanel: Testando login com:', testEmail);
-    
-    try {
-      const result = await login(testEmail, testPassword);
-      console.log('🧪 DebugPanel: Resultado do teste de login:', result);
-      
-      if (result.success) {
-        alert('✅ Login de teste bem-sucedido!');
-      } else {
-        alert(`❌ Erro no login de teste: ${result.error}`);
-      }
-    } catch (error) {
-      console.error('🧪 DebugPanel: Erro no teste de login:', error);
-      alert(`💥 Erro inesperado no teste de login: ${error}`);
-    } finally {
-      setTestLoading(false);
     }
   };
 
@@ -182,18 +129,9 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ isOpen, onClose }) => {
                   {dbTest?.success ? '✅ Conectado' : '❌ Erro'}
                 </span>
               </div>
-              {dbTest?.status && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-300">HTTP Status:</span>
-                  <span className="text-gray-900 dark:text-white">{dbTest.status}</span>
-                </div>
-              )}
               {dbTest?.error && (
                 <div className="mt-2 p-2 bg-red-100 dark:bg-red-900/30 rounded text-xs text-red-600 dark:text-red-400">
-                  <strong>Erro:</strong> {dbTest.error}<br />
-                  {dbTest.errorCode && <><strong>Código:</strong> {dbTest.errorCode}<br /></>}
-                  {dbTest.errorDetails && <><strong>Detalhes:</strong> {dbTest.errorDetails}<br /></>}
-                  {dbTest.errorHint && <><strong>Dica:</strong> {dbTest.errorHint}</>}
+                  <strong>Erro:</strong> {dbTest.error}
                 </div>
               )}
             </div>
@@ -232,39 +170,6 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ isOpen, onClose }) => {
                   <strong>Erro:</strong> {authTest.error}
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Teste de Login */}
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-            <div className="flex items-center mb-3">
-              <AlertTriangle className="text-orange-600 mr-2" size={20} />
-              <h3 className="font-semibold text-gray-900 dark:text-white">Teste de Login</h3>
-            </div>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="email"
-                  value={testEmail}
-                  onChange={(e) => setTestEmail(e.target.value)}
-                  placeholder="Email de teste"
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-                <input
-                  type="password"
-                  value={testPassword}
-                  onChange={(e) => setTestPassword(e.target.value)}
-                  placeholder="Senha de teste"
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-              <button
-                onClick={testLogin}
-                disabled={testLoading}
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-50"
-              >
-                {testLoading ? 'Testando...' : 'Testar Login'}
-              </button>
             </div>
           </div>
 
@@ -327,51 +232,6 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ isOpen, onClose }) => {
                 <strong>Name:</strong> {profile.name}
               </div>
             )}
-          </div>
-
-          {/* Diagnóstico e Soluções */}
-          <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
-            <div className="flex items-center mb-3">
-              <CheckCircle className="text-blue-600 mr-2" size={20} />
-              <h3 className="font-semibold text-gray-900 dark:text-white">Diagnóstico</h3>
-            </div>
-            <div className="text-sm space-y-2">
-              {!dbTest?.success && (
-                <div className="flex items-start space-x-2">
-                  <AlertTriangle className="text-red-500 mt-0.5" size={16} />
-                  <div>
-                    <strong className="text-red-600">Problema de Conexão com Banco:</strong>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      Verifique se o projeto Supabase está ativo e as credenciais estão corretas.
-                    </p>
-                  </div>
-                </div>
-              )}
-              
-              {!authTest?.success && (
-                <div className="flex items-start space-x-2">
-                  <AlertTriangle className="text-red-500 mt-0.5" size={16} />
-                  <div>
-                    <strong className="text-red-600">Problema de Autenticação:</strong>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      O sistema de autenticação não está respondendo corretamente.
-                    </p>
-                  </div>
-                </div>
-              )}
-              
-              {dbTest?.success && authTest?.success && (
-                <div className="flex items-start space-x-2">
-                  <CheckCircle className="text-green-500 mt-0.5" size={16} />
-                  <div>
-                    <strong className="text-green-600">Sistema Funcionando:</strong>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      Todas as conexões estão funcionando corretamente.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>
