@@ -12,6 +12,10 @@ const FAQ = () => {
     );
   };
 
+  const handleWhatsAppSupport = () => {
+    window.open('https://wa.me/5562981127960', '_blank');
+  };
+
   const faqs = [
     {
       question: "Como criar uma campanha?",
@@ -105,7 +109,10 @@ const FAQ = () => {
             <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto transition-colors duration-300">
               Nossa equipe está sempre disponível para ajudar você a tirar suas dúvidas e começar a vender suas rifas.
             </p>
-            <button className="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-semibold">
+            <button 
+              onClick={handleWhatsAppSupport}
+              className="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-semibold"
+            >
               Falar com Suporte
             </button>
           </div>
