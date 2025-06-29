@@ -9,7 +9,8 @@ import {
   User, 
   HelpCircle, 
   Home,
-  X
+  X,
+  Trophy
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -34,6 +35,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       icon: CreditCard,
       label: 'Configure seu pix',
       path: '/dashboard/integrations'
+    },
+    {
+      icon: Trophy,
+      label: 'Ranking',
+      path: '/dashboard/ranking'
     },
     {
       icon: Share2,
