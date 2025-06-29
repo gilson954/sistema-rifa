@@ -18,6 +18,22 @@ const CustomizationPage = () => {
     { id: 'dominios', label: 'Domínios' }
   ];
 
+  // Helper function to get a lighter version of the selected color for the light theme
+  const getLighterColor = (color: string) => {
+    // Convert hex to RGB
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    // Make it lighter by blending with white
+    const lighterR = Math.round(r + (255 - r) * 0.3);
+    const lighterG = Math.round(g + (255 - g) * 0.3);
+    const lighterB = Math.round(b + (255 - b) * 0.3);
+    
+    return `rgb(${lighterR}, ${lighterG}, ${lighterB})`;
+  };
+
   return (
     <div className="bg-gray-900 text-white -mx-4 -mt-6 min-h-screen">
       {/* Tab Navigation */}
@@ -65,14 +81,29 @@ const CustomizationPage = () => {
                 >
                   <div className="w-32 h-24 bg-white rounded-lg p-3 mb-3">
                     <div className="space-y-2">
-                      <div className="h-2 bg-blue-500 rounded w-3/4"></div>
+                      <div 
+                        className="h-2 rounded w-3/4"
+                        style={{ backgroundColor: selectedColor }}
+                      ></div>
                       <div className="flex space-x-1">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <div className="h-2 bg-blue-400 rounded flex-1"></div>
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: selectedColor }}
+                        ></div>
+                        <div 
+                          className="h-2 rounded flex-1"
+                          style={{ backgroundColor: getLighterColor(selectedColor) }}
+                        ></div>
                       </div>
                       <div className="flex space-x-1">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <div className="h-2 bg-blue-400 rounded flex-1"></div>
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: selectedColor }}
+                        ></div>
+                        <div 
+                          className="h-2 rounded flex-1"
+                          style={{ backgroundColor: getLighterColor(selectedColor) }}
+                        ></div>
                       </div>
                     </div>
                   </div>
@@ -90,14 +121,29 @@ const CustomizationPage = () => {
                 >
                   <div className="w-32 h-24 bg-gray-800 rounded-lg p-3 mb-3">
                     <div className="space-y-2">
-                      <div className="h-2 bg-blue-400 rounded w-3/4"></div>
+                      <div 
+                        className="h-2 rounded w-3/4"
+                        style={{ backgroundColor: selectedColor }}
+                      ></div>
                       <div className="flex space-x-1">
-                        <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
-                        <div className="h-2 bg-blue-300 rounded flex-1"></div>
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: selectedColor }}
+                        ></div>
+                        <div 
+                          className="h-2 rounded flex-1"
+                          style={{ backgroundColor: getLighterColor(selectedColor) }}
+                        ></div>
                       </div>
                       <div className="flex space-x-1">
-                        <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
-                        <div className="h-2 bg-blue-300 rounded flex-1"></div>
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: selectedColor }}
+                        ></div>
+                        <div 
+                          className="h-2 rounded flex-1"
+                          style={{ backgroundColor: getLighterColor(selectedColor) }}
+                        ></div>
                       </div>
                     </div>
                   </div>
@@ -142,6 +188,18 @@ const CustomizationPage = () => {
                       <div className="w-2 h-2 bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 rounded-full"></div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Color Preview */}
+              <div className="mb-6 p-4 bg-gray-800 rounded-lg">
+                <p className="text-sm text-gray-400 mb-2">Cor selecionada:</p>
+                <div className="flex items-center space-x-3">
+                  <div 
+                    className="w-8 h-8 rounded-full border-2 border-gray-600"
+                    style={{ backgroundColor: selectedColor }}
+                  ></div>
+                  <span className="text-white font-mono text-sm">{selectedColor.toUpperCase()}</span>
                 </div>
               </div>
 
