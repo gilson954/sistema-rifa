@@ -130,7 +130,7 @@ const AffiliatesManagementPage = () => {
                   value={newAffiliate.email}
                   onChange={(e) => setNewAffiliate({ ...newAffiliate, email: e.target.value })}
                   placeholder="Digite o e-mail"
-                  className={`w-full bg-white dark:bg-gray-700 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors duration-200 ${
+                  className={`w-full bg-white dark:bg-gray-700 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
                     !newAffiliate.email.trim() ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                 />
@@ -150,18 +150,18 @@ const AffiliatesManagementPage = () => {
                   onClick={() => setNewAffiliate({ ...newAffiliate, commissionType: 'percentage' })}
                   className={`border rounded-lg p-4 mb-3 cursor-pointer transition-colors duration-200 ${
                     newAffiliate.commissionType === 'percentage' 
-                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20' 
+                      ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' 
                       : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-3">
-                      <div className="text-orange-500 text-xl">%</div>
+                      <div className="text-purple-500 text-xl">%</div>
                       <span className="font-medium text-gray-900 dark:text-white">Porcentagem</span>
                     </div>
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                       newAffiliate.commissionType === 'percentage' 
-                        ? 'border-orange-500 bg-orange-500' 
+                        ? 'border-purple-500 bg-purple-500' 
                         : 'border-gray-300 dark:border-gray-600'
                     }`}>
                       {newAffiliate.commissionType === 'percentage' && (
@@ -179,7 +179,7 @@ const AffiliatesManagementPage = () => {
                   onClick={() => setNewAffiliate({ ...newAffiliate, commissionType: 'fixed' })}
                   className={`border rounded-lg p-4 mb-4 cursor-pointer transition-colors duration-200 ${
                     newAffiliate.commissionType === 'fixed' 
-                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20' 
+                      ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' 
                       : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                   }`}
                 >
@@ -190,7 +190,7 @@ const AffiliatesManagementPage = () => {
                     </div>
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                       newAffiliate.commissionType === 'fixed' 
-                        ? 'border-orange-500 bg-orange-500' 
+                        ? 'border-purple-500 bg-purple-500' 
                         : 'border-gray-300 dark:border-gray-600'
                     }`}>
                       {newAffiliate.commissionType === 'fixed' && (
@@ -220,7 +220,7 @@ const AffiliatesManagementPage = () => {
                         onChange={(e) => handleCommissionChange(parseInt(e.target.value))}
                         className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
                         style={{
-                          background: `linear-gradient(to right, #f97316 0%, #f97316 ${newAffiliate.commissionValue}%, #e5e7eb ${newAffiliate.commissionValue}%, #e5e7eb 100%)`
+                          background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${newAffiliate.commissionValue}%, #e5e7eb ${newAffiliate.commissionValue}%, #e5e7eb 100%)`
                         }}
                       />
                     </div>
@@ -238,7 +238,7 @@ const AffiliatesManagementPage = () => {
                       value={newAffiliate.fixedCommissionValue}
                       onChange={(e) => setNewAffiliate({ ...newAffiliate, fixedCommissionValue: e.target.value })}
                       placeholder="R$ 0,00"
-                      className="w-full bg-white dark:bg-gray-700 border border-green-500 rounded-lg px-4 py-3 text-green-600 dark:text-green-400 placeholder-green-400 dark:placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200"
+                      className="w-full bg-white dark:bg-gray-700 border border-purple-500 rounded-lg px-4 py-3 text-purple-600 dark:text-purple-400 placeholder-purple-400 dark:placeholder-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
                     />
                   </div>
                 )}
@@ -260,7 +260,7 @@ const AffiliatesManagementPage = () => {
                 height: 20px;
                 width: 20px;
                 border-radius: 50%;
-                background: #f97316;
+                background: #8b5cf6;
                 cursor: pointer;
                 border: 2px solid #ffffff;
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -270,7 +270,7 @@ const AffiliatesManagementPage = () => {
                 height: 20px;
                 width: 20px;
                 border-radius: 50%;
-                background: #f97316;
+                background: #8b5cf6;
                 cursor: pointer;
                 border: 2px solid #ffffff;
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
