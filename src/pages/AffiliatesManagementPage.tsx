@@ -10,7 +10,7 @@ const AffiliatesManagementPage = () => {
     email: '',
     commissionType: 'percentage', // 'percentage' or 'fixed'
     commissionValue: 10,
-    fixedCommissionValue: ''
+    fixedCommissionValue: 'R$ 0,00'
   });
 
   const handleGoBack = () => {
@@ -29,7 +29,7 @@ const AffiliatesManagementPage = () => {
       email: '',
       commissionType: 'percentage',
       commissionValue: 10,
-      fixedCommissionValue: ''
+      fixedCommissionValue: 'R$ 0,00'
     });
   };
 
@@ -39,12 +39,38 @@ const AffiliatesManagementPage = () => {
       email: '',
       commissionType: 'percentage',
       commissionValue: 10,
-      fixedCommissionValue: ''
+      fixedCommissionValue: 'R$ 0,00'
     });
   };
 
   const handleCommissionChange = (value: number) => {
     setNewAffiliate({ ...newAffiliate, commissionValue: value });
+  };
+
+  // Currency formatting function
+  const formatCurrency = (value: string) => {
+    // Remove all non-numeric characters
+    const numericValue = value.replace(/\D/g, '');
+    
+    // If empty, return default
+    if (!numericValue) {
+      return 'R$ 0,00';
+    }
+    
+    // Convert to number (treating as cents)
+    const cents = parseInt(numericValue, 10);
+    
+    // Convert cents to reais
+    const reais = cents / 100;
+    
+    // Format as Brazilian currency
+    return `R$ ${reais.toFixed(2).replace('.', ',')}`;
+  };
+
+  const handleFixedAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const formattedValue = formatCurrency(inputValue);
+    setNewAffiliate({ ...newAffiliate, fixedCommissionValue: formattedValue });
   };
 
   return (
@@ -236,9 +262,9 @@ const AffiliatesManagementPage = () => {
                     <input
                       type="text"
                       value={newAffiliate.fixedCommissionValue}
-                      onChange={(e) => setNewAffiliate({ ...newAffiliate, fixedCommissionValue: e.target.value })}
+                      onChange={handleFixedAmountChange}
                       placeholder="R$ 0,00"
-                      className="w-full bg-white dark:bg-gray-700 border border-purple-500 rounded-lg px-4 py-3 text-purple-600 dark:text-purple-400 placeholder-purple-400 dark:placeholder-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                      className="w-full bg-white dark:bg-gray-700 border border-green-500 rounded-lg px-4 py-3 text-green-600 dark:text-green-400 placeholder-green-400 dark:placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200"
                     />
                   </div>
                 )}
