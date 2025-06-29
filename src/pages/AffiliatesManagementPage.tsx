@@ -7,10 +7,9 @@ const AffiliatesManagementPage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [newAffiliate, setNewAffiliate] = useState({
-    name: '',
     email: '',
-    phone: '',
-    commission: '10'
+    commissionType: 'percentage', // 'percentage' or 'fixed'
+    commissionValue: 10
   });
 
   const handleGoBack = () => {
@@ -26,21 +25,23 @@ const AffiliatesManagementPage = () => {
     console.log('Saving affiliate:', newAffiliate);
     setShowAddModal(false);
     setNewAffiliate({
-      name: '',
       email: '',
-      phone: '',
-      commission: '10'
+      commissionType: 'percentage',
+      commissionValue: 10
     });
   };
 
   const handleCloseModal = () => {
     setShowAddModal(false);
     setNewAffiliate({
-      name: '',
       email: '',
-      phone: '',
-      commission: '10'
+      commissionType: 'percentage',
+      commissionValue: 10
     });
+  };
+
+  const handleCommissionChange = (value: number) => {
+    setNewAffiliate({ ...newAffiliate, commissionValue: value });
   };
 
   return (
@@ -114,93 +115,148 @@ const AffiliatesManagementPage = () => {
                 <X className="h-5 w-5 text-gray-400" />
               </button>
             </div>
-            
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              Preencha os dados do afiliado que deseja adicionar
-            </p>
 
-            <div className="space-y-4">
-              {/* Nome */}
+            <div className="space-y-6">
+              {/* Email Field */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Nome do afiliado
-                </label>
-                <input
-                  type="text"
-                  value={newAffiliate.name}
-                  onChange={(e) => setNewAffiliate({ ...newAffiliate, name: e.target.value })}
-                  placeholder="Nome completo"
-                  className="w-full bg-white dark:bg-gray-700 border border-purple-500 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Email
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  Endereço de e-mail do afiliado <span className="text-blue-500">?</span>
                 </label>
                 <input
                   type="email"
                   value={newAffiliate.email}
                   onChange={(e) => setNewAffiliate({ ...newAffiliate, email: e.target.value })}
-                  placeholder="email@exemplo.com"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  placeholder="Digite o e-mail"
+                  className={`w-full bg-white dark:bg-gray-700 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors duration-200 ${
+                    !newAffiliate.email.trim() ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  }`}
                 />
+                {!newAffiliate.email.trim() && (
+                  <p className="text-red-500 text-xs mt-1">Este é um campo obrigatório!</p>
+                )}
               </div>
 
-              {/* Telefone */}
+              {/* Commission Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Telefone
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  Comissão <span className="text-blue-500">?</span>
                 </label>
-                <div className="flex space-x-2">
-                  <div className="relative">
-                    <select className="appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-8 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200">
-                      <option value="+55">🇧🇷 +55</option>
-                    </select>
-                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+
+                {/* Percentage Option */}
+                <div 
+                  onClick={() => setNewAffiliate({ ...newAffiliate, commissionType: 'percentage' })}
+                  className={`border rounded-lg p-4 mb-3 cursor-pointer transition-colors duration-200 ${
+                    newAffiliate.commissionType === 'percentage' 
+                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20' 
+                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-3">
+                      <div className="text-orange-500 text-xl">%</div>
+                      <span className="font-medium text-gray-900 dark:text-white">Porcentagem</span>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      newAffiliate.commissionType === 'percentage' 
+                        ? 'border-orange-500 bg-orange-500' 
+                        : 'border-gray-300 dark:border-gray-600'
+                    }`}>
+                      {newAffiliate.commissionType === 'percentage' && (
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      )}
+                    </div>
                   </div>
-                  <input
-                    type="text"
-                    value={newAffiliate.phone}
-                    onChange={(e) => setNewAffiliate({ ...newAffiliate, phone: e.target.value })}
-                    placeholder="(00) 00000-0000"
-                    className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                  />
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Porcentagem em cima do total da venda
+                  </p>
                 </div>
-              </div>
 
-              {/* Comissão */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Comissão (%)
-                </label>
-                <div className="relative">
-                  <select 
-                    value={newAffiliate.commission}
-                    onChange={(e) => setNewAffiliate({ ...newAffiliate, commission: e.target.value })}
-                    className="w-full appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-8 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                  >
-                    <option value="5">5%</option>
-                    <option value="10">10%</option>
-                    <option value="15">15%</option>
-                    <option value="20">20%</option>
-                    <option value="25">25%</option>
-                    <option value="30">30%</option>
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                {/* Fixed Amount Option */}
+                <div 
+                  onClick={() => setNewAffiliate({ ...newAffiliate, commissionType: 'fixed' })}
+                  className={`border rounded-lg p-4 mb-4 cursor-pointer transition-colors duration-200 ${
+                    newAffiliate.commissionType === 'fixed' 
+                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20' 
+                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-3">
+                      <div className="text-gray-600 dark:text-gray-400 text-xl">$</div>
+                      <span className="font-medium text-gray-900 dark:text-white">Dinheiro fixo</span>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      newAffiliate.commissionType === 'fixed' 
+                        ? 'border-orange-500 bg-orange-500' 
+                        : 'border-gray-300 dark:border-gray-600'
+                    }`}>
+                      {newAffiliate.commissionType === 'fixed' && (
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Dinheiro fixo por venda, independente da quantidade
+                  </p>
                 </div>
+
+                {/* Percentage Slider */}
+                {newAffiliate.commissionType === 'percentage' && (
+                  <div className="mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">0%</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{newAffiliate.commissionValue}%</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">100%</span>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={newAffiliate.commissionValue}
+                        onChange={(e) => handleCommissionChange(parseInt(e.target.value))}
+                        className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                        style={{
+                          background: `linear-gradient(to right, #f97316 0%, #f97316 ${newAffiliate.commissionValue}%, #e5e7eb ${newAffiliate.commissionValue}%, #e5e7eb 100%)`
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
             <button
               onClick={handleSaveAffiliate}
-              disabled={!newAffiliate.name.trim() || !newAffiliate.email.trim()}
-              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 mt-6"
+              disabled={!newAffiliate.email.trim()}
+              className="w-full bg-gray-400 hover:bg-gray-500 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 mt-6"
             >
-              <span>Adicionar</span>
+              <span>Enviar convite</span>
               <ArrowRight className="h-4 w-4" />
             </button>
+
+            <style jsx>{`
+              .slider::-webkit-slider-thumb {
+                appearance: none;
+                height: 20px;
+                width: 20px;
+                border-radius: 50%;
+                background: #f97316;
+                cursor: pointer;
+                border: 2px solid #ffffff;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+              }
+              
+              .slider::-moz-range-thumb {
+                height: 20px;
+                width: 20px;
+                border-radius: 50%;
+                background: #f97316;
+                cursor: pointer;
+                border: 2px solid #ffffff;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+              }
+            `}</style>
           </div>
         </div>
       )}
