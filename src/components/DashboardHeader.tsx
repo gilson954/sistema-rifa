@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Sun, Moon, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -7,6 +8,7 @@ import { supabase } from '../lib/supabase';
 const DashboardHeader = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<{ name: string } | null>(null);
 
   useEffect(() => {
@@ -30,6 +32,7 @@ const DashboardHeader = () => {
 
   const handleSignOut = async () => {
     await signOut();
+    navigate('/login');
   };
 
   const displayName = profile?.name || user?.user_metadata?.name || 'Usuário';

@@ -48,6 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
 
   const handleSignOut = async () => {
     await signOut();
+    navigate('/login');
     onClose?.();
     setIsMobileMenuOpen(false);
   };
