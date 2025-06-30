@@ -1,8 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, AlertCircle, Shield } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { supabase } from '../lib/supabase'
 import AuthHeader from '../components/AuthHeader'
 
 const AdminLoginPage = () => {
@@ -12,47 +11,63 @@ const AdminLoginPage = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const { signIn } = useAuth()
+  const { user, isAdmin, loading: authLoading, signIn, signOut } = useAuth()
   const navigate = useNavigate()
+
+  // Effect to handle authentication state changes
+  useEffect(() => {
+    // Only proceed if auth is not loading
+    if (!authLoading) {
+      if (user && isAdmin === true) {
+        // User is authenticated and is admin - redirect to admin dashboard
+        navigate('/dashboard') // For now, redirect to regular dashboard since we don't have admin dashboard yet
+      } else if (user && isAdmin === false) {
+        // User is authenticated but not admin - sign them out and show error
+        signOut()
+        setError('Acesso negado. Esta área é restrita a administradores.')
+        setLoading(false)
+      }
+    }
+  }, [user, isAdmin, authLoading, navigate, signOut])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    // First, attempt to sign in
-    const { error: signInError } = await signIn(email, password)
-
-    if (signInError) {
-      setError('Credenciais inválidas')
-      setLoading(false)
-      return
-    }
-
-    // Check if user is admin
     try {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('email', email)
-        .single()
+      const { error: signInError } = await signIn(email, password)
 
-      if (profileError || !profile?.is_admin) {
-        // Sign out the user if they're not an admin
-        await supabase.auth.signOut()
-        setError('Acesso negado. Esta área é restrita a administradores.')
+      if (signInError) {
+        setError('Credenciais inválidas')
         setLoading(false)
         return
       }
 
-      // If user is admin, redirect to admin dashboard
-      navigate('/admin/dashboard')
+      // Don't set loading to false here - let the useEffect handle the redirect
+      // The AuthContext will update user and isAdmin, triggering the useEffect
     } catch (error) {
-      console.error('Error checking admin status:', error)
-      await supabase.auth.signOut()
-      setError('Erro ao verificar permissões. Tente novamente.')
+      console.error('Error during admin login:', error)
+      setError('Erro ao fazer login. Tente novamente.')
       setLoading(false)
     }
+  }
+
+  // Show loading while auth context is determining user status
+  if (authLoading) {
+    return (
+      <>
+        <AuthHeader />
+        <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+              <span className="ml-3 text-gray-600 dark:text-gray-400">Verificando permissões...</span>
+            </div>
+          </div>
+        </div>
+      </>
+    )
   }
 
   return (
