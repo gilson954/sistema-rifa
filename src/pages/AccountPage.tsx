@@ -1,15 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Pencil, Upload, Link, Trash2, X, ArrowRight, ChevronDown } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 
 const AccountPage = () => {
+  const { user } = useAuth();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [userData, setUserData] = useState({
-    name: 'Gilson Rezende',
+    name: '',
     cpf: '',
-    email: 'gilsonguigui0@gmail.com',
+    email: '',
     phone: '+55'
   });
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user profile data when component mounts or user changes
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user) {
+        setLoading(true);
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('name, email')
+            .eq('id', user.id)
+            .single();
+
+          if (error) {
+            console.error('Error fetching profile:', error);
+          } else if (profile) {
+            setUserData(prev => ({
+              ...prev,
+              name: profile.name || '',
+              email: profile.email || ''
+            }));
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
 
   const handleEditData = () => {
     setShowEditModal(true);
@@ -19,10 +55,29 @@ const AccountPage = () => {
     setShowPhotoModal(true);
   };
 
-  const handleSaveData = () => {
-    // Handle saving user data
-    console.log('Saving user data:', userData);
-    setShowEditModal(false);
+  const handleSaveData = async () => {
+    if (user) {
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            name: userData.name,
+            email: userData.email
+          })
+          .eq('id', user.id);
+
+        if (error) {
+          console.error('Error updating profile:', error);
+          alert('Erro ao salvar dados. Tente novamente.');
+        } else {
+          console.log('Profile updated successfully');
+          setShowEditModal(false);
+        }
+      } catch (error) {
+        console.error('Error saving user data:', error);
+        alert('Erro ao salvar dados. Tente novamente.');
+      }
+    }
   };
 
   const handleUploadPhoto = () => {
@@ -40,6 +95,16 @@ const AccountPage = () => {
     // Handle account deletion
     console.log('Account deletion requested');
   };
+
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
@@ -60,11 +125,11 @@ const AccountPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">Nome</label>
-            <p className="text-gray-900 dark:text-white font-medium">{userData.name}</p>
+            <p className="text-gray-900 dark:text-white font-medium">{userData.name || '-'}</p>
           </div>
           <div>
             <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">Email</label>
-            <p className="text-gray-900 dark:text-white font-medium">{userData.email}</p>
+            <p className="text-gray-900 dark:text-white font-medium">{userData.email || '-'}</p>
           </div>
           <div>
             <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">Cpf</label>
@@ -227,7 +292,7 @@ const AccountPage = () => {
               onClick={handleSaveData}
               className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 mt-6"
             >
-              <span>Adicionar</span>
+              <span>Salvar</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
