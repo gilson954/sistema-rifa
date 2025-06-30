@@ -6,6 +6,7 @@ import DashboardLayout from './components/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
+import AdminLoginPage from './pages/AdminLoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import CreateCampaignPage from './pages/CreateCampaignPage';
@@ -33,6 +34,9 @@ function App() {
           {/* Rotas de Autenticação */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          
+          {/* Rota de Login Administrativo */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
 
           {/* Dashboard Protegido */}
           <Route path="/dashboard" element={

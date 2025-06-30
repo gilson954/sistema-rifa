@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 interface AuthContextType {
   user: User | null
   session: Session | null
+  isAdmin: boolean | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signUp: (email: string, password: string, name: string) => Promise<{ error: any }>
@@ -29,13 +30,27 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Function to check admin status from user metadata
+  const checkAdminStatus = (user: User | null) => {
+    if (!user) {
+      setIsAdmin(null)
+      return
+    }
+
+    // Check if user has admin flag in metadata
+    const adminStatus = user.user_metadata?.is_admin === true || user.user_metadata?.is_admin === 'true'
+    setIsAdmin(adminStatus)
+  }
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
+      checkAdminStatus(session?.user ?? null)
       setLoading(false)
     })
 
@@ -45,6 +60,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
+      checkAdminStatus(session?.user ?? null)
       setLoading(false)
     })
 
@@ -92,6 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut()
+    setIsAdmin(null)
   }
 
   const updateProfile = async (data: { name?: string; avatar_url?: string }) => {
@@ -108,6 +125,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value = {
     user,
     session,
+    isAdmin,
     loading,
     signIn,
     signUp,
