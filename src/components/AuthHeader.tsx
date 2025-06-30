@@ -20,6 +20,10 @@ const AuthHeader: React.FC<AuthHeaderProps> = ({ backTo = 'home' }) => {
     }
   };
 
+  const handleGoHome = () => {
+    navigate('/');
+  };
+
   const getBackButtonText = () => {
     if (backTo === 'login') {
       return {
@@ -41,14 +45,18 @@ const AuthHeader: React.FC<AuthHeaderProps> = ({ backTo = 'home' }) => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <div className="flex items-center">
+            <button 
+              onClick={handleGoHome}
+              className="flex items-center hover:opacity-80 transition-opacity duration-200"
+              aria-label="Ir para página inicial"
+            >
               <img 
                 src="/32132123.png" 
                 alt="Rifaqui Logo" 
                 className="w-11 h-11 object-contain"
               />
               <span className="ml-2 text-2xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
-            </div>
+            </button>
           </div>
 
           {/* Right side buttons */}
