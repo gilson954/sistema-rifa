@@ -5,7 +5,6 @@ import { supabase } from '../lib/supabase'
 interface AuthContextType {
   user: User | null
   session: Session | null
-  isAdmin: boolean | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signUp: (email: string, password: string, name: string) => Promise<{ error: any }>
@@ -30,42 +29,13 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(true)
-
-  // Function to fetch admin status
-  const fetchAdminStatus = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', userId)
-        .single()
-
-      if (error) {
-        console.error('Error fetching admin status:', error)
-        setIsAdmin(false)
-      } else {
-        setIsAdmin(data?.is_admin || false)
-      }
-    } catch (error) {
-      console.error('Error fetching admin status:', error)
-      setIsAdmin(false)
-    }
-  }
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
-      
-      if (session?.user) {
-        fetchAdminStatus(session.user.id)
-      } else {
-        setIsAdmin(null)
-      }
-      
       setLoading(false)
     })
 
@@ -75,13 +45,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
-      
-      if (session?.user) {
-        await fetchAdminStatus(session.user.id)
-      } else {
-        setIsAdmin(null)
-      }
-      
       setLoading(false)
     })
 
@@ -115,7 +78,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           id: data.user.id,
           name,
           email,
-          is_admin: false, // Default to false for new users
         }, {
           onConflict: 'id'
         })
@@ -130,7 +92,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut()
-    setIsAdmin(null)
   }
 
   const updateProfile = async (data: { name?: string; avatar_url?: string }) => {
@@ -147,7 +108,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value = {
     user,
     session,
-    isAdmin,
     loading,
     signIn,
     signUp,
