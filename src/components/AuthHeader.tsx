@@ -1,15 +1,39 @@
 import React from 'react';
 import { Sun, Moon, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 
-const AuthHeader = () => {
+interface AuthHeaderProps {
+  backTo?: 'home' | 'login';
+}
+
+const AuthHeader: React.FC<AuthHeaderProps> = ({ backTo = 'home' }) => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleGoHome = () => {
-    navigate('/');
+  const handleGoBack = () => {
+    if (backTo === 'login') {
+      navigate('/login');
+    } else {
+      navigate('/');
+    }
   };
+
+  const getBackButtonText = () => {
+    if (backTo === 'login') {
+      return {
+        full: 'Voltar para login',
+        short: 'Voltar'
+      };
+    }
+    return {
+      full: 'Voltar para o início',
+      short: 'Voltar'
+    };
+  };
+
+  const backButtonText = getBackButtonText();
 
   return (
     <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-100 dark:border-gray-800 fixed w-full top-0 z-50 transition-colors duration-300">
@@ -38,12 +62,12 @@ const AuthHeader = () => {
             </button>
             
             <button 
-              onClick={handleGoHome}
+              onClick={handleGoBack}
               className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 font-medium"
             >
               <ArrowLeft size={16} />
-              <span className="hidden sm:inline">Voltar para o início</span>
-              <span className="sm:hidden">Voltar</span>
+              <span className="hidden sm:inline">{backButtonText.full}</span>
+              <span className="sm:hidden">{backButtonText.short}</span>
             </button>
           </div>
         </div>

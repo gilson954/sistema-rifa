@@ -51,7 +51,7 @@ const RegisterPage = () => {
   if (success) {
     return (
       <>
-        <AuthHeader />
+        <AuthHeader backTo="login" />
         <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
           <div className="max-w-md w-full text-center">
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
@@ -74,7 +74,7 @@ const RegisterPage = () => {
 
   return (
     <>
-      <AuthHeader />
+      <AuthHeader backTo="login" />
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
         <div className="max-w-md w-full">
           {/* Logo */}
