@@ -8,6 +8,7 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import CreateCampaignPage from './pages/CreateCampaignPage';
 import PaymentIntegrationsPage from './pages/PaymentIntegrationsPage';
 import RankingPage from './pages/RankingPage';
 import AffiliationsPage from './pages/AffiliationsPage';
@@ -40,6 +41,7 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<DashboardPage />} />
+            <Route path="create-campaign" element={<CreateCampaignPage />} />
             <Route path="integrations" element={<PaymentIntegrationsPage />} />
             <Route path="ranking" element={<RankingPage />} />
             <Route path="affiliations" element={<AffiliationsPage />} />

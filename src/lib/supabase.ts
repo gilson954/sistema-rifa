@@ -38,6 +38,62 @@ export type Database = {
           updated_at?: string | null
         }
       }
+      campaigns: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          description: string | null
+          prize_description: string
+          prize_image_url: string | null
+          ticket_price: number
+          total_tickets: number
+          sold_tickets: number
+          start_date: string
+          end_date: string
+          status: 'draft' | 'active' | 'completed' | 'cancelled'
+          winner_ticket_number: number | null
+          winner_user_id: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          description?: string | null
+          prize_description: string
+          prize_image_url?: string | null
+          ticket_price: number
+          total_tickets: number
+          sold_tickets?: number
+          start_date: string
+          end_date: string
+          status?: 'draft' | 'active' | 'completed' | 'cancelled'
+          winner_ticket_number?: number | null
+          winner_user_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          description?: string | null
+          prize_description?: string
+          prize_image_url?: string | null
+          ticket_price?: number
+          total_tickets?: number
+          sold_tickets?: number
+          start_date?: string
+          end_date?: string
+          status?: 'draft' | 'active' | 'completed' | 'cancelled'
+          winner_ticket_number?: number | null
+          winner_user_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
     }
     Views: {
       [_ in never]: never

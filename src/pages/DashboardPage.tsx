@@ -31,6 +31,10 @@ const DashboardPage = () => {
     navigate('/dashboard/integrations');
   };
 
+  const handleCreateCampaign = () => {
+    navigate('/dashboard/create-campaign');
+  };
+
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 sm:p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300 min-h-[calc(100vh-200px)]">
       <div className="space-y-6">
@@ -94,7 +98,10 @@ const DashboardPage = () => {
 
         {/* Create Campaign Button */}
         <div className="flex justify-center">
-          <button className="w-full sm:w-fit bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 sm:px-8 rounded-lg font-semibold text-lg flex items-center justify-center space-x-2 transition-colors duration-200 shadow-md">
+          <button 
+            onClick={handleCreateCampaign}
+            className="w-full sm:w-fit bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 sm:px-8 rounded-lg font-semibold text-lg flex items-center justify-center space-x-2 transition-colors duration-200 shadow-md"
+          >
             <Plus className="h-6 w-6" />
             <span>Criar campanha</span>
           </button>
