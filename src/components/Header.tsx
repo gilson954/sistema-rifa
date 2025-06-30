@@ -19,10 +19,6 @@ const Header = () => {
     navigate('/register');
   };
 
-  const handleDashboardClick = () => {
-    navigate('/dashboard');
-  };
-
   const handleGoHome = () => {
     if (location.pathname === '/') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -49,6 +45,11 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
+  // Se o usuário estiver logado, não mostra o header na página inicial
+  if (user && location.pathname === '/') {
+    return null;
+  }
+
   return (
     <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-100 dark:border-gray-800 fixed w-full top-0 z-50 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -69,27 +70,29 @@ const Header = () => {
             </button>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            <button 
-              onClick={() => scrollToSection('como-funciona')}
-              className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 font-medium"
-            >
-              Como Funciona
-            </button>
-            <button 
-              onClick={() => scrollToSection('funcionalidades')}
-              className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 font-medium"
-            >
-              Funcionalidades
-            </button>
-            <button 
-              onClick={() => scrollToSection('duvidas')}
-              className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 font-medium"
-            >
-              Dúvidas
-            </button>
-          </nav>
+          {/* Desktop Navigation - só mostra se o usuário não estiver logado */}
+          {!user && (
+            <nav className="hidden md:flex space-x-8">
+              <button 
+                onClick={() => scrollToSection('como-funciona')}
+                className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 font-medium"
+              >
+                Como Funciona
+              </button>
+              <button 
+                onClick={() => scrollToSection('funcionalidades')}
+                className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 font-medium"
+              >
+                Funcionalidades
+              </button>
+              <button 
+                onClick={() => scrollToSection('duvidas')}
+                className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 font-medium"
+              >
+                Dúvidas
+              </button>
+            </nav>
+          )}
 
           {/* Desktop CTA Buttons */}
           <div className="hidden md:flex items-center space-x-4">
@@ -101,14 +104,8 @@ const Header = () => {
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </button>
             
-            {user ? (
-              <button 
-                onClick={handleDashboardClick}
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium"
-              >
-                Dashboard
-              </button>
-            ) : (
+            {/* Só mostra botões de login/registro se o usuário não estiver logado */}
+            {!user && (
               <>
                 <button 
                   onClick={handleRegisterClick}
@@ -126,19 +123,21 @@ const Header = () => {
             )}
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200"
-            >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
+          {/* Mobile menu button - só mostra se o usuário não estiver logado */}
+          {!user && (
+            <div className="md:hidden">
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200"
+              >
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
+        {/* Mobile Navigation - só mostra se o usuário não estiver logado */}
+        {!user && isMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-100 dark:border-gray-800">
             <div className="flex flex-col space-y-4">
               <button 
@@ -169,30 +168,18 @@ const Header = () => {
                     {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                   </button>
                 </div>
-                
-                {user ? (
-                  <button 
-                    onClick={handleDashboardClick}
-                    className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium text-left"
-                  >
-                    Dashboard
-                  </button>
-                ) : (
-                  <>
-                    <button 
-                      onClick={handleRegisterClick}
-                      className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-left hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                    >
-                      Criar conta
-                    </button>
-                    <button 
-                      onClick={handleLoginClick}
-                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium text-left"
-                    >
-                      Entrar
-                    </button>
-                  </>
-                )}
+                <button 
+                  onClick={handleRegisterClick}
+                  className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-left hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                >
+                  Criar conta
+                </button>
+                <button 
+                  onClick={handleLoginClick}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium text-left"
+                >
+                  Entrar
+                </button>
               </div>
             </div>
           </div>
