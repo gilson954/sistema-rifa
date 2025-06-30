@@ -27,11 +27,7 @@ const HomePage = () => {
     );
   }
 
-  // Se o usuário estiver logado, não renderiza a página inicial (será redirecionado)
-  if (user) {
-    return null;
-  }
-
+  // Renderiza a página inicial normalmente - o redirecionamento é tratado pelo useEffect
   return (
     <>
       <Hero />
