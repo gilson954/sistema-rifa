@@ -64,47 +64,62 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     {
       icon: LayoutGrid,
       label: 'Campanhas (Home)',
-      path: '/dashboard'
+      path: '/dashboard',
+      action: null
     },
     {
       icon: CreditCard,
       label: 'Métodos de pagamentos',
-      path: '/dashboard/integrations'
+      path: '/dashboard/integrations',
+      action: null
     },
     {
       icon: Trophy,
       label: 'Ranking',
-      path: '/dashboard/ranking'
+      path: '/dashboard/ranking',
+      action: null
     },
     {
       icon: Users,
       label: 'Afiliações',
-      path: '/dashboard/affiliations'
+      path: '/dashboard/affiliations',
+      action: null
     },
     {
       icon: Share2,
       label: 'Redes sociais',
-      path: '/dashboard/social-media'
+      path: '/dashboard/social-media',
+      action: null
     },
     {
       icon: BarChart3,
       label: 'Pixels e Analytics',
-      path: '/dashboard/analytics'
+      path: '/dashboard/analytics',
+      action: null
     },
     {
       icon: Palette,
       label: 'Personalização',
-      path: '/dashboard/customize'
+      path: '/dashboard/customize',
+      action: null
     },
     {
       icon: User,
       label: 'Minha conta',
-      path: '/dashboard/account'
+      path: '/dashboard/account',
+      action: null
     },
     {
       icon: HelpCircle,
       label: 'Tutoriais',
-      path: '/dashboard/tutorials'
+      path: '/dashboard/tutorials',
+      action: null
+    },
+    {
+      icon: LogOut,
+      label: 'Sair',
+      path: '/logout',
+      action: handleSignOut
     }
   ];
 
@@ -177,6 +192,26 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           <ul className="space-y-2">
             {menuItems.map((item, index) => {
               const IconComponent = item.icon;
+              
+              // Special handling for the Sign Out item
+              if (item.action) {
+                return (
+                  <li key={index}>
+                    <button
+                      onClick={() => {
+                        item.action();
+                        handleNavClick();
+                      }}
+                      className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-red-600 hover:text-white transition-colors duration-200"
+                    >
+                      <IconComponent className="h-5 w-5 flex-shrink-0" />
+                      <span className="font-medium truncate">{item.label}</span>
+                    </button>
+                  </li>
+                );
+              }
+
+              // Regular navigation items
               return (
                 <li key={index}>
                   <NavLink
@@ -199,17 +234,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
             })}
           </ul>
         </nav>
-
-        {/* Bottom Actions */}
-        <div className="p-4 border-t border-gray-800">
-          <button
-            onClick={handleSignOut}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-red-600 hover:text-white transition-colors duration-200"
-          >
-            <LogOut className="h-5 w-5 flex-shrink-0" />
-            <span className="font-medium truncate">Sair</span>
-          </button>
-        </div>
       </div>
     </>
   );
