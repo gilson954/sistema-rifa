@@ -8,7 +8,6 @@ import {
   Palette, 
   User, 
   HelpCircle, 
-  Home,
   X,
   Trophy,
   Users,
@@ -46,12 +45,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       fetchProfile();
     }
   }, [user]);
-
-  const handleGoHome = () => {
-    navigate('/');
-    onClose?.();
-    setIsMobileMenuOpen(false);
-  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -208,15 +201,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         </nav>
 
         {/* Bottom Actions */}
-        <div className="p-4 border-t border-gray-800 space-y-2">
-          <button
-            onClick={handleGoHome}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200"
-          >
-            <Home className="h-5 w-5 flex-shrink-0" />
-            <span className="font-medium truncate">Página Inicial</span>
-          </button>
-          
+        <div className="p-4 border-t border-gray-800">
           <button
             onClick={handleSignOut}
             className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-red-600 hover:text-white transition-colors duration-200"
