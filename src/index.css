@@ -1,3 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Import animated sign-in styles */
+@import './tw-animate-css.css';
