@@ -107,8 +107,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-    setIsAdmin(null)
+    try {
+      await supabase.auth.signOut()
+    } catch (error) {
+      // Silently handle logout errors (e.g., expired sessions)
+      console.warn('Logout error (handled gracefully):', error)
+    } finally {
+      // Always clear local state regardless of logout success/failure
+      setUser(null)
+      setSession(null)
+      setIsAdmin(null)
+    }
   }
 
   const updateProfile = async (data: { name?: string; avatar_url?: string }) => {
