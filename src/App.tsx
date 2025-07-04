@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
 import DashboardLayout from './components/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminProtectedRoute from './components/AdminProtectedRoute';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import AdminLoginPage from './pages/AdminLoginPage';
@@ -20,6 +21,7 @@ import CustomizationPage from './pages/CustomizationPage';
 import AccountPage from './pages/AccountPage';
 import SocialMediaPage from './pages/SocialMediaPage';
 import TutorialsPage from './pages/TutorialsPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 
 function App() {
   return (
@@ -37,6 +39,13 @@ function App() {
           
           {/* Rota de Login Administrativo */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
+
+          {/* Admin Dashboard Protegido */}
+          <Route path="/admin/dashboard" element={
+            <AdminProtectedRoute>
+              <AdminDashboardPage />
+            </AdminProtectedRoute>
+          } />
 
           {/* Dashboard Protegido */}
           <Route path="/dashboard" element={
