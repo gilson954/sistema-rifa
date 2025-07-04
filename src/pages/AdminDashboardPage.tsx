@@ -13,8 +13,10 @@ import {
   Search,
   Filter,
   Download,
-  RefreshCw
+  RefreshCw,
+  LogOut
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -35,7 +37,8 @@ interface DashboardStats {
 }
 
 const AdminDashboardPage = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
@@ -47,6 +50,16 @@ const AdminDashboardPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAdmin, setFilterAdmin] = useState<'all' | 'admin' | 'user'>('all');
   const [refreshing, setRefreshing] = useState(false);
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/admin/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   // Fetch dashboard statistics
   const fetchStats = async () => {
@@ -210,14 +223,25 @@ const AdminDashboardPage = () => {
               </div>
             </div>
             
-            <button
-              onClick={refreshData}
-              disabled={refreshing}
-              className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white rounded-lg transition-colors duration-200"
-            >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              <span>Atualizar</span>
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={refreshData}
+                disabled={refreshing}
+                className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white rounded-lg transition-colors duration-200"
+              >
+                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                <span>Atualizar</span>
+              </button>
+              
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
+                title="Sair do painel administrativo"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sair</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
