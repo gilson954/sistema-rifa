@@ -62,6 +62,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(session?.user ?? null)
       checkAdminStatus(session?.user ?? null)
       setLoading(false)
+
+      // Limpa o histórico de rotas quando o usuário faz logout
+      if (event === 'SIGNED_OUT') {
+        try {
+          localStorage.removeItem('rifaqui_last_route')
+          localStorage.removeItem('rifaqui_route_timestamp')
+        } catch (error) {
+          console.warn('Failed to clear route history on logout:', error)
+        }
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -131,6 +141,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null)
       setSession(null)
       setIsAdmin(null)
+      
+      // Limpa o histórico de rotas no logout
+      try {
+        localStorage.removeItem('rifaqui_last_route')
+        localStorage.removeItem('rifaqui_route_timestamp')
+      } catch (error) {
+        console.warn('Failed to clear route history on logout:', error)
+      }
     }
   }
 

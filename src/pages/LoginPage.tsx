@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useRouteHistory } from '../hooks/useRouteHistory'
 import AuthHeader from '../components/AuthHeader'
 
 const LoginPage = () => {
@@ -14,8 +15,7 @@ const LoginPage = () => {
   const { signIn } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-
-  const from = location.state?.from?.pathname || '/dashboard'
+  const { restoreLastRoute } = useRouteHistory()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,7 +28,20 @@ const LoginPage = () => {
       setError(error.message)
       setLoading(false)
     } else {
-      navigate(from, { replace: true })
+      // Após login bem-sucedido, verifica se há uma rota para restaurar
+      const lastRoute = restoreLastRoute()
+      
+      if (lastRoute) {
+        navigate(lastRoute, { replace: true })
+      } else {
+        // Se há um estado 'from' (vindo de uma rota protegida), navega para lá
+        const from = location.state?.from
+        if (from && typeof from === 'string') {
+          navigate(from, { replace: true })
+        } else {
+          navigate('/dashboard', { replace: true })
+        }
+      }
     }
   }
 
