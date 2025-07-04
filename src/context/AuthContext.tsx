@@ -108,16 +108,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut()
-      
-      if (error) {
-        // Check if the error is specifically about session not found or missing
-        if (error.message === 'Session from session_id claim in JWT does not exist' || 
-            error.message === 'Auth session missing!') {
-          console.warn('Session already expired or invalid - proceeding with local logout')
-        } else {
-          // Log other types of logout errors
-          console.error('Logout error:', error)
+      // Only attempt to sign out if there's a valid session
+      if (session) {
+        const { error } = await supabase.auth.signOut()
+        
+        if (error) {
+          // Check if the error is specifically about session not found or missing
+          if (error.message === 'Session from session_id claim in JWT does not exist' || 
+              error.message === 'Auth session missing!') {
+            console.warn('Session already expired or invalid - proceeding with local logout')
+          } else {
+            // Log other types of logout errors
+            console.error('Logout error:', error)
+          }
         }
       }
     } catch (error) {
