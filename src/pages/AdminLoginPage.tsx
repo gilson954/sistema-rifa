@@ -22,8 +22,8 @@ const AdminLoginPage = () => {
     // Only proceed if auth is not loading
     if (!authLoading) {
       if (user && isAdmin) {
-        // User is authenticated and is admin - redirect to dashboard
-        navigate('/dashboard')
+        // User is authenticated and is admin - redirect to admin dashboard
+        navigate('/admin/dashboard')
       } else if (user && !isAdmin) {
         // User is authenticated but not admin - sign them out and show error
         signOut()
