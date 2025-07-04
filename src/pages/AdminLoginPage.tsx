@@ -11,7 +11,7 @@ const AdminLoginPage = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const { user, loading: authLoading, signIn, signOut } = useAuth()
+  const { user, session, loading: authLoading, signIn, signOut } = useAuth()
   const navigate = useNavigate()
 
   // Check if user is admin by looking at user metadata
@@ -24,14 +24,18 @@ const AdminLoginPage = () => {
       if (user && isAdmin) {
         // User is authenticated and is admin - redirect to admin dashboard
         navigate('/admin/dashboard')
-      } else if (user && !isAdmin) {
-        // User is authenticated but not admin - sign them out and show error
+      } else if (user && !isAdmin && session) {
+        // User is authenticated but not admin and has valid session - sign them out and show error
         signOut()
+        setError('Acesso negado. Esta área é restrita a administradores.')
+        setLoading(false)
+      } else if (user && !isAdmin && !session) {
+        // User exists but no valid session - just show error without signing out
         setError('Acesso negado. Esta área é restrita a administradores.')
         setLoading(false)
       }
     }
-  }, [user, isAdmin, authLoading, navigate, signOut])
+  }, [user, isAdmin, session, authLoading, navigate, signOut])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
