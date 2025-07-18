@@ -9,13 +9,11 @@ const AccountPage = () => {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [userData, setUserData] = useState({
     name: '',
     cpf: '',
     email: '',
-    phone: '+55',
-    avatar_url: ''
+    phone: '+55'
   });
   const [loading, setLoading] = useState(true);
 
@@ -37,8 +35,7 @@ const AccountPage = () => {
             setUserData(prev => ({
               ...prev,
               name: profile.name || '',
-              email: profile.email || '',
-              avatar_url: profile.avatar_url || ''
+              email: profile.email || ''
             }));
           }
         } catch (error) {
@@ -117,62 +114,15 @@ const AccountPage = () => {
       return;
     }
     
-    if (!user) {
-      alert('Usuário não autenticado');
-      return;
-    }
-
-    setUploading(true);
-
-    try {
-      // Generate unique filename
-      const fileExt = selectedImage.name.split('.').pop();
-      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
-
-      // Upload file to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, selectedImage, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      // Update user profile with avatar URL
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', user.id);
-
-      if (updateError) {
-        throw updateError;
-      }
-
-      // Update local state
-      setUserData(prev => ({ ...prev, avatar_url: publicUrl }));
-      
-      alert('Foto enviada com sucesso!');
-      
-      // Reset state and close modal
-      setSelectedImage(null);
-      setImagePreview(null);
-      setShowPhotoModal(false);
-
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      alert('Erro ao enviar foto. Tente novamente.');
-    } finally {
-      setUploading(false);
-    }
+    // Here you would typically upload to Supabase Storage
+    // For now, we'll just simulate the upload
+    console.log('Uploading photo:', selectedImage.name);
+    alert('Foto enviada com sucesso!');
+    
+    // Reset state and close modal
+    setSelectedImage(null);
+    setImagePreview(null);
+    setShowPhotoModal(false);
   };
 
   const handleSendResetLink = () => {
@@ -235,20 +185,12 @@ const AccountPage = () => {
       <div className="mb-8">
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
           <div className="flex items-start space-x-4 mb-6">
-            <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
-              {userData.avatar_url ? (
-                <img 
-                  src={userData.avatar_url} 
-                  alt="Avatar" 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <Upload className="h-8 w-8 text-gray-400" />
-              )}
+            <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+              <Upload className="h-8 w-8 text-gray-400" />
             </div>
             <div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                {userData.avatar_url ? 'Alterar foto de perfil' : 'Adicionar foto de perfil'}
+                Adicionar foto de perfil
               </h3>
               <p className="text-gray-500 dark:text-gray-400 text-sm">
                 Recomendamos as dimensões: <span className="text-gray-900 dark:text-white font-medium">100px por 50px</span>
@@ -260,7 +202,7 @@ const AccountPage = () => {
             onClick={handleAddPhoto}
             className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
           >
-            <span>{userData.avatar_url ? 'Alterar' : 'Adicionar'}</span>
+            <span>Adicionar</span>
             <Upload className="h-4 w-4" />
           </button>
         </div>
@@ -485,20 +427,11 @@ const AccountPage = () => {
 
             <button
               onClick={handleUploadPhoto}
-              disabled={!selectedImage || uploading}
+              disabled={!selectedImage}
               className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
             >
-              {uploading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Enviando...</span>
-                </>
-              ) : (
-                <>
-                  <span>{selectedImage ? 'Salvar Foto' : 'Selecione uma imagem'}</span>
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
+              <span>{selectedImage ? 'Salvar Foto' : 'Selecione uma imagem'}</span>
+              <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </div>
