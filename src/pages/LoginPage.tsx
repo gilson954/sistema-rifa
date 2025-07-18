@@ -19,13 +19,29 @@ const LoginPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Basic validation
+    if (!email || !password) {
+      setError('Por favor, preencha todos os campos')
+      return
+    }
+    
     setLoading(true)
     setError('')
 
     const { error } = await signIn(email, password)
 
     if (error) {
-      setError(error.message)
+      // Provide user-friendly error messages
+      if (error.message.includes('Invalid login credentials')) {
+        setError('Email ou senha incorretos')
+      } else if (error.message.includes('não configurada')) {
+        setError(error.message)
+      } else if (error.message.includes('conexão')) {
+        setError(error.message)
+      } else {
+        setError('Erro ao fazer login. Tente novamente.')
+      }
       setLoading(false)
     } else {
       // Após login bem-sucedido, verifica se há uma rota para restaurar
