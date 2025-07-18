@@ -20,6 +20,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string | null
           updated_at: string | null
+          is_admin: boolean
         }
         Insert: {
           id: string
@@ -28,6 +29,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           updated_at?: string | null
+          is_admin?: boolean
         }
         Update: {
           id?: string
@@ -36,6 +38,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           updated_at?: string | null
+          is_admin?: boolean
         }
       }
       campaigns: {
