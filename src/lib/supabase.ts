@@ -1,26 +1,19 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
-// Check if environment variables are properly set
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase environment variables not found. Using fallback configuration.')
-  console.warn('Please ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in your .env file')
+if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === '' || supabaseAnonKey === '') {
+  console.error('Supabase configuration error:', {
+    url: supabaseUrl ? 'Set' : 'Missing',
+    key: supabaseAnonKey ? 'Set' : 'Missing'
+  })
+  throw new Error('Missing or invalid Supabase environment variables. Please check your .env file and ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are properly set.')
 }
 
-// Use fallback values if environment variables are not set
-const finalUrl = supabaseUrl || 'https://placeholder.supabase.co'
-const finalKey = supabaseAnonKey || 'placeholder-key'
+console.log('Supabase client initialized with URL:', supabaseUrl)
 
-export const supabase = createClient(finalUrl, finalKey)
-
-// Log configuration status
-if (supabaseUrl && supabaseAnonKey) {
-  console.log('Supabase client initialized successfully')
-} else {
-  console.warn('Supabase client initialized with fallback values - authentication will not work')
-}
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export type Database = {
   public: {

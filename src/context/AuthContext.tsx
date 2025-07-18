@@ -78,78 +78,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    try {
-      // Check if Supabase is properly configured
-      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        return { 
-          error: { 
-            message: 'Aplicação não configurada. Entre em contato com o administrador.' 
-          } 
-        }
-      }
-
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      return { error }
-    } catch (error) {
-      console.error('Sign in error:', error)
-      return { 
-        error: { 
-          message: 'Erro de conexão. Verifique sua internet e tente novamente.' 
-        } 
-      }
-    }
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    return { error }
   }
 
   const signUp = async (email: string, password: string, name: string) => {
-    try {
-      // Check if Supabase is properly configured
-      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        return { 
-          error: { 
-            message: 'Aplicação não configurada. Entre em contato com o administrador.' 
-          } 
-        }
-      }
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-          },
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
         },
-      })
+      },
+    })
 
-      if (!error && data.user) {
-        // Create or update profile using upsert to handle existing profiles
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: data.user.id,
-            name,
-            email,
-          }, {
-            onConflict: 'id'
-          })
+    if (!error && data.user) {
+      // Create or update profile using upsert to handle existing profiles
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: data.user.id,
+          name,
+          email,
+        }, {
+          onConflict: 'id'
+        })
 
-        if (profileError) {
-          console.error('Error creating profile:', profileError)
-        }
-      }
-
-      return { error }
-    } catch (error) {
-      console.error('Sign up error:', error)
-      return { 
-        error: { 
-          message: 'Erro de conexão. Verifique sua internet e tente novamente.' 
-        } 
+      if (profileError) {
+        console.error('Error creating profile:', profileError)
       }
     }
+
+    return { error }
   }
 
   const signOut = async () => {
