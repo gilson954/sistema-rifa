@@ -302,7 +302,7 @@ const CreateCampaignPage = () => {
             <div className="flex space-x-2">
               <div className="relative">
                 <select className="appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-8 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200">
-                  <option value="BR">BR</option>
+                  <option value="BR">🇧🇷 Brasil (+55)</option>
                   <option value="AD">🇦🇩 Andorra (+376)</option>
                   <option value="AE">🇦🇪 Emirados Árabes Unidos (+971)</option>
                   <option value="AF">🇦🇫 Afeganistão (+93)</option>
