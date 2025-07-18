@@ -7,6 +7,8 @@ const AccountPage = () => {
   const { user } = useAuth();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [userData, setUserData] = useState({
     name: '',
     cpf: '',
@@ -55,6 +57,32 @@ const AccountPage = () => {
     setShowPhotoModal(true);
   };
 
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor, selecione apenas arquivos de imagem.');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('A imagem deve ter no máximo 5MB.');
+        return;
+      }
+      
+      setSelectedImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSaveData = async () => {
     if (user) {
       try {
@@ -81,8 +109,19 @@ const AccountPage = () => {
   };
 
   const handleUploadPhoto = () => {
-    // Handle photo upload
-    console.log('Uploading photo');
+    if (!selectedImage) {
+      alert('Por favor, selecione uma imagem primeiro.');
+      return;
+    }
+    
+    // Here you would typically upload to Supabase Storage
+    // For now, we'll just simulate the upload
+    console.log('Uploading photo:', selectedImage.name);
+    alert('Foto enviada com sucesso!');
+    
+    // Reset state and close modal
+    setSelectedImage(null);
+    setImagePreview(null);
     setShowPhotoModal(false);
   };
 
@@ -319,27 +358,79 @@ const AccountPage = () => {
               Personalize sua rifa com uma foto de perfil
             </p>
 
-            <div className="mb-6">
+            <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
-                Selecione vários arquivos
+                Selecione uma imagem
               </label>
               
+              {/* Hidden File Input */}
+              <input
+                type="file"
+                id="image-upload"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
+              
               {/* File Upload Area */}
-              <div className="border-2 border-dashed border-purple-500 rounded-lg p-8 text-center hover:border-purple-400 transition-colors duration-200 cursor-pointer">
-                <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Upload className="h-6 w-6 text-white" />
-                </div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  Clique para selecionar arquivos ou arraste e solte aqui
-                </p>
-              </div>
+              <label
+                htmlFor="image-upload"
+                className="block border-2 border-dashed border-purple-500 rounded-lg p-8 text-center hover:border-purple-400 transition-colors duration-200 cursor-pointer"
+              >
+                {imagePreview ? (
+                  <div className="space-y-4">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-24 h-24 object-cover rounded-lg mx-auto"
+                    />
+                    <p className="text-purple-600 dark:text-purple-400 text-sm">
+                      {selectedImage?.name}
+                    </p>
+                    <p className="text-gray-500 dark:text-gray-400 text-xs">
+                      Clique para alterar a imagem
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Upload className="h-6 w-6 text-white" />
+                    </div>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">
+                      Clique para selecionar uma imagem ou arraste e solte aqui
+                    </p>
+                    <p className="text-gray-400 dark:text-gray-500 text-xs mt-2">
+                      PNG, JPG, GIF até 5MB
+                    </p>
+                  </div>
+                )}
+              </label>
             </div>
+
+            {/* Image Info */}
+            {selectedImage && (
+              <div className="mb-6 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-300">Tamanho:</span>
+                  <span className="text-gray-900 dark:text-white">
+                    {(selectedImage.size / 1024 / 1024).toFixed(2)} MB
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm mt-1">
+                  <span className="text-gray-600 dark:text-gray-300">Tipo:</span>
+                  <span className="text-gray-900 dark:text-white">
+                    {selectedImage.type}
+                  </span>
+                </div>
+              </div>
+            )}
 
             <button
               onClick={handleUploadPhoto}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+              disabled={!selectedImage}
+              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
             >
-              <span>Finalizar</span>
+              <span>{selectedImage ? 'Salvar Foto' : 'Selecione uma imagem'}</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
