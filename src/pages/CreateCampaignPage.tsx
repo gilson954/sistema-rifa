@@ -364,10 +364,10 @@ const CreateCampaignPage = () => {
                   <div className="bg-gray-800 rounded-lg overflow-hidden">
                     <div className="grid grid-cols-2 gap-px bg-gray-600">
                       <div className="bg-gray-700 px-4 py-3 text-center">
-                        <span className="text-green-400 font-semibold">ARRECADAÇÃO ESTIMADA</span>
+                        <span className="text-green-400 font-semibold">ARRECADAÇÃO</span>
                       </div>
                       <div className="bg-gray-700 px-4 py-3 text-center">
-                        <span className="text-yellow-400 font-semibold">TAXA DE PUBLICAÇÃO</span>
+                        <span className="text-yellow-400 font-semibold">TAXA</span>
                       </div>
                     </div>
                     
