@@ -27,7 +27,7 @@ const CreateCampaignStep2Page = () => {
   const handleFinalize = () => {
     console.log('Finalizing campaign with data:', formData);
     // Handle campaign finalization
-    navigate('/dashboard');
+    navigate('/dashboard/create-campaign/step-3');
   };
 
   const modelOptions = [
