@@ -15,8 +15,10 @@ const CreateCampaignStep2Page = () => {
     requireEmail: true,
     showRanking: false
   });
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [informarData, setInformarData] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState({ hour: '22', minute: '12' });
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const handleGoBack = () => {
     navigate('/dashboard/create-campaign');
@@ -46,11 +48,10 @@ const CreateCampaignStep2Page = () => {
     { value: '3-days', label: '3 dias' }
   ];
 
-  // Generate calendar for current month
-  const generateCalendar = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
+  // Generate calendar for specific month
+  const generateCalendar = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
     
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
@@ -68,11 +69,15 @@ const CreateCampaignStep2Page = () => {
     return { days, month, year };
   };
 
-  const { days, month, year } = generateCalendar();
+  const { days, month, year } = generateCalendar(currentMonth);
   const monthNames = [
     'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
     'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
   ];
+
+  const dayNames = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+  const dayAbbrev = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+  const monthAbbrev = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
 
   const formatDate = (date: Date) => {
     const day = date.getDate().toString().padStart(2, '0');
@@ -81,6 +86,30 @@ const CreateCampaignStep2Page = () => {
     return `${day}/${month}/${year}`;
   };
 
+  const formatSelectedDate = (date: Date) => {
+    const dayOfWeek = dayAbbrev[date.getDay()];
+    const monthName = monthAbbrev[date.getMonth()];
+    const day = date.getDate();
+    const year = date.getFullYear();
+    return `${dayOfWeek}. ${monthName}. ${day} ${year}`;
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentMonth);
+    if (direction === 'prev') {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
+    setCurrentMonth(newDate);
+  };
+
+  const handleDateSelect = (date: Date) => {
+    if (date.getMonth() === month) {
+      setSelectedDate(date);
+      setFormData({ ...formData, drawDate: formatDate(date) });
+    }
+  };
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
       {/* Header */}
@@ -284,100 +313,118 @@ const CreateCampaignStep2Page = () => {
               <Info className="h-4 w-4 text-gray-400" />
             </div>
             
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setShowDatePicker(false)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors duration-200 ${
-                    !showDatePicker 
-                      ? 'border-gray-400 bg-gray-100 dark:bg-gray-700' 
-                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
-                  }`}
-                >
-                  <span className="text-sm">✕</span>
-                  <span className="text-sm font-medium">INFORMAR DATA</span>
-                </button>
-              </div>
+            {informarData && (
+              <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-800 mb-4">
+                {/* Calendar Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <button 
+                    onClick={() => navigateMonth('prev')}
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
+                  >
+                    <ChevronDown className="h-4 w-4 rotate-90 text-gray-600 dark:text-gray-400" />
+                  </button>
+                  <h3 className="font-medium text-gray-900 dark:text-white">
+                    {monthNames[month]} {year}
+                  </h3>
+                  <button 
+                    onClick={() => navigateMonth('next')}
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
+                  >
+                    <ChevronDown className="h-4 w-4 -rotate-90 text-gray-600 dark:text-gray-400" />
+                  </button>
+                </div>
 
-              {showDatePicker && (
-                <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-800">
-                  <div className="flex items-center justify-between mb-4">
-                    <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
-                      <ChevronDown className="h-4 w-4 rotate-90" />
-                    </button>
-                    <h3 className="font-medium">
-                      {monthNames[month]} {year}
-                    </h3>
-                    <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
-                      <ChevronDown className="h-4 w-4 -rotate-90" />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-7 gap-1 mb-2">
-                    {['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map((day) => (
-                      <div key={day} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 p-2">
-                        {day}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-7 gap-1">
-                    {days.map((day, index) => {
-                      const isCurrentMonth = day.getMonth() === month;
-                      const isSelected = selectedDate && day.toDateString() === selectedDate.toDateString();
-                      
-                      return (
-                        <button
-                          key={index}
-                          onClick={() => {
-                            if (isCurrentMonth) {
-                              setSelectedDate(day);
-                              setFormData({ ...formData, drawDate: formatDate(day) });
-                            }
-                          }}
-                          className={`p-2 text-sm rounded transition-colors duration-200 ${
-                            !isCurrentMonth 
-                              ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
-                              : isSelected
-                                ? 'bg-blue-500 text-white'
-                                : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white'
-                          }`}
-                          disabled={!isCurrentMonth}
-                        >
-                          {day.getDate()}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {selectedDate && (
-                    <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300">
-                        <Clock className="h-4 w-4" />
-                        <span>SEX. JUL 18 2025</span>
-                      </div>
-                      <div className="flex items-center space-x-2 mt-2">
-                        <input
-                          type="time"
-                          className="bg-transparent border-none text-sm focus:outline-none"
-                          defaultValue="12:00"
-                        />
-                      </div>
+                {/* Calendar Days Header */}
+                <div className="grid grid-cols-7 gap-1 mb-2">
+                  {['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map((day, index) => (
+                    <div key={index} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 p-2">
+                      {day}
                     </div>
-                  )}
+                  ))}
+                </div>
 
-                  <div className="mt-4 flex items-center space-x-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs">✓</span>
-                      </div>
-                      <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                        INFORMAR DATA
+                {/* Calendar Days */}
+                <div className="grid grid-cols-7 gap-1 mb-4">
+                  {days.map((day, index) => {
+                    const isCurrentMonth = day.getMonth() === month;
+                    const isSelected = selectedDate && day.toDateString() === selectedDate.toDateString();
+                    
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => handleDateSelect(day)}
+                        className={`p-2 text-sm rounded-full transition-colors duration-200 ${
+                          !isCurrentMonth 
+                            ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                            : isSelected
+                              ? 'bg-blue-500 text-white'
+                              : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white'
+                        }`}
+                        disabled={!isCurrentMonth}
+                      >
+                        {day.getDate()}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Selected Date Display and Time Picker */}
+                {selectedDate && (
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        {formatSelectedDate(selectedDate)}
                       </span>
                     </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <select
+                        value={selectedTime.hour}
+                        onChange={(e) => setSelectedTime({ ...selectedTime, hour: e.target.value })}
+                        className="bg-transparent border-none text-sm focus:outline-none text-gray-900 dark:text-white"
+                      >
+                        {Array.from({ length: 24 }, (_, i) => (
+                          <option key={i} value={i.toString().padStart(2, '0')}>
+                            {i.toString().padStart(2, '0')}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="text-gray-500 dark:text-gray-400">:</span>
+                      <select
+                        value={selectedTime.minute}
+                        onChange={(e) => setSelectedTime({ ...selectedTime, minute: e.target.value })}
+                        className="bg-transparent border-none text-sm focus:outline-none text-gray-900 dark:text-white"
+                      >
+                        {Array.from({ length: 60 }, (_, i) => (
+                          <option key={i} value={i.toString().padStart(2, '0')}>
+                            {i.toString().padStart(2, '0')}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+            )}
+
+            {/* Toggle Button */}
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setInformarData(!informarData)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+                  informarData ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                    informarData ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                INFORMAR DATA
+              </span>
             </div>
           </div>
 
