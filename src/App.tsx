@@ -11,6 +11,7 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import CreateCampaignPage from './pages/CreateCampaignPage';
+import CreateCampaignStep2Page from './pages/CreateCampaignStep2Page';
 import PaymentIntegrationsPage from './pages/PaymentIntegrationsPage';
 import RankingPage from './pages/RankingPage';
 import AffiliationsPage from './pages/AffiliationsPage';
@@ -55,6 +56,7 @@ function App() {
           }>
             <Route index element={<DashboardPage />} />
             <Route path="create-campaign" element={<CreateCampaignPage />} />
+            <Route path="create-campaign/step-2" element={<CreateCampaignStep2Page />} />
             <Route path="integrations" element={<PaymentIntegrationsPage />} />
             <Route path="ranking" element={<RankingPage />} />
             <Route path="affiliations" element={<AffiliationsPage />} />

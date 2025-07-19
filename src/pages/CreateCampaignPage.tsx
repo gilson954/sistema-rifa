@@ -157,41 +157,9 @@ const CreateCampaignPage = () => {
       return;
     }
 
-    if (!user) {
-      alert('Usuário não autenticado');
-      return;
-    }
 
-    setLoading(true);
-    try {
-      const price = parseFloat(formData.ticketPrice.replace(',', '.'));
-      
-      const { error } = await supabase
-        .from('campaigns')
-        .insert({
-          user_id: user.id,
-          title: formData.title,
-          prize_description: 'Prêmio a ser definido',
-          ticket_price: price,
-          total_tickets: formData.ticketQuantity,
-          start_date: new Date().toISOString(),
-          end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          status: 'active'
-        });
-
-      if (error) {
-        console.error('Error creating campaign:', error);
-        alert('Erro ao publicar campanha. Tente novamente.');
-      } else {
-        alert('Campanha publicada com sucesso!');
-        navigate('/dashboard');
-      }
-    } catch (error) {
-      console.error('Error creating campaign:', error);
-      alert('Erro ao publicar campanha. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
+    // Navigate to step 2
+    navigate('/dashboard/create-campaign/step-2');
   };
 
   return (
