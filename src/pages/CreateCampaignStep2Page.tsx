@@ -184,7 +184,13 @@ const CreateCampaignStep2Page = () => {
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Descrição / Regulamento
               </label>
-              <Info className="h-4 w-4 text-gray-400" />
+              <div className="relative group">
+                <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 text-xs rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                  Descreva o regulamento da sua campanha
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-900 dark:border-t-gray-100"></div>
+                </div>
+              </div>
             </div>
             <div className="border border-gray-300 dark:border-gray-600 rounded-lg">
               <div className="flex items-center space-x-2 p-3 border-b border-gray-300 dark:border-gray-600">
