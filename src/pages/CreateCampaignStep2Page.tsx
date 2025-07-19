@@ -158,11 +158,11 @@ const CreateCampaignStep2Page = () => {
             {/* Visual representation */}
             {formData.model === 'manual' && (
               <div className="mt-4 p-4 border-2 border-green-500 rounded-lg bg-green-50 dark:bg-green-900/20">
-                <div className="grid grid-cols-10 gap-1 mb-3">
+                <div className="grid grid-cols-5 sm:grid-cols-10 gap-1 mb-3">
                   {Array.from({ length: 50 }, (_, i) => (
                     <div
                       key={i}
-                      className={`w-6 h-6 rounded text-xs flex items-center justify-center text-white font-medium ${
+                      className={`w-6 h-6 sm:w-8 sm:h-8 rounded text-xs flex items-center justify-center text-white font-medium ${
                         [12, 23, 34, 45].includes(i + 1) ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
                       }`}
                     >
@@ -217,18 +217,18 @@ const CreateCampaignStep2Page = () => {
           </div>
 
           {/* Tabs */}
-          <div className="flex space-x-4">
+          <div className="flex flex-wrap gap-2 sm:gap-4">
             <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
               <span className="text-lg">🎫</span>
-              <span className="text-sm font-medium">Cota premiada</span>
+              <span className="text-xs sm:text-sm font-medium">Cota premiada</span>
             </button>
             <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
               <span className="text-lg">🏆</span>
-              <span className="text-sm font-medium">Prêmio</span>
+              <span className="text-xs sm:text-sm font-medium">Prêmio</span>
             </button>
             <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
               <span className="text-lg">🎁</span>
-              <span className="text-sm font-medium">Promoção</span>
+              <span className="text-xs sm:text-sm font-medium">Promoção</span>
             </button>
           </div>
 
@@ -377,7 +377,7 @@ const CreateCampaignStep2Page = () => {
                       <button
                         key={index}
                         onClick={() => handleDateSelect(day)}
-                        className={`p-2 text-sm rounded-full transition-colors duration-200 ${
+                        className={`p-1 sm:p-2 text-xs sm:text-sm rounded-full transition-colors duration-200 ${
                           !isCurrentMonth 
                             ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
                             : isSelected
@@ -397,16 +397,16 @@ const CreateCampaignStep2Page = () => {
                   <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                     <div className="flex items-center space-x-2 mb-3">
                       <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                      <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300">
                         {formatSelectedDate(selectedDate)}
                       </span>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1 sm:space-x-2">
                       <select
                         value={selectedTime.hour}
                         onChange={(e) => setSelectedTime({ ...selectedTime, hour: e.target.value })}
-                        className="bg-transparent border-none text-sm focus:outline-none text-gray-900 dark:text-white"
+                        className="bg-transparent border-none text-xs sm:text-sm focus:outline-none text-gray-900 dark:text-white"
                       >
                         {Array.from({ length: 24 }, (_, i) => (
                           <option key={i} value={i.toString().padStart(2, '0')}>
@@ -418,7 +418,7 @@ const CreateCampaignStep2Page = () => {
                       <select
                         value={selectedTime.minute}
                         onChange={(e) => setSelectedTime({ ...selectedTime, minute: e.target.value })}
-                        className="bg-transparent border-none text-sm focus:outline-none text-gray-900 dark:text-white"
+                        className="bg-transparent border-none text-xs sm:text-sm focus:outline-none text-gray-900 dark:text-white"
                       >
                         {Array.from({ length: 60 }, (_, i) => (
                           <option key={i} value={i.toString().padStart(2, '0')}>
