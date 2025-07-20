@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
 import { ArrowLeft, ChevronDown, Info, Upload, Calendar, Clock, AlertTriangle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useCampaign, useCampaigns } from '../hooks/useCampaigns';
+import { Campaign } from '../types/campaign';
 
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { updateCampaign } = useCampaigns();
+  
+  // Extrai o ID da campanha da URL
+  const campaignId = new URLSearchParams(location.search).get('id');
+  const { campaign, loading: fetchingCampaign, error: fetchError } = useCampaign(campaignId || '');
+  
   const [formData, setFormData] = useState({
-    model: 'manual',
+    model: 'manual' as 'manual' | 'automatic',
     description: '',
     minQuantity: 1,
     maxQuantity: 200000,
     initialFilter: 'all',
-    drawDate: '',
-    paymentTime: '1-day',
+    drawDate: null as string | null,
+    paymentDeadlineHours: 24,
     requireEmail: true,
     showRanking: false
   });
@@ -19,15 +28,92 @@ const CreateCampaignStep2Page = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState({ hour: '22', minute: '12' });
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [loadingCampaign, setLoadingCampaign] = useState(true);
+  const [errorCampaign, setErrorCampaign] = useState<string | null>(null);
+
+  // Efeito para carregar os dados da campanha quando o ID estiver disponível
+  useEffect(() => {
+    if (fetchingCampaign) {
+      setLoadingCampaign(true);
+      return;
+    }
+    if (fetchError) {
+      setErrorCampaign('Erro ao carregar dados da campanha.');
+      setLoadingCampaign(false);
+      return;
+    }
+    if (campaign) {
+      // Preenche o formData com os dados da campanha
+      setFormData({
+        model: campaign.campaign_model,
+        description: campaign.description || '',
+        minQuantity: campaign.min_tickets_per_purchase,
+        maxQuantity: campaign.max_tickets_per_purchase,
+        initialFilter: campaign.initial_filter,
+        drawDate: campaign.draw_date,
+        paymentDeadlineHours: campaign.payment_deadline_hours,
+        requireEmail: campaign.require_email,
+        showRanking: campaign.show_ranking
+      });
+
+      // Configura o estado do calendário se houver draw_date
+      if (campaign.draw_date) {
+        const date = new Date(campaign.draw_date);
+        setSelectedDate(date);
+        setSelectedTime({
+          hour: date.getHours().toString().padStart(2, '0'),
+          minute: date.getMinutes().toString().padStart(2, '0')
+        });
+        setInformarData(true);
+      }
+      setLoadingCampaign(false);
+    } else if (!campaignId) {
+      setErrorCampaign('ID da campanha não fornecido.');
+      setLoadingCampaign(false);
+    }
+  }, [campaignId, campaign, fetchingCampaign, fetchError]);
 
   const handleGoBack = () => {
     navigate('/dashboard/create-campaign');
   };
 
-  const handleFinalize = () => {
-    console.log('Finalizing campaign with data:', formData);
-    // Handle campaign finalization
-    navigate('/dashboard/create-campaign/step-3');
+  const handleFinalize = async () => {
+    if (!campaignId) {
+      alert('Erro: ID da campanha não encontrado para finalizar.');
+      return;
+    }
+
+    // Converte a data e hora selecionadas para o formato ISO string
+    let finalDrawDate = null;
+    if (informarData && selectedDate) {
+      const date = new Date(selectedDate);
+      date.setHours(parseInt(selectedTime.hour));
+      date.setMinutes(parseInt(selectedTime.minute));
+      finalDrawDate = date.toISOString();
+    }
+
+    // Prepara os dados para atualização
+    const updateData = {
+      id: campaignId,
+      description: formData.description,
+      min_tickets_per_purchase: formData.minQuantity,
+      max_tickets_per_purchase: formData.maxQuantity,
+      initial_filter: formData.initialFilter,
+      draw_date: finalDrawDate,
+      payment_deadline_hours: formData.paymentDeadlineHours,
+      require_email: formData.requireEmail,
+      show_ranking: formData.showRanking,
+      campaign_model: formData.model
+    };
+
+    try {
+      await updateCampaign(updateData);
+      console.log('Finalizing campaign with data:', updateData);
+      navigate(`/dashboard/create-campaign/step-3?id=${campaignId}`);
+    } catch (error) {
+      console.error('Error updating campaign:', error);
+      alert('Erro ao finalizar campanha. Tente novamente.');
+    }
   };
 
   const modelOptions = [
@@ -41,11 +127,9 @@ const CreateCampaignStep2Page = () => {
   ];
 
   const paymentTimeOptions = [
-    { value: '10-minutes', label: '10 minutos' },
-    { value: '30-minutes', label: '30 minutos' },
-    { value: '1-hour', label: '1 hora' },
-    { value: '1-day', label: '1 dia' },
-    { value: '3-days', label: '3 dias' }
+    { value: 1, label: '1 hora' },
+    { value: 24, label: '1 dia' },
+    { value: 72, label: '3 dias' }
   ];
 
   // Generate calendar for specific month
@@ -107,9 +191,31 @@ const CreateCampaignStep2Page = () => {
   const handleDateSelect = (date: Date) => {
     if (date.getMonth() === month) {
       setSelectedDate(date);
-      setFormData({ ...formData, drawDate: formatDate(date) });
     }
   };
+
+  if (loadingCampaign) {
+    return (
+      <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <span className="ml-3 text-gray-600 dark:text-gray-400">Carregando campanha...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (errorCampaign) {
+    return (
+      <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+        <div className="flex items-center justify-center py-12 text-red-500">
+          <AlertTriangle className="h-8 w-8 mr-2" />
+          <span>{errorCampaign}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
       {/* Header */}
@@ -143,7 +249,7 @@ const CreateCampaignStep2Page = () => {
             <div className="relative">
               <select
                 value={formData.model}
-                onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, model: e.target.value as 'manual' | 'automatic' })}
                 className="w-full appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
               >
                 {modelOptions.map((option) => (
@@ -308,8 +414,8 @@ const CreateCampaignStep2Page = () => {
             </label>
             <div className="relative">
               <select
-                value={formData.initialFilter}
-                onChange={(e) => setFormData({ ...formData, initialFilter: e.target.value })}
+               value={formData.initialFilter}
+               onChange={(e) => setFormData({ ...formData, initialFilter: e.target.value as 'all' | 'available' })}
                 className="w-full appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
               >
                 {filterOptions.map((option) => (
@@ -468,8 +574,8 @@ const CreateCampaignStep2Page = () => {
             </div>
             <div className="relative">
               <select
-                value={formData.paymentTime}
-                onChange={(e) => setFormData({ ...formData, paymentTime: e.target.value })}
+                value={formData.paymentDeadlineHours}
+                onChange={(e) => setFormData({ ...formData, paymentDeadlineHours: parseInt(e.target.value) })}
                 className="w-full appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
               >
                 {paymentTimeOptions.map((option) => (

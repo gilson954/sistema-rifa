@@ -204,7 +204,7 @@ const CreateCampaignPage = () => {
       
       if (campaign) {
         // Redirecionar para step 2 com o ID da campanha
-        navigate('/dashboard');
+        navigate(`/dashboard/create-campaign/step-2?id=${campaign.id}`);
       }
     } catch (error) {
       console.error('Error creating campaign:', error);

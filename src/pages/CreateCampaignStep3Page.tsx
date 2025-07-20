@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Edit, Eye, CreditCard, TrendingUp, AlertCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const CreateCampaignStep3Page = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('pix');
+
+  // Extrai o ID da campanha da URL
+  const campaignId = new URLSearchParams(location.search).get('id');
 
   // Mock data - em produção, estes dados viriam do contexto ou props
   const campaignData = {
@@ -19,11 +23,11 @@ const CreateCampaignStep3Page = () => {
   };
 
   const handleEdit = () => {
-    navigate('/dashboard/create-campaign/step-2');
+    navigate(`/dashboard/create-campaign/step-2?id=${campaignId}`);
   };
 
   const handlePreview = () => {
-    navigate('/c/mock-campaign-id');
+    navigate(`/c/${campaignId || 'mock-campaign-id'}`);
   };
 
   const handlePayment = () => {
