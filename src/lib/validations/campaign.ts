@@ -115,7 +115,15 @@ export const campaignFormSchema = z.object({
   
   ticketPrice: z
     .string()
-    .regex(/^\d+,\d{2}$/, 'Formato de preço inválido (ex: 1,50)'),
+    .regex(/^\d+,\d{2}$/, 'Formato de preço inválido (ex: 1,50)')
+    .refine((value) => {
+      const numericValue = parseFloat(value.replace(',', '.'));
+      return numericValue >= 0.01;
+    }, 'O valor da cota deve ser maior que R$ 0,00')
+    .refine((value) => {
+      const numericValue = parseFloat(value.replace(',', '.'));
+      return numericValue <= 10000;
+    }, 'O valor da cota deve ser menor que R$ 10.000,00'),
   
   drawMethod: z
     .string()
