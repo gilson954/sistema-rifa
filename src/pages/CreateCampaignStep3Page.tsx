@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Edit, Eye, CreditCard, TrendingUp, AlertCircle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useCampaign } from '../hooks/useCampaigns';
 
 const CreateCampaignStep3Page = () => {
   const navigate = useNavigate();
@@ -9,6 +10,9 @@ const CreateCampaignStep3Page = () => {
 
   // Extrai o ID da campanha da URL
   const campaignId = new URLSearchParams(location.search).get('id');
+  
+  // Fetch campaign data using the hook
+  const { data: campaign, isLoading } = useCampaign(campaignId || '');
 
   // Mock data - em produção, estes dados viriam do contexto ou props
   const campaignData = {
