@@ -166,7 +166,6 @@ const CreateCampaignPage = () => {
       const apiData = convertFormDataToAPI(formData);
       await createCampaign(apiData);
 
-      alert('Campanha salva como rascunho com sucesso!');
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Error creating campaign:', error);
