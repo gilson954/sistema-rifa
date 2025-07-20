@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ChevronDown, Info, Upload, Calendar, Clock, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Info, Upload, Calendar, Clock, AlertTriangle, Eye } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaign, useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
@@ -14,6 +14,11 @@ const CreateCampaignStep2Page = () => {
   const { campaign, loading: fetchingCampaign, error: fetchError } = useCampaign(campaignId || '');
   
   const [formData, setFormData] = useState({
+    title: '',
+    ticketQuantity: 1000,
+    ticketPrice: '1,00',
+    drawLocation: '',
+    phoneNumber: '',
     model: 'manual' as 'manual' | 'automatic',
     description: '',
     minQuantity: 1,
@@ -45,6 +50,11 @@ const CreateCampaignStep2Page = () => {
     if (campaign) {
       // Preenche o formData com os dados da campanha
       setFormData({
+        title: campaign.title || '',
+        ticketQuantity: campaign.total_tickets || 1000,
+        ticketPrice: campaign.ticket_price ? campaign.ticket_price.toFixed(2).replace('.', ',') : '1,00',
+        drawLocation: campaign.draw_method || '',
+        phoneNumber: campaign.phone_number || '',
         model: campaign.campaign_model,
         description: campaign.description || '',
         minQuantity: campaign.min_tickets_per_purchase,
@@ -77,6 +87,44 @@ const CreateCampaignStep2Page = () => {
     navigate('/dashboard/create-campaign');
   };
 
+  // Função para formatar o valor monetário
+  const formatCurrency = (value: string) => {
+    const numericValue = value.replace(/\D/g, '');
+    if (!numericValue) return '0,00';
+    const cents = parseInt(numericValue, 10);
+    const reais = cents / 100;
+    return reais.toFixed(2).replace('.', ',');
+  };
+
+  // Função para formatar o número de telefone
+  const formatPhoneNumber = (value: string) => {
+    const numericValue = value.replace(/\D/g, '');
+    if (numericValue.length <= 2) {
+      return `(${numericValue}`;
+    } else if (numericValue.length <= 7) {
+      return `(${numericValue.slice(0, 2)}) ${numericValue.slice(2)}`;
+    } else {
+      return `(${numericValue.slice(0, 2)}) ${numericValue.slice(2, 7)}-${numericValue.slice(7, 11)}`;
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const numericValue = value.replace(/\D/g, '');
+    
+    // Limita a 11 dígitos
+    if (numericValue.length <= 11) {
+      const formattedValue = formatPhoneNumber(value);
+      setFormData({ ...formData, phoneNumber: formattedValue });
+    }
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const formattedValue = formatCurrency(inputValue);
+    setFormData({ ...formData, ticketPrice: formattedValue });
+  };
+
   const handleFinalize = async () => {
     if (!campaignId) {
       alert('Erro: ID da campanha não encontrado para finalizar.');
@@ -95,6 +143,11 @@ const CreateCampaignStep2Page = () => {
     // Prepara os dados para atualização
     const updateData = {
       id: campaignId,
+      title: formData.title,
+      total_tickets: formData.ticketQuantity,
+      ticket_price: parseFloat(formData.ticketPrice.replace(',', '.')),
+      draw_method: formData.drawLocation,
+      phone_number: formData.phoneNumber.replace(/\D/g, ''), // Remove formatação para salvar
       description: formData.description,
       min_tickets_per_purchase: formData.minQuantity,
       max_tickets_per_purchase: formData.maxQuantity,
@@ -241,6 +294,20 @@ const CreateCampaignStep2Page = () => {
       {/* Form Content */}
       <div className="p-6 max-w-2xl mx-auto">
         <div className="space-y-8">
+          {/* Título da campanha */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Título da campanha
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="Digite o título da sua campanha"
+              className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+            />
+          </div>
+
           {/* Modelo */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -316,8 +383,9 @@ const CreateCampaignStep2Page = () => {
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full p-4 bg-transparent border-none resize-none focus:outline-none min-h-[120px]"
+                className="w-full p-4 bg-transparent border-none resize-none focus:outline-none min-h-[500px]"
                 placeholder="Digite a descrição da sua campanha..."
+                style={{ resize: 'vertical' }}
               />
             </div>
           </div>
@@ -353,6 +421,37 @@ const CreateCampaignStep2Page = () => {
               <p className="text-gray-500 dark:text-gray-400 text-sm">
                 Clique para adicionar imagens ou arraste e solte aqui
               </p>
+            </div>
+          </div>
+
+          {/* Quantidade de cotas */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Quantidade de cotas
+            </label>
+            <div className="relative">
+              <select
+                value={formData.ticketQuantity}
+                onChange={(e) => setFormData({ ...formData, ticketQuantity: parseInt(e.target.value) })}
+                className="w-full appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+              >
+                <option value={25}>25 cotas</option>
+                <option value={50}>50 cotas</option>
+                <option value={100}>100 cotas</option>
+                <option value={200}>200 cotas</option>
+                <option value={300}>300 cotas</option>
+                <option value={500}>500 cotas</option>
+                <option value={1000}>1.000 cotas</option>
+                <option value={2000}>2.000 cotas</option>
+                <option value={3000}>3.000 cotas</option>
+                <option value={5000}>5.000 cotas</option>
+                <option value={10000}>10.000 cotas</option>
+                <option value={20000}>20.000 cotas</option>
+                <option value={30000}>30.000 cotas</option>
+                <option value={50000}>50.000 cotas</option>
+                <option value={100000}>100.000 cotas</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
             </div>
           </div>
 
@@ -407,6 +506,46 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
+          {/* Valor da cota */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Valor da cota
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">R$</span>
+              <input
+                type="text"
+                value={formData.ticketPrice}
+                onChange={handlePriceChange}
+                placeholder="0,00"
+                className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+              />
+            </div>
+          </div>
+
+          {/* Local de sorteio */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Local de sorteio
+            </label>
+            <div className="relative">
+              <select
+                value={formData.drawLocation}
+                onChange={(e) => setFormData({ ...formData, drawLocation: e.target.value })}
+                className="w-full appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+              >
+                <option value="">Escolha uma opção</option>
+                <option value="Loteria Federal">Loteria Federal</option>
+                <option value="Sorteador.com.br">Sorteador.com.br</option>
+                <option value="Live no Instagram">Live no Instagram</option>
+                <option value="Live no Youtube">Live no Youtube</option>
+                <option value="Live no TikTok">Live no TikTok</option>
+                <option value="Outros">Outros</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+
           {/* Filtro inicial das cotas */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -425,6 +564,29 @@ const CreateCampaignStep2Page = () => {
                 ))}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Número de celular */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Número de celular
+            </label>
+            <div className="flex space-x-2">
+              <div className="relative">
+                <select className="appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-8 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200">
+                  <option value="BR">🇧🇷 +55</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              </div>
+              <input
+                type="text"
+                value={formData.phoneNumber}
+                onChange={handlePhoneChange}
+                placeholder="(62) 98112-7960"
+                maxLength={15}
+                className="flex-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+              />
             </div>
           </div>
 
