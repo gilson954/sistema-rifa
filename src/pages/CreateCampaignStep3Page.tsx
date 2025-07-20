@@ -23,8 +23,7 @@ const CreateCampaignStep3Page = () => {
   };
 
   const handlePreview = () => {
-    // Implementar visualização da campanha
-    console.log('Visualizar campanha');
+    navigate('/dashboard/campaign');
   };
 
   const handlePayment = () => {
