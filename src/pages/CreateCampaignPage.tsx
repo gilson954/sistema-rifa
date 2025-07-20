@@ -1,40 +1,98 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ChevronDown, Save, Eye, Info } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Save, Eye, Info, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
+import { useCampaigns } from '../hooks/useCampaigns';
+import { campaignFormSchema, type CampaignFormInput } from '../lib/validations/campaign';
+import { CampaignAPI } from '../lib/api/campaigns';
 
-interface CampaignFormData {
-  title: string;
-  ticketQuantity: number;
-  ticketPrice: string;
-  drawMethod: string;
-  phoneNumber: string;
-}
+type ValidationErrors = Partial<Record<keyof CampaignFormInput, string>>;
 
 const CreateCampaignPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { createCampaign } = useCampaigns();
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<ValidationErrors>({});
   const [showTaxes, setShowTaxes] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [formData, setFormData] = useState<CampaignFormData>({
+  const [formData, setFormData] = useState<CampaignFormInput>({
     title: '',
     ticketQuantity: 25,
     ticketPrice: '0,00',
     drawMethod: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    description: '',
+    prizeDescription: '',
+    drawDate: null,
+    paymentDeadlineHours: 24,
+    requireEmail: true,
+    showRanking: false,
+    minTicketsPerPurchase: 1,
+    maxTicketsPerPurchase: 200000,
+    initialFilter: 'all',
+    campaignModel: 'manual'
   });
 
   const handleGoBack = () => {
     navigate('/dashboard');
   };
 
-  const handleInputChange = (field: keyof CampaignFormData, value: string | number) => {
+  const handleInputChange = (field: keyof CampaignFormInput, value: string | number | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+    
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: undefined
+      }));
+    }
+  };
+
+  const validateForm = (): boolean => {
+    try {
+      campaignFormSchema.parse(formData);
+      setErrors({});
+      return true;
+    } catch (error: any) {
+      const validationErrors: ValidationErrors = {};
+      
+      if (error.errors) {
+        error.errors.forEach((err: any) => {
+          const field = err.path[0] as keyof CampaignFormInput;
+          validationErrors[field] = err.message;
+        });
+      }
+      
+      setErrors(validationErrors);
+      return false;
+    }
+  };
+
+  const convertFormDataToAPI = (data: CampaignFormInput) => {
+    const ticketPrice = parseFloat(data.ticketPrice.replace(',', '.'));
+    
+    return {
+      title: data.title,
+      description: data.description || null,
+      prize_description: data.prizeDescription,
+      ticket_price: ticketPrice,
+      total_tickets: data.ticketQuantity,
+      draw_method: data.drawMethod,
+      phone_number: data.phoneNumber,
+      draw_date: data.drawDate,
+      payment_deadline_hours: data.paymentDeadlineHours,
+      require_email: data.requireEmail,
+      show_ranking: data.showRanking,
+      min_tickets_per_purchase: data.minTicketsPerPurchase,
+      max_tickets_per_purchase: data.maxTicketsPerPurchase,
+      initial_filter: data.initialFilter,
+      campaign_model: data.campaignModel
+    };
   };
 
   const formatCurrency = (value: string) => {
@@ -87,30 +145,14 @@ const CreateCampaignPage = () => {
 
   // Calculate publication tax based on revenue ranges
   const calculatePublicationTax = () => {
-    const revenue = parseFloat(calculateRevenue().replace(',', '.'));
-    
-    if (revenue <= 100) return 7.00;
-    if (revenue <= 200) return 17.00;
-    if (revenue <= 400) return 27.00;
-    if (revenue <= 701) return 37.00;
-    if (revenue <= 1000) return 47.00;
-    if (revenue <= 2000) return 67.00;
-    if (revenue <= 4000) return 77.00;
-    if (revenue <= 7100) return 127.00;
-    if (revenue <= 10000) return 197.00;
-    if (revenue <= 20000) return 247.00;
-    if (revenue <= 30000) return 497.00;
-    if (revenue <= 50000) return 997.00;
-    if (revenue <= 70000) return 1497.00;
-    if (revenue <= 100000) return 1997.00;
-    if (revenue <= 150000) return 2997.00;
-    
-    return 3997.00; // Above R$ 150,000
+    const price = parseFloat(formData.ticketPrice.replace(',', '.'));
+    return CampaignAPI.calculatePublicationTax(formData.ticketQuantity, price);
   };
 
   const handleSaveDraft = async () => {
+    // Validação mínima para rascunho (apenas título obrigatório)
     if (!formData.title.trim()) {
-      alert('Por favor, preencha o título da campanha.');
+      setErrors({ title: 'O título é obrigatório para salvar como rascunho' });
       return;
     }
 
@@ -121,45 +163,64 @@ const CreateCampaignPage = () => {
 
     setLoading(true);
     try {
-      const price = parseFloat(formData.ticketPrice.replace(',', '.'));
-      
-      const { error } = await supabase
-        .from('campaigns')
-        .insert({
-          user_id: user.id,
-          title: formData.title,
-          prize_description: 'Prêmio a ser definido',
-          ticket_price: price,
-          total_tickets: formData.ticketQuantity,
-          start_date: new Date().toISOString(),
-          end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-          status: 'draft'
-        });
+      const apiData = convertFormDataToAPI(formData);
+      await createCampaign(apiData);
 
-      if (error) {
-        console.error('Error creating campaign:', error);
-        alert('Erro ao salvar campanha. Tente novamente.');
-      } else {
-        alert('Campanha salva como rascunho com sucesso!');
-        navigate('/dashboard');
-      }
-    } catch (error) {
+      alert('Campanha salva como rascunho com sucesso!');
+      navigate('/dashboard');
+    } catch (error: any) {
       console.error('Error creating campaign:', error);
-      alert('Erro ao salvar campanha. Tente novamente.');
+      
+      if (error.message?.includes('validation')) {
+        alert('Dados inválidos. Verifique os campos e tente novamente.');
+      } else if (error.message?.includes('duplicate')) {
+        alert('Já existe uma campanha com este título. Escolha outro nome.');
+      } else {
+        alert('Erro ao salvar campanha. Tente novamente.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handlePublish = async () => {
-    if (!formData.title.trim() || !formData.drawMethod || !acceptTerms) {
-      alert('Por favor, preencha todos os campos obrigatórios e aceite os termos.');
+    // Validação completa para publicação
+    if (!validateForm() || !acceptTerms) {
+      if (!acceptTerms) {
+        alert('Você deve aceitar os termos de uso para prosseguir.');
+      }
       return;
     }
 
+    if (!user) {
+      alert('Usuário não autenticado');
+      return;
+    }
 
-    // Navigate to step 2
-    navigate('/dashboard/create-campaign/step-2');
+    setLoading(true);
+    try {
+      const apiData = convertFormDataToAPI(formData);
+      const campaign = await createCampaign(apiData);
+      
+      if (campaign) {
+        // Redirecionar para step 2 com o ID da campanha
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      
+      if (error.message?.includes('validation')) {
+        alert('Dados inválidos. Verifique os campos e tente novamente.');
+      } else {
+        alert('Erro ao criar campanha. Tente novamente.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getFieldError = (field: keyof CampaignFormInput) => {
+    return errors[field];
   };
 
   return (
@@ -190,15 +251,67 @@ const CreateCampaignPage = () => {
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Título
+              Título *
             </label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
               placeholder="Digite o título sua campanha"
-              className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+              className={`w-full bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
+                getFieldError('title') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+              }`}
             />
+            {getFieldError('title') && (
+              <div className="mt-1 flex items-center space-x-1 text-red-600 dark:text-red-400">
+                <AlertCircle className="h-4 w-4" />
+                <span className="text-sm">{getFieldError('title')}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Prize Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Descrição do Prêmio *
+            </label>
+            <input
+              type="text"
+              value={formData.prizeDescription}
+              onChange={(e) => handleInputChange('prizeDescription', e.target.value)}
+              placeholder="Ex: iPhone 15 Pro Max 256GB"
+              className={`w-full bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
+                getFieldError('prizeDescription') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+              }`}
+            />
+            {getFieldError('prizeDescription') && (
+              <div className="mt-1 flex items-center space-x-1 text-red-600 dark:text-red-400">
+                <AlertCircle className="h-4 w-4" />
+                <span className="text-sm">{getFieldError('prizeDescription')}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Descrição da Campanha
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              placeholder="Descreva sua campanha, regulamento, etc."
+              rows={4}
+              className={`w-full bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 resize-none ${
+                getFieldError('description') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+              }`}
+            />
+            {getFieldError('description') && (
+              <div className="mt-1 flex items-center space-x-1 text-red-600 dark:text-red-400">
+                <AlertCircle className="h-4 w-4" />
+                <span className="text-sm">{getFieldError('description')}</span>
+              </div>
+            )}
           </div>
 
           {/* Ticket Quantity and Price */}
@@ -206,13 +319,15 @@ const CreateCampaignPage = () => {
             {/* Ticket Quantity */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Quantidade de cotas
+                Quantidade de cotas *
               </label>
               <div className="relative">
                 <select
                   value={formData.ticketQuantity}
                   onChange={(e) => handleInputChange('ticketQuantity', parseInt(e.target.value))}
-                  className="w-full appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  className={`w-full appearance-none bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 pr-10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
+                    getFieldError('ticketQuantity') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  }`}
                 >
                   <option value="">Escolha uma opção</option>
                   {ticketOptions.map((option) => (
@@ -223,33 +338,49 @@ const CreateCampaignPage = () => {
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
               </div>
+              {getFieldError('ticketQuantity') && (
+                <div className="mt-1 flex items-center space-x-1 text-red-600 dark:text-red-400">
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="text-sm">{getFieldError('ticketQuantity')}</span>
+                </div>
+              )}
             </div>
 
             {/* Ticket Price */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Valor da cota
+                Valor da cota *
               </label>
               <input
                 type="text"
                 value={formData.ticketPrice}
                 onChange={handlePriceChange}
                 placeholder="0,00"
-                className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                className={`w-full bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
+                  getFieldError('ticketPrice') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                }`}
               />
+              {getFieldError('ticketPrice') && (
+                <div className="mt-1 flex items-center space-x-1 text-red-600 dark:text-red-400">
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="text-sm">{getFieldError('ticketPrice')}</span>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Draw Method */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Por onde será feito o sorteio?
+              Por onde será feito o sorteio? *
             </label>
             <div className="relative">
               <select
                 value={formData.drawMethod}
                 onChange={(e) => handleInputChange('drawMethod', e.target.value)}
-                className="w-full appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                className={`w-full appearance-none bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 pr-10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
+                  getFieldError('drawMethod') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                }`}
               >
                 <option value="">Escolha uma opção</option>
                 {drawMethods.map((method) => (
@@ -260,12 +391,18 @@ const CreateCampaignPage = () => {
               </select>
               <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
             </div>
+            {getFieldError('drawMethod') && (
+              <div className="mt-1 flex items-center space-x-1 text-red-600 dark:text-red-400">
+                <AlertCircle className="h-4 w-4" />
+                <span className="text-sm">{getFieldError('drawMethod')}</span>
+              </div>
+            )}
           </div>
 
           {/* Phone Number */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Número de celular
+              Número de celular *
             </label>
             <div className="flex space-x-2">
               <div className="relative">
@@ -528,9 +665,17 @@ const CreateCampaignPage = () => {
                 value={formData.phoneNumber}
                 onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                 placeholder="Digite seu número"
-                className="flex-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                className={`flex-1 bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
+                  getFieldError('phoneNumber') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                }`}
               />
             </div>
+            {getFieldError('phoneNumber') && (
+              <div className="mt-1 flex items-center space-x-1 text-red-600 dark:text-red-400">
+                <AlertCircle className="h-4 w-4" />
+                <span className="text-sm">{getFieldError('phoneNumber')}</span>
+              </div>
+            )}
           </div>
 
           {/* Publication Taxes */}
@@ -647,18 +792,20 @@ const CreateCampaignPage = () => {
           <div className="flex flex-col sm:flex-row gap-4 pt-6">
             <button
               onClick={handleSaveDraft}
-              disabled={loading || !formData.title.trim()}
+              disabled={loading}
               className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
+              {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>}
               <Save className="h-4 w-4" />
               <span>Salvar Rascunho</span>
             </button>
             
             <button
               onClick={handlePublish}
-              disabled={loading || !formData.title.trim() || !formData.drawMethod || !acceptTerms}
+              disabled={loading}
               className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
+              {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
               <span>Prosseguir</span>
             </button>
           </div>
