@@ -23,7 +23,7 @@ const CreateCampaignStep3Page = () => {
   };
 
   const handleEdit = () => {
-    navigate(`/dashboard/create-campaign?edit=${campaignId}`);
+    navigate(`/dashboard/create-campaign/step-2?id=${campaignId}`);
   };
 
   const handlePreview = () => {

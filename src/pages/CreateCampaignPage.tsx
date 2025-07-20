@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowLeft, ChevronDown, Save, Eye, Info, AlertCircle } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useCampaigns, useCampaign } from '../hooks/useCampaigns';
+import { useCampaigns } from '../hooks/useCampaigns';
 import { campaignFormSchema, type CampaignFormInput } from '../lib/validations/campaign';
 import { CampaignAPI } from '../lib/api/campaigns';
 
@@ -10,15 +10,12 @@ type ValidationErrors = Partial<Record<keyof CampaignFormInput, string>>;
 
 const CreateCampaignPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { user } = useAuth();
-  const { createCampaign, updateCampaign } = useCampaigns();
+  const { createCampaign } = useCampaigns();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [showTaxes, setShowTaxes] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [campaignId, setCampaignId] = useState<string | null>(null);
   const [formData, setFormData] = useState<CampaignFormInput>({
     title: '',
     ticketQuantity: 25,
@@ -36,48 +33,6 @@ const CreateCampaignPage = () => {
     initialFilter: 'all',
     campaignModel: 'manual'
   });
-
-  // Check if we're editing an existing campaign
-  const editCampaignId = new URLSearchParams(location.search).get('edit');
-  const { campaign: editingCampaign, loading: loadingCampaign } = useCampaign(editCampaignId || '');
-
-  // Load campaign data for editing
-  useEffect(() => {
-    if (editCampaignId && editingCampaign) {
-      setIsEditing(true);
-      setCampaignId(editingCampaign.id);
-      setFormData({
-        title: editingCampaign.title,
-        ticketQuantity: editingCampaign.total_tickets,
-        ticketPrice: editingCampaign.ticket_price.toFixed(2).replace('.', ','),
-        drawMethod: editingCampaign.draw_method || '',
-        phoneNumber: editingCampaign.phone_number || '',
-        description: editingCampaign.description || '',
-        prizeDescription: editingCampaign.prize_description,
-        drawDate: editingCampaign.draw_date,
-        paymentDeadlineHours: editingCampaign.payment_deadline_hours,
-        requireEmail: editingCampaign.require_email,
-        showRanking: editingCampaign.show_ranking,
-        minTicketsPerPurchase: editingCampaign.min_tickets_per_purchase,
-        maxTicketsPerPurchase: editingCampaign.max_tickets_per_purchase,
-        initialFilter: editingCampaign.initial_filter,
-        campaignModel: editingCampaign.campaign_model
-      });
-      setAcceptTerms(true); // Already accepted when created
-    }
-  }, [editCampaignId, editingCampaign]);
-
-  // Show loading while fetching campaign data for editing
-  if (editCampaignId && loadingCampaign) {
-    return (
-      <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-          <span className="ml-3 text-gray-600 dark:text-gray-400">Carregando campanha...</span>
-        </div>
-      </div>
-    );
-  }
 
   const handleGoBack = () => {
     navigate('/dashboard');
@@ -208,19 +163,10 @@ const CreateCampaignPage = () => {
 
     setLoading(true);
     try {
-      if (isEditing && campaignId) {
-        // Update existing campaign
-        const updateData = {
-          id: campaignId,
-          ...convertFormDataToAPI(formData)
-        };
-        await updateCampaign(updateData);
-      } else {
-        // Create new campaign
-        const apiData = convertFormDataToAPI(formData);
-        await createCampaign(apiData);
-      }
+      const apiData = convertFormDataToAPI(formData);
+      await createCampaign(apiData);
 
+      alert('Campanha salva como rascunho com sucesso!');
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Error creating campaign:', error);
@@ -230,7 +176,7 @@ const CreateCampaignPage = () => {
       } else if (error.message?.includes('duplicate')) {
         alert('Já existe uma campanha com este título. Escolha outro nome.');
       } else {
-        alert(`Erro ao ${isEditing ? 'atualizar' : 'salvar'} campanha. Tente novamente.`);
+        alert('Erro ao salvar campanha. Tente novamente.');
       }
     } finally {
       setLoading(false);
@@ -253,25 +199,12 @@ const CreateCampaignPage = () => {
 
     setLoading(true);
     try {
-      let finalCampaignId = campaignId;
+      const apiData = convertFormDataToAPI(formData);
+      const campaign = await createCampaign(apiData);
       
-      if (isEditing && campaignId) {
-        // Update existing campaign
-        const updateData = {
-          id: campaignId,
-          ...convertFormDataToAPI(formData)
-        };
-        await updateCampaign(updateData);
-      } else {
-        // Create new campaign
-        const apiData = convertFormDataToAPI(formData);
-        const campaign = await createCampaign(apiData);
-        finalCampaignId = campaign?.id || null;
-      }
-      
-      if (finalCampaignId) {
+      if (campaign) {
         // Redirecionar para step 2 com o ID da campanha
-        navigate(`/dashboard/create-campaign/step-2?id=${finalCampaignId}`);
+        navigate(`/dashboard/create-campaign/step-2?id=${campaign.id}`);
       }
     } catch (error) {
       console.error('Error creating campaign:', error);
@@ -279,7 +212,7 @@ const CreateCampaignPage = () => {
       if (error.message?.includes('validation')) {
         alert('Dados inválidos. Verifique os campos e tente novamente.');
       } else {
-        alert(`Erro ao ${isEditing ? 'atualizar' : 'criar'} campanha. Tente novamente.`);
+        alert('Erro ao criar campanha. Tente novamente.');
       }
     } finally {
       setLoading(false);
@@ -303,13 +236,10 @@ const CreateCampaignPage = () => {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {isEditing ? 'Editar campanha' : 'Criar campanha'}
+              Criar campanha
             </h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm">
-              {isEditing 
-                ? 'Edite os dados da sua campanha abaixo'
-                : 'Insira os dados de como deseja a sua campanha abaixo, eles poderão ser editados depois'
-              }
+              Insira os dados de como deseja a sua campanha abaixo, eles poderão ser editados depois
             </p>
           </div>
         </div>
@@ -867,7 +797,7 @@ const CreateCampaignPage = () => {
             >
               {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>}
               <Save className="h-4 w-4" />
-              <span>{isEditing ? 'Salvar Alterações' : 'Salvar Rascunho'}</span>
+              <span>Salvar Rascunho</span>
             </button>
             
             <button
@@ -876,7 +806,7 @@ const CreateCampaignPage = () => {
               className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
-              <span>{isEditing ? 'Atualizar e Prosseguir' : 'Prosseguir'}</span>
+              <span>Prosseguir</span>
             </button>
           </div>
         </div>
