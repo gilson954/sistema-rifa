@@ -21,8 +21,7 @@ const CampaignPage = () => {
     },
     model: 'manual' as 'manual' | 'automatic', // This would come from the campaign data
     reservedQuotas: [5, 12, 23, 45, 67], // Mock reserved quotas
-    purchasedQuotas: [1, 3, 8, 15, 22] // Mock purchased quotas
-    },
+    purchasedQuotas: [1, 3, 8, 15, 22], // Mock purchased quotas
     promotion: {
       active: true,
       text: 'Compre 4578 cotas por R$ 0,42'
