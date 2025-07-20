@@ -27,7 +27,13 @@ const CreateCampaignStep3Page = () => {
   };
 
   const handlePreview = () => {
-    navigate(`/c/${campaignId || 'mock-campaign-id'}`);
+    // Pass the campaign model to the preview page via state
+    navigate(`/c/${campaignId || 'mock-campaign-id'}`, {
+      state: { 
+        campaignModel: campaign?.campaign_model || 'manual',
+        previewMode: true 
+      }
+    });
   };
 
   const handlePayment = () => {

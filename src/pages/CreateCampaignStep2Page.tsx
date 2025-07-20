@@ -330,22 +330,79 @@ const CreateCampaignStep2Page = () => {
 
             {/* Visual representation */}
             {formData.model === 'manual' && (
-              <div className="mt-4 p-4 border-2 border-green-500 rounded-lg bg-green-50 dark:bg-green-900/20">
-                <div className="grid grid-cols-5 sm:grid-cols-10 gap-1 mb-3">
-                  {Array.from({ length: 50 }, (_, i) => (
-                    <div
-                      key={i}
-                      className={`w-6 h-6 sm:w-8 sm:h-8 rounded text-xs flex items-center justify-center text-white font-medium ${
-                        [12, 23, 34, 45].includes(i + 1) ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
-                      }`}
-                    >
-                      {i + 1}
-                    </div>
-                  ))}
+              <div className="mt-4 p-6 border-2 border-green-500 rounded-lg bg-green-50 dark:bg-green-900/20">
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-4 text-center">
+                  Visualização: Seleção Manual de Cotas
+                </h4>
+                
+                {/* Manual Selection Preview */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4">
+                  <div className="text-center mb-3">
+                    <span className="text-xs text-gray-600 dark:text-gray-400">Filtro de cota</span>
+                  </div>
+                  <div className="flex justify-center gap-1 mb-3 text-xs">
+                    <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">Todos</span>
+                    <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">Disponíveis</span>
+                    <span className="px-2 py-1 bg-blue-500 text-white rounded">Meus Nº</span>
+                  </div>
+                  <div className="grid grid-cols-10 gap-1 mb-3">
+                    {Array.from({ length: 50 }, (_, i) => (
+                      <div
+                        key={i}
+                        className={`w-6 h-6 rounded text-xs flex items-center justify-center font-medium ${
+                          [12, 23, 34, 45].includes(i + 1) 
+                            ? 'bg-blue-500 text-white' 
+                            : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                        }`}
+                      >
+                        {i + 1}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2 text-green-600 dark:text-green-400">
+                
+                <div className="flex items-center justify-center space-x-2 text-green-600 dark:text-green-400">
                   <div className="w-4 h-4 bg-green-500 rounded"></div>
-                  <span className="text-sm font-medium">Cliente escolhe as cotas</span>
+                  <span className="text-sm font-medium">Cliente escolhe as cotas manualmente</span>
+                </div>
+              </div>
+            )}
+
+            {formData.model === 'automatic' && (
+              <div className="mt-4 p-6 border-2 border-purple-500 rounded-lg bg-purple-50 dark:bg-purple-900/20">
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-4 text-center">
+                  Visualização: Seleção Automática de Cotas
+                </h4>
+                
+                {/* Automatic Selection Preview */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4">
+                  <div className="text-center mb-4">
+                    <h5 className="font-bold text-gray-900 dark:text-white mb-2">SELECIONE A QUANTIDADE DE COTAS</h5>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    {['+1', '+5', '+15', '+150'].map((btn) => (
+                      <div key={btn} className="bg-gray-100 dark:bg-gray-700 py-2 px-3 rounded text-xs text-center">
+                        {btn}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-center space-x-2 mb-4">
+                    <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center text-xs">-</div>
+                    <div className="w-12 h-6 bg-purple-100 dark:bg-purple-900 border border-purple-300 dark:border-purple-600 rounded text-xs flex items-center justify-center">1</div>
+                    <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center text-xs">+</div>
+                  </div>
+                  <div className="text-center mb-3">
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Valor final</div>
+                    <div className="font-bold text-gray-900 dark:text-white">R$ 1,00</div>
+                  </div>
+                  <div className="bg-green-500 text-white py-2 rounded text-xs text-center font-bold">
+                    RESERVAR
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-center space-x-2 text-purple-600 dark:text-purple-400">
+                  <div className="w-4 h-4 bg-purple-500 rounded"></div>
+                  <span className="text-sm font-medium">Sistema escolhe as cotas aleatoriamente</span>
                 </div>
               </div>
             )}

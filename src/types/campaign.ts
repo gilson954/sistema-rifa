@@ -22,6 +22,8 @@ export interface Campaign {
   max_tickets_per_purchase: number;
   initial_filter: 'all' | 'available';
   campaign_model: 'manual' | 'automatic';
+  reserved_quotas?: number[];
+  purchased_quotas?: number[];
   created_at: string;
   updated_at: string;
 }
