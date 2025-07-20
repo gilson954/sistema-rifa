@@ -40,6 +40,9 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           
+          {/* Página Pública de Campanha */}
+          <Route path="/c/:campaignId" element={<CampaignPage />} />
+          
           {/* Rota de Login Administrativo */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
 
@@ -60,7 +63,6 @@ function App() {
             <Route path="create-campaign" element={<CreateCampaignPage />} />
             <Route path="create-campaign/step-2" element={<CreateCampaignStep2Page />} />
             <Route path="create-campaign/step-3" element={<CreateCampaignStep3Page />} />
-            <Route path="campaign" element={<CampaignPage />} />
             <Route path="integrations" element={<PaymentIntegrationsPage />} />
             <Route path="ranking" element={<RankingPage />} />
             <Route path="affiliations" element={<AffiliationsPage />} />

@@ -23,7 +23,7 @@ const CreateCampaignStep3Page = () => {
   };
 
   const handlePreview = () => {
-    navigate('/dashboard/campaign');
+    navigate('/c/mock-campaign-id');
   };
 
   const handlePayment = () => {
