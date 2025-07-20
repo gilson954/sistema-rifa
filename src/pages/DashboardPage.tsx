@@ -4,14 +4,23 @@ import {
   EyeOff, 
   Plus, 
   Share2,
-  Play
+  Play,
+  Calendar,
+  Users,
+  DollarSign,
+  MoreVertical,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useCampaigns } from '../hooks/useCampaigns';
+import { Campaign } from '../types/campaign';
 
 const DashboardPage = () => {
   const [showRevenue, setShowRevenue] = useState(false);
   const [displayPaymentSetupCard, setDisplayPaymentSetupCard] = useState(true);
   const navigate = useNavigate();
+  const { campaigns, loading: campaignsLoading, deleteCampaign } = useCampaigns();
 
   // Check if payment is configured on component mount
   useEffect(() => {
@@ -33,6 +42,62 @@ const DashboardPage = () => {
 
   const handleCreateCampaign = () => {
     navigate('/dashboard/create-campaign');
+  };
+
+  const handleEditCampaign = (campaignId: string) => {
+    navigate(`/dashboard/create-campaign/step-2?id=${campaignId}`);
+  };
+
+  const handleDeleteCampaign = async (campaignId: string, campaignTitle: string) => {
+    if (window.confirm(`Tem certeza que deseja excluir a campanha "${campaignTitle}"?`)) {
+      try {
+        await deleteCampaign(campaignId);
+      } catch (error) {
+        console.error('Error deleting campaign:', error);
+        alert('Erro ao excluir campanha. Tente novamente.');
+      }
+    }
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+      case 'draft':
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'Ativa';
+      case 'draft':
+        return 'Rascunho';
+      case 'completed':
+        return 'Finalizada';
+      case 'cancelled':
+        return 'Cancelada';
+      default:
+        return status;
+    }
   };
 
   return (
@@ -106,6 +171,91 @@ const DashboardPage = () => {
             <span>Criar campanha</span>
           </button>
         </div>
+
+        {/* Campaigns List */}
+        {campaigns && campaigns.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Minhas Campanhas
+            </h3>
+            
+            {campaignsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {campaigns.map((campaign: Campaign) => (
+                  <div
+                    key={campaign.id}
+                    className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h4 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                            {campaign.title}
+                          </h4>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+                            {getStatusText(campaign.status)}
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                          <div className="flex items-center space-x-2">
+                            <Users className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                            <span className="text-gray-600 dark:text-gray-300">
+                              {campaign.sold_tickets}/{campaign.total_tickets} cotas
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            <DollarSign className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                            <span className="text-gray-600 dark:text-gray-300">
+                              {formatCurrency(campaign.ticket_price)}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                            <span className="text-gray-600 dark:text-gray-300">
+                              {formatDate(campaign.created_at)}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            <DollarSign className="h-4 w-4 text-green-500" />
+                            <span className="text-green-600 dark:text-green-400 font-medium">
+                              {formatCurrency(campaign.ticket_price * campaign.sold_tickets)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 ml-4">
+                        <button
+                          onClick={() => handleEditCampaign(campaign.id)}
+                          className="p-2 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                          title="Editar campanha"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        
+                        <button
+                          onClick={() => handleDeleteCampaign(campaign.id, campaign.title)}
+                          className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                          title="Excluir campanha"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Video Tutorial Section */}
         <div className="w-full max-w-2xl mx-auto">

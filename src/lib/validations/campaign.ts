@@ -13,12 +13,6 @@ export const createCampaignSchema = z.object({
     .max(2000, 'A descrição deve ter no máximo 2000 caracteres')
     .optional(),
   
-  prize_description: z
-    .string()
-    .min(3, 'A descrição do prêmio deve ter pelo menos 3 caracteres')
-    .max(500, 'A descrição do prêmio deve ter no máximo 500 caracteres')
-    .trim(),
-  
   ticket_price: z
     .number()
     .min(0.01, 'O valor da cota deve ser maior que R$ 0,00')
@@ -132,16 +126,6 @@ export const campaignFormSchema = z.object({
   phoneNumber: z
     .string()
     .min(10, 'Número de telefone inválido'),
-  
-  description: z
-    .string()
-    .max(2000, 'A descrição deve ter no máximo 2000 caracteres')
-    .optional(),
-  
-  prizeDescription: z
-    .string()
-    .min(3, 'A descrição do prêmio é obrigatória')
-    .max(500, 'A descrição do prêmio deve ter no máximo 500 caracteres'),
   
   drawDate: z
     .string()

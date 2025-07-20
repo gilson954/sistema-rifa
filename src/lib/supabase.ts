@@ -44,7 +44,6 @@ export type Database = {
           user_id: string
           title: string
           description: string | null
-          prize_description: string
           prize_image_url: string | null
           ticket_price: number
           total_tickets: number
@@ -62,7 +61,6 @@ export type Database = {
           user_id: string
           title: string
           description?: string | null
-          prize_description: string
           prize_image_url?: string | null
           ticket_price: number
           total_tickets: number
@@ -80,7 +78,6 @@ export type Database = {
           user_id?: string
           title?: string
           description?: string | null
-          prize_description?: string
           prize_image_url?: string | null
           ticket_price?: number
           total_tickets?: number

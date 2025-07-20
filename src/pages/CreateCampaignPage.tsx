@@ -22,8 +22,6 @@ const CreateCampaignPage = () => {
     ticketPrice: '0,00',
     drawMethod: '',
     phoneNumber: '',
-    description: '',
-    prizeDescription: '',
     drawDate: null,
     paymentDeadlineHours: 24,
     requireEmail: true,
@@ -78,8 +76,7 @@ const CreateCampaignPage = () => {
     
     return {
       title: data.title,
-      description: data.description || null,
-      prize_description: data.prizeDescription,
+      description: null, // Will be set in step 2
       ticket_price: ticketPrice,
       total_tickets: data.ticketQuantity,
       draw_method: data.drawMethod,
@@ -184,8 +181,26 @@ const CreateCampaignPage = () => {
   };
 
   const handlePublish = async () => {
-    // Validação completa para publicação
-    if (!validateForm() || !acceptTerms) {
+    // Validação básica para prosseguir
+    const requiredFields = {
+      title: formData.title.trim(),
+      ticketQuantity: formData.ticketQuantity,
+      ticketPrice: formData.ticketPrice,
+      drawMethod: formData.drawMethod,
+      phoneNumber: formData.phoneNumber.trim()
+    };
+
+    const missingFields = [];
+    if (!requiredFields.title) missingFields.push('Título');
+    if (!requiredFields.ticketQuantity || requiredFields.ticketQuantity <= 0) missingFields.push('Quantidade de cotas');
+    if (!requiredFields.ticketPrice || requiredFields.ticketPrice === '0,00') missingFields.push('Valor da cota');
+    if (!requiredFields.drawMethod) missingFields.push('Método de sorteio');
+    if (!requiredFields.phoneNumber) missingFields.push('Número de celular');
+
+    if (missingFields.length > 0 || !acceptTerms) {
+      if (missingFields.length > 0) {
+        alert(`Por favor, preencha os seguintes campos obrigatórios:\n• ${missingFields.join('\n• ')}`);
+      }
       if (!acceptTerms) {
         alert('Você deve aceitar os termos de uso para prosseguir.');
       }
@@ -266,50 +281,6 @@ const CreateCampaignPage = () => {
               <div className="mt-1 flex items-center space-x-1 text-red-600 dark:text-red-400">
                 <AlertCircle className="h-4 w-4" />
                 <span className="text-sm">{getFieldError('title')}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Prize Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Descrição do Prêmio *
-            </label>
-            <input
-              type="text"
-              value={formData.prizeDescription}
-              onChange={(e) => handleInputChange('prizeDescription', e.target.value)}
-              placeholder="Ex: iPhone 15 Pro Max 256GB"
-              className={`w-full bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
-                getFieldError('prizeDescription') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-              }`}
-            />
-            {getFieldError('prizeDescription') && (
-              <div className="mt-1 flex items-center space-x-1 text-red-600 dark:text-red-400">
-                <AlertCircle className="h-4 w-4" />
-                <span className="text-sm">{getFieldError('prizeDescription')}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Descrição da Campanha
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Descreva sua campanha, regulamento, etc."
-              rows={4}
-              className={`w-full bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 resize-none ${
-                getFieldError('description') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-              }`}
-            />
-            {getFieldError('description') && (
-              <div className="mt-1 flex items-center space-x-1 text-red-600 dark:text-red-400">
-                <AlertCircle className="h-4 w-4" />
-                <span className="text-sm">{getFieldError('description')}</span>
               </div>
             )}
           </div>
@@ -791,19 +762,9 @@ const CreateCampaignPage = () => {
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 pt-6">
             <button
-              onClick={handleSaveDraft}
-              disabled={loading}
-              className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>}
-              <Save className="h-4 w-4" />
-              <span>Salvar Rascunho</span>
-            </button>
-            
-            <button
               onClick={handlePublish}
               disabled={loading}
-              className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
               <span>Prosseguir</span>

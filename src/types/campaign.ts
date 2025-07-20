@@ -3,7 +3,6 @@ export interface Campaign {
   user_id: string;
   title: string;
   description: string | null;
-  prize_description: string;
   prize_image_url: string | null;
   ticket_price: number;
   total_tickets: number;
@@ -32,7 +31,6 @@ export type CampaignStatus = 'draft' | 'active' | 'completed' | 'cancelled';
 export interface CreateCampaignData {
   title: string;
   description?: string;
-  prize_description: string;
   prize_image_url?: string;
   ticket_price: number;
   total_tickets: number;
@@ -60,8 +58,6 @@ export interface CampaignFormData {
   ticketPrice: string;
   drawMethod: string;
   phoneNumber: string;
-  description: string;
-  prizeDescription: string;
   drawDate: string | null;
   paymentDeadlineHours: number;
   requireEmail: boolean;
