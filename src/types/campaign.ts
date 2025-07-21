@@ -62,6 +62,7 @@ export interface CampaignFormData {
   ticketPrice: string;
   drawMethod: string;
   phoneNumber: string;
+  countryCode: string;
   drawDate: string | null;
   paymentDeadlineHours: number;
   requireEmail: boolean;
