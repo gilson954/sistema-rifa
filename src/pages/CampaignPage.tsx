@@ -1,56 +1,22 @@
 import React, { useState } from 'react';
 import { Shield, Share2 } from 'lucide-react';
 import { useParams } from 'react-router-dom';
-import { useCampaigns } from '../hooks/useCampaigns';
 import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
 
 const CampaignPage = () => {
   const { campaignId } = useParams();
-  const { campaigns, loading } = useCampaigns();
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
   const [quantity, setQuantity] = useState(1);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
-  // Find the campaign by ID
-  const campaign = campaigns.find(c => c.id === campaignId);
-  
-  // Show loading state while fetching data
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Carregando campanha...</p>
-        </div>
-      </div>
-    );
-  }
-  
-  // Show error state if campaign not found
-  if (!campaign) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Campanha não encontrada
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            A campanha que você está procurando não existe ou foi removida.
-          </p>
-        </div>
-      </div>
-    );
-  }
-  
-  // Use actual campaign data
+  // Mock data - em produção, estes dados viriam de props ou contexto
   const campaignData = {
-    title: campaign.title,
-    ticketPrice: campaign.ticket_price,
-    totalTickets: campaign.total_tickets,
+    title: 'Setup Gamer',
+    ticketPrice: 1.00,
+    totalTickets: 100,
     images: campaign?.prize_image_urls || ['https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'],
     organizer: {
-      name: campaign.phone_number || 'Organizador',
+      name: 'Gilson',
       verified: true
     },
     model: campaign?.campaign_model || 'manual' as 'manual' | 'automatic',
