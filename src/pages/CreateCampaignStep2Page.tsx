@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ChevronDown, Info, Upload, Calendar, Clock, AlertTriangle, Eye, X, MoveUp, MoveDown } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Info, Upload, Calendar, Clock, AlertTriangle, Eye } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaign, useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
-import { supabase } from '../lib/supabase';
 
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
@@ -36,15 +35,6 @@ const CreateCampaignStep2Page = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [loadingCampaign, setLoadingCampaign] = useState(true);
   const [errorCampaign, setErrorCampaign] = useState<string | null>(null);
-  const [showQuotaAlert, setShowQuotaAlert] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
-
-  // Check if coming from Step 1
-  const fromStep1 = location.state?.fromStep1;
 
   // Efeito para carregar os dados da campanha quando o ID estiver disponível
   useEffect(() => {
@@ -86,28 +76,12 @@ const CreateCampaignStep2Page = () => {
         });
         setInformarData(true);
       }
-      
-      // Load existing images
-      if (campaign.prize_image_urls) {
-        setExistingImageUrls(campaign.prize_image_urls);
-      }
-      
       setLoadingCampaign(false);
     } else if (!campaignId) {
       setErrorCampaign('ID da campanha não fornecido.');
       setLoadingCampaign(false);
     }
   }, [campaignId, campaign, fetchingCampaign, fetchError]);
-
-  // Effect to handle quota limit logic
-  useEffect(() => {
-    if (formData.ticketQuantity > 10000) {
-      setFormData(prev => ({ ...prev, model: 'automatic' }));
-      setShowQuotaAlert(true);
-    } else {
-      setShowQuotaAlert(false);
-    }
-  }, [formData.ticketQuantity]);
 
   const handleGoBack = () => {
     navigate('/dashboard/create-campaign');
@@ -151,107 +125,6 @@ const CreateCampaignStep2Page = () => {
     setFormData({ ...formData, ticketPrice: formattedValue });
   };
 
-  // Image upload functions
-  const handleFileSelect = (files: FileList | null) => {
-    if (!files) return;
-    
-    const validFiles: File[] = [];
-    const newPreviews: string[] = [];
-    
-    Array.from(files).forEach(file => {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        alert(`${file.name} não é um arquivo de imagem válido.`);
-        return;
-      }
-      
-      // Validate file size (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`${file.name} é muito grande. O tamanho máximo é 5MB.`);
-        return;
-      }
-      
-      validFiles.push(file);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        newPreviews.push(e.target?.result as string);
-        if (newPreviews.length === validFiles.length) {
-          setImagePreviews(prev => [...prev, ...newPreviews]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-    
-    setUploadedFiles(prev => [...prev, ...validFiles]);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    handleFileSelect(e.dataTransfer.files);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const removeImage = (index: number, isExisting: boolean) => {
-    if (isExisting) {
-      setExistingImageUrls(prev => prev.filter((_, i) => i !== index));
-    } else {
-      setUploadedFiles(prev => prev.filter((_, i) => i !== index));
-      setImagePreviews(prev => prev.filter((_, i) => i !== index));
-    }
-  };
-
-  const moveImage = (index: number, direction: 'up' | 'down', isExisting: boolean) => {
-    if (isExisting) {
-      const newUrls = [...existingImageUrls];
-      const newIndex = direction === 'up' ? index - 1 : index + 1;
-      if (newIndex >= 0 && newIndex < newUrls.length) {
-        [newUrls[index], newUrls[newIndex]] = [newUrls[newIndex], newUrls[index]];
-        setExistingImageUrls(newUrls);
-      }
-    } else {
-      const newFiles = [...uploadedFiles];
-      const newPreviews = [...imagePreviews];
-      const newIndex = direction === 'up' ? index - 1 : index + 1;
-      if (newIndex >= 0 && newIndex < newFiles.length) {
-        [newFiles[index], newFiles[newIndex]] = [newFiles[newIndex], newFiles[index]];
-        [newPreviews[index], newPreviews[newIndex]] = [newPreviews[newIndex], newPreviews[index]];
-        setUploadedFiles(newFiles);
-        setImagePreviews(newPreviews);
-      }
-    }
-  };
-
-  const uploadImagesToStorage = async (): Promise<string[]> => {
-    const uploadedUrls: string[] = [];
-    
-    for (const file of uploadedFiles) {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
-      const filePath = `prize-images/${fileName}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('prize-images')
-        .upload(filePath, file);
-      
-      if (uploadError) {
-        throw new Error(`Erro ao fazer upload de ${file.name}: ${uploadError.message}`);
-      }
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('prize-images')
-        .getPublicUrl(filePath);
-      
-      uploadedUrls.push(publicUrl);
-    }
-    
-    return uploadedUrls;
-  };
-
   const handleFinalize = async () => {
     if (!campaignId) {
       alert('Erro: ID da campanha não encontrado para finalizar.');
@@ -266,15 +139,6 @@ const CreateCampaignStep2Page = () => {
       date.setMinutes(parseInt(selectedTime.minute));
       finalDrawDate = date.toISOString();
     }
-
-    setUploading(true);
-    
-    try {
-      // Upload new images to storage
-      const newImageUrls = uploadedFiles.length > 0 ? await uploadImagesToStorage() : [];
-      
-      // Combine existing and new image URLs
-      const allImageUrls = [...existingImageUrls, ...newImageUrls];
 
     // Prepara os dados para atualização
     const updateData = {
@@ -292,18 +156,16 @@ const CreateCampaignStep2Page = () => {
       payment_deadline_hours: formData.paymentDeadlineHours,
       require_email: formData.requireEmail,
       show_ranking: formData.showRanking,
-      campaign_model: formData.model,
-      prize_image_urls: allImageUrls.length > 0 ? allImageUrls : null
+      campaign_model: formData.model
     };
 
+    try {
       await updateCampaign(updateData);
       console.log('Finalizing campaign with data:', updateData);
       navigate(`/dashboard/create-campaign/step-3?id=${campaignId}`);
     } catch (error) {
       console.error('Error updating campaign:', error);
       alert('Erro ao finalizar campanha. Tente novamente.');
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -412,14 +274,12 @@ const CreateCampaignStep2Page = () => {
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center space-x-4">
-          {!fromStep1 && (
-            <button
+          <button
             onClick={handleGoBack}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
           >
             <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </button>
-          )}
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               Configurar campanha
@@ -434,18 +294,6 @@ const CreateCampaignStep2Page = () => {
       {/* Form Content */}
       <div className="p-6 max-w-2xl mx-auto">
         <div className="space-y-8">
-          {/* Quota Alert */}
-          {showQuotaAlert && (
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 flex items-start space-x-3">
-              <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-yellow-800 dark:text-yellow-200 text-sm font-medium">
-                  Acima de 10mil cotas o modelo da sua campanha muda para Sistema escolhe as cotas aleatoriamente
-                </p>
-              </div>
-            </div>
-          )}
-
           {/* Título da campanha */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -469,7 +317,6 @@ const CreateCampaignStep2Page = () => {
               <select
                 value={formData.model}
                 onChange={(e) => setFormData({ ...formData, model: e.target.value as 'manual' | 'automatic' })}
-                disabled={formData.ticketQuantity > 10000}
                 className="w-full appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
               >
                 {modelOptions.map((option) => (
@@ -626,112 +473,11 @@ const CreateCampaignStep2Page = () => {
                 Tamanho recomendado: 1365x758 pixels
               </span>
             </div>
-            
-            {/* Image Upload Area */}
-            <div 
-              className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200"
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-            >
+            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
               <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
               <p className="text-gray-500 dark:text-gray-400 text-sm">
                 Clique para adicionar imagens ou arraste e solte aqui
               </p>
-              <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">
-                Máximo 5MB por imagem
-              </p>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={(e) => handleFileSelect(e.target.files)}
-                className="hidden"
-                id="image-upload"
-              />
-              <label
-                htmlFor="image-upload"
-                className="mt-4 inline-block bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors duration-200"
-              >
-                Selecionar Imagens
-              </label>
-            </div>
-            
-            {/* Image Previews */}
-            {(existingImageUrls.length > 0 || imagePreviews.length > 0) && (
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {/* Existing Images */}
-                {existingImageUrls.map((url, index) => (
-                  <div key={`existing-${index}`} className="relative group">
-                    <img
-                      src={url}
-                      alt={`Prize ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
-                      onClick={() => setSelectedImageIndex(index)}
-                    />
-                    <div className="absolute top-1 right-1 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      {index > 0 && (
-                        <button
-                          onClick={() => moveImage(index, 'up', true)}
-                          className="p-1 bg-black bg-opacity-50 text-white rounded hover:bg-opacity-70"
-                        >
-                          <MoveUp className="h-3 w-3" />
-                        </button>
-                      )}
-                      {index < existingImageUrls.length - 1 && (
-                        <button
-                          onClick={() => moveImage(index, 'down', true)}
-                          className="p-1 bg-black bg-opacity-50 text-white rounded hover:bg-opacity-70"
-                        >
-                          <MoveDown className="h-3 w-3" />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => removeImage(index, true)}
-                        className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                
-                {/* New Image Previews */}
-                {imagePreviews.map((preview, index) => (
-                  <div key={`new-${index}`} className="relative group">
-                    <img
-                      src={preview}
-                      alt={`New Prize ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity duration-200"
-                      onClick={() => setSelectedImageIndex(existingImageUrls.length + index)}
-                    />
-                    <div className="absolute top-1 right-1 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      {index > 0 && (
-                        <button
-                          onClick={() => moveImage(index, 'up', false)}
-                          className="p-1 bg-black bg-opacity-50 text-white rounded hover:bg-opacity-70"
-                        >
-                          <MoveUp className="h-3 w-3" />
-                        </button>
-                      )}
-                      {index < imagePreviews.length - 1 && (
-                        <button
-                          onClick={() => moveImage(index, 'down', false)}
-                          className="p-1 bg-black bg-opacity-50 text-white rounded hover:bg-opacity-70"
-                        >
-                          <MoveDown className="h-3 w-3" />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => removeImage(index, false)}
-                        className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
             </div>
           </div>
 
@@ -1138,36 +884,13 @@ const CreateCampaignStep2Page = () => {
           <div className="pt-6">
             <button
               onClick={handleFinalize}
-              disabled={uploading}
               className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors duration-200"
             >
-              {uploading ? 'Salvando...' : 'Finalizar'}
+              Finalizar
             </button>
           </div>
         </div>
       </div>
-      
-      {/* Image Enlargement Modal */}
-      {selectedImageIndex !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="relative max-w-4xl max-h-full">
-            <button
-              onClick={() => setSelectedImageIndex(null)}
-              className="absolute top-4 right-4 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 z-10"
-            >
-              <X className="h-6 w-6" />
-            </button>
-            <img
-              src={selectedImageIndex < existingImageUrls.length 
-                ? existingImageUrls[selectedImageIndex] 
-                : imagePreviews[selectedImageIndex - existingImageUrls.length]
-              }
-              alt="Enlarged view"
-              className="max-w-full max-h-full object-contain rounded-lg"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

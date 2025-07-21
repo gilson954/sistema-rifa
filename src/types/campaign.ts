@@ -4,7 +4,6 @@ export interface Campaign {
   title: string;
   description: string | null;
   prize_image_url: string | null;
-  prize_image_urls: string[] | null;
   ticket_price: number;
   total_tickets: number;
   sold_tickets: number;
@@ -27,7 +26,6 @@ export interface Campaign {
   purchased_quotas?: number[];
   created_at: string;
   updated_at: string;
-  expires_at: string | null;
 }
 
 export type CampaignStatus = 'draft' | 'active' | 'completed' | 'cancelled';
@@ -36,7 +34,6 @@ export interface CreateCampaignData {
   title: string;
   description?: string;
   prize_image_url?: string;
-  prize_image_urls?: string[];
   ticket_price: number;
   total_tickets: number;
   start_date: string;

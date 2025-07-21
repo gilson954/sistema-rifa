@@ -14,17 +14,12 @@ const CreateCampaignStep3Page = () => {
   // Fetch campaign data using the hook
   const { data: campaign, isLoading } = useCampaign(campaignId || '');
 
-  // Use campaign data or fallback to mock data
-  const campaignData = campaign ? {
-    title: campaign.title,
-    totalTickets: campaign.total_tickets,
-    ticketPrice: campaign.ticket_price,
-    images: campaign.prize_image_urls || ['https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1']
-  } : {
+  // Mock data - em produção, estes dados viriam do contexto ou props
+  const campaignData = {
     title: 'Setup Gamer',
     totalTickets: 100,
     ticketPrice: 1.00,
-    images: ['https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1']
+    image: 'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
   };
 
   const handleGoBack = () => {
@@ -230,41 +225,29 @@ const CreateCampaignStep3Page = () => {
 
           {/* Right Column - Campaign Summary */}
           <div className="space-y-6">
-            {/* Campaign Images Gallery with Edit/Preview buttons */}
-            <div className="space-y-4">
-              {campaignData.images.map((image, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={image}
-                    alt={`${campaignData.title} - Image ${index + 1}`}
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
-                  {index === 0 && (
-                    <div className="absolute top-4 right-4 flex space-x-2">
-                      <button
-                        onClick={handleEdit}
-                        className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-1 shadow-md"
-                      >
-                        <Edit className="h-4 w-4" />
-                        <span>Editar</span>
-                      </button>
-                      <button
-                        onClick={handlePreview}
-                        className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-1 shadow-md"
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span>Visualizar</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-              
-              {campaignData.images.length > 1 && (
-                <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-                  {campaignData.images.length} imagens do prêmio
-                </div>
-              )}
+            {/* Campaign Image with Edit/Preview buttons */}
+            <div className="relative">
+              <img
+                src={campaignData.image}
+                alt={campaignData.title}
+                className="w-full h-64 object-cover rounded-lg"
+              />
+              <div className="absolute top-4 right-4 flex space-x-2">
+                <button
+                  onClick={handleEdit}
+                  className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-1 shadow-md"
+                >
+                  <Edit className="h-4 w-4" />
+                  <span>Editar</span>
+                </button>
+                <button
+                  onClick={handlePreview}
+                  className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-1 shadow-md"
+                >
+                  <Eye className="h-4 w-4" />
+                  <span>Visualizar</span>
+                </button>
+              </div>
             </div>
 
             {/* Campaign Details */}
