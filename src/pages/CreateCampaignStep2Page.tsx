@@ -182,10 +182,6 @@ const CreateCampaignStep2Page = () => {
     }
   };
 
-  const handleGoBack = () => {
-    navigate('/dashboard/create-campaign');
-  };
-
   // Função para formatar o valor monetário
   const formatCurrency = (value: string) => {
     const numericValue = value.replace(/\D/g, '');
@@ -251,35 +247,31 @@ const CreateCampaignStep2Page = () => {
         imageUrls = await imageUpload.uploadImages(user.id);
       }
 
-    // Prepara os dados para atualização
-    const updateData = {
-      id: campaignId,
-      title: formData.title,
-      total_tickets: formData.ticketQuantity,
-      ticket_price: parseFloat(formData.ticketPrice.replace(',', '.')),
-      draw_method: formData.drawLocation,
-      phone_number: formData.phoneNumber.replace(/\D/g, ''), // Remove formatação para salvar
-      description: formData.description,
-      min_tickets_per_purchase: formData.minQuantity,
-      max_tickets_per_purchase: formData.maxQuantity,
-      initial_filter: formData.initialFilter,
-      draw_date: finalDrawDate,
-      payment_deadline_hours: formData.paymentDeadlineHours,
-      require_email: formData.requireEmail,
-      show_ranking: formData.showRanking,
-      campaign_model: formData.model,
-      prize_image_urls: imageUrls.length > 0 ? imageUrls : undefined
-    };
+      // Prepara os dados para atualização
+      const updateData = {
+        id: campaignId,
+        title: formData.title,
+        total_tickets: formData.ticketQuantity,
+        ticket_price: parseFloat(formData.ticketPrice.replace(',', '.')),
+        draw_method: formData.drawLocation,
+        phone_number: formData.phoneNumber.replace(/\D/g, ''), // Remove formatação para salvar
+        description: formData.description,
+        min_tickets_per_purchase: formData.minQuantity,
+        max_tickets_per_purchase: formData.maxQuantity,
+        initial_filter: formData.initialFilter,
+        draw_date: finalDrawDate,
+        payment_deadline_hours: formData.paymentDeadlineHours,
+        require_email: formData.requireEmail,
+        show_ranking: formData.showRanking,
+        campaign_model: formData.model,
+        prize_image_urls: imageUrls.length > 0 ? imageUrls : undefined
+      };
 
       await updateCampaign(updateData);
       console.log('Finalizing campaign with data:', updateData);
       navigate(`/dashboard/create-campaign/step-3?id=${campaignId}`);
     } catch (error) {
       console.error('Error updating campaign:', error);
-      alert('Erro ao finalizar campanha. Tente novamente.');
-    }
-    } catch (error) {
-      console.error('Error finalizing campaign:', error);
       alert('Erro ao finalizar campanha. Tente novamente.');
     }
   };
@@ -391,11 +383,11 @@ const CreateCampaignStep2Page = () => {
         <div className="flex items-center space-x-4">
           {!fromStep1 && (
             <button
-            onClick={handleGoBack}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
-          >
-            <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-          </button>
+              onClick={handleGoBack}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
+            >
+              <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            </button>
           )}
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -765,8 +757,8 @@ const CreateCampaignStep2Page = () => {
             </label>
             <div className="relative">
               <select
-               value={formData.initialFilter}
-               onChange={(e) => setFormData({ ...formData, initialFilter: e.target.value as 'all' | 'available' })}
+                value={formData.initialFilter}
+                onChange={(e) => setFormData({ ...formData, initialFilter: e.target.value as 'all' | 'available' })}
                 className="w-full appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
               >
                 {filterOptions.map((option) => (
