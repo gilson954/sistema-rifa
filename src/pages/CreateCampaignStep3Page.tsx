@@ -264,7 +264,7 @@ const CreateCampaignStep3Page = () => {
                 <div className="text-center text-sm text-gray-500 dark:text-gray-400">
                   {campaignData.images.length} imagens do prêmio
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Campaign Details */}
