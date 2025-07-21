@@ -45,6 +45,7 @@ export type Database = {
           title: string
           description: string | null
           prize_image_url: string | null
+          prize_image_urls: string[] | null
           ticket_price: number
           total_tickets: number
           sold_tickets: number
@@ -55,6 +56,7 @@ export type Database = {
           winner_user_id: string | null
           created_at: string | null
           updated_at: string | null
+          expires_at: string | null
         }
         Insert: {
           id?: string
@@ -62,6 +64,7 @@ export type Database = {
           title: string
           description?: string | null
           prize_image_url?: string | null
+          prize_image_urls?: string[] | null
           ticket_price: number
           total_tickets: number
           sold_tickets?: number
@@ -72,6 +75,7 @@ export type Database = {
           winner_user_id?: string | null
           created_at?: string | null
           updated_at?: string | null
+          expires_at?: string | null
         }
         Update: {
           id?: string
@@ -79,6 +83,7 @@ export type Database = {
           title?: string
           description?: string | null
           prize_image_url?: string | null
+          prize_image_urls?: string[] | null
           ticket_price?: number
           total_tickets?: number
           sold_tickets?: number
@@ -89,6 +94,7 @@ export type Database = {
           winner_user_id?: string | null
           created_at?: string | null
           updated_at?: string | null
+          expires_at?: string | null
         }
       }
     }

@@ -14,7 +14,8 @@ export class CampaignAPI {
         sold_tickets: 0,
         status: 'draft' as CampaignStatus,
         start_date: new Date().toISOString(),
-        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 dias
+        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 dias
+        expires_at: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString() // 2 dias para expirar
       };
 
       const { data: campaign, error } = await supabase

@@ -10,7 +10,9 @@ import {
   DollarSign,
   MoreVertical,
   Edit,
-  Trash2
+  Trash2,
+  Clock,
+  AlertTriangle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
@@ -100,6 +102,43 @@ const DashboardPage = () => {
     }
   };
 
+  const formatTimeRemaining = (expiresAt: string) => {
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diff = expiry.getTime() - now.getTime();
+    
+    if (diff <= 0) {
+      return 'Expirado';
+    }
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) {
+      return `${days} dia${days !== 1 ? 's' : ''}, ${hours} hora${hours !== 1 ? 's' : ''} e ${minutes} minuto${minutes !== 1 ? 's' : ''}`;
+    } else if (hours > 0) {
+      return `${hours} hora${hours !== 1 ? 's' : ''} e ${minutes} minuto${minutes !== 1 ? 's' : ''}`;
+    } else {
+      return `${minutes} minuto${minutes !== 1 ? 's' : ''}`;
+    }
+  };
+
+  const isExpiringSoon = (expiresAt: string) => {
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diff = expiry.getTime() - now.getTime();
+    const hoursRemaining = diff / (1000 * 60 * 60);
+    
+    return hoursRemaining <= 24; // Less than 24 hours remaining
+  };
+
+  const isExpired = (expiresAt: string) => {
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    return now.getTime() > expiry.getTime();
+  };
+
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 sm:p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300 min-h-[calc(100vh-200px)]">
       <div className="space-y-6">
@@ -175,6 +214,56 @@ const DashboardPage = () => {
         {/* Campaigns List */}
         {campaigns && campaigns.length > 0 && (
           <div className="space-y-4">
+            {/* Expiring Campaigns Alert */}
+            {campaigns.some(campaign => 
+              campaign.status === 'draft' && 
+              campaign.expires_at && 
+              (isExpiringSoon(campaign.expires_at) || isExpired(campaign.expires_at))
+            ) && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-red-800 dark:text-red-200 font-medium mb-2">
+                      Campanhas Pendentes de Pagamento
+                    </h3>
+                    <div className="space-y-2">
+                      {campaigns
+                        .filter(campaign => 
+                          campaign.status === 'draft' && 
+                          campaign.expires_at && 
+                          (isExpiringSoon(campaign.expires_at) || isExpired(campaign.expires_at))
+                        )
+                        .map(campaign => (
+                          <div key={campaign.id} className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-red-200 dark:border-red-700">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="font-medium text-gray-900 dark:text-white">{campaign.title}</h4>
+                                <div className="flex items-center space-x-2 text-sm">
+                                  <Clock className="h-4 w-4 text-red-500" />
+                                  <span className={`${isExpired(campaign.expires_at!) ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                                    {isExpired(campaign.expires_at!) 
+                                      ? 'Campanha expirada' 
+                                      : `Expira em ${formatTimeRemaining(campaign.expires_at!)}`
+                                    }
+                                  </span>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => navigate(`/dashboard/create-campaign/step-3?id=${campaign.id}`)}
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+                              >
+                                Pagar
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Minhas Campanhas
             </h3>
