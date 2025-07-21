@@ -55,6 +55,8 @@ export type Database = {
           winner_user_id: string | null
           created_at: string | null
           updated_at: string | null
+          expires_at: string | null
+          prize_image_urls: string[] | null
         }
         Insert: {
           id?: string
@@ -72,6 +74,8 @@ export type Database = {
           winner_user_id?: string | null
           created_at?: string | null
           updated_at?: string | null
+          expires_at?: string | null
+          prize_image_urls?: string[] | null
         }
         Update: {
           id?: string
@@ -89,6 +93,8 @@ export type Database = {
           winner_user_id?: string | null
           created_at?: string | null
           updated_at?: string | null
+          expires_at?: string | null
+          prize_image_urls?: string[] | null
         }
       }
     }

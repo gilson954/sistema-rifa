@@ -22,8 +22,8 @@ export interface Campaign {
   max_tickets_per_purchase: number;
   initial_filter: 'all' | 'available';
   campaign_model: 'manual' | 'automatic';
-  reserved_quotas?: number[];
-  purchased_quotas?: number[];
+  expires_at: string | null;
+  prize_image_urls: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -48,10 +48,12 @@ export interface CreateCampaignData {
   max_tickets_per_purchase?: number;
   initial_filter?: 'all' | 'available';
   campaign_model?: 'manual' | 'automatic';
+  prize_image_urls?: string[];
 }
 
 export interface UpdateCampaignData extends Partial<CreateCampaignData> {
   id: string;
+  prize_image_urls?: string[];
 }
 
 export interface CampaignFormData {
