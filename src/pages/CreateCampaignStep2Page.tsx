@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, Save, Eye, Info, AlertCircle, Upload, X, ChevronUp, ChevronDown as ChevronDownIcon, ZoomIn } from 'lucide-react';
-import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { ArrowLeft, ChevronDown, Info, Calendar, Clock, AlertTriangle, Eye, Save, CheckCircle } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaign, useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
 import { useImageUpload } from '../hooks/useImageUpload';
@@ -11,10 +11,6 @@ const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { updateCampaign } = useCampaigns();
-  const location = useLocation();
-  // Check if user came from Step 1
-  const fromStep1 = location.state?.fromStep1;
-
   const { user } = useAuth();
   const imageUpload = useImageUpload();
   
@@ -384,15 +380,13 @@ const CreateCampaignStep2Page = () => {
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
-        <div className={`flex items-center ${fromStep1 ? '' : 'space-x-4'}`}>
+        <div className="flex items-center space-x-4">
           {!fromStep1 && (
             <button
               onClick={handleGoBack}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
             >
               <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-            </button>
-          )}
             </button>
           )}
           <div>
