@@ -883,7 +883,7 @@ const CreateCampaignStep2Page = () => {
     const phoneNumber = data.phoneNumber.startsWith(data.countryCode) 
       ? data.phoneNumber 
       : data.countryCode + data.phoneNumber.replace(/\D/g, '');
-    
+  function convertFormDataToAPI(data: FormData): UpdateCampaignData {
     return {
       title: data.title,
       description: data.description,
@@ -901,7 +901,7 @@ const CreateCampaignStep2Page = () => {
       show_ranking: data.showRanking,
       prize_image_urls: imageUrls
     };
-  };
+  }
 
   // Auto-switch to automatic model when quotas > 10000
   useEffect(() => {
