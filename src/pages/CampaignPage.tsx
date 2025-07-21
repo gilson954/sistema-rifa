@@ -14,12 +14,12 @@ const CampaignPage = () => {
     title: 'Setup Gamer',
     ticketPrice: 1.00,
     totalTickets: 100,
-    images: campaign?.prize_image_urls || ['https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'],
+    image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
     organizer: {
       name: 'Gilson',
       verified: true
     },
-    model: campaign?.campaign_model || 'manual' as 'manual' | 'automatic',
+    model: 'manual' as 'manual' | 'automatic', // This would come from the campaign data
     reservedQuotas: [5, 12, 23, 45, 67], // Mock reserved quotas
     purchasedQuotas: [1, 3, 8, 15, 22], // Mock purchased quotas
     promotion: {
@@ -63,7 +63,7 @@ const CampaignPage = () => {
         <div className="relative mb-8">
           <div className="relative rounded-2xl overflow-hidden shadow-xl">
             <img
-              src={campaignData.images[currentImageIndex]}
+              src={campaignData.image}
               alt={campaignData.title}
               className="w-full h-64 sm:h-80 lg:h-96 object-cover"
             />
@@ -123,7 +123,7 @@ const CampaignPage = () => {
 
         {/* Purchase Section */}
         <div>
-          {campaignData.model === 'manual' && campaignData.totalTickets <= 10000 ? (
+          {campaignData.model === 'manual' ? (
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-200 dark:border-gray-800 transition-colors duration-300">
               <QuotaGrid
                 totalQuotas={campaignData.totalTickets}
