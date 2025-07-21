@@ -180,6 +180,37 @@ const CreateCampaignStep2Page = () => {
     }
   };
 
+  const convertFormDataToAPI = (data: any) => {
+    const ticketPrice = parseFloat(data.ticketPrice.replace(',', '.'));
+    const phoneNumber = data.phoneNumber.startsWith(data.countryCode) 
+      ? data.phoneNumber 
+      : data.countryCode + data.phoneNumber.replace(/\D/g, '');
+    
+    return {
+      title: data.title,
+      description: data.description,
+      ticket_price: ticketPrice,
+      total_tickets: data.ticketQuantity,
+      draw_method: data.drawLocation,
+      phone_number: phoneNumber,
+      campaign_model: data.model,
+      min_tickets_per_purchase: data.minQuantity,
+      max_tickets_per_purchase: data.maxQuantity,
+      initial_filter: data.initialFilter,
+      draw_date: data.drawDate,
+      payment_deadline_hours: data.paymentDeadlineHours,
+      require_email: data.requireEmail,
+      show_ranking: data.showRanking
+    };
+  };
+
+  // Auto-switch to automatic model when quotas > 10000
+  useEffect(() => {
+    if (formData.ticketQuantity > 10000 && formData.model !== 'automatic') {
+      setFormData(prev => ({ ...prev, model: 'automatic' }));
+    }
+  }, [formData.ticketQuantity]);
+
   if (fetchingCampaign) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -877,38 +908,6 @@ const CreateCampaignStep2Page = () => {
       </div>
     </div>
   );
-
-  const convertFormDataToAPI = (data: any) => {
-    const ticketPrice = parseFloat(data.ticketPrice.replace(',', '.'));
-    const phoneNumber = data.phoneNumber.startsWith(data.countryCode) 
-      ? data.phoneNumber 
-      : data.countryCode + data.phoneNumber.replace(/\D/g, '');
-  function convertFormDataToAPI(data: FormData): UpdateCampaignData {
-    return {
-      title: data.title,
-      description: data.description,
-      ticket_price: ticketPrice,
-      total_tickets: data.ticketQuantity,
-      draw_method: data.drawLocation,
-      phone_number: phoneNumber,
-      campaign_model: data.model,
-      min_tickets_per_purchase: data.minQuantity,
-      max_tickets_per_purchase: data.maxQuantity,
-      initial_filter: data.initialFilter,
-      draw_date: data.drawDate,
-      payment_deadline_hours: data.paymentDeadlineHours,
-      require_email: data.requireEmail,
-      show_ranking: data.showRanking,
-      prize_image_urls: imageUrls
-    };
-  }
-
-  // Auto-switch to automatic model when quotas > 10000
-  useEffect(() => {
-    if (formData.ticketQuantity > 10000 && formData.model !== 'automatic') {
-      setFormData(prev => ({ ...prev, model: 'automatic' }));
-    }
-  }, [formData.ticketQuantity]);
 };
 
 export default CreateCampaignStep2Page;
