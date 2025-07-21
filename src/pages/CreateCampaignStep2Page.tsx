@@ -431,7 +431,6 @@ const CreateCampaignStep2Page = () => {
         </div>
       </div>
 
-      <div>
       {/* Form Content */}
       <div className="p-6 max-w-2xl mx-auto">
         <div className="space-y-8">
@@ -1169,7 +1168,6 @@ const CreateCampaignStep2Page = () => {
           </div>
         </div>
       )}
-      </div>
     </div>
   );
 };
