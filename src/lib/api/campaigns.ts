@@ -8,13 +8,17 @@ export class CampaignAPI {
    */
   static async createCampaign(data: CreateCampaignInput, userId: string): Promise<{ data: Campaign | null; error: any }> {
     try {
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
+      
       const campaignData = {
         ...data,
         user_id: userId,
         sold_tickets: 0,
         status: 'draft' as CampaignStatus,
-        start_date: new Date().toISOString(),
-        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 dias
+        start_date: now.toISOString(),
+        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 dias
+        expires_at: expiresAt.toISOString()
       };
 
       const { data: campaign, error } = await supabase

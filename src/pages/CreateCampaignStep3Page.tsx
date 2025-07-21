@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Edit, Eye, CreditCard, TrendingUp, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Edit, Eye, CreditCard, TrendingUp, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaign } from '../hooks/useCampaigns';
 
@@ -7,19 +7,20 @@ const CreateCampaignStep3Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('pix');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Extrai o ID da campanha da URL
   const campaignId = new URLSearchParams(location.search).get('id');
   
   // Fetch campaign data using the hook
-  const { data: campaign, isLoading } = useCampaign(campaignId || '');
+  const { campaign, loading: isLoading } = useCampaign(campaignId || '');
 
   // Mock data - em produção, estes dados viriam do contexto ou props
   const campaignData = {
-    title: 'Setup Gamer',
-    totalTickets: 100,
-    ticketPrice: 1.00,
-    image: 'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
+    title: campaign?.title || 'Setup Gamer',
+    totalTickets: campaign?.total_tickets || 100,
+    ticketPrice: campaign?.ticket_price || 1.00,
+    images: campaign?.prize_image_urls || ['https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1']
   };
 
   const handleGoBack = () => {
@@ -47,11 +48,31 @@ const CreateCampaignStep3Page = () => {
     navigate('/dashboard');
   };
 
+  const handlePreviousImage = () => {
+    setCurrentImageIndex(prev => 
+      prev === 0 ? campaignData.images.length - 1 : prev - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex(prev => 
+      prev === campaignData.images.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const currentImage = campaignData.images[currentImageIndex];
+
   // Cálculos dinâmicos
   const estimatedRevenue = campaignData.totalTickets * campaignData.ticketPrice;
   const publicationTax = 7.00; // Taxa base para arrecadação até R$ 100
   const cardTax = selectedPaymentMethod === 'card' ? estimatedRevenue * 0.0399 + 0.39 : 0;
   const totalTax = publicationTax + cardTax;
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center py-12">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+    </div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
@@ -226,12 +247,63 @@ const CreateCampaignStep3Page = () => {
           {/* Right Column - Campaign Summary */}
           <div className="space-y-6">
             {/* Campaign Image with Edit/Preview buttons */}
-            <div className="relative">
+            <div className="relative group">
+              {/* Image Gallery */}
               <img
-                src={campaignData.image}
+                src={currentImage}
                 alt={campaignData.title}
-                className="w-full h-64 object-cover rounded-lg"
+                className="w-full h-64 object-cover rounded-lg transition-opacity duration-300"
               />
+              
+              {/* Navigation Arrows (only show if multiple images) */}
+              {campaignData.images.length > 1 && (
+                <>
+                  <button
+                    onClick={handlePreviousImage}
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  
+                  <button
+                    onClick={handleNextImage}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </>
+              )}
+              
+              {/* Image Counter */}
+              {campaignData.images.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                  {currentImageIndex + 1} / {campaignData.images.length}
+                </div>
+              )}
+              
+              {/* Thumbnail Strip */}
+              {campaignData.images.length > 1 && (
+                <div className="flex space-x-2 mt-4 overflow-x-auto pb-2">
+                  {campaignData.images.map((image, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                        index === currentImageIndex
+                          ? 'border-purple-500 opacity-100'
+                          : 'border-gray-300 dark:border-gray-600 opacity-60 hover:opacity-80'
+                      }`}
+                    >
+                      <img
+                        src={image}
+                        alt={`Thumbnail ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+              
               <div className="absolute top-4 right-4 flex space-x-2">
                 <button
                   onClick={handleEdit}

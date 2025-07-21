@@ -1,17 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ChevronDown, Info, Upload, Calendar, Clock, AlertTriangle, Eye } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Info, Calendar, Clock, AlertTriangle, Eye, Save, CheckCircle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaign, useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
+import { useImageUpload } from '../hooks/useImageUpload';
+import { ImageUpload } from '../components/ImageUpload';
+import { useAuth } from '../context/AuthContext';
 
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { updateCampaign } = useCampaigns();
+  const { user } = useAuth();
+  const imageUpload = useImageUpload();
   
   // Extrai o ID da campanha da URL
   const campaignId = new URLSearchParams(location.search).get('id');
   const { campaign, loading: fetchingCampaign, error: fetchError } = useCampaign(campaignId || '');
+  
+  // Check if user came from Step 1
+  const fromStep1 = location.state?.fromStep1 === true;
   
   const [formData, setFormData] = useState({
     title: '',
@@ -35,6 +43,10 @@ const CreateCampaignStep2Page = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [loadingCampaign, setLoadingCampaign] = useState(true);
   const [errorCampaign, setErrorCampaign] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [showQuotaAlert, setShowQuotaAlert] = useState(false);
+  const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [modelDisabled, setModelDisabled] = useState(false);
 
   // Efeito para carregar os dados da campanha quando o ID estiver disponível
   useEffect(() => {
@@ -77,11 +89,98 @@ const CreateCampaignStep2Page = () => {
         setInformarData(true);
       }
       setLoadingCampaign(false);
+      
+      // Set existing images if available
+      if (campaign.prize_image_urls && campaign.prize_image_urls.length > 0) {
+        imageUpload.setExistingImages(campaign.prize_image_urls);
+      }
+      
     } else if (!campaignId) {
       setErrorCampaign('ID da campanha não fornecido.');
       setLoadingCampaign(false);
     }
   }, [campaignId, campaign, fetchingCampaign, fetchError]);
+
+  const handleGoBack = () => {
+    navigate('/dashboard/create-campaign');
+  };
+
+  // Effect to handle quota limit logic
+  useEffect(() => {
+    if (formData.ticketQuantity > 10000) {
+      setFormData(prev => ({ ...prev, model: 'automatic' }));
+      setShowQuotaAlert(true);
+      setModelDisabled(true);
+    } else {
+      setShowQuotaAlert(false);
+      setModelDisabled(false);
+    }
+  }, [formData.ticketQuantity]);
+
+  // Auto-save functionality with debouncing
+  useEffect(() => {
+    if (autoSaveTimeout) {
+      clearTimeout(autoSaveTimeout);
+    }
+
+    const timeout = setTimeout(() => {
+      handleAutoSave();
+    }, 500);
+
+    setAutoSaveTimeout(timeout);
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [formData, selectedDate, selectedTime, informarData]);
+
+  /**
+   * Auto-save function with debouncing
+   */
+  const handleAutoSave = async () => {
+    if (!campaignId || !user || saveStatus === 'saving') return;
+
+    try {
+      setSaveStatus('saving');
+      
+      // Convert form data to API format
+      let finalDrawDate = null;
+      if (informarData && selectedDate) {
+        const date = new Date(selectedDate);
+        date.setHours(parseInt(selectedTime.hour));
+        date.setMinutes(parseInt(selectedTime.minute));
+        finalDrawDate = date.toISOString();
+      }
+
+      const updateData = {
+        id: campaignId,
+        title: formData.title,
+        total_tickets: formData.ticketQuantity,
+        ticket_price: parseFloat(formData.ticketPrice.replace(',', '.')),
+        draw_method: formData.drawLocation,
+        phone_number: formData.phoneNumber.replace(/\D/g, ''),
+        description: formData.description,
+        min_tickets_per_purchase: formData.minQuantity,
+        max_tickets_per_purchase: formData.maxQuantity,
+        initial_filter: formData.initialFilter,
+        draw_date: finalDrawDate,
+        payment_deadline_hours: formData.paymentDeadlineHours,
+        require_email: formData.requireEmail,
+        show_ranking: formData.showRanking,
+        campaign_model: formData.model
+      };
+
+      await updateCampaign(updateData);
+      setSaveStatus('saved');
+      
+      // Reset to idle after 2 seconds
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (error) {
+      console.error('Auto-save error:', error);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    }
+  };
 
   const handleGoBack = () => {
     navigate('/dashboard/create-campaign');
@@ -131,6 +230,11 @@ const CreateCampaignStep2Page = () => {
       return;
     }
 
+    if (!user) {
+      alert('Usuário não autenticado');
+      return;
+    }
+
     // Converte a data e hora selecionadas para o formato ISO string
     let finalDrawDate = null;
     if (informarData && selectedDate) {
@@ -139,6 +243,13 @@ const CreateCampaignStep2Page = () => {
       date.setMinutes(parseInt(selectedTime.minute));
       finalDrawDate = date.toISOString();
     }
+
+    try {
+      // Upload images first if there are any
+      let imageUrls: string[] = [];
+      if (imageUpload.images.length > 0) {
+        imageUrls = await imageUpload.uploadImages(user.id);
+      }
 
     // Prepara os dados para atualização
     const updateData = {
@@ -156,15 +267,19 @@ const CreateCampaignStep2Page = () => {
       payment_deadline_hours: formData.paymentDeadlineHours,
       require_email: formData.requireEmail,
       show_ranking: formData.showRanking,
-      campaign_model: formData.model
+      campaign_model: formData.model,
+      prize_image_urls: imageUrls.length > 0 ? imageUrls : undefined
     };
 
-    try {
       await updateCampaign(updateData);
       console.log('Finalizing campaign with data:', updateData);
       navigate(`/dashboard/create-campaign/step-3?id=${campaignId}`);
     } catch (error) {
       console.error('Error updating campaign:', error);
+      alert('Erro ao finalizar campanha. Tente novamente.');
+    }
+    } catch (error) {
+      console.error('Error finalizing campaign:', error);
       alert('Erro ao finalizar campanha. Tente novamente.');
     }
   };
@@ -274,12 +389,14 @@ const CreateCampaignStep2Page = () => {
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center space-x-4">
-          <button
+          {!fromStep1 && (
+            <button
             onClick={handleGoBack}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
           >
             <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </button>
+          )}
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               Configurar campanha
@@ -289,11 +406,45 @@ const CreateCampaignStep2Page = () => {
             </p>
           </div>
         </div>
+        
+        {/* Save Status Indicator */}
+        <div className="flex items-center space-x-2">
+          {saveStatus === 'saving' && (
+            <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <span className="text-sm">Salvando...</span>
+            </div>
+          )}
+          {saveStatus === 'saved' && (
+            <div className="flex items-center space-x-2 text-green-600 dark:text-green-400">
+              <CheckCircle className="h-4 w-4" />
+              <span className="text-sm">Salvo</span>
+            </div>
+          )}
+          {saveStatus === 'error' && (
+            <span className="text-sm text-red-600 dark:text-red-400">Erro ao salvar</span>
+          )}
+        </div>
       </div>
 
       {/* Form Content */}
       <div className="p-6 max-w-2xl mx-auto">
         <div className="space-y-8">
+          {/* Quota Alert for >10k quotas */}
+          {showQuotaAlert && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 flex items-start space-x-3">
+              <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-yellow-800 dark:text-yellow-200 text-sm font-medium mb-1">
+                  ⚠️ Acima de 10mil cotas o modelo da sua campanha muda para Sistema escolhe as cotas aleatoriamente
+                </p>
+                <p className="text-yellow-700 dark:text-yellow-300 text-sm">
+                  Para campanhas acima de 10 mil cotas, o sistema passa a selecionar as cotas de forma automática e aleatória.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Título da campanha */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -316,8 +467,9 @@ const CreateCampaignStep2Page = () => {
             <div className="relative">
               <select
                 value={formData.model}
+                disabled={modelDisabled}
                 onChange={(e) => setFormData({ ...formData, model: e.target.value as 'manual' | 'automatic' })}
-                className="w-full appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                className={`w-full appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${modelDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {modelOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -465,20 +617,23 @@ const CreateCampaignStep2Page = () => {
 
           {/* Imagens */}
           <div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Imagens
               </label>
-              <span className="text-xs text-green-600 dark:text-green-400">
-                Tamanho recomendado: 1365x758 pixels
-              </span>
-            </div>
-            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
-              <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
-                Clique para adicionar imagens ou arraste e solte aqui
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Tamanho recomendado: 1365x758 pixels • Máximo 5MB por imagem
               </p>
             </div>
+            
+            <ImageUpload
+              images={imageUpload.images}
+              uploading={imageUpload.uploading}
+              uploadProgress={imageUpload.uploadProgress}
+              onAddImages={imageUpload.addImages}
+              onRemoveImage={imageUpload.removeImage}
+              onReorderImage={imageUpload.reorderImages}
+            />
           </div>
 
           {/* Quantidade de cotas */}

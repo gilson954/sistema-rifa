@@ -10,11 +10,38 @@ import {
   DollarSign,
   MoreVertical,
   Edit,
-  Trash2
+  Trash2,
+  Clock,
+  AlertTriangle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
+
+/**
+ * Utility function to calculate time remaining until expiration
+ */
+const getTimeRemaining = (expiresAt: string) => {
+  const now = new Date().getTime();
+  const expiration = new Date(expiresAt).getTime();
+  const difference = expiration - now;
+
+  if (difference <= 0) {
+    return { expired: true, text: 'Expirado' };
+  }
+
+  const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (days > 0) {
+    return { expired: false, text: `${days}d ${hours}h ${minutes}m` };
+  } else if (hours > 0) {
+    return { expired: false, text: `${hours}h ${minutes}m` };
+  } else {
+    return { expired: false, text: `${minutes}m` };
+  }
+};
 
 const DashboardPage = () => {
   const [showRevenue, setShowRevenue] = useState(false);
@@ -188,8 +215,41 @@ const DashboardPage = () => {
                 {campaigns.map((campaign: Campaign) => (
                   <div
                     key={campaign.id}
-                    className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200"
+                    className={`rounded-lg p-4 border hover:shadow-md transition-all duration-200 ${
+                      campaign.status === 'draft' && campaign.expires_at && getTimeRemaining(campaign.expires_at).expired
+                        ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                        : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                    }`}
                   >
+                    {/* Expiration Alert for Draft Campaigns */}
+                    {campaign.status === 'draft' && campaign.expires_at && (
+                      <div className="mb-3">
+                        {(() => {
+                          const timeRemaining = getTimeRemaining(campaign.expires_at);
+                          const isUrgent = !timeRemaining.expired && campaign.expires_at && 
+                            new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000; // Less than 24 hours
+                          
+                          return (
+                            <div className={`flex items-center space-x-2 p-2 rounded-lg text-sm ${
+                              timeRemaining.expired
+                                ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
+                                : isUrgent
+                                ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300'
+                                : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
+                            }`}>
+                              <Clock className="h-4 w-4" />
+                              <span>
+                                {timeRemaining.expired 
+                                  ? 'Campanha expirada - Faça o pagamento para reativar'
+                                  : `Faça o pagamento em até ${timeRemaining.text} ou ela vai expirar`
+                                }
+                              </span>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
+                    
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-3 mb-2">
