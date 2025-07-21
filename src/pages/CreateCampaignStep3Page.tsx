@@ -230,6 +230,7 @@ const CreateCampaignStep3Page = () => {
 
           {/* Right Column - Campaign Summary */}
           <div className="space-y-6">
+            <>
             {/* Campaign Images Gallery with Edit/Preview buttons */}
             <div className="space-y-4">
               {campaignData.images.map((image, index) => (
@@ -301,6 +302,7 @@ const CreateCampaignStep3Page = () => {
                 </div>
               </div>
             </div>
+            </>
           </div>
         </div>
       </div>
