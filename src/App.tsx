@@ -10,7 +10,7 @@ import LoginPage from './pages/LoginPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
-import CreateCampaignPage from './pages/CreateCampaignPage';
+import CreateCampaignStep1Page from './pages/CreateCampaignStep1Page';
 import CreateCampaignStep2Page from './pages/CreateCampaignStep2Page';
 import CreateCampaignStep3Page from './pages/CreateCampaignStep3Page';
 import CampaignPage from './pages/CampaignPage';
@@ -60,8 +60,8 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<DashboardPage />} />
-            <Route path="create-campaign/step-1" element={<CreateCampaignPage />} />
-            <Route path="create-campaign" element={<CreateCampaignPage />} />
+            <Route path="create-campaign/step-1" element={<CreateCampaignStep1Page />} />
+            <Route path="create-campaign" element={<CreateCampaignStep1Page />} />
             <Route path="create-campaign/step-2" element={<CreateCampaignStep2Page />} />
             <Route path="create-campaign/step-3" element={<CreateCampaignStep3Page />} />
             <Route path="integrations" element={<PaymentIntegrationsPage />} />

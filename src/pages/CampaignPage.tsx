@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Shield, Share2 } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
+import { useCampaign } from '../hooks/useCampaigns';
 
 const CampaignPage = () => {
   const { campaignId } = useParams();
