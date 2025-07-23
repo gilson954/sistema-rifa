@@ -97,7 +97,7 @@ const CreateCampaignStep1Page = () => {
 
   // Update calculations when price or quantity changes
   const updateCalculations = (price: string, quantity: string) => {
-    const ticketPrice = parseFloat(price.replace(',', '.')) || 0;
+    const ticketPrice = parseFloat(price) || 0;
     const ticketQuantity = parseInt(quantity) || 0;
     const revenue = ticketPrice * ticketQuantity;
     const tax = calculatePublicationTax(revenue);
@@ -107,24 +107,85 @@ const CreateCampaignStep1Page = () => {
   };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
+    const rawValue = e.target.value;
+    const formattedValue = formatBrazilianCurrency(rawValue);
     
-    // Remove all non-numeric characters except comma
-    value = value.replace(/[^\d,]/g, '');
+    setFormData({ ...formData, ticketPrice: formattedValue });
+    
+    // Extract numeric value for calculations (remove R$, dots, and replace comma with dot)
+    const numericValue = formattedValue
+      .replace('R$', '')
+      .replace(/\s/g, '')
+      .replace(/\./g, '')
+      .replace(',', '.');
+    
+    updateCalculations(numericValue, formData.ticketQuantity);
+  };
+
+  /**
+   * Formats input value to Brazilian currency format
+   * Handles real-time formatting during user input
+   */
+  const formatBrazilianCurrency = (input: string): string => {
+    // Remove all non-numeric characters except comma and dot
+    let value = input.replace(/[^\d,.]/g, '');
+    
+    // Handle empty input
+    if (!value) return 'R$ 0,00';
+    
+    // Remove leading zeros
+    value = value.replace(/^0+/, '') || '0';
+    
+    // Handle decimal separator (comma)
+    let parts = value.split(',');
     
     // Ensure only one comma
-    const parts = value.split(',');
     if (parts.length > 2) {
-      value = parts[0] + ',' + parts.slice(1).join('');
+      parts = [parts[0], parts.slice(1).join('')];
     }
     
-    // Limit to 2 decimal places
-    if (parts[1] && parts[1].length > 2) {
-      value = parts[0] + ',' + parts[1].substring(0, 2);
+    // Format integer part with thousand separators
+    let integerPart = parts[0].replace(/\./g, ''); // Remove existing dots
+    
+    // Add thousand separators (dots)
+    if (integerPart.length > 3) {
+      integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
+    
+    // Handle decimal part
+    let decimalPart = '';
+    if (parts.length > 1) {
+      // Limit to 2 decimal places
+      decimalPart = ',' + parts[1].substring(0, 2);
+    } else if (value.includes(',')) {
+      decimalPart = ',';
+    }
+    
+    // If no decimal part and value doesn't end with comma, add ,00
+    if (!decimalPart && !value.endsWith(',')) {
+      decimalPart = ',00';
+    }
+    
+    return `R$ ${integerPart}${decimalPart}`;
+  };
 
-    setFormData({ ...formData, ticketPrice: value });
-    updateCalculations(value, formData.ticketQuantity);
+  /**
+   * Handles cursor position and formatting on blur
+   */
+  const handlePriceBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    // Ensure proper decimal formatting on blur
+    if (value && !value.includes(',')) {
+      const formattedValue = formatBrazilianCurrency(value + ',00');
+      setFormData({ ...formData, ticketPrice: formattedValue });
+    } else if (value.endsWith(',')) {
+      const formattedValue = formatBrazilianCurrency(value + '00');
+      setFormData({ ...formData, ticketPrice: formattedValue });
+    } else if (value.includes(',') && value.split(',')[1].length === 1) {
+      const formattedValue = formatBrazilianCurrency(value + '0');
+      setFormData({ ...formData, ticketPrice: formattedValue });
+    }
   };
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -271,7 +332,8 @@ const CreateCampaignStep1Page = () => {
               <div className="relative">
                 <select
                   value={formData.ticketQuantity}
-                  onChange={handleQuantityChange}
+                  onBlur={handlePriceBlur}
+                  placeholder="R$ 0,00"
                   className={`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
                     errors.ticketQuantity ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
