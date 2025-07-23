@@ -18,6 +18,9 @@ const CreateCampaignStep2Page = () => {
   const campaignId = new URLSearchParams(location.search).get('id');
   const { campaign, loading: fetchingCampaign, error: fetchError } = useCampaign(campaignId || '');
   
+  // Get updateCampaign function from useCampaigns hook
+  const { updateCampaign } = useCampaigns();
+  
   // Check if user came from Step 1
   const [showQuotaAlert, setShowQuotaAlert] = useState(false);
   const fromStep1 = location.state?.fromStep1 === true;
