@@ -127,11 +127,11 @@ const CreateCampaignStep1Page = () => {
    * Handles real-time formatting during user input
    */
   const formatBrazilianCurrency = (input: string): string => {
-    // Remove all non-numeric characters except comma and dot
-    let value = input.replace(/[^\d,.]/g, '');
+    // Remove R$ prefix and spaces first, then keep only numbers, comma and dot
+    let value = input.replace(/^R\$\s*/, '').replace(/[^\d,.]/g, '');
     
     // Handle empty input
-    if (!value) return 'R$ 0,00';
+    if (!value) return '';
     
     // Remove leading zeros
     value = value.replace(/^0+/, '') || '0';
@@ -161,30 +161,41 @@ const CreateCampaignStep1Page = () => {
       decimalPart = ',';
     }
     
-    // If no decimal part and value doesn't end with comma, add ,00
-    if (!decimalPart && !value.endsWith(',')) {
-      decimalPart = ',00';
-    }
-    
     return `R$ ${integerPart}${decimalPart}`;
   };
 
   /**
-   * Handles cursor position and formatting on blur
+   * Handles final formatting when user leaves the field
    */
   const handlePriceBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const value = e.target.value;
     
-    // Ensure proper decimal formatting on blur
-    if (value && !value.includes(',')) {
-      const formattedValue = formatBrazilianCurrency(value + ',00');
+    // Only format if there's a value and it's not just "R$ "
+    if (value && value !== 'R$ ' && value.replace(/[^\d]/g, '')) {
+      let finalValue = value;
+      
+      // Add ,00 if no decimal part
+      if (!value.includes(',')) {
+        finalValue = value.replace('R$ ', '') + ',00';
+      } else if (value.endsWith(',')) {
+        // Add 00 if ends with comma
+        finalValue = value + '00';
+      } else if (value.includes(',') && value.split(',')[1].length === 1) {
+        // Add 0 if only one decimal place
+        finalValue = value + '0';
+      }
+      
+      const formattedValue = formatBrazilianCurrency(finalValue);
       setFormData({ ...formData, ticketPrice: formattedValue });
-    } else if (value.endsWith(',')) {
-      const formattedValue = formatBrazilianCurrency(value + '00');
-      setFormData({ ...formData, ticketPrice: formattedValue });
-    } else if (value.includes(',') && value.split(',')[1].length === 1) {
-      const formattedValue = formatBrazilianCurrency(value + '0');
-      setFormData({ ...formData, ticketPrice: formattedValue });
+      
+      // Extract numeric value for calculations
+      const numericValue = formattedValue
+        .replace('R$', '')
+        .replace(/\s/g, '')
+        .replace(/\./g, '')
+        .replace(',', '.');
+      
+      updateCalculations(numericValue, formData.ticketQuantity);
     }
   };
 
@@ -311,6 +322,7 @@ const CreateCampaignStep1Page = () => {
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onBlur={handlePriceBlur}
               placeholder="Digite o título sua campanha"
               className={`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
                 errors.title ? 'border-red-500' : 'border-green-500'
