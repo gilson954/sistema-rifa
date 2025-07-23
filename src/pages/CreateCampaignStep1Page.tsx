@@ -415,13 +415,13 @@ const CreateCampaignStep1Page = () => {
               <div className="flex justify-between items-center">
                 <span className="text-gray-700 dark:text-gray-300">Taxa de publicação</span>
                 <span className="text-red-600 dark:text-red-400 font-medium">
-                  - R$ {publicationTax.toFixed(2).replace('.', ',')}
+                  - {formatCurrencyForDisplay(publicationTax)}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-700 dark:text-gray-300">Arrecadação estimada</span>
                 <span className="text-green-600 dark:text-green-400 font-medium">
-                  + R$ {estimatedRevenue.toFixed(2).replace('.', ',')}
+                  + {formatCurrencyForDisplay(estimatedRevenue)}
                 </span>
               </div>
             </div>
