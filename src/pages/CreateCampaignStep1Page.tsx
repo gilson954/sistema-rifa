@@ -35,6 +35,8 @@ const CreateCampaignStep1Page = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [showFeesModal, setShowFeesModal] = useState(false);
+  const [estimatedRevenue, setEstimatedRevenue] = useState(0);
+  const [publicationTax, setPublicationTax] = useState(0);
 
   const drawMethods = [
     'Loteria Federal',
@@ -73,6 +75,37 @@ const CreateCampaignStep1Page = () => {
     { value: 10000000, label: '10.000.000 cotas' }
   ];
 
+  // Calculate publication tax based on estimated revenue
+  const calculatePublicationTax = (revenue: number): number => {
+    if (revenue <= 100) return 7.00;
+    if (revenue <= 200) return 17.00;
+    if (revenue <= 400) return 27.00;
+    if (revenue <= 701) return 37.00;
+    if (revenue <= 1000) return 57.00;
+    if (revenue <= 2000) return 67.00;
+    if (revenue <= 4000) return 77.00;
+    if (revenue <= 7000) return 127.00;
+    if (revenue <= 10000) return 197.00;
+    if (revenue <= 20000) return 247.00;
+    if (revenue <= 30000) return 497.00;
+    if (revenue <= 50000) return 997.00;
+    if (revenue <= 70000) return 1297.00;
+    if (revenue <= 100000) return 1997.00;
+    if (revenue <= 150000) return 2997.00;
+    return 3997.00;
+  };
+
+  // Update calculations when price or quantity changes
+  const updateCalculations = (price: string, quantity: string) => {
+    const ticketPrice = parseFloat(price.replace(',', '.')) || 0;
+    const ticketQuantity = parseInt(quantity) || 0;
+    const revenue = ticketPrice * ticketQuantity;
+    const tax = calculatePublicationTax(revenue);
+    
+    setEstimatedRevenue(revenue);
+    setPublicationTax(tax);
+  };
+
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
     
@@ -91,6 +124,13 @@ const CreateCampaignStep1Page = () => {
     }
 
     setFormData({ ...formData, ticketPrice: value });
+    updateCalculations(value, formData.ticketQuantity);
+  };
+
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const quantity = e.target.value;
+    setFormData({ ...formData, ticketQuantity: quantity });
+    updateCalculations(formData.ticketPrice, quantity);
   };
 
   const validateForm = () => {
@@ -134,37 +174,6 @@ const CreateCampaignStep1Page = () => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  // Calculate publication tax based on estimated revenue
-  const calculatePublicationTax = () => {
-    const ticketPrice = parseFloat(formData.ticketPrice.replace(',', '.')) || 0;
-    const quantity = parseInt(formData.ticketQuantity) || 0;
-    const revenue = ticketPrice * quantity;
-    
-    if (revenue <= 100) return 7.00;
-    if (revenue <= 200) return 17.00;
-    if (revenue <= 400) return 27.00;
-    if (revenue <= 701) return 37.00;
-    if (revenue <= 1000) return 47.00;
-    if (revenue <= 2000) return 67.00;
-    if (revenue <= 4000) return 77.00;
-    if (revenue <= 7100) return 127.00;
-    if (revenue <= 10000) return 197.00;
-    if (revenue <= 20000) return 247.00;
-    if (revenue <= 30000) return 497.00;
-    if (revenue <= 50000) return 997.00;
-    if (revenue <= 70000) return 1497.00;
-    if (revenue <= 100000) return 1997.00;
-    if (revenue <= 150000) return 2997.00;
-    
-    return 3997.00;
-  };
-
-  const getEstimatedRevenue = () => {
-    const ticketPrice = parseFloat(formData.ticketPrice.replace(',', '.')) || 0;
-    const quantity = parseInt(formData.ticketQuantity) || 0;
-    return ticketPrice * quantity;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -262,7 +271,7 @@ const CreateCampaignStep1Page = () => {
               <div className="relative">
                 <select
                   value={formData.ticketQuantity}
-                  onChange={(e) => setFormData({ ...formData, ticketQuantity: e.target.value })}
+                  onChange={handleQuantityChange}
                   className={`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
                     errors.ticketQuantity ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
@@ -299,6 +308,26 @@ const CreateCampaignStep1Page = () => {
               />
               {errors.ticketPrice && (
                 <p className="text-red-500 text-sm mt-1">{errors.ticketPrice}</p>
+              )}
+              
+              {/* Real-time Tax Display */}
+              {formData.ticketPrice && formData.ticketQuantity && (
+                <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="text-sm space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700 dark:text-gray-300">Arrecadação estimada:</span>
+                      <span className="font-medium text-green-600 dark:text-green-400">
+                        R$ {estimatedRevenue.toFixed(2).replace('.', ',')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700 dark:text-gray-300">Taxa da campanha:</span>
+                      <span className="font-medium text-red-600 dark:text-red-400">
+                        R$ {publicationTax.toFixed(2).replace('.', ',')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -360,13 +389,13 @@ const CreateCampaignStep1Page = () => {
               <div className="flex justify-between items-center">
                 <span className="text-gray-700 dark:text-gray-300">Taxa de publicação</span>
                 <span className="text-red-600 dark:text-red-400 font-medium">
-                  - R$ {calculatePublicationTax().toFixed(2).replace('.', ',')}
+                  - R$ {publicationTax.toFixed(2).replace('.', ',')}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-700 dark:text-gray-300">Arrecadação estimada</span>
                 <span className="text-green-600 dark:text-green-400 font-medium">
-                  + R$ {getEstimatedRevenue().toFixed(2).replace('.', ',')}
+                  + R$ {estimatedRevenue.toFixed(2).replace('.', ',')}
                 </span>
               </div>
             </div>
