@@ -2,6 +2,15 @@ import React, { useState } from 'react';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
+import CountryPhoneSelect from '../components/CountryPhoneSelect';
+import PublicationFeesModal from '../components/PublicationFeesModal';
+
+interface Country {
+  code: string;
+  name: string;
+  dialCode: string;
+  flag: string;
+}
 
 const CreateCampaignStep1Page = () => {
   const navigate = useNavigate();
@@ -16,8 +25,16 @@ const CreateCampaignStep1Page = () => {
     acceptTerms: false
   });
 
+  const [selectedCountry, setSelectedCountry] = useState<Country>({
+    code: 'BR',
+    name: 'Brasil',
+    dialCode: '+55',
+    flag: '🇧🇷'
+  });
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [showFeesModal, setShowFeesModal] = useState(false);
 
   const drawMethods = [
     'Loteria Federal',
@@ -29,38 +46,32 @@ const CreateCampaignStep1Page = () => {
   ];
 
   const ticketQuantityOptions = [
+    { value: 25, label: '25 cotas' },
     { value: 50, label: '50 cotas' },
     { value: 100, label: '100 cotas' },
     { value: 200, label: '200 cotas' },
+    { value: 300, label: '300 cotas' },
+    { value: 400, label: '400 cotas' },
     { value: 500, label: '500 cotas' },
-    { value: 1000, label: '1000 cotas' },
-    { value: 2000, label: '2000 cotas' },
-    { value: 5000, label: '5000 cotas' },
-    { value: 10000, label: '10000 cotas' }
+    { value: 600, label: '600 cotas' },
+    { value: 700, label: '700 cotas' },
+    { value: 800, label: '800 cotas' },
+    { value: 900, label: '900 cotas' },
+    { value: 1000, label: '1k cotas' },
+    { value: 2000, label: '2k cotas' },
+    { value: 3000, label: '3k cotas' },
+    { value: 4000, label: '4k cotas' },
+    { value: 5000, label: '5k cotas' },
+    { value: 10000, label: '10k cotas' },
+    { value: 20000, label: '20k cotas' },
+    { value: 30000, label: '30k cotas' },
+    { value: 40000, label: '40k cotas' },
+    { value: 50000, label: '50k cotas' },
+    { value: 100000, label: '100k cotas' },
+    { value: 500000, label: '500k cotas' },
+    { value: 1000000, label: '1kk cotas' },
+    { value: 10000000, label: '10kk cotas' }
   ];
-
-  // Phone number formatting function
-  const formatPhoneNumber = (value: string) => {
-    // Remove all non-numeric characters
-    const numbers = value.replace(/\D/g, '');
-    
-    // Limit to 11 digits
-    const limitedNumbers = numbers.slice(0, 11);
-    
-    // Format as (XX) XXXXX-XXXX
-    if (limitedNumbers.length <= 2) {
-      return limitedNumbers;
-    } else if (limitedNumbers.length <= 7) {
-      return `(${limitedNumbers.slice(0, 2)}) ${limitedNumbers.slice(2)}`;
-    } else {
-      return `(${limitedNumbers.slice(0, 2)}) ${limitedNumbers.slice(2, 7)}-${limitedNumbers.slice(7)}`;
-    }
-  };
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedValue = formatPhoneNumber(e.target.value);
-    setFormData({ ...formData, phoneNumber: formattedValue });
-  };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
@@ -106,10 +117,14 @@ const CreateCampaignStep1Page = () => {
     if (!formData.phoneNumber.trim()) {
       newErrors.phoneNumber = 'Número de celular é obrigatório';
     } else {
-      // Validate phone number format (should have 11 digits)
+      // Validate phone number format based on country
       const numbers = formData.phoneNumber.replace(/\D/g, '');
-      if (numbers.length !== 11) {
+      if (selectedCountry.code === 'BR' && numbers.length !== 11) {
         newErrors.phoneNumber = 'Número de celular deve ter 11 dígitos';
+      } else if ((selectedCountry.code === 'US' || selectedCountry.code === 'CA') && numbers.length !== 10) {
+        newErrors.phoneNumber = 'Número de telefone deve ter 10 dígitos';
+      } else if (numbers.length < 7) {
+        newErrors.phoneNumber = 'Número de telefone inválido';
       }
     }
 
@@ -172,7 +187,7 @@ const CreateCampaignStep1Page = () => {
         ticket_price: ticketPrice,
         total_tickets: ticketQuantity,
         draw_method: formData.drawMethod,
-        phone_number: formData.phoneNumber,
+        phone_number: `${selectedCountry.dialCode} ${formData.phoneNumber}`,
         payment_deadline_hours: 24,
         require_email: true,
         show_ranking: false,
@@ -316,33 +331,15 @@ const CreateCampaignStep1Page = () => {
             )}
           </div>
 
-          {/* Phone Number */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Número de celular *
-            </label>
-            <div className="flex space-x-2">
-              <div className="flex-shrink-0">
-                <div className="px-3 py-3 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white">
-                  BR
-                </div>
-              </div>
-              <input
-                type="tel"
-                value={formData.phoneNumber}
-                onChange={handlePhoneChange}
-                placeholder="(11) 99999-9999"
-                maxLength={15}
-                className={`flex-1 px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
-                  errors.phoneNumber ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                }`}
-                required
-              />
-            </div>
-            {errors.phoneNumber && (
-              <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>
-            )}
-          </div>
+          {/* Phone Number with Country Selection */}
+          <CountryPhoneSelect
+            selectedCountry={selectedCountry}
+            onCountryChange={setSelectedCountry}
+            phoneNumber={formData.phoneNumber}
+            onPhoneChange={(phone) => setFormData({ ...formData, phoneNumber: phone })}
+            placeholder="Número de telefone"
+            error={errors.phoneNumber}
+          />
 
           {/* Publication Tax Section */}
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
@@ -352,7 +349,8 @@ const CreateCampaignStep1Page = () => {
               </h3>
               <button
                 type="button"
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                onClick={() => setShowFeesModal(true)}
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
               >
                 Ver taxas
               </button>
@@ -417,6 +415,12 @@ const CreateCampaignStep1Page = () => {
           </button>
         </form>
       </div>
+
+      {/* Publication Fees Modal */}
+      <PublicationFeesModal
+        isOpen={showFeesModal}
+        onClose={() => setShowFeesModal(false)}
+      />
     </div>
   );
 };
