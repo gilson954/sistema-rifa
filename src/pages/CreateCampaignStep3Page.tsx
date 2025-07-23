@@ -32,19 +32,7 @@ const CreateCampaignStep3Page = () => {
   };
 
   const handlePreview = () => {
-    // Pass the campaign model to the preview page via state
-    navigate(`/c/${campaignId || 'mock-campaign-id'}`, {
-      state: { 
-        campaignModel: step2Data?.model || campaign?.campaign_model || 'manual',
-        previewMode: true,
-        previewData: {
-          title: campaignData.title,
-          totalTickets: campaignData.totalTickets,
-          ticketPrice: campaignData.ticketPrice,
-          images: campaignData.images
-        }
-      }
-    });
+    navigate(`/c/${campaignId || 'mock-campaign-id'}`);
   };
 
   const handlePayment = () => {
