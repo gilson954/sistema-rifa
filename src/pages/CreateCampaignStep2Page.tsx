@@ -10,7 +10,6 @@ import { useAuth } from '../context/AuthContext';
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const location = useLocation();
 import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campaign';
   const { user } = useAuth();
   const imageUpload = useImageUpload();
