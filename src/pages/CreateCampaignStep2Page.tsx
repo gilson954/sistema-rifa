@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Upload, X, ChevronLeft, ChevronRight, ChevronDown, AlertTriangle, Info, Calendar, Clock, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Upload, X, ChevronLeft, ChevronRight, ChevronDown, Info, AlertTriangle, CheckCircle, Calendar, Clock } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campaign';
 import { useCampaign, useCampaigns } from '../hooks/useCampaigns';
@@ -263,7 +263,11 @@ const CreateCampaignStep2Page = () => {
   };
 
   const handleQuotaQuantityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedQuotaQuantity(e.target.value);
+    const value = e.target.value;
+    setSelectedQuotaQuantity(value);
+    if (value) {
+      setFormData({ ...formData, ticketQuantity: parseInt(value) });
+    }
   };
 
   const handleFinalize = async () => {
@@ -651,6 +655,29 @@ const CreateCampaignStep2Page = () => {
               <span className="text-lg">🎁</span>
               <span className="text-xs sm:text-sm font-medium">Promoção</span>
             </button>
+          </div>
+
+          {/* Quantidade de cotas - copied from CreateCampaignStep1Page */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Quantidade de cotas *
+            </label>
+            <div className="relative">
+              <select
+                value={selectedQuotaQuantity}
+                onChange={handleQuotaQuantityChange}
+                className="w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 border-gray-300 dark:border-gray-600"
+                required
+              >
+                <option value="">Escolha uma opção</option>
+                {ticketQuantityOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+            </div>
           </div>
 
           {/* Imagens */}
