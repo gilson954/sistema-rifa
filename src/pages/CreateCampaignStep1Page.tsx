@@ -150,28 +150,6 @@ const CreateCampaignStep1Page = () => {
     return formatted;
   };
 
-  /**
-   * Handles real-time formatting during user input
-   */
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    
-    // Format the value using progressive formatting
-    const formattedValue = formatBrazilianCurrency(inputValue);
-    
-    // Update form data
-    setFormData({ ...formData, ticketPrice: formattedValue });
-    
-    // Extract numeric value for calculations (convert back to decimal)
-    const numericValue = inputValue.replace(/\D/g, '');
-    if (numericValue) {
-      const decimalValue = (parseInt(numericValue, 10) / 100).toString();
-      updateCalculations(decimalValue, formData.ticketQuantity);
-    } else {
-      updateCalculations('0', formData.ticketQuantity);
-    }
-  };
-
   const handleQuantityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const quantity = e.target.value;
     setFormData({ ...formData, ticketQuantity: quantity });
