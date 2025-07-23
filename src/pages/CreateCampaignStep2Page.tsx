@@ -15,7 +15,7 @@ const CreateCampaignStep2Page = () => {
   
   // Extrai o ID da campanha da URL
   const campaignId = new URLSearchParams(location.search).get('id');
-  const { campaign, loading: fetchingCampaign, error: fetchError } = useCampaign(campaignId || '');
+  const { campaign, loading: fetchingCampaign, error: fetchError, updateCampaign } = useCampaign(campaignId || '');
   
   // Check if user came from Step 1
   const [showQuotaAlert, setShowQuotaAlert] = useState(false);
