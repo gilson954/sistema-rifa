@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ChevronDown, Info, Calendar, Clock, AlertTriangle, Eye, Save, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Upload, X, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campaign';
 import { useCampaign, useCampaigns } from '../hooks/useCampaigns';
@@ -17,6 +17,35 @@ const CreateCampaignStep2Page = () => {
   // Extrai o ID da campanha da URL
   const campaignId = new URLSearchParams(location.search).get('id');
   const { campaign, loading: fetchingCampaign, error: fetchError } = useCampaign(campaignId || '');
+  // Ticket quantity options - copied from CreateCampaignStep1Page
+  const ticketQuantityOptions = [
+    { value: 25, label: '25 cotas' },
+    { value: 50, label: '50 cotas' },
+    { value: 100, label: '100 cotas' },
+    { value: 200, label: '200 cotas' },
+    { value: 300, label: '300 cotas' },
+    { value: 400, label: '400 cotas' },
+    { value: 500, label: '500 cotas' },
+    { value: 600, label: '600 cotas' },
+    { value: 700, label: '700 cotas' },
+    { value: 800, label: '800 cotas' },
+    { value: 900, label: '900 cotas' },
+    { value: 1000, label: '1.000 cotas' },
+    { value: 2000, label: '2.000 cotas' },
+    { value: 3000, label: '3.000 cotas' },
+    { value: 4000, label: '4.000 cotas' },
+    { value: 5000, label: '5.000 cotas' },
+    { value: 10000, label: '10.000 cotas' },
+    { value: 20000, label: '20.000 cotas' },
+    { value: 30000, label: '30.000 cotas' },
+    { value: 40000, label: '40.000 cotas' },
+    { value: 50000, label: '50.000 cotas' },
+    { value: 100000, label: '100.000 cotas' },
+    { value: 500000, label: '500.000 cotas' },
+    { value: 1000000, label: '1.000.000 cotas' },
+    { value: 10000000, label: '10.000.000 cotas' }
+  ];
+
   
   // Get updateCampaign function from useCampaigns hook
   const { updateCampaign } = useCampaigns();
@@ -41,6 +70,7 @@ const CreateCampaignStep2Page = () => {
     requireEmail: true,
     showRanking: false
   });
+  const [selectedQuotaQuantity, setSelectedQuotaQuantity] = useState('');
   const [informarData, setInformarData] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState({ hour: '22', minute: '12' });
@@ -88,6 +118,7 @@ const CreateCampaignStep2Page = () => {
         requireEmail: campaign.require_email,
         showRanking: campaign.show_ranking
       });
+      setSelectedQuotaQuantity(campaign.total_tickets?.toString() || '');
 
       // Configura o estado do calendário se houver draw_date
       if (campaign.draw_date) {
