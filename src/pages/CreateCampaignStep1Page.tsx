@@ -39,6 +39,14 @@ const CreateCampaignStep1Page = () => {
   const [publicationTax, setPublicationTax] = useState(0);
   const [rawTicketPrice, setRawTicketPrice] = useState(''); // Armazena apenas números
 
+  // Format currency for display with Brazilian formatting
+  const formatCurrencyForDisplay = (value: number): string => {
+    return value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    });
+  };
+
   const drawMethods = [
     'Loteria Federal',
     'Sorteador.com.br',
