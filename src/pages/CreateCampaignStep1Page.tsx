@@ -124,78 +124,51 @@ const CreateCampaignStep1Page = () => {
 
   /**
    * Formats input value to Brazilian currency format
-   * Handles real-time formatting during user input
+   * Progressive formatting: treats input as cents initially, then converts to reais
    */
   const formatBrazilianCurrency = (input: string): string => {
-    // Remove R$ prefix and spaces first, then keep only numbers, comma and dot
-    let value = input.replace(/^R\$\s*/, '').replace(/[^\d,.]/g, '');
+    // Remove all non-numeric characters
+    const numericValue = input.replace(/\D/g, '');
     
     // Handle empty input
-    if (!value) return '';
+    if (!numericValue) return '';
     
-    // Remove leading zeros
-    value = value.replace(/^0+/, '') || '0';
+    // Convert to number (treating as cents)
+    const cents = parseInt(numericValue, 10);
     
-    // Handle decimal separator (comma)
-    let parts = value.split(',');
+    // Convert cents to reais (divide by 100)
+    const reais = cents / 100;
     
-    // Ensure only one comma
-    if (parts.length > 2) {
-      parts = [parts[0], parts.slice(1).join('')];
-    }
+    // Format as Brazilian currency
+    const formatted = reais.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
     
-    // Format integer part with thousand separators
-    let integerPart = parts[0].replace(/\./g, ''); // Remove existing dots
-    
-    // Add thousand separators (dots)
-    if (integerPart.length > 3) {
-      integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    }
-    
-    // Handle decimal part
-    let decimalPart = '';
-    if (parts.length > 1) {
-      // Limit to 2 decimal places
-      decimalPart = ',' + parts[1].substring(0, 2);
-    } else if (value.includes(',')) {
-      decimalPart = ',';
-    }
-    
-    return `R$ ${integerPart}${decimalPart}`;
+    return formatted;
   };
 
   /**
-   * Handles final formatting when user leaves the field
+   * Handles real-time formatting during user input
    */
-  const handlePriceBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
     
-    // Only format if there's a value and it's not just "R$ "
-    if (value && value !== 'R$ ' && value.replace(/[^\d]/g, '')) {
-      let finalValue = value;
-      
-      // Add ,00 if no decimal part
-      if (!value.includes(',')) {
-        finalValue = value.replace('R$ ', '') + ',00';
-      } else if (value.endsWith(',')) {
-        // Add 00 if ends with comma
-        finalValue = value + '00';
-      } else if (value.includes(',') && value.split(',')[1].length === 1) {
-        // Add 0 if only one decimal place
-        finalValue = value + '0';
-      }
-      
-      const formattedValue = formatBrazilianCurrency(finalValue);
-      setFormData({ ...formData, ticketPrice: formattedValue });
-      
-      // Extract numeric value for calculations
-      const numericValue = formattedValue
-        .replace('R$', '')
-        .replace(/\s/g, '')
-        .replace(/\./g, '')
-        .replace(',', '.');
-      
-      updateCalculations(numericValue, formData.ticketQuantity);
+    // Format the value using progressive formatting
+    const formattedValue = formatBrazilianCurrency(inputValue);
+    
+    // Update form data
+    setFormData({ ...formData, ticketPrice: formattedValue });
+    
+    // Extract numeric value for calculations (convert back to decimal)
+    const numericValue = inputValue.replace(/\D/g, '');
+    if (numericValue) {
+      const decimalValue = (parseInt(numericValue, 10) / 100).toString();
+      updateCalculations(decimalValue, formData.ticketQuantity);
+    } else {
+      updateCalculations('0', formData.ticketQuantity);
     }
   };
 
@@ -372,9 +345,8 @@ const CreateCampaignStep1Page = () => {
               </label>
               <input
                 type="text"
-                value={formData.ticketPrice}
                 onChange={handlePriceChange}
-                placeholder="0,00"
+                placeholder="R$ 0,00"
                 className={`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
                   errors.ticketPrice ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                 }`}
