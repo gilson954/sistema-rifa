@@ -49,6 +49,14 @@ import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campa
   const [showQuotaAlert, setShowQuotaAlert] = useState(false);
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [modelDisabled, setModelDisabled] = useState(false);
+  const [showBackButton, setShowBackButton] = useState(true);
+
+  // Check if coming from Step 1 to hide back button
+  useEffect(() => {
+    if (location.state?.fromStep1) {
+      setShowBackButton(false);
+    }
+  }, [location.state]);
 
   // Efeito para carregar os dados da campanha quando o ID estiver disponível
   useEffect(() => {
@@ -65,7 +73,7 @@ import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campa
       // Preenche o formData com os dados da campanha
       setFormData({
         title: campaign.title || '',
-        ticketQuantity: campaign.total_tickets || 1000,
+        ticketQuantity: campaign.total_tickets || 100,
         ticketPrice: campaign.ticket_price ? campaign.ticket_price.toFixed(2).replace('.', ',') : '1,00',
         drawLocation: campaign.draw_method || '',
         phoneNumber: campaign.phone_number || '',
@@ -383,7 +391,7 @@ import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campa
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center space-x-4">
-          {!fromStep1 && (
+          {showBackButton && (
             <button
               onClick={handleGoBack}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
@@ -781,7 +789,7 @@ import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campa
             <div className="flex space-x-2">
               <div className="relative">
                 <select className="appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-8 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200">
-                  <option value="BR">🇧🇷 +55</option>
+                  <option value="+55">🇧🇷 +55</option>
                   <option value="+1">🇺🇸 +1</option>
                   <option value="+44">🇬🇧 +44</option>
                   <option value="+33">🇫🇷 +33</option>
@@ -793,13 +801,14 @@ import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campa
                   <option value="+56">🇨🇱 +56</option>
                   <option value="+57">🇨🇴 +57</option>
                   <option value="+51">🇵🇪 +51</option>
+                  <option value="+52">🇲🇽 +52</option>
                   <option value="+598">🇺🇾 +598</option>
                   <option value="+595">🇵🇾 +595</option>
                   <option value="+591">🇧🇴 +591</option>
                   <option value="+593">🇪🇨 +593</option>
                   <option value="+58">🇻🇪 +58</option>
-                  <option value="+597">🇸🇷 +597</option>
                   <option value="+592">🇬🇾 +592</option>
+                  <option value="+597">🇸🇷 +597</option>
                   <option value="+594">🇬🇫 +594</option>
                   <option value="+81">🇯🇵 +81</option>
                   <option value="+82">🇰🇷 +82</option>
@@ -903,19 +912,18 @@ import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campa
                   <option value="+48">🇵🇱 +48</option>
                   <option value="+31">🇳🇱 +31</option>
                   <option value="+32">🇧🇪 +32</option>
-                  <option value="+36">🇭🇺 +36</option>
-                  <option value="+40">🇷🇴 +40</option>
                   <option value="+30">🇬🇷 +30</option>
-                  <option value="+90">🇹🇷 +90</option>
+                  <option value="+40">🇷🇴 +40</option>
+                  <option value="+36">🇭🇺 +36</option>
                   <option value="+7">🇷🇺 +7</option>
-                  <option value="+992">🇹🇯 +992</option>
-                  <option value="+993">🇹🇲 +993</option>
-                  <option value="+994">🇦🇿 +994</option>
-                  <option value="+995">🇬🇪 +995</option>
-                  <option value="+996">🇰🇬 +996</option>
-                  <option value="+998">🇺🇿 +998</option>
-                  <option value="+62">🇮🇩 +62</option>
+                  <option value="+90">🇹🇷 +90</option>
+                  <option value="+98">🇮🇷 +98</option>
+                  <option value="+92">🇵🇰 +92</option>
+                  <option value="+93">🇦🇫 +93</option>
+                  <option value="+94">🇱🇰 +94</option>
+                  <option value="+95">🇲🇲 +95</option>
                   <option value="+60">🇲🇾 +60</option>
+                  <option value="+62">🇮🇩 +62</option>
                   <option value="+63">🇵🇭 +63</option>
                   <option value="+65">🇸🇬 +65</option>
                   <option value="+66">🇹🇭 +66</option>
@@ -923,9 +931,6 @@ import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campa
                   <option value="+855">🇰🇭 +855</option>
                   <option value="+856">🇱🇦 +856</option>
                   <option value="+880">🇧🇩 +880</option>
-                  <option value="+92">🇵🇰 +92</option>
-                  <option value="+94">🇱🇰 +94</option>
-                  <option value="+95">🇲🇲 +95</option>
                   <option value="+960">🇲🇻 +960</option>
                   <option value="+961">🇱🇧 +961</option>
                   <option value="+962">🇯🇴 +962</option>
@@ -943,61 +948,12 @@ import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campa
                   <option value="+975">🇧🇹 +975</option>
                   <option value="+976">🇲🇳 +976</option>
                   <option value="+977">🇳🇵 +977</option>
-                  <option value="+98">🇮🇷 +98</option>
-                  <option value="+93">🇦🇫 +93</option>
-                  <option value="+852">🇭🇰 +852</option>
-                  <option value="+853">🇲🇴 +853</option>
-                  <option value="+886">🇹🇼 +886</option>
-                  <option value="+850">🇰🇵 +850</option>
-                  <option value="+673">🇧🇳 +673</option>
-                  <option value="+679">🇫🇯 +679</option>
-                  <option value="+685">🇼🇸 +685</option>
-                  <option value="+686">🇰🇮 +686</option>
-                  <option value="+687">🇳🇨 +687</option>
-                  <option value="+688">🇹🇻 +688</option>
-                  <option value="+689">🇵🇫 +689</option>
-                  <option value="+690">🇹🇰 +690</option>
-                  <option value="+691">🇫🇲 +691</option>
-                  <option value="+692">🇲🇭 +692</option>
-                  <option value="+1242">🇧🇸 +1242</option>
-                  <option value="+1246">🇧🇧 +1246</option>
-                  <option value="+1264">🇦🇮 +1264</option>
-                  <option value="+1268">🇦🇬 +1268</option>
-                  <option value="+1284">🇻🇬 +1284</option>
-                  <option value="+1340">🇻🇮 +1340</option>
-                  <option value="+1345">🇰🇾 +1345</option>
-                  <option value="+1441">🇧🇲 +1441</option>
-                  <option value="+1473">🇬🇩 +1473</option>
-                  <option value="+1649">🇹🇨 +1649</option>
-                  <option value="+1664">🇲🇸 +1664</option>
-                  <option value="+1670">🇲🇵 +1670</option>
-                  <option value="+1671">🇬🇺 +1671</option>
-                  <option value="+1684">🇦🇸 +1684</option>
-                  <option value="+1721">🇸🇽 +1721</option>
-                  <option value="+1758">🇱🇨 +1758</option>
-                  <option value="+1767">🇩🇲 +1767</option>
-                  <option value="+1784">🇻🇨 +1784</option>
-                  <option value="+1787">🇵🇷 +1787</option>
-                  <option value="+1809">🇩🇴 +1809</option>
-                  <option value="+1829">🇩🇴 +1829</option>
-                  <option value="+1849">🇩🇴 +1849</option>
-                  <option value="+1868">🇹🇹 +1868</option>
-                  <option value="+1869">🇰🇳 +1869</option>
-                  <option value="+1876">🇯🇲 +1876</option>
-                  <option value="+501">🇧🇿 +501</option>
-                  <option value="+502">🇬🇹 +502</option>
-                  <option value="+503">🇸🇻 +503</option>
-                  <option value="+504">🇭🇳 +504</option>
-                  <option value="+505">🇳🇮 +505</option>
-                  <option value="+506">🇨🇷 +506</option>
-                  <option value="+507">🇵🇦 +507</option>
-                  <option value="+508">🇵🇲 +508</option>
-                  <option value="+509">🇭🇹 +509</option>
-                  <option value="+590">🇬🇵 +590</option>
-                  <option value="+596">🇲🇶 +596</option>
-                  <option value="+599">🇧🇶 +599</option>
-                  <option value="+52">🇲🇽 +52</option>
-                  <option value="+53">🇨🇺 +53</option>
+                  <option value="+992">🇹🇯 +992</option>
+                  <option value="+993">🇹🇲 +993</option>
+                  <option value="+994">🇦🇿 +994</option>
+                  <option value="+995">🇬🇪 +995</option>
+                  <option value="+996">🇰🇬 +996</option>
+                  <option value="+998">🇺🇿 +998</option>
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
               </div>

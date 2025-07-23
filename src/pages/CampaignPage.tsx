@@ -6,20 +6,23 @@ import QuotaSelector from '../components/QuotaSelector';
 
 const CampaignPage = () => {
   const { campaignId } = useParams();
+  const location = useLocation();
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
   const [quantity, setQuantity] = useState(1);
   
-  // Mock data - em produção, estes dados viriam de props ou contexto
-  const campaignData = {
-    title: 'Setup Gamer',
-    ticketPrice: 1.00,
-    totalTickets: 100,
-    image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+  const { campaign, loading: campaignLoading } = useCampaign(campaignId || '');
+  
+  // Get data from location state (for preview mode) or campaign data
+  const campaignData = location.state?.previewData || {
+    title: campaign?.title || 'Setup Gamer',
+    ticketPrice: campaign?.ticket_price || 1.00,
+    totalTickets: campaign?.total_tickets || 100,
+    image: campaign?.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
     organizer: {
       name: 'Gilson',
       verified: true
     },
-    model: 'manual' as 'manual' | 'automatic', // This would come from the campaign data
+    model: (location.state?.campaignModel || campaign?.campaign_model || 'manual') as 'manual' | 'automatic',
     reservedQuotas: [5, 12, 23, 45, 67], // Mock reserved quotas
     purchasedQuotas: [1, 3, 8, 15, 22], // Mock purchased quotas
     promotion: {
@@ -27,6 +30,14 @@ const CampaignPage = () => {
       text: 'Compre 4578 cotas por R$ 0,42'
     }
   };
+
+  if (campaignLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
 
   const handleQuotaSelect = (quotaNumber: number) => {
     setSelectedQuotas(prev => {
