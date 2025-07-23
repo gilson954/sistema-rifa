@@ -273,7 +273,6 @@ const CreateCampaignStep1Page = () => {
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              onBlur={handlePriceBlur}
               placeholder="Digite o título sua campanha"
               className={`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
                 errors.title ? 'border-red-500' : 'border-green-500'
@@ -296,7 +295,6 @@ const CreateCampaignStep1Page = () => {
                 <select
                   value={formData.ticketQuantity}
                   onBlur={handlePriceBlur}
-                  placeholder="R$ 0,00"
                   className={`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
                     errors.ticketQuantity ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
