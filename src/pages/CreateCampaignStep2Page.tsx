@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Upload, X, ChevronLeft, ChevronRight, ChevronDown, Info, AlertTriangle, CheckCircle, Calendar, Clock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Upload, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campaign';
 import { useCampaign, useCampaigns } from '../hooks/useCampaigns';
@@ -59,7 +59,6 @@ const CreateCampaignStep2Page = () => {
     ticketQuantity: 1000,
     ticketPrice: '1,00',
     drawLocation: '',
-    phoneNumber: '',
     model: 'manual' as 'manual' | 'automatic',
     description: '',
     minQuantity: 1,
