@@ -1,781 +1,266 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ChevronDown, Save, Eye, Info, AlertCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useCampaigns } from '../hooks/useCampaigns';
-import { campaignFormSchema, type CampaignFormInput } from '../lib/validations/campaign';
-import { CampaignAPI } from '../lib/api/campaigns';
+import { Shield, Share2 } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import QuotaGrid from '../components/QuotaGrid';
+import QuotaSelector from '../components/QuotaSelector';
 
-type ValidationErrors = Partial<Record<keyof CampaignFormInput, string>>;
-
-const CreateCampaignPage = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { createCampaign } = useCampaigns();
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<ValidationErrors>({});
-  const [showTaxes, setShowTaxes] = useState(false);
-  const [acceptTerms, setAcceptTerms] = useState(false);
-  const [formData, setFormData] = useState<CampaignFormInput>({
-    title: '',
-    ticketQuantity: 25,
-    ticketPrice: '0,00',
-    drawMethod: '',
-    phoneNumber: '',
-    drawDate: null,
-    paymentDeadlineHours: 24,
-    requireEmail: true,
-    showRanking: false,
-    minTicketsPerPurchase: 1,
-    maxTicketsPerPurchase: 200000,
-    initialFilter: 'all',
-    campaignModel: 'manual'
-  });
-
-  const handleGoBack = () => {
-    navigate('/dashboard');
-  };
-
-  const handleInputChange = (field: keyof CampaignFormInput, value: string | number | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: undefined
-      }));
+const CampaignPage = () => {
+  const { campaignId } = useParams();
+  const location = useLocation();
+  const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
+  const [quantity, setQuantity] = useState(1);
+  
+  // Get preview data if available
+  const previewData = location.state?.previewData;
+  const campaignModel = location.state?.campaignModel;
+  
+  // Mock data - em produção, estes dados viriam de props ou contexto
+  const campaignData = {
+    ticketPrice: 1.00,
+    totalTickets: 100,
+    image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+    organizer: {
+      name: 'Gilson',
+      verified: true
+    },
+    model: 'manual' as 'manual' | 'automatic', // This would come from the campaign data
+    reservedQuotas: [5, 12, 23, 45, 67], // Mock reserved quotas
+    purchasedQuotas: [1, 3, 8, 15, 22], // Mock purchased quotas
+    promotion: {
+      active: true,
+      text: 'Compre 4578 cotas por R$ 0,42'
     }
   };
 
-  const validateForm = (): boolean => {
-    try {
-      campaignFormSchema.parse(formData);
-      setErrors({});
-      return true;
-    } catch (error: any) {
-      const validationErrors: ValidationErrors = {};
-      
-      if (error.errors) {
-        error.errors.forEach((err: any) => {
-          const field = err.path[0] as keyof CampaignFormInput;
-          validationErrors[field] = err.message;
-        });
-      }
-      
-      setErrors(validationErrors);
-      return false;
-    }
-  };
-
-  const convertFormDataToAPI = (data: CampaignFormInput) => {
-    const ticketPrice = parseFloat(data.ticketPrice.replace(',', '.'));
-    
-    return {
-      title: data.title,
-      description: null, // Will be set in step 2
-      ticket_price: ticketPrice,
-      total_tickets: data.ticketQuantity,
-      draw_method: data.drawMethod,
-      phone_number: data.phoneNumber,
-      draw_date: data.drawDate,
-      payment_deadline_hours: data.paymentDeadlineHours,
-      require_email: data.requireEmail,
-      show_ranking: data.showRanking,
-      min_tickets_per_purchase: data.minTicketsPerPurchase,
-      max_tickets_per_purchase: data.maxTicketsPerPurchase,
-      initial_filter: data.initialFilter,
-      campaign_model: data.campaignModel
-    };
-  };
-
-  const formatCurrency = (value: string) => {
-    // Remove all non-numeric characters
-    const numericValue = value.replace(/\D/g, '');
-    
-    // If empty, return default
-    if (!numericValue) {
-      return '0,00';
-    }
-    
-    // Convert to number (treating as cents)
-    const cents = parseInt(numericValue, 10);
-    
-    // Convert cents to reais
-    const reais = cents / 100;
-    
-    // Format as Brazilian currency
-    return reais.toFixed(2).replace('.', ',');
-  };
-
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    const formattedValue = formatCurrency(inputValue);
-    setFormData({ ...formData, ticketPrice: formattedValue });
-  };
-
-  // Predefined ticket quantity options
-  const ticketOptions = [
-    25, 50, 100, 200, 300, 500, 1000, 2000, 3000, 5000, 
-    10000, 20000, 30000, 50000, 100000, 200000, 300000, 
-    500000, 1000000, 2000000, 3000000, 5000000, 10000000
-  ];
-
-  // Draw method options
-  const drawMethods = [
-    'Loteria Federal',
-    'Sorteador.com.br',
-    'Live no Instagram',
-    'Live no Youtube',
-    'Live no TikTok',
-    'Outros'
-  ];
-
-  // Calculate estimated revenue
-  const calculateRevenue = () => {
-    const price = parseFloat(formData.ticketPrice.replace(',', '.'));
-    return (price * formData.ticketQuantity).toFixed(2).replace('.', ',');
-  };
-
-  // Calculate publication tax based on revenue ranges
-  const calculatePublicationTax = () => {
-    const price = parseFloat(formData.ticketPrice.replace(',', '.'));
-    return CampaignAPI.calculatePublicationTax(formData.ticketQuantity, price);
-  };
-
-  const handleSaveDraft = async () => {
-    // Validação mínima para rascunho (apenas título obrigatório)
-    if (!formData.title.trim()) {
-      setErrors({ title: 'O título é obrigatório para salvar como rascunho' });
-      return;
-    }
-
-    if (!user) {
-      alert('Usuário não autenticado');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const apiData = convertFormDataToAPI(formData);
-      await createCampaign(apiData);
-
-      alert('Campanha salva como rascunho com sucesso!');
-      navigate('/dashboard');
-    } catch (error: any) {
-      console.error('Error creating campaign:', error);
-      
-      if (error.message?.includes('validation')) {
-        alert('Dados inválidos. Verifique os campos e tente novamente.');
-      } else if (error.message?.includes('duplicate')) {
-        alert('Já existe uma campanha com este título. Escolha outro nome.');
+  const handleQuotaSelect = (quotaNumber: number) => {
+    setSelectedQuotas(prev => {
+      if (prev.includes(quotaNumber)) {
+        return prev.filter(q => q !== quotaNumber);
       } else {
-        alert('Erro ao salvar campanha. Tente novamente.');
+        return [...prev, quotaNumber];
       }
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
-  const handlePublish = async () => {
-    // Validação básica para prosseguir
-    const requiredFields = {
-      title: formData.title.trim(),
-      ticketQuantity: formData.ticketQuantity,
-      ticketPrice: formData.ticketPrice,
-      drawMethod: formData.drawMethod,
-      phoneNumber: formData.phoneNumber.trim()
-    };
-
-    const missingFields = [];
-    if (!requiredFields.title) missingFields.push('Título');
-    if (!requiredFields.ticketQuantity || requiredFields.ticketQuantity <= 0) missingFields.push('Quantidade de cotas');
-    if (!requiredFields.ticketPrice || requiredFields.ticketPrice === '0,00') missingFields.push('Valor da cota');
-    if (!requiredFields.drawMethod) missingFields.push('Método de sorteio');
-    if (!requiredFields.phoneNumber) missingFields.push('Número de celular');
-
-    if (missingFields.length > 0 || !acceptTerms) {
-      if (missingFields.length > 0) {
-        alert(`Por favor, preencha os seguintes campos obrigatórios:\n• ${missingFields.join('\n• ')}`);
-      }
-      if (!acceptTerms) {
-        alert('Você deve aceitar os termos de uso para prosseguir.');
-      }
-      return;
-    }
-
-    if (!user) {
-      alert('Usuário não autenticado');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const apiData = convertFormDataToAPI(formData);
-      const campaign = await createCampaign(apiData);
-      
-      if (campaign) {
-        // Redirecionar para step 2 com o ID da campanha
-        navigate(`/dashboard/create-campaign/step-2?id=${campaign.id}`, {
-          state: { fromStep1: true }
-        });
-      }
-    } catch (error) {
-      console.error('Error creating campaign:', error);
-      
-      if (error.message?.includes('validation')) {
-        alert('Dados inválidos. Verifique os campos e tente novamente.');
-      } else {
-        alert('Erro ao criar campanha. Tente novamente.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getFieldError = (field: keyof CampaignFormInput) => {
-    return errors[field];
+  const handleQuantityChange = (newQuantity: number) => {
+    setQuantity(newQuantity);
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
-      {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={handleGoBack}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
-          >
-            <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Criar campanha
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
-              Insira os dados de como deseja a sua campanha abaixo, eles poderão ser editados depois
-            </p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+      {/* Demo Banner */}
+      <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 py-4 transition-colors duration-300">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center space-x-2 text-yellow-800 dark:text-yellow-200">
+            <span className="text-lg">🔒</span>
+            <div className="text-center">
+              <div className="font-semibold">Modo de Demonstração</div>
+              <div className="text-sm">Para liberar sua campanha e iniciar sua divulgação, conclua o pagamento.</div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Form Content */}
-      <div className="p-6 max-w-2xl mx-auto">
-        <div className="space-y-6">
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Título *
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              placeholder="Digite o título sua campanha"
-              className={`w-full bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
-                getFieldError('title') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-              }`}
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Campaign Image */}
+        <div className="relative mb-8">
+          <div className="relative rounded-2xl overflow-hidden shadow-xl">
+            <img
+              src={campaignData.image}
+              alt={campaignData.title}
+              className="w-full h-64 sm:h-80 lg:h-96 object-cover"
             />
-            {getFieldError('title') && (
-              <div className="mt-1 flex items-center space-x-1 text-red-600 dark:text-red-400">
-                <AlertCircle className="h-4 w-4" />
-                <span className="text-sm">{getFieldError('title')}</span>
+            {/* Price Tag */}
+            <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-900 px-4 py-2 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Participe por apenas</span>
+                <span className="font-bold text-lg text-purple-600 dark:text-purple-400">
+                  R$ {campaignData.ticketPrice.toFixed(2).replace('.', ',')}
+                </span>
+                <span className="text-lg">🔥</span>
               </div>
-            )}
+            </div>
           </div>
+        </div>
 
-          {/* Ticket Quantity and Price */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Ticket Quantity */}
+        {/* Campaign Title */}
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6 text-center transition-colors duration-300">
+          {campaignData.title}
+        </h1>
+
+        {/* Organizer Info */}
+        <div className="flex items-center justify-center mb-8">
+          <div className="flex items-center space-x-3 bg-white dark:bg-gray-900 px-6 py-3 rounded-lg shadow-md border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+              {campaignData.organizer.name.charAt(0).toUpperCase()}
+            </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Quantidade de cotas *
-              </label>
-              <div className="relative">
-                <select
-                  value={formData.ticketQuantity}
-                  onChange={(e) => handleInputChange('ticketQuantity', parseInt(e.target.value))}
-                  className={`w-full appearance-none bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 pr-10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
-                    getFieldError('ticketQuantity') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  }`}
-                >
-                  <option value="">Escolha uma opção</option>
-                  {ticketOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option.toLocaleString('pt-BR')} cotas
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+              <div className="text-sm text-gray-600 dark:text-gray-400">Organizado por:</div>
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold text-gray-900 dark:text-white">{campaignData.organizer.name}</span>
+                {campaignData.organizer.verified && (
+                  <div className="bg-green-500 text-white px-2 py-1 rounded text-xs font-medium flex items-center space-x-1">
+                    <Shield className="h-3 w-3" />
+                    <span>Suporte</span>
+                  </div>
+                )}
               </div>
-              {getFieldError('ticketQuantity') && (
-                <div className="mt-1 flex items-center space-x-1 text-red-600 dark:text-red-400">
-                  <AlertCircle className="h-4 w-4" />
-                  <span className="text-sm">{getFieldError('ticketQuantity')}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Promotion Banner */}
+        {campaignData.promotion.active && (
+          <div className="bg-green-500 dark:bg-green-600 text-white rounded-lg p-4 mb-8 transition-colors duration-300">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <span className="text-lg">🎉</span>
+              </div>
+              <div>
+                <div className="font-semibold">Promoção</div>
+                <div className="text-sm opacity-90">{campaignData.promotion.text}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Purchase Section */}
+        <div>
+          {campaignData.model === 'manual' ? (
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+              <QuotaGrid
+                totalQuotas={campaignData.totalTickets}
+                selectedQuotas={selectedQuotas}
+                onQuotaSelect={handleQuotaSelect}
+                mode="manual"
+                reservedQuotas={campaignData.reservedQuotas}
+                purchasedQuotas={campaignData.purchasedQuotas}
+              />
+              
+              {/* Selected Quotas Summary */}
+              {selectedQuotas.length > 0 && (
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="text-center">
+                    <div className="text-sm text-blue-600 dark:text-blue-400 mb-1">Cotas selecionadas</div>
+                    <div className="text-lg font-bold text-blue-700 dark:text-blue-300 mb-2">
+                      {selectedQuotas.length} cota{selectedQuotas.length !== 1 ? 's' : ''}
+                    </div>
+                    <div className="text-sm text-blue-600 dark:text-blue-400 mb-3">
+                      Números: {selectedQuotas.sort((a, b) => a - b).join(', ')}
+                    </div>
+                    <div className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                      Total: R$ {(selectedQuotas.length * campaignData.ticketPrice).toFixed(2).replace('.', ',')}
+                    </div>
+                    <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold transition-colors duration-200">
+                      RESERVAR COTAS SELECIONADAS
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
+          ) : (
+            <QuotaSelector
+              ticketPrice={campaignData.ticketPrice}
+              onQuantityChange={handleQuantityChange}
+              initialQuantity={quantity}
+              mode="automatic"
+            />
+          )}
+        </div>
 
-            {/* Ticket Price */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Valor da cota *
-              </label>
-              <input
-                type="text"
-                value={formData.ticketPrice}
-                onChange={handlePriceChange}
-                placeholder="0,00"
-                className={`w-full bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
-                  getFieldError('ticketPrice') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                }`}
-              />
-              {getFieldError('ticketPrice') && (
-                <div className="mt-1 flex items-center space-x-1 text-red-600 dark:text-red-400">
-                  <AlertCircle className="h-4 w-4" />
-                  <span className="text-sm">{getFieldError('ticketPrice')}</span>
-                </div>
-              )}
+        {/* Share Section */}
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-200 dark:border-gray-800 transition-colors duration-300 mt-8">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+            Compartilhar
+          </h2>
+          
+          <div className="flex justify-center space-x-4">
+            {/* Facebook */}
+            <button className="w-12 h-12 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center transition-colors duration-200">
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+            </button>
+            
+            {/* Telegram */}
+            <button className="w-12 h-12 bg-blue-500 hover:bg-blue-600 rounded-lg flex items-center justify-center transition-colors duration-200">
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+              </svg>
+            </button>
+            
+            {/* WhatsApp */}
+            <button className="w-12 h-12 bg-green-500 hover:bg-green-600 rounded-lg flex items-center justify-center transition-colors duration-200">
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+              </svg>
+            </button>
+            
+            {/* X (Twitter) */}
+            <button className="w-12 h-12 bg-black hover:bg-gray-800 rounded-lg flex items-center justify-center transition-colors duration-200">
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Payment and Draw Info */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">
+          {/* Payment Method */}
+          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">MÉTODO DE PAGAMENTO</h3>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">₽</span>
+              </div>
+              <span className="text-gray-700 dark:text-gray-300">PIX</span>
             </div>
           </div>
 
           {/* Draw Method */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Por onde será feito o sorteio? *
-            </label>
-            <div className="relative">
-              <select
-                value={formData.drawMethod}
-                onChange={(e) => handleInputChange('drawMethod', e.target.value)}
-                className={`w-full appearance-none bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 pr-10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
-                  getFieldError('drawMethod') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                }`}
-              >
-                <option value="">Escolha uma opção</option>
-                {drawMethods.map((method) => (
-                  <option key={method} value={method}>
-                    {method}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">SORTEIO</h3>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">🎲</span>
+              </div>
+              <span className="text-gray-700 dark:text-gray-300">LOTERIA FEDERAL</span>
             </div>
-            {getFieldError('drawMethod') && (
-              <div className="mt-1 flex items-center space-x-1 text-red-600 dark:text-red-400">
-                <AlertCircle className="h-4 w-4" />
-                <span className="text-sm">{getFieldError('drawMethod')}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Phone Number */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Número de celular *
-            </label>
-            <div className="flex space-x-2">
-              <div className="relative">
-                <select className="appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 pr-8 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200">
-                  <option value="BR">🇧🇷 Brasil (+55)</option>
-                  <option value="AD">🇦🇩 Andorra (+376)</option>
-                  <option value="AE">🇦🇪 Emirados Árabes Unidos (+971)</option>
-                  <option value="AF">🇦🇫 Afeganistão (+93)</option>
-                  <option value="AG">🇦🇬 Antígua e Barbuda (+1268)</option>
-                  <option value="AI">🇦🇮 Anguilla (+1264)</option>
-                  <option value="AL">🇦🇱 Albânia (+355)</option>
-                  <option value="AM">🇦🇲 Armênia (+374)</option>
-                  <option value="AO">🇦🇴 Angola (+244)</option>
-                  <option value="AQ">🇦🇶 Antártida (+672)</option>
-                  <option value="AR">🇦🇷 Argentina (+54)</option>
-                  <option value="AS">🇦🇸 Samoa Americana (+1684)</option>
-                  <option value="AT">🇦🇹 Áustria (+43)</option>
-                  <option value="AU">🇦🇺 Austrália (+61)</option>
-                  <option value="AW">🇦🇼 Aruba (+297)</option>
-                  <option value="AX">🇦🇽 Ilhas Åland (+358)</option>
-                  <option value="AZ">🇦🇿 Azerbaijão (+994)</option>
-                  <option value="BA">🇧🇦 Bósnia e Herzegovina (+387)</option>
-                  <option value="BB">🇧🇧 Barbados (+1246)</option>
-                  <option value="BD">🇧🇩 Bangladesh (+880)</option>
-                  <option value="BE">🇧🇪 Bélgica (+32)</option>
-                  <option value="BF">🇧🇫 Burkina Faso (+226)</option>
-                  <option value="BG">🇧🇬 Bulgária (+359)</option>
-                  <option value="BH">🇧🇭 Bahrein (+973)</option>
-                  <option value="BI">🇧🇮 Burundi (+257)</option>
-                  <option value="BJ">🇧🇯 Benin (+229)</option>
-                  <option value="BL">🇧🇱 São Bartolomeu (+590)</option>
-                  <option value="BM">🇧🇲 Bermudas (+1441)</option>
-                  <option value="BN">🇧🇳 Brunei (+673)</option>
-                  <option value="BO">🇧🇴 Bolívia (+591)</option>
-                  <option value="BQ">🇧🇶 Bonaire (+599)</option>
-                  <option value="BR">🇧🇷 Brasil (+55)</option>
-                  <option value="BS">🇧🇸 Bahamas (+1242)</option>
-                  <option value="BT">🇧🇹 Butão (+975)</option>
-                  <option value="BV">🇧🇻 Ilha Bouvet (+47)</option>
-                  <option value="BW">🇧🇼 Botsuana (+267)</option>
-                  <option value="BY">🇧🇾 Bielorrússia (+375)</option>
-                  <option value="BZ">🇧🇿 Belize (+501)</option>
-                  <option value="CA">🇨🇦 Canadá (+1)</option>
-                  <option value="CC">🇨🇨 Ilhas Cocos (+61)</option>
-                  <option value="CD">🇨🇩 República Democrática do Congo (+243)</option>
-                  <option value="CF">🇨🇫 República Centro-Africana (+236)</option>
-                  <option value="CG">🇨🇬 República do Congo (+242)</option>
-                  <option value="CH">🇨🇭 Suíça (+41)</option>
-                  <option value="CI">🇨🇮 Costa do Marfim (+225)</option>
-                  <option value="CK">🇨🇰 Ilhas Cook (+682)</option>
-                  <option value="CL">🇨🇱 Chile (+56)</option>
-                  <option value="CM">🇨🇲 Camarões (+237)</option>
-                  <option value="CN">🇨🇳 China (+86)</option>
-                  <option value="CO">🇨🇴 Colômbia (+57)</option>
-                  <option value="CR">🇨🇷 Costa Rica (+506)</option>
-                  <option value="CU">🇨🇺 Cuba (+53)</option>
-                  <option value="CV">🇨🇻 Cabo Verde (+238)</option>
-                  <option value="CW">🇨🇼 Curaçao (+599)</option>
-                  <option value="CX">🇨🇽 Ilha Christmas (+61)</option>
-                  <option value="CY">🇨🇾 Chipre (+357)</option>
-                  <option value="CZ">🇨🇿 República Tcheca (+420)</option>
-                  <option value="DE">🇩🇪 Alemanha (+49)</option>
-                  <option value="DJ">🇩🇯 Djibuti (+253)</option>
-                  <option value="DK">🇩🇰 Dinamarca (+45)</option>
-                  <option value="DM">🇩🇲 Dominica (+1767)</option>
-                  <option value="DO">🇩🇴 República Dominicana (+1809)</option>
-                  <option value="DZ">🇩🇿 Argélia (+213)</option>
-                  <option value="EC">🇪🇨 Equador (+593)</option>
-                  <option value="EE">🇪🇪 Estônia (+372)</option>
-                  <option value="EG">🇪🇬 Egito (+20)</option>
-                  <option value="EH">🇪🇭 Saara Ocidental (+212)</option>
-                  <option value="ER">🇪🇷 Eritreia (+291)</option>
-                  <option value="ES">🇪🇸 Espanha (+34)</option>
-                  <option value="ET">🇪🇹 Etiópia (+251)</option>
-                  <option value="FI">🇫🇮 Finlândia (+358)</option>
-                  <option value="FJ">🇫🇯 Fiji (+679)</option>
-                  <option value="FK">🇫🇰 Ilhas Malvinas (+500)</option>
-                  <option value="FM">🇫🇲 Micronésia (+691)</option>
-                  <option value="FO">🇫🇴 Ilhas Faroé (+298)</option>
-                  <option value="FR">🇫🇷 França (+33)</option>
-                  <option value="GA">🇬🇦 Gabão (+241)</option>
-                  <option value="GB">🇬🇧 Reino Unido (+44)</option>
-                  <option value="GD">🇬🇩 Granada (+1473)</option>
-                  <option value="GE">🇬🇪 Geórgia (+995)</option>
-                  <option value="GF">🇬🇫 Guiana Francesa (+594)</option>
-                  <option value="GG">🇬🇬 Guernsey (+44)</option>
-                  <option value="GH">🇬🇭 Gana (+233)</option>
-                  <option value="GI">🇬🇮 Gibraltar (+350)</option>
-                  <option value="GL">🇬🇱 Groenlândia (+299)</option>
-                  <option value="GM">🇬🇲 Gâmbia (+220)</option>
-                  <option value="GN">🇬🇳 Guiné (+224)</option>
-                  <option value="GP">🇬🇵 Guadalupe (+590)</option>
-                  <option value="GQ">🇬🇶 Guiné Equatorial (+240)</option>
-                  <option value="GR">🇬🇷 Grécia (+30)</option>
-                  <option value="GS">🇬🇸 Geórgia do Sul (+500)</option>
-                  <option value="GT">🇬🇹 Guatemala (+502)</option>
-                  <option value="GU">🇬🇺 Guam (+1671)</option>
-                  <option value="GW">🇬🇼 Guiné-Bissau (+245)</option>
-                  <option value="GY">🇬🇾 Guiana (+592)</option>
-                  <option value="HK">🇭🇰 Hong Kong (+852)</option>
-                  <option value="HM">🇭🇲 Ilha Heard (+672)</option>
-                  <option value="HN">🇭🇳 Honduras (+504)</option>
-                  <option value="HR">🇭🇷 Croácia (+385)</option>
-                  <option value="HT">🇭🇹 Haiti (+509)</option>
-                  <option value="HU">🇭🇺 Hungria (+36)</option>
-                  <option value="ID">🇮🇩 Indonésia (+62)</option>
-                  <option value="IE">🇮🇪 Irlanda (+353)</option>
-                  <option value="IL">🇮🇱 Israel (+972)</option>
-                  <option value="IM">🇮🇲 Ilha de Man (+44)</option>
-                  <option value="IN">🇮🇳 Índia (+91)</option>
-                  <option value="IO">🇮🇴 Território Britânico do Oceano Índico (+246)</option>
-                  <option value="IQ">🇮🇶 Iraque (+964)</option>
-                  <option value="IR">🇮🇷 Irã (+98)</option>
-                  <option value="IS">🇮🇸 Islândia (+354)</option>
-                  <option value="IT">🇮🇹 Itália (+39)</option>
-                  <option value="JE">🇯🇪 Jersey (+44)</option>
-                  <option value="JM">🇯🇲 Jamaica (+1876)</option>
-                  <option value="JO">🇯🇴 Jordânia (+962)</option>
-                  <option value="JP">🇯🇵 Japão (+81)</option>
-                  <option value="KE">🇰🇪 Quênia (+254)</option>
-                  <option value="KG">🇰🇬 Quirguistão (+996)</option>
-                  <option value="KH">🇰🇭 Camboja (+855)</option>
-                  <option value="KI">🇰🇮 Kiribati (+686)</option>
-                  <option value="KM">🇰🇲 Comores (+269)</option>
-                  <option value="KN">🇰🇳 São Cristóvão e Nevis (+1869)</option>
-                  <option value="KP">🇰🇵 Coreia do Norte (+850)</option>
-                  <option value="KR">🇰🇷 Coreia do Sul (+82)</option>
-                  <option value="KW">🇰🇼 Kuwait (+965)</option>
-                  <option value="KY">🇰🇾 Ilhas Cayman (+1345)</option>
-                  <option value="KZ">🇰🇿 Cazaquistão (+7)</option>
-                  <option value="LA">🇱🇦 Laos (+856)</option>
-                  <option value="LB">🇱🇧 Líbano (+961)</option>
-                  <option value="LC">🇱🇨 Santa Lúcia (+1758)</option>
-                  <option value="LI">🇱🇮 Liechtenstein (+423)</option>
-                  <option value="LK">🇱🇰 Sri Lanka (+94)</option>
-                  <option value="LR">🇱🇷 Libéria (+231)</option>
-                  <option value="LS">🇱🇸 Lesoto (+266)</option>
-                  <option value="LT">🇱🇹 Lituânia (+370)</option>
-                  <option value="LU">🇱🇺 Luxemburgo (+352)</option>
-                  <option value="LV">🇱🇻 Letônia (+371)</option>
-                  <option value="LY">🇱🇾 Líbia (+218)</option>
-                  <option value="MA">🇲🇦 Marrocos (+212)</option>
-                  <option value="MC">🇲🇨 Mônaco (+377)</option>
-                  <option value="MD">🇲🇩 Moldávia (+373)</option>
-                  <option value="ME">🇲🇪 Montenegro (+382)</option>
-                  <option value="MF">🇲🇫 São Martinho (+590)</option>
-                  <option value="MG">🇲🇬 Madagascar (+261)</option>
-                  <option value="MH">🇲🇭 Ilhas Marshall (+692)</option>
-                  <option value="MK">🇲🇰 Macedônia do Norte (+389)</option>
-                  <option value="ML">🇲🇱 Mali (+223)</option>
-                  <option value="MM">🇲🇲 Myanmar (+95)</option>
-                  <option value="MN">🇲🇳 Mongólia (+976)</option>
-                  <option value="MO">🇲🇴 Macau (+853)</option>
-                  <option value="MP">🇲🇵 Ilhas Marianas do Norte (+1670)</option>
-                  <option value="MQ">🇲🇶 Martinica (+596)</option>
-                  <option value="MR">🇲🇷 Mauritânia (+222)</option>
-                  <option value="MS">🇲🇸 Montserrat (+1664)</option>
-                  <option value="MT">🇲🇹 Malta (+356)</option>
-                  <option value="MU">🇲🇺 Maurício (+230)</option>
-                  <option value="MV">🇲🇻 Maldivas (+960)</option>
-                  <option value="MW">🇲🇼 Malawi (+265)</option>
-                  <option value="MX">🇲🇽 México (+52)</option>
-                  <option value="MY">🇲🇾 Malásia (+60)</option>
-                  <option value="MZ">🇲🇿 Moçambique (+258)</option>
-                  <option value="NA">🇳🇦 Namíbia (+264)</option>
-                  <option value="NC">🇳🇨 Nova Caledônia (+687)</option>
-                  <option value="NE">🇳🇪 Níger (+227)</option>
-                  <option value="NF">🇳🇫 Ilha Norfolk (+672)</option>
-                  <option value="NG">🇳🇬 Nigéria (+234)</option>
-                  <option value="NI">🇳🇮 Nicarágua (+505)</option>
-                  <option value="NL">🇳🇱 Países Baixos (+31)</option>
-                  <option value="NO">🇳🇴 Noruega (+47)</option>
-                  <option value="NP">🇳🇵 Nepal (+977)</option>
-                  <option value="NR">🇳🇷 Nauru (+674)</option>
-                  <option value="NU">🇳🇺 Niue (+683)</option>
-                  <option value="NZ">🇳🇿 Nova Zelândia (+64)</option>
-                  <option value="OM">🇴🇲 Omã (+968)</option>
-                  <option value="PA">🇵🇦 Panamá (+507)</option>
-                  <option value="PE">🇵🇪 Peru (+51)</option>
-                  <option value="PF">🇵🇫 Polinésia Francesa (+689)</option>
-                  <option value="PG">🇵🇬 Papua-Nova Guiné (+675)</option>
-                  <option value="PH">🇵🇭 Filipinas (+63)</option>
-                  <option value="PK">🇵🇰 Paquistão (+92)</option>
-                  <option value="PL">🇵🇱 Polônia (+48)</option>
-                  <option value="PM">🇵🇲 São Pedro e Miquelon (+508)</option>
-                  <option value="PN">🇵🇳 Ilhas Pitcairn (+64)</option>
-                  <option value="PR">🇵🇷 Porto Rico (+1787)</option>
-                  <option value="PS">🇵🇸 Palestina (+970)</option>
-                  <option value="PT">🇵🇹 Portugal (+351)</option>
-                  <option value="PW">🇵🇼 Palau (+680)</option>
-                  <option value="PY">🇵🇾 Paraguai (+595)</option>
-                  <option value="QA">🇶🇦 Catar (+974)</option>
-                  <option value="RE">🇷🇪 Reunião (+262)</option>
-                  <option value="RO">🇷🇴 Romênia (+40)</option>
-                  <option value="RS">🇷🇸 Sérvia (+381)</option>
-                  <option value="RU">🇷🇺 Rússia (+7)</option>
-                  <option value="RW">🇷🇼 Ruanda (+250)</option>
-                  <option value="SA">🇸🇦 Arábia Saudita (+966)</option>
-                  <option value="SB">🇸🇧 Ilhas Salomão (+677)</option>
-                  <option value="SC">🇸🇨 Seicheles (+248)</option>
-                  <option value="SD">🇸🇩 Sudão (+249)</option>
-                  <option value="SE">🇸🇪 Suécia (+46)</option>
-                  <option value="SG">🇸🇬 Singapura (+65)</option>
-                  <option value="SH">🇸🇭 Santa Helena (+290)</option>
-                  <option value="SI">🇸🇮 Eslovênia (+386)</option>
-                  <option value="SJ">🇸🇯 Svalbard e Jan Mayen (+47)</option>
-                  <option value="SK">🇸🇰 Eslováquia (+421)</option>
-                  <option value="SL">🇸🇱 Serra Leoa (+232)</option>
-                  <option value="SM">🇸🇲 San Marino (+378)</option>
-                  <option value="SN">🇸🇳 Senegal (+221)</option>
-                  <option value="SO">🇸🇴 Somália (+252)</option>
-                  <option value="SR">🇸🇷 Suriname (+597)</option>
-                  <option value="SS">🇸🇸 Sudão do Sul (+211)</option>
-                  <option value="ST">🇸🇹 São Tomé e Príncipe (+239)</option>
-                  <option value="SV">🇸🇻 El Salvador (+503)</option>
-                  <option value="SX">🇸🇽 Sint Maarten (+1721)</option>
-                  <option value="SY">🇸🇾 Síria (+963)</option>
-                  <option value="SZ">🇸🇿 Eswatini (+268)</option>
-                  <option value="TC">🇹🇨 Ilhas Turks e Caicos (+1649)</option>
-                  <option value="TD">🇹🇩 Chade (+235)</option>
-                  <option value="TF">🇹🇫 Terras Austrais Francesas (+262)</option>
-                  <option value="TG">🇹🇬 Togo (+228)</option>
-                  <option value="TH">🇹🇭 Tailândia (+66)</option>
-                  <option value="TJ">🇹🇯 Tajiquistão (+992)</option>
-                  <option value="TK">🇹🇰 Tokelau (+690)</option>
-                  <option value="TL">🇹🇱 Timor-Leste (+670)</option>
-                  <option value="TM">🇹🇲 Turcomenistão (+993)</option>
-                  <option value="TN">🇹🇳 Tunísia (+216)</option>
-                  <option value="TO">🇹🇴 Tonga (+676)</option>
-                  <option value="TR">🇹🇷 Turquia (+90)</option>
-                  <option value="TT">🇹🇹 Trinidad e Tobago (+1868)</option>
-                  <option value="TV">🇹🇻 Tuvalu (+688)</option>
-                  <option value="TW">🇹🇼 Taiwan (+886)</option>
-                  <option value="TZ">🇹🇿 Tanzânia (+255)</option>
-                  <option value="UA">🇺🇦 Ucrânia (+380)</option>
-                  <option value="UG">🇺🇬 Uganda (+256)</option>
-                  <option value="UM">🇺🇲 Ilhas Menores dos EUA (+1)</option>
-                  <option value="US">🇺🇸 Estados Unidos (+1)</option>
-                  <option value="UY">🇺🇾 Uruguai (+598)</option>
-                  <option value="UZ">🇺🇿 Uzbequistão (+998)</option>
-                  <option value="VA">🇻🇦 Vaticano (+39)</option>
-                  <option value="VC">🇻🇨 São Vicente e Granadinas (+1784)</option>
-                  <option value="VE">🇻🇪 Venezuela (+58)</option>
-                  <option value="VG">🇻🇬 Ilhas Virgens Britânicas (+1284)</option>
-                  <option value="VI">🇻🇮 Ilhas Virgens Americanas (+1340)</option>
-                  <option value="VN">🇻🇳 Vietnã (+84)</option>
-                  <option value="VU">🇻🇺 Vanuatu (+678)</option>
-                  <option value="WF">🇼🇫 Wallis e Futuna (+681)</option>
-                  <option value="WS">🇼🇸 Samoa (+685)</option>
-                  <option value="YE">🇾🇪 Iêmen (+967)</option>
-                  <option value="YT">🇾🇹 Mayotte (+262)</option>
-                  <option value="ZA">🇿🇦 África do Sul (+27)</option>
-                  <option value="ZM">🇿🇲 Zâmbia (+260)</option>
-                  <option value="ZW">🇿🇼 Zimbábue (+263)</option>
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-              </div>
-              <input
-                type="text"
-                value={formData.phoneNumber}
-                onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                placeholder="Digite seu número"
-                className={`flex-1 bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
-                  getFieldError('phoneNumber') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                }`}
-              />
-            </div>
-            {getFieldError('phoneNumber') && (
-              <div className="mt-1 flex items-center space-x-1 text-red-600 dark:text-red-400">
-                <AlertCircle className="h-4 w-4" />
-                <span className="text-sm">{getFieldError('phoneNumber')}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Publication Taxes */}
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Taxas de publicação
-              </h3>
-              <button
-                onClick={() => setShowTaxes(!showTaxes)}
-                className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 text-sm font-medium transition-colors duration-200"
-              >
-                Ver taxas
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700 dark:text-gray-300">Taxa de publicação</span>
-                <span className="text-red-600 dark:text-red-400 font-medium">
-                  - R$ {calculatePublicationTax().toFixed(2).replace('.', ',')}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700 dark:text-gray-300">Arrecadação estimada</span>
-                <span className="text-green-600 dark:text-green-400 font-medium">
-                  + R$ {calculateRevenue()}
-                </span>
-              </div>
-            </div>
-
-            {/* Tax Table Modal */}
-            {showTaxes && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Tabela de Taxas
-                    </h3>
-                    <button
-                      onClick={() => setShowTaxes(false)}
-                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  
-                  <div className="bg-gray-800 rounded-lg overflow-hidden">
-                    <div className="grid grid-cols-2 gap-px bg-gray-600">
-                      <div className="bg-gray-700 px-4 py-3 text-center">
-                        <span className="text-green-400 font-semibold">ARRECADAÇÃO</span>
-                      </div>
-                      <div className="bg-gray-700 px-4 py-3 text-center">
-                        <span className="text-yellow-400 font-semibold">TAXA</span>
-                      </div>
-                    </div>
-                    
-                    {[
-                      ['R$ 0,00 a R$ 100,00', 'R$ 7,00'],
-                      ['R$ 100,00 a R$ 200,00', 'R$ 17,00'],
-                      ['R$ 200,00 a R$ 400,00', 'R$ 27,00'],
-                      ['R$ 400,00 a R$ 701,00', 'R$ 37,00'],
-                      ['R$ 701,00 a R$ 1.000,00', 'R$ 47,00'],
-                      ['R$ 1.000,00 a R$ 2.000,00', 'R$ 67,00'],
-                      ['R$ 2.000,00 a R$ 4.000,00', 'R$ 77,00'],
-                      ['R$ 4.000,00 a R$ 7.100,00', 'R$ 127,00'],
-                      ['R$ 7.100,00 a R$ 10.000,00', 'R$ 197,00'],
-                      ['R$ 10.000,00 a R$ 20.000,00', 'R$ 247,00'],
-                      ['R$ 20.000,00 a R$ 30.000,00', 'R$ 497,00'],
-                      ['R$ 30.000,00 a R$ 50.000,00', 'R$ 997,00'],
-                      ['R$ 50.000,00 a R$ 70.000,00', 'R$ 1.497,00'],
-                      ['R$ 70.000,00 a R$ 100.000,00', 'R$ 1.997,00'],
-                      ['R$ 100.000,00 a R$ 150.000,00', 'R$ 2.997,00'],
-                      ['Acima de R$ 150.000,00', 'R$ 3.997,00']
-                    ].map(([range, tax], index) => (
-                      <div key={index} className="grid grid-cols-2 gap-px bg-gray-600">
-                        <div className="bg-gray-800 px-4 py-2 text-center">
-                          <span className="text-green-400 text-sm">{range}</span>
-                        </div>
-                        <div className="bg-gray-800 px-4 py-2 text-center">
-                          <span className="text-yellow-400 text-sm">{tax}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Terms and Conditions */}
-          <div className="flex items-start space-x-3">
-            <input
-              type="checkbox"
-              id="terms"
-              checked={acceptTerms}
-              onChange={(e) => setAcceptTerms(e.target.checked)}
-              className="mt-1 w-4 h-4 text-purple-600 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 dark:focus:ring-purple-600 focus:ring-2"
-            />
-            <label htmlFor="terms" className="text-sm text-gray-600 dark:text-gray-400">
-              Ao criar esta campanha, você aceita nossos{' '}
-              <a href="#" className="text-purple-600 dark:text-purple-400 hover:underline">
-                Termos de Uso
-              </a>{' '}
-              e a nossa{' '}
-              <a href="#" className="text-purple-600 dark:text-purple-400 hover:underline">
-                Política de Privacidade
-              </a>
-              .
-            </label>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-6">
-            <button
-              onClick={handlePublish}
-              disabled={loading}
-              className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
-              <span>Prosseguir</span>
-            </button>
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 dark:bg-black text-white py-8 mt-16 transition-colors duration-300">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6">
+              <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 text-sm">
+                Termos de Uso
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 text-sm">
+                Política de Privacidade
+              </a>
+            </div>
+            
+            <div className="flex items-center space-x-2 text-sm text-gray-400">
+              <span>Sistema desenvolvido por</span>
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold text-white">Rifaqui</span>
+                <img 
+                  src="/32132123.png" 
+                  alt="Rifaqui Logo" 
+                  className="w-6 h-6 object-contain"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
 
-export default CreateCampaignPage;
+export default CampaignPage;
