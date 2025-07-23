@@ -60,6 +60,7 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<DashboardPage />} />
+            <Route path="create-campaign/step-1" element={<CreateCampaignPage />} />
             <Route path="create-campaign" element={<CreateCampaignPage />} />
             <Route path="create-campaign/step-2" element={<CreateCampaignStep2Page />} />
             <Route path="create-campaign/step-3" element={<CreateCampaignStep3Page />} />

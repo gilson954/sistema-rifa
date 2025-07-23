@@ -68,7 +68,7 @@ const DashboardPage = () => {
   };
 
   const handleCreateCampaign = () => {
-    navigate('/dashboard/create-campaign');
+    navigate('/dashboard/create-campaign/step-1');
   };
 
   const handleEditCampaign = (campaignId: string) => {
