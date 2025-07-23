@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Upload, X, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Upload, X, ChevronLeft, ChevronRight, ChevronDown, AlertTriangle, Info, Calendar, Clock, CheckCircle } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campaign';
 import { useCampaign, useCampaigns } from '../hooks/useCampaigns';
@@ -260,6 +260,10 @@ const CreateCampaignStep2Page = () => {
     const inputValue = e.target.value;
     const formattedValue = formatCurrency(inputValue);
     setFormData({ ...formData, ticketPrice: formattedValue });
+  };
+
+  const handleQuotaQuantityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedQuotaQuantity(e.target.value);
   };
 
   const handleFinalize = async () => {
