@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ChevronDown, Info, Calendar, Clock, AlertTriangle, Eye, Save, CheckCircle } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campaign';
 import { useCampaign, useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
 import { useImageUpload } from '../hooks/useImageUpload';
@@ -10,7 +11,6 @@ import { useAuth } from '../context/AuthContext';
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
-import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campaign';
   const { user } = useAuth();
   const imageUpload = useImageUpload();
   
