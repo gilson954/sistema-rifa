@@ -37,6 +37,7 @@ const CreateCampaignStep1Page = () => {
   const [showFeesModal, setShowFeesModal] = useState(false);
   const [estimatedRevenue, setEstimatedRevenue] = useState(0);
   const [publicationTax, setPublicationTax] = useState(0);
+  const [rawTicketPrice, setRawTicketPrice] = useState(''); // Armazena apenas números
 
   const drawMethods = [
     'Loteria Federal',
@@ -97,7 +98,8 @@ const CreateCampaignStep1Page = () => {
 
   // Update calculations when price or quantity changes
   const updateCalculations = (price: string, quantity: string) => {
-    const ticketPrice = parseFloat(price) || 0;
+    // Convert raw price (in cents) to reais for calculations
+    const ticketPrice = parseFloat(price) / 100 || 0;
     const ticketQuantity = parseInt(quantity) || 0;
     const revenue = ticketPrice * ticketQuantity;
     const tax = calculatePublicationTax(revenue);
@@ -106,29 +108,14 @@ const CreateCampaignStep1Page = () => {
     setPublicationTax(tax);
   };
 
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value;
-    const formattedValue = formatBrazilianCurrency(rawValue);
-    
-    setFormData({ ...formData, ticketPrice: formattedValue });
-    
-    // Extract numeric value for calculations (remove R$, dots, and replace comma with dot)
-    const numericValue = formattedValue
-      .replace('R$', '')
-      .replace(/\s/g, '')
-      .replace(/\./g, '')
-      .replace(',', '.');
-    
-    updateCalculations(numericValue, formData.ticketQuantity);
-  };
-
   /**
-   * Formats input value to Brazilian currency format
-   * Progressive formatting: treats input as cents initially, then converts to reais
+   * Formats raw numeric input as Brazilian currency
+   * Treats input as cents and converts to reais format
+   * Examples: "1" -> "0,01", "100" -> "1,00", "100000" -> "1.000,00"
    */
-  const formatBrazilianCurrency = (input: string): string => {
+  const formatCurrencyDisplay = (rawValue: string): string => {
     // Remove all non-numeric characters
-    const numericValue = input.replace(/\D/g, '');
+    const numericValue = rawValue.replace(/\D/g, '');
     
     // Handle empty input
     if (!numericValue) return '';
@@ -136,13 +123,11 @@ const CreateCampaignStep1Page = () => {
     // Convert to number (treating as cents)
     const cents = parseInt(numericValue, 10);
     
-    // Convert cents to reais (divide by 100)
+    // Convert cents to reais
     const reais = cents / 100;
     
-    // Format as Brazilian currency
+    // Format as Brazilian currency without R$ prefix
     const formatted = reais.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
@@ -150,10 +135,28 @@ const CreateCampaignStep1Page = () => {
     return formatted;
   };
 
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    
+    // Extract only numeric characters
+    const numericValue = inputValue.replace(/\D/g, '');
+    
+    // Store raw numeric value for calculations
+    setRawTicketPrice(numericValue);
+    
+    // Format for display
+    const formattedValue = formatCurrencyDisplay(numericValue);
+    
+    setFormData({ ...formData, ticketPrice: formattedValue });
+    
+    // Update calculations using raw value (in cents)
+    updateCalculations(numericValue, formData.ticketQuantity);
+  };
+
   const handleQuantityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const quantity = e.target.value;
     setFormData({ ...formData, ticketQuantity: quantity });
-    updateCalculations(formData.ticketPrice, quantity);
+    updateCalculations(rawTicketPrice, quantity);
   };
 
   const validateForm = () => {
@@ -169,7 +172,7 @@ const CreateCampaignStep1Page = () => {
       newErrors.ticketQuantity = 'Quantidade de cotas é obrigatória';
     }
 
-    if (!formData.ticketPrice.trim() || formData.ticketPrice === '0,00') {
+    if (!rawTicketPrice || rawTicketPrice === '0') {
       newErrors.ticketPrice = 'Preço da cota é obrigatório';
     }
 
@@ -210,7 +213,7 @@ const CreateCampaignStep1Page = () => {
 
     try {
       // Convert price from Brazilian format to number
-      const ticketPrice = parseFloat(formData.ticketPrice.replace(',', '.'));
+      const ticketPrice = parseFloat(rawTicketPrice) / 100; // Convert cents to reais
       const ticketQuantity = parseInt(formData.ticketQuantity);
 
       // Create campaign data
@@ -320,6 +323,7 @@ const CreateCampaignStep1Page = () => {
               </label>
               <input
                 type="text"
+                value={formData.ticketPrice}
                 onChange={handlePriceChange}
                 placeholder="R$ 0,00"
                 className={`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
@@ -332,7 +336,7 @@ const CreateCampaignStep1Page = () => {
               )}
               
               {/* Real-time Tax Display */}
-              {formData.ticketPrice && formData.ticketQuantity && (
+              {rawTicketPrice && formData.ticketQuantity && (
                 <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                   <div className="text-sm space-y-1">
                     <div className="flex justify-between items-center">
