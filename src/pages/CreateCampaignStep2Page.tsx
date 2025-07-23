@@ -44,7 +44,6 @@ const CreateCampaignStep2Page = () => {
   const [loadingCampaign, setLoadingCampaign] = useState(true);
   const [errorCampaign, setErrorCampaign] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [showQuotaAlert, setShowQuotaAlert] = useState(false);
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [modelDisabled, setModelDisabled] = useState(false);
   const [showBackButton, setShowBackButton] = useState(true);
