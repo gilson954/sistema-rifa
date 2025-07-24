@@ -4,6 +4,8 @@ interface QuotaGridProps {
   totalQuotas: number;
   selectedQuotas: number[];
   onQuotaSelect?: (quotaNumber: number) => void;
+  activeFilter: 'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers';
+  onFilterChange: (filter: 'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers') => void;
   mode: 'manual' | 'automatic';
   reservedQuotas?: number[];
   purchasedQuotas?: number[];
@@ -13,6 +15,8 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   totalQuotas,
   selectedQuotas,
   onQuotaSelect,
+  activeFilter,
+  onFilterChange,
   mode,
   reservedQuotas = [],
   purchasedQuotas = []
@@ -42,7 +46,12 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   const handleQuotaClick = (quotaNumber: number) => {
     const status = getQuotaStatus(quotaNumber);
     
-    // Only allow selection in manual mode and for available quotas
+    // Impedir clique em cotas reservadas ou compradas
+    if (status === 'reserved' || status === 'purchased') {
+      return;
+    }
+    
+    // Permitir seleção apenas no modo manual e para cotas disponíveis/selecionadas
     if (mode === 'manual' && (status === 'available' || status === 'selected') && onQuotaSelect) {
       onQuotaSelect(quotaNumber);
     }
@@ -57,6 +66,44 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   const getPadLength = () => {
     return totalQuotas.toString().length;
   };
+
+  // Filtrar cotas com base no filtro ativo
+  const getFilteredQuotas = () => {
+    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index);
+    
+    switch (activeFilter) {
+      case 'available':
+        return allQuotas.filter(quota => 
+          !reservedQuotas.includes(quota) && 
+          !purchasedQuotas.includes(quota) && 
+          !selectedQuotas.includes(quota)
+        );
+      case 'reserved':
+        return allQuotas.filter(quota => reservedQuotas.includes(quota));
+      case 'purchased':
+        return allQuotas.filter(quota => purchasedQuotas.includes(quota));
+      case 'my-numbers':
+        return selectedQuotas.sort((a, b) => a - b);
+      case 'all':
+      default:
+        return allQuotas;
+    }
+  };
+
+  // Calcular contadores para os filtros
+  const getFilterCounts = () => {
+    const availableCount = totalQuotas - reservedQuotas.length - purchasedQuotas.length - selectedQuotas.length;
+    return {
+      all: totalQuotas,
+      available: availableCount,
+      reserved: reservedQuotas.length,
+      purchased: purchasedQuotas.length,
+      myNumbers: selectedQuotas.length
+    };
+  };
+
+  const filteredQuotas = getFilteredQuotas();
+  const filterCounts = getFilterCounts();
 
   return (
     <div className="w-full">
@@ -73,32 +120,70 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         </p>
         
         <div className="flex flex-wrap justify-center gap-2 mb-4">
-          <button className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm font-medium">
-            Todos <span className="ml-1 bg-gray-400 text-white px-2 py-1 rounded text-xs">{totalQuotas}</span>
+          <button 
+            onClick={() => onFilterChange('all')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+              activeFilter === 'all' 
+                ? 'bg-gray-600 text-white' 
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            Todos <span className="ml-1 bg-gray-400 text-white px-2 py-1 rounded text-xs">{filterCounts.all}</span>
           </button>
-          <button className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm font-medium">
-            Disponíveis <span className="ml-1 bg-gray-400 text-white px-2 py-1 rounded text-xs">{totalQuotas - purchasedQuotas.length - reservedQuotas.length}</span>
+          
+          <button 
+            onClick={() => onFilterChange('available')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+              activeFilter === 'available' 
+                ? 'bg-gray-600 text-white' 
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            Disponíveis <span className="ml-1 bg-gray-400 text-white px-2 py-1 rounded text-xs">{filterCounts.available}</span>
           </button>
-          <button className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium">
-            Reservados <span className="ml-1 bg-orange-600 text-white px-2 py-1 rounded text-xs">{reservedQuotas.length}</span>
+          
+          <button 
+            onClick={() => onFilterChange('reserved')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+              activeFilter === 'reserved' 
+                ? 'bg-orange-600 text-white' 
+                : 'bg-orange-500 text-white hover:bg-orange-600'
+            }`}
+          >
+            Reservados <span className="ml-1 bg-orange-600 text-white px-2 py-1 rounded text-xs">{filterCounts.reserved}</span>
           </button>
-          <button className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium">
-            Comprados <span className="ml-1 bg-green-600 text-white px-2 py-1 rounded text-xs">{purchasedQuotas.length}</span>
+          
+          <button 
+            onClick={() => onFilterChange('purchased')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+              activeFilter === 'purchased' 
+                ? 'bg-green-600 text-white' 
+                : 'bg-green-500 text-white hover:bg-green-600'
+            }`}
+          >
+            Comprados <span className="ml-1 bg-green-600 text-white px-2 py-1 rounded text-xs">{filterCounts.purchased}</span>
           </button>
-          <button className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium">
-            Meus Nº <span className="ml-1 bg-blue-600 text-white px-2 py-1 rounded text-xs">{selectedQuotas.length}</span>
+          
+          <button 
+            onClick={() => onFilterChange('my-numbers')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+              activeFilter === 'my-numbers' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-blue-500 text-white hover:bg-blue-600'
+            }`}
+          >
+            Meus Nº <span className="ml-1 bg-blue-600 text-white px-2 py-1 rounded text-xs">{filterCounts.myNumbers}</span>
           </button>
         </div>
         
         <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-          {selectedQuotas.length}/{totalQuotas}
+          {activeFilter === 'my-numbers' ? selectedQuotas.length : filteredQuotas.length}/{totalQuotas}
         </div>
       </div>
 
       {/* Quota Grid */}
       <div className={`grid ${getGridCols()} gap-1 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden`}>
-        {Array.from({ length: totalQuotas }, (_, index) => {
-          const quotaNumber = index; // Start from 0 to match the reference image (00, 01, 02...)
+        {filteredQuotas.map((quotaNumber) => {
           const status = getQuotaStatus(quotaNumber);
           const padLength = getPadLength();
           
@@ -109,7 +194,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
               className={`
                 w-10 h-10 text-xs font-medium rounded flex items-center justify-center transition-all duration-200
                 ${getQuotaStyles(status)}
-                ${mode === 'automatic' ? 'cursor-not-allowed' : ''}
+                ${mode === 'automatic' || status === 'purchased' || status === 'reserved' ? 'cursor-not-allowed' : 'cursor-pointer'}
               `}
               disabled={mode === 'automatic' || status === 'purchased' || status === 'reserved'}
               title={`Cota ${quotaNumber.toString().padStart(padLength, '0')} - ${
@@ -121,26 +206,8 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
             >
               {quotaNumber.toString().padStart(padLength, '0')}
             </button>
-          );
         })}
       </div>
-
-      {/* Selection Summary */}
-      {selectedQuotas.length > 0 && mode === 'manual' && (
-        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <div className="text-center">
-            <div className="text-sm text-blue-600 dark:text-blue-400 mb-2">
-              Cotas selecionadas: {selectedQuotas.length}
-            </div>
-            <div className="text-xs text-blue-500 dark:text-blue-300 max-h-20 overflow-y-auto">
-              {selectedQuotas
-                .sort((a, b) => a - b)
-                .map(quota => quota.toString().padStart(getPadLength(), '0'))
-                .join(', ')}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -9,6 +9,7 @@ const CampaignPage = () => {
   const { campaignId } = useParams();
   const location = useLocation();
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers'>('all');
   const [quantity, setQuantity] = useState(1);
   
   const { campaign, loading: campaignLoading } = useCampaign(campaignId || '');
@@ -24,8 +25,8 @@ const CampaignPage = () => {
       verified: true
     },
     model: (location.state?.campaignModel || campaign?.campaign_model || 'manual') as 'manual' | 'automatic',
-    reservedQuotas: [5, 12, 23, 45, 67], // Mock reserved quotas
-    purchasedQuotas: [1, 3, 8, 15, 22], // Mock purchased quotas
+    reservedQuotas: [5, 12, 23, 45, 67, 89, 134, 156, 178, 199], // Mock reserved quotas
+    purchasedQuotas: [1, 3, 8, 15, 22, 34, 56, 78, 91, 123], // Mock purchased quotas
     promotion: {
       active: true,
       text: 'Compre 4578 cotas por R$ 0,42'
@@ -43,11 +44,17 @@ const CampaignPage = () => {
   const handleQuotaSelect = (quotaNumber: number) => {
     setSelectedQuotas(prev => {
       if (prev.includes(quotaNumber)) {
+        // Remove da seleção se já estiver selecionada
         return prev.filter(q => q !== quotaNumber);
       } else {
+        // Adiciona à seleção se não estiver selecionada
         return [...prev, quotaNumber];
       }
     });
+  };
+
+  const handleFilterChange = (filter: 'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers') => {
+    setActiveFilter(filter);
   };
 
   const handleQuantityChange = (newQuantity: number) => {
@@ -128,10 +135,9 @@ const CampaignPage = () => {
               <div>
                 <div className="font-semibold">Promoção</div>
                 <div className="text-sm opacity-90">{campaignData.promotion.text}</div>
-              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Purchase Section */}
         <div>
@@ -141,40 +147,63 @@ const CampaignPage = () => {
                 totalQuotas={campaignData.totalTickets}
                 selectedQuotas={selectedQuotas}
                 onQuotaSelect={handleQuotaSelect}
+                activeFilter={activeFilter}
+                onFilterChange={handleFilterChange}
                 mode="manual"
                 reservedQuotas={campaignData.reservedQuotas}
                 purchasedQuotas={campaignData.purchasedQuotas}
               />
               
-              {/* Selected Quotas Summary */}
+              {/* Contador e Lista de Cotas Selecionadas */}
               {selectedQuotas.length > 0 && (
-                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="mt-6 space-y-4">
+                  {/* Contador X/Y */}
+                  <div className="text-center">
+                    <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {selectedQuotas.length}/{campaignData.totalTickets}
+                    </span>
+                  </div>
+                  
+                  {/* Lista de Cotas Selecionadas */}
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="text-center">
+                      <div className="text-sm text-blue-600 dark:text-blue-400 mb-2">
+                        Meus N°: {selectedQuotas
+                          .sort((a, b) => a - b)
+                          .map(quota => quota.toString().padStart(campaignData.totalTickets.toString().length, '0'))
+                          .join(', ')}
+                      </div>
+                      <div className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                        Total: R$ {(selectedQuotas.length * campaignData.ticketPrice).toFixed(2).replace('.', ',')}
+                      </div>
+                      <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold transition-colors duration-200">
+                        RESERVAR COTAS SELECIONADAS
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div>
+              <QuotaSelector
+                ticketPrice={campaignData.ticketPrice}
+                onQuantityChange={handleQuantityChange}
+                initialQuantity={quantity}
+                mode="automatic"
+              />
+              
+              {/* Contador para modo automático */}
                   <div className="text-center">
                     <div className="text-sm text-blue-600 dark:text-blue-400 mb-1">Cotas selecionadas</div>
                     <div className="text-lg font-bold text-blue-700 dark:text-blue-300 mb-2">
                       {selectedQuotas.length} cota{selectedQuotas.length !== 1 ? 's' : ''}
                     </div>
                     <div className="text-sm text-blue-600 dark:text-blue-400 mb-3">
-                      Números: {selectedQuotas.sort((a, b) => a - b).join(', ')}
-                    </div>
-                    <div className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                      Total: R$ {(selectedQuotas.length * campaignData.ticketPrice).toFixed(2).replace('.', ',')}
-                    </div>
-                    <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold transition-colors duration-200">
-                      RESERVAR COTAS SELECIONADAS
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
+                <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {quantity}/{campaignData.totalTickets}
+                </span>
             <QuotaSelector
-              ticketPrice={campaignData.ticketPrice}
-              onQuantityChange={handleQuantityChange}
-              initialQuantity={quantity}
-              mode="automatic"
-            />
-          )}
         </div>
 
         {/* Share Section */}
