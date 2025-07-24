@@ -27,30 +27,35 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   const getQuotaStyles = (status: string) => {
     switch (status) {
       case 'purchased':
-        return 'bg-green-500 text-white cursor-not-allowed';
+        return 'bg-green-500 text-white cursor-not-allowed border border-green-600';
       case 'reserved':
-        return 'bg-orange-500 text-white cursor-not-allowed';
+        return 'bg-orange-500 text-white cursor-not-allowed border border-orange-600';
       case 'selected':
-        return 'bg-blue-500 text-white cursor-pointer hover:bg-blue-600';
+        return 'bg-blue-500 text-white cursor-pointer hover:bg-blue-600 border border-blue-600 transform scale-105 shadow-md';
       case 'available':
-        return 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600';
+        return 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-400 dark:hover:border-blue-500 hover:scale-105 transition-all duration-200';
       default:
-        return 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white';
+        return 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600';
     }
   };
 
   const handleQuotaClick = (quotaNumber: number) => {
     const status = getQuotaStatus(quotaNumber);
-    if (mode === 'manual' && status !== 'purchased' && status !== 'reserved' && onQuotaSelect) {
+    
+    // Only allow selection in manual mode and for available quotas
+    if (mode === 'manual' && (status === 'available' || status === 'selected') && onQuotaSelect) {
       onQuotaSelect(quotaNumber);
     }
   };
 
   // Calculate grid columns based on total quotas for optimal display
   const getGridCols = () => {
-    if (totalQuotas <= 100) return 'grid-cols-10';
-    if (totalQuotas <= 1000) return 'grid-cols-20';
-    return 'grid-cols-25';
+    return 'grid-cols-10 sm:grid-cols-15 md:grid-cols-20';
+  };
+
+  // Calculate padding length for quota numbers (e.g., 100 quotas = 2 digits, 1000 quotas = 3 digits)
+  const getPadLength = () => {
+    return totalQuotas.toString().length;
   };
 
   return (
@@ -91,28 +96,51 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
       </div>
 
       {/* Quota Grid */}
-      <div className={`grid ${getGridCols()} gap-1 max-h-96 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-800 rounded-lg`}>
+      <div className={`grid ${getGridCols()} gap-1 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden`}>
         {Array.from({ length: totalQuotas }, (_, index) => {
-          const quotaNumber = index + 1;
+          const quotaNumber = index; // Start from 0 to match the reference image (00, 01, 02...)
           const status = getQuotaStatus(quotaNumber);
+          const padLength = getPadLength();
           
           return (
             <button
               key={quotaNumber}
               onClick={() => handleQuotaClick(quotaNumber)}
               className={`
-                w-8 h-8 text-xs font-medium rounded transition-colors duration-200
+                w-10 h-10 text-xs font-medium rounded flex items-center justify-center transition-all duration-200
                 ${getQuotaStyles(status)}
                 ${mode === 'automatic' ? 'cursor-not-allowed' : ''}
               `}
               disabled={mode === 'automatic' || status === 'purchased' || status === 'reserved'}
-              title={`Cota ${quotaNumber} - ${status === 'purchased' ? 'Comprada' : status === 'reserved' ? 'Reservada' : status === 'selected' ? 'Selecionada' : 'Disponível'}`}
+              title={`Cota ${quotaNumber.toString().padStart(padLength, '0')} - ${
+                status === 'purchased' ? 'Comprada' : 
+                status === 'reserved' ? 'Reservada' : 
+                status === 'selected' ? 'Selecionada' : 
+                'Disponível'
+              }`}
             >
-              {quotaNumber}
+              {quotaNumber.toString().padStart(padLength, '0')}
             </button>
           );
         })}
       </div>
+
+      {/* Selection Summary */}
+      {selectedQuotas.length > 0 && mode === 'manual' && (
+        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="text-center">
+            <div className="text-sm text-blue-600 dark:text-blue-400 mb-2">
+              Cotas selecionadas: {selectedQuotas.length}
+            </div>
+            <div className="text-xs text-blue-500 dark:text-blue-300 max-h-20 overflow-y-auto">
+              {selectedQuotas
+                .sort((a, b) => a - b)
+                .map(quota => quota.toString().padStart(getPadLength(), '0'))
+                .join(', ')}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
