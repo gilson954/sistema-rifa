@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Share2 } from 'lucide-react';
+import { Shield, Share2, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
 import { useParams, useLocation } from 'react-router-dom';
 import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
@@ -11,6 +11,8 @@ const CampaignPage = () => {
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
   const [activeFilter, setActiveFilter] = useState<'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers'>('all');
   const [quantity, setQuantity] = useState(1);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   
   const { campaign, loading: campaignLoading } = useCampaign(campaignId || '');
   
@@ -19,7 +21,12 @@ const CampaignPage = () => {
     title: campaign?.title || 'Setup Gamer',
     ticketPrice: campaign?.ticket_price || 1.00,
     totalTickets: campaign?.total_tickets || 100,
-    image: campaign?.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+    images: campaign?.prize_image_urls || [
+      'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      'https://images.pexels.com/photos/1029757/pexels-photo-1029757.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      'https://images.pexels.com/photos/2047905/pexels-photo-2047905.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
+    ],
     organizer: {
       name: 'Gilson',
       verified: true
@@ -61,6 +68,31 @@ const CampaignPage = () => {
     setQuantity(newQuantity);
   };
 
+  const handleThumbnailClick = (index: number) => {
+    setCurrentImageIndex(index);
+  };
+
+  const handleMainImageClick = () => {
+    setIsLightboxOpen(true);
+  };
+
+  const handleCloseLightbox = () => {
+    setIsLightboxOpen(false);
+  };
+
+  const handlePreviousImage = () => {
+    setCurrentImageIndex(prev => 
+      prev === 0 ? campaignData.images.length - 1 : prev - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex(prev => 
+      prev === campaignData.images.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const currentImage = campaignData.images[currentImageIndex];
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       {/* Demo Banner */}
@@ -78,14 +110,55 @@ const CampaignPage = () => {
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Campaign Image */}
+        {/* Campaign Images Gallery */}
         <div className="relative mb-8">
-          <div className="relative rounded-2xl overflow-hidden shadow-xl">
+          {/* Main Image */}
+          <div className="relative rounded-2xl overflow-hidden shadow-xl group cursor-pointer" onClick={handleMainImageClick}>
             <img
-              src={campaignData.image}
+              src={currentImage}
               alt={campaignData.title}
               className="w-full h-64 sm:h-80 lg:h-96 object-cover"
             />
+            
+            {/* Zoom Overlay */}
+            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white dark:bg-gray-900 rounded-full p-3 shadow-lg">
+                <ZoomIn className="h-6 w-6 text-gray-900 dark:text-white" />
+              </div>
+            </div>
+            
+            {/* Navigation Arrows (only show if multiple images) */}
+            {campaignData.images.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePreviousImage();
+                  }}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNextImage();
+                  }}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </>
+            )}
+            
+            {/* Image Counter */}
+            {campaignData.images.length > 1 && (
+              <div className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                {currentImageIndex + 1} / {campaignData.images.length}
+              </div>
+            )}
+            
             {/* Price Tag */}
             <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-900 px-4 py-2 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 transition-colors duration-300">
               <div className="flex items-center space-x-2">
@@ -97,6 +170,29 @@ const CampaignPage = () => {
               </div>
             </div>
           </div>
+          
+          {/* Thumbnails Strip (only show if multiple images) */}
+          {campaignData.images.length > 1 && (
+            <div className="mt-4 flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
+              {campaignData.images.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleThumbnailClick(index)}
+                  className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                    index === currentImageIndex
+                      ? 'border-purple-500 opacity-100 ring-2 ring-purple-200 dark:ring-purple-800'
+                      : 'border-gray-300 dark:border-gray-600 opacity-70 hover:opacity-90 hover:border-gray-400 dark:hover:border-gray-500'
+                  }`}
+                >
+                  <img
+                    src={image}
+                    alt={`${campaignData.title} - Imagem ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Campaign Title */}
@@ -275,6 +371,75 @@ const CampaignPage = () => {
         </div>
       </div>
 
+      {/* Lightbox Modal */}
+      {isLightboxOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
+          {/* Close Button */}
+          <button
+            onClick={handleCloseLightbox}
+            className="absolute top-4 right-4 z-10 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-3 rounded-full transition-all duration-200"
+          >
+            <X className="h-6 w-6" />
+          </button>
+          
+          {/* Image Counter */}
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm">
+            {currentImageIndex + 1} / {campaignData.images.length}
+          </div>
+          
+          {/* Main Lightbox Image */}
+          <div className="relative max-w-full max-h-full flex items-center justify-center">
+            <img
+              src={currentImage}
+              alt={`${campaignData.title} - Imagem ${currentImageIndex + 1}`}
+              className="max-w-full max-h-full object-contain"
+            />
+            
+            {/* Navigation Arrows (only show if multiple images) */}
+            {campaignData.images.length > 1 && (
+              <>
+                <button
+                  onClick={handlePreviousImage}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-3 rounded-full transition-all duration-200"
+                >
+                  <ChevronLeft className="h-8 w-8" />
+                </button>
+                
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-3 rounded-full transition-all duration-200"
+                >
+                  <ChevronRight className="h-8 w-8" />
+                </button>
+              </>
+            )}
+          </div>
+          
+          {/* Thumbnail Navigation */}
+          {campaignData.images.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 bg-black bg-opacity-50 p-3 rounded-lg">
+              {campaignData.images.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                    index === currentImageIndex
+                      ? 'border-white opacity-100'
+                      : 'border-gray-400 opacity-60 hover:opacity-80'
+                  }`}
+                >
+                  <img
+                    src={image}
+                    alt={`Thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Footer */}
       <footer className="bg-gray-900 dark:bg-black text-white py-8 mt-16 transition-colors duration-300">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -302,6 +467,17 @@ const CampaignPage = () => {
           </div>
         </div>
       </footer>
+      
+      {/* Custom Scrollbar Styles */}
+      <style jsx>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   );
 };
