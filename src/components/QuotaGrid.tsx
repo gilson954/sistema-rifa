@@ -48,9 +48,9 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
 
   // Calculate grid columns based on total quotas for optimal display
   const getGridCols = () => {
-    if (totalQuotas <= 100) return 'grid-cols-10';
+    if (totalQuotas <= 100) return 'grid-cols-20';
     if (totalQuotas <= 1000) return 'grid-cols-20';
-    return 'grid-cols-25';
+    return 'grid-cols-20';
   };
 
   return (
@@ -91,7 +91,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
       </div>
 
       {/* Quota Grid */}
-      <div className={`grid ${getGridCols()} gap-1 max-h-96 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-800 rounded-lg`}>
+      <div className={`grid ${getGridCols()} gap-1 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden`}>
         {Array.from({ length: totalQuotas }, (_, index) => {
           const quotaNumber = index + 1;
           const status = getQuotaStatus(quotaNumber);
@@ -101,7 +101,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
               key={quotaNumber}
               onClick={() => handleQuotaClick(quotaNumber)}
               className={`
-                w-8 h-8 text-xs font-medium rounded transition-colors duration-200
+                w-6 h-6 text-xs font-medium rounded transition-colors duration-200 flex items-center justify-center
                 ${getQuotaStyles(status)}
                 ${mode === 'automatic' ? 'cursor-not-allowed' : ''}
               `}
