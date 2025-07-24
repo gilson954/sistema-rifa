@@ -23,6 +23,7 @@ const CampaignPage = () => {
     totalTickets: campaign?.total_tickets || 100,
     minTicketsPerPurchase: campaign?.min_tickets_per_purchase || 1,
     maxTicketsPerPurchase: campaign?.max_tickets_per_purchase || 1000,
+    drawMethod: campaign?.draw_method || 'Loteria Federal',
     images: campaign?.prize_image_urls || [
       'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
       'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
@@ -376,7 +377,7 @@ const CampaignPage = () => {
               <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">🎲</span>
               </div>
-              <span className="text-gray-700 dark:text-gray-300">LOTERIA FEDERAL</span>
+              <span className="text-gray-700 dark:text-gray-300">{campaignData.drawMethod.toUpperCase()}</span>
             </div>
           </div>
         </div>
