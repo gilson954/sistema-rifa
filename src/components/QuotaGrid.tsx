@@ -206,6 +206,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
             >
               {quotaNumber.toString().padStart(padLength, '0')}
             </button>
+          );
         })}
       </div>
     </div>
