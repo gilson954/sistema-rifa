@@ -14,13 +14,6 @@ const CampaignPage = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
-  // Initialize quantity with minimum tickets per purchase
-  React.useEffect(() => {
-    if (campaignData.model === 'automatic') {
-      setQuantity(campaignData.minTicketsPerPurchase);
-    }
-  }, [campaignData.minTicketsPerPurchase, campaignData.model]);
-  
   const { campaign, loading: campaignLoading } = useCampaign(campaignId || '');
   
   // Get data from location state (for preview mode) or campaign data
@@ -48,6 +41,13 @@ const CampaignPage = () => {
       text: 'Compre 4578 cotas por R$ 0,42'
     }
   };
+
+  // Initialize quantity with minimum tickets per purchase
+  React.useEffect(() => {
+    if (campaignData.model === 'automatic') {
+      setQuantity(campaignData.minTicketsPerPurchase);
+    }
+  }, [campaignData.minTicketsPerPurchase, campaignData.model]);
 
   if (campaignLoading) {
     return (
