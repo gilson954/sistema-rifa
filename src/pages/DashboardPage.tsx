@@ -251,15 +251,32 @@ const DashboardPage = () => {
                       </div>
                     )}
                     
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-4">
+                      {/* Campaign Image */}
+                      <div className="flex-shrink-0">
+                        <img
+                          src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1'}
+                          alt={campaign.title}
+                          className="w-20 h-20 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                        />
+                      </div>
+
+                      {/* Campaign Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h4 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="text-lg font-semibold text-gray-900 dark:text-white truncate pr-2">
                             {campaign.title}
                           </h4>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
-                            {getStatusText(campaign.status)}
-                          </span>
+                          <div className="flex items-center space-x-2 flex-shrink-0">
+                            {campaign.status === 'draft' && (
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
+                                Pendente
+                              </span>
+                            )}
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+                              {getStatusText(campaign.status)}
+                            </span>
+                          </div>
                         </div>
                         
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
@@ -291,24 +308,25 @@ const DashboardPage = () => {
                             </span>
                           </div>
                         </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2 ml-4">
-                        <button
-                          onClick={() => handleEditCampaign(campaign.id)}
-                          className="p-2 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
-                          title="Editar campanha"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
                         
-                        <button
-                          onClick={() => handleDeleteCampaign(campaign.id, campaign.title)}
-                          className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
-                          title="Excluir campanha"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        {/* Action Buttons */}
+                        <div className="flex items-center space-x-2 mt-3">
+                          <button
+                            onClick={() => handleEditCampaign(campaign.id)}
+                            className="p-2 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                            title="Editar campanha"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          
+                          <button
+                            onClick={() => handleDeleteCampaign(campaign.id, campaign.title)}
+                            className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                            title="Excluir campanha"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
