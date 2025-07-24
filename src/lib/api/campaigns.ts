@@ -60,11 +60,16 @@ export class CampaignAPI {
    */
   static async getUserCampaigns(userId: string, status?: CampaignStatus): Promise<{ data: Campaign[] | null; error: any }> {
     try {
+      // Filter out expired campaigns that should be cleaned up
+      const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+      
       let query = supabase
         .from('campaigns')
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        // Exclude expired draft campaigns older than 2 days
+        .or(`status.neq.draft,expires_at.is.null,expires_at.gte.${new Date().toISOString()},created_at.gte.${twoDaysAgo}`);
 
       if (status) {
         query = query.eq('status', status);
