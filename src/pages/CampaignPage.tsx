@@ -13,6 +13,13 @@ const CampaignPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+
+  // Initialize quantity with minimum tickets per purchase
+  React.useEffect(() => {
+    if (campaignData.model === 'automatic') {
+      setQuantity(campaignData.minTicketsPerPurchase);
+    }
+  }, [campaignData.minTicketsPerPurchase, campaignData.model]);
   
   const { campaign, loading: campaignLoading } = useCampaign(campaignId || '');
   
@@ -21,6 +28,8 @@ const CampaignPage = () => {
     title: campaign?.title || 'Setup Gamer',
     ticketPrice: campaign?.ticket_price || 1.00,
     totalTickets: campaign?.total_tickets || 100,
+    minTicketsPerPurchase: campaign?.min_tickets_per_purchase || 1,
+    maxTicketsPerPurchase: campaign?.max_tickets_per_purchase || 1000,
     images: campaign?.prize_image_urls || [
       'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
       'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
@@ -285,6 +294,8 @@ const CampaignPage = () => {
             <div>
               <QuotaSelector
                 ticketPrice={campaignData.ticketPrice}
+                minTicketsPerPurchase={campaignData.minTicketsPerPurchase}
+                maxTicketsPerPurchase={campaignData.maxTicketsPerPurchase}
                 onQuantityChange={handleQuantityChange}
                 initialQuantity={quantity}
                 mode="automatic"

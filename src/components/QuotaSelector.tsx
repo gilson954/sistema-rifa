@@ -3,6 +3,8 @@ import { Minus, Plus } from 'lucide-react';
 
 interface QuotaSelectorProps {
   ticketPrice: number;
+  minTicketsPerPurchase: number;
+  maxTicketsPerPurchase: number;
   onQuantityChange: (quantity: number) => void;
   initialQuantity?: number;
   mode: 'manual' | 'automatic';
@@ -10,11 +12,21 @@ interface QuotaSelectorProps {
 
 const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   ticketPrice,
+  minTicketsPerPurchase,
+  maxTicketsPerPurchase,
   onQuantityChange,
   initialQuantity = 1,
   mode
 }) => {
-  const [quantity, setQuantity] = useState(initialQuantity);
+  const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  // Update quantity when initialQuantity or minTicketsPerPurchase changes
+  React.useEffect(() => {
+    const validQuantity = Math.max(initialQuantity, minTicketsPerPurchase);
+    setQuantity(validQuantity);
+    onQuantityChange(validQuantity);
+  }, [initialQuantity, minTicketsPerPurchase, onQuantityChange]);
 
   const incrementButtons = [
     { label: '+1', value: 1 },
@@ -27,17 +39,31 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     { label: '+20000', value: 20000 }
   ];
 
+  const handleUpdateQuantity = (newQuantity: number) => {
+    // Ensure quantity is at least the minimum
+    const adjustedQuantity = Math.max(minTicketsPerPurchase, newQuantity);
+    
+    // Check if quantity exceeds maximum
+    if (adjustedQuantity > maxTicketsPerPurchase) {
+      setErrorMessage(`Máximo ${maxTicketsPerPurchase.toLocaleString('pt-BR')} bilhetes por compra`);
+      // Set to maximum allowed
+      setQuantity(maxTicketsPerPurchase);
+      onQuantityChange(maxTicketsPerPurchase);
+    } else {
+      setErrorMessage('');
+      setQuantity(adjustedQuantity);
+      onQuantityChange(adjustedQuantity);
+    }
+  };
+
   const handleIncrement = (value: number) => {
-    const newQuantity = Math.max(1, quantity + value);
-    setQuantity(newQuantity);
-    onQuantityChange(newQuantity);
+    const newQuantity = quantity + value;
+    handleUpdateQuantity(newQuantity);
   };
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || 1;
-    const newQuantity = Math.max(1, value);
-    setQuantity(newQuantity);
-    onQuantityChange(newQuantity);
+    const value = parseInt(e.target.value) || minTicketsPerPurchase;
+    handleUpdateQuantity(value);
   };
 
   const calculateTotal = () => {
@@ -80,7 +106,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           type="number"
           value={quantity}
           onChange={handleQuantityChange}
-          min="1"
+          min={minTicketsPerPurchase}
+          max={maxTicketsPerPurchase}
           className="w-20 text-center py-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
         />
         
@@ -91,6 +118,15 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           <Plus className="h-4 w-4 text-gray-600 dark:text-gray-300" />
         </button>
       </div>
+
+      {/* Error Message */}
+      {errorMessage && (
+        <div className="text-center mb-4">
+          <p className="text-red-600 dark:text-red-400 text-sm font-medium">
+            {errorMessage}
+          </p>
+        </div>
+      )}
 
       {/* Total Value */}
       <div className="text-center mb-6">
