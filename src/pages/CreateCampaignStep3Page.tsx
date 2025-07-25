@@ -8,6 +8,9 @@ const CreateCampaignStep3Page = () => {
   const location = useLocation();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('pix');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  // Get promotions from location state
+  const promotions = location.state?.promotions || [];
 
   // Extrai o ID da campanha da URL
   const campaignId = new URLSearchParams(location.search).get('id');
@@ -32,7 +35,12 @@ const CreateCampaignStep3Page = () => {
   };
 
   const handlePreview = () => {
-    navigate(`/c/${campaignId || 'mock-campaign-id'}`);
+    navigate(`/c/${campaignId || 'mock-campaign-id'}`, {
+      state: { 
+        previewData: campaignData,
+        promotions: promotions
+      }
+    });
   };
 
   const handlePayment = () => {

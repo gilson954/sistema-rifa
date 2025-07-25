@@ -3,6 +3,8 @@ import { Shield, Share2, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-rea
 import { useParams, useLocation } from 'react-router-dom';
 import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
+import { Promotion } from '../types/promotion';
+import { formatCurrency } from '../utils/currency';
 import { useCampaign } from '../hooks/useCampaigns';
 
 const CampaignPage = () => {
@@ -17,6 +19,7 @@ const CampaignPage = () => {
   const { campaign, loading: campaignLoading } = useCampaign(campaignId || '');
   
   // Get data from location state (for preview mode) or campaign data
+  const promotionsFromState = location.state?.promotions || [];
   const campaignData = location.state?.previewData || {
     title: campaign?.title || 'Setup Gamer',
     ticketPrice: campaign?.ticket_price || 1.00,
@@ -37,10 +40,12 @@ const CampaignPage = () => {
     model: (location.state?.campaignModel || campaign?.campaign_model || 'manual') as 'manual' | 'automatic',
     reservedQuotas: [5, 12, 23, 45, 67, 89, 134, 156, 178, 199], // Mock reserved quotas
     purchasedQuotas: [1, 3, 8, 15, 22, 34, 56, 78, 91, 123], // Mock purchased quotas
-    promotion: {
-      active: true,
-      text: 'Compre 4578 cotas por R$ 0,42'
-    }
+  };
+
+  // Handle promotion button click
+  const handlePromotionClick = (promotion: Promotion) => {
+    console.log('Promotion clicked:', promotion);
+    // TODO: Add promotion logic (add tickets to cart, etc.)
   };
 
   // Initialize quantity with minimum tickets per purchase
@@ -437,18 +442,34 @@ const CampaignPage = () => {
                   className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
                     index === currentImageIndex
                       ? 'border-white opacity-100'
-                      : 'border-gray-400 opacity-60 hover:opacity-80'
-                  }`}
-                >
-                  <img
-                    src={image}
-                    alt={`Thumbnail ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
+      {/* Promotions Section */}
+      {promotionsFromState.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center space-x-2 mb-4">
+            <span className="text-2xl">🛍️</span>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              Pacote promocional
+            </h2>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {promotionsFromState.map((promotion: Promotion) => (
+              <button
+                key={promotion.id}
+                onClick={() => handlePromotionClick(promotion)}
+                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-lg p-4 transition-all duration-200 transform hover:scale-105 shadow-lg"
+              >
+                <div className="text-center">
+                  <div className="font-bold text-lg mb-1">
+                    {promotion.ticketQuantity} bilhetes por {formatCurrency(promotion.totalValue)}
+                  </div>
+                  <div className="text-sm opacity-90">
+                    Economize {formatCurrency((promotion.originalPricePerTicket * promotion.ticketQuantity) - promotion.totalValue)}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
