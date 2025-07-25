@@ -84,6 +84,8 @@ const CreateCampaignStep2Page = () => {
   const [modelDisabled, setModelDisabled] = useState(false);
   const [showBackButton, setShowBackButton] = useState(true);
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [originalTicketPrice, setOriginalTicketPrice] = useState(1.00);
 
   // Check if coming from Step 1 to hide back button
   useEffect(() => {
@@ -1284,6 +1286,8 @@ const CreateCampaignStep2Page = () => {
             </button>
           </div>
         </div>
+      </div>
+
       {/* Promotion Modal */}
       {isPromotionModalOpen && (
         <PromotionModal
