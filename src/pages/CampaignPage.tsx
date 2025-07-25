@@ -40,6 +40,10 @@ const CampaignPage = () => {
     model: (location.state?.campaignModel || campaign?.campaign_model || 'manual') as 'manual' | 'automatic',
     reservedQuotas: [5, 12, 23, 45, 67, 89, 134, 156, 178, 199], // Mock reserved quotas
     purchasedQuotas: [1, 3, 8, 15, 22, 34, 56, 78, 91, 123], // Mock purchased quotas
+    promotion: {
+      active: false,
+      text: ''
+    }
   };
 
   // Handle promotion button click
@@ -251,6 +255,37 @@ const CampaignPage = () => {
           </div>
         )}
 
+        {/* Promotions Section */}
+        {promotionsFromState.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center space-x-2 mb-4">
+              <span className="text-2xl">🛍️</span>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Pacote promocional
+              </h2>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {promotionsFromState.map((promotion: Promotion) => (
+                <button
+                  key={promotion.id}
+                  onClick={() => handlePromotionClick(promotion)}
+                  className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-lg p-4 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                >
+                  <div className="text-center">
+                    <div className="font-bold text-lg mb-1">
+                      {promotion.ticketQuantity} bilhetes por {formatCurrency(promotion.totalValue)}
+                    </div>
+                    <div className="text-sm opacity-90">
+                      Economize {formatCurrency((promotion.originalPricePerTicket * promotion.ticketQuantity) - promotion.totalValue)}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Purchase Section */}
         <div>
           {campaignData.model === 'manual' ? (
@@ -442,34 +477,18 @@ const CampaignPage = () => {
                   className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
                     index === currentImageIndex
                       ? 'border-white opacity-100'
-      {/* Promotions Section */}
-      {promotionsFromState.length > 0 && (
-        <div className="mb-8">
-          <div className="flex items-center space-x-2 mb-4">
-            <span className="text-2xl">🛍️</span>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Pacote promocional
-            </h2>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {promotionsFromState.map((promotion: Promotion) => (
-              <button
-                key={promotion.id}
-                onClick={() => handlePromotionClick(promotion)}
-                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-lg p-4 transition-all duration-200 transform hover:scale-105 shadow-lg"
-              >
-                <div className="text-center">
-                  <div className="font-bold text-lg mb-1">
-                    {promotion.ticketQuantity} bilhetes por {formatCurrency(promotion.totalValue)}
-                  </div>
-                  <div className="text-sm opacity-90">
-                    Economize {formatCurrency((promotion.originalPricePerTicket * promotion.ticketQuantity) - promotion.totalValue)}
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
+                      : 'border-gray-400 opacity-60 hover:opacity-80'
+                  }`}
+                >
+                  <img
+                    src={image}
+                    alt={`Thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
