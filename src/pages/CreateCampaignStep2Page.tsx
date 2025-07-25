@@ -85,7 +85,6 @@ const CreateCampaignStep2Page = () => {
   const [showBackButton, setShowBackButton] = useState(true);
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
-  const [loading, setLoading] = useState(false);
   const [originalTicketPrice, setOriginalTicketPrice] = useState(1.00);
 
   // Check if coming from Step 1 to hide back button
@@ -147,9 +146,7 @@ const CreateCampaignStep2Page = () => {
       setErrorCampaign('ID da campanha não fornecido.');
       setLoadingCampaign(false);
     }
-  }, [campaign, fetchingCampaign, fetchError, campaignId, imageUpload]);
-
-  const originalTicketPrice = campaign?.ticket_price || 1.00;
+  }, [campaignId, campaign, fetchingCampaign, fetchError]);
 
   const handleGoBack = () => {
     navigate('/dashboard/create-campaign');
