@@ -27,8 +27,6 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
     setPromotions(initialPromotions);
   }, [initialPromotions]);
 
-  if (!isOpen) return null;
-
   // Parse values for calculations
   const parsedQuantity = parseInt(ticketQuantity) || 0;
   const parsedTotalValue = totalValueInput ? parseFloat(totalValueInput.replace(/\./g, '').replace(',', '.')) : 0;
@@ -91,7 +89,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 ${isOpen ? 'block' : 'hidden'}`}>
       <div className="bg-gray-900 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto text-white">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">

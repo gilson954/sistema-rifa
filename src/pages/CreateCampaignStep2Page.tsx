@@ -1284,14 +1284,16 @@ const CreateCampaignStep2Page = () => {
             </button>
           </div>
         </div>
-      </div>
-
       {/* Promotion Modal */}
-      <PromotionModal
-        isOpen={isPromotionModalOpen}
-        onClose={() => setIsPromotionModalOpen(false)}
-        campaignId={campaignId || ''}
-      />
+      {isPromotionModalOpen && (
+        <PromotionModal
+          isOpen={isPromotionModalOpen}
+          onClose={() => setIsPromotionModalOpen(false)}
+          onSavePromotions={setPromotions}
+          initialPromotions={promotions}
+          originalTicketPrice={originalTicketPrice}
+        />
+      )}
     </div>
   );
 };
