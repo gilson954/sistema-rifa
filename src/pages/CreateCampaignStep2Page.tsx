@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Upload, X, ChevronLeft, ChevronRight, ChevronDown, Info, AlertTriangle, CheckCircle, Calendar, Clock } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, X, ZoomIn, Loader2, Gift, Plus, Trash2 } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campaign';
 import { useCampaign, useCampaigns } from '../hooks/useCampaigns';
@@ -8,6 +8,8 @@ import { useImageUpload } from '../hooks/useImageUpload';
 import { ImageUpload } from '../components/ImageUpload';
 import { useAuth } from '../context/AuthContext';
 
+import PromotionModal from '../components/PromotionModal';
+import { Promotion } from '../types/promotion';
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
