@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, ChevronLeft, ChevronRight, X, ZoomIn, Loader2, Gift, Plus, Trash2 } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, X, ZoomIn, Loader2, Gift, Plus, Trash2, ArrowLeft, CheckCircle, AlertTriangle, Info, ChevronDown, Clock, Calendar } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { UpdateCampaignInput, CampaignFormInput } from '../lib/validations/campaign';
 import { useCampaign, useCampaigns } from '../hooks/useCampaigns';
@@ -83,6 +83,7 @@ const CreateCampaignStep2Page = () => {
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [modelDisabled, setModelDisabled] = useState(false);
   const [showBackButton, setShowBackButton] = useState(true);
+  const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
 
   // Check if coming from Step 1 to hide back button
   useEffect(() => {
@@ -270,6 +271,10 @@ const CreateCampaignStep2Page = () => {
     if (value) {
       setFormData({ ...formData, ticketQuantity: parseInt(value) });
     }
+  };
+
+  const handlePromotionClick = () => {
+    setIsPromotionModalOpen(true);
   };
 
   const handleFinalize = async () => {
@@ -653,7 +658,10 @@ const CreateCampaignStep2Page = () => {
               <span className="text-lg">🏆</span>
               <span className="text-xs sm:text-sm font-medium">Prêmio</span>
             </button>
-            <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            <button 
+              onClick={handlePromotionClick}
+              className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg"
+            >
               <span className="text-lg">🎁</span>
               <span className="text-xs sm:text-sm font-medium">Promoção</span>
             </button>
@@ -1277,6 +1285,13 @@ const CreateCampaignStep2Page = () => {
           </div>
         </div>
       </div>
+
+      {/* Promotion Modal */}
+      <PromotionModal
+        isOpen={isPromotionModalOpen}
+        onClose={() => setIsPromotionModalOpen(false)}
+        campaignId={campaignId || ''}
+      />
     </div>
   );
 };
