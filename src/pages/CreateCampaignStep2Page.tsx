@@ -147,6 +147,8 @@ const CreateCampaignStep2Page = () => {
       setErrorCampaign('ID da campanha não fornecido.');
       setLoadingCampaign(false);
     }
+  }, [campaign, fetchingCampaign, fetchError, campaignId, imageUpload]);
+
   const originalTicketPrice = campaign?.ticket_price || 1.00;
 
   const handleGoBack = () => {
