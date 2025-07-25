@@ -149,6 +149,8 @@ const CreateCampaignStep2Page = () => {
     }
   }, [campaign, fetchingCampaign, fetchError, campaignId, imageUpload]);
 
+  const originalTicketPrice = campaign?.ticket_price || 1.00;
+
   const handleGoBack = () => {
     navigate('/dashboard/create-campaign');
   };
