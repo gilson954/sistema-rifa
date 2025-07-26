@@ -28,12 +28,14 @@ export const createCampaignSchema = z.object({
     .enum(['Loteria Federal', 'Sorteador.com.br', 'Live no Instagram', 'Live no Youtube', 'Live no TikTok', 'Outros'], {
       errorMap: () => ({ message: 'Selecione um método de sorteio válido' })
     }),
+    .transform(val => val.trim()),
   
   phone_number: z
     .string()
     .min(10, 'Número de telefone inválido')
     .max(20, 'Número de telefone muito longo')
     .regex(/^[\d\s\-\(\)\+]+$/, 'Formato de telefone inválido'),
+    .transform(val => val.trim()),
   
   draw_date: z
     .string()
