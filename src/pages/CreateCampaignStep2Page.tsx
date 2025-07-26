@@ -1300,7 +1300,7 @@ const CreateCampaignStep2Page = () => {
         <PromotionModal
           isOpen={isPromotionModalOpen}
           onClose={() => setIsPromotionModalOpen(false)}
-          onSavePromotions={handleSavePromotions}
+          onSavePromotions={handleManualSavePromotions}
           initialPromotions={promotions}
           originalTicketPrice={originalTicketPrice}
         />
