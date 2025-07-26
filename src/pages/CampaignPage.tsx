@@ -253,7 +253,7 @@ const CampaignPage = () => {
                     {/* Texto principal */}
                     <div className="text-center">
                       <div className="text-sm font-semibold">
-                        {promo.ticketQuantity} cotas por {formatCurrency(promo.totalValue)}
+                        {promo.ticketQuantity} cotas por R$ {promo.totalValue.toFixed(2).replace('.', ',')}
                       </div>
                     </div>
                   </button>

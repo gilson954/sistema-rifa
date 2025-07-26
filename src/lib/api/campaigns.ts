@@ -41,6 +41,8 @@ export class CampaignAPI {
     try {
       const { id, ...updateData } = data;
       
+      console.log('Atualizando campanha com dados:', updateData);
+      
       const { data: campaign, error } = await supabase
         .from('campaigns')
         .update(updateData)
@@ -48,6 +50,7 @@ export class CampaignAPI {
         .select()
         .single();
 
+      console.log('Resposta do Supabase:', { campaign, error });
       return { data: campaign, error };
     } catch (error) {
       console.error('Error updating campaign:', error);
