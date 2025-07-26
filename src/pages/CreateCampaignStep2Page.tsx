@@ -282,26 +282,8 @@ const CreateCampaignStep2Page = () => {
     setIsPromotionModalOpen(true);
   };
 
-  const handleSavePromotions = async (updatedPromotions: Promotion[]) => {
-    if (!campaignId) return;
-    
-    setSavingPromotions(true);
-    try {
-      console.log('Salvando promoções:', updatedPromotions);
-      await updateCampaign({
-        id: campaignId,
-        promotions: updatedPromotions
-      });
-      
-      setPromotions(updatedPromotions);
-      console.log('Promoções salvas com sucesso');
-      alert('Promoções salvas com sucesso!');
-    } catch (error) {
-      console.error('Erro ao salvar promoções:', error);
-      alert('Erro ao salvar promoções. Tente novamente.');
-    } finally {
-      setSavingPromotions(false);
-    }
+  const handleSavePromotions = (newPromotions: Promotion[]) => {
+    setPromotions(newPromotions);
   };
 
   const handleFinalize = async () => {
