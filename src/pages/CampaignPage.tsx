@@ -491,7 +491,7 @@ const CampaignPage = () => {
 
       {/* Prizes Modal */}
       {showPrizesModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
           <div className="bg-gray-900 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto text-white">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
@@ -509,9 +509,11 @@ const CampaignPage = () => {
               </button>
             </div>
 
-            <p className="text-gray-400 mb-6">
-              Esses são os prêmios no sorteio <span className="text-white font-semibold">36 - ÚLTIMA AÇÃO! 🏆💎 I9-14900K + RTX 4090 + PS5 + SETUP COMPLETO (SORTEIO)</span>
-            </p>
+            {campaignData.prizes && campaignData.prizes.length > 0 && (
+              <p className="text-gray-400 mb-6">
+                Esses são os prêmios no sorteio <span className="text-white font-semibold">{campaignData.title}</span>
+              </p>
+            )}
 
             {/* Prizes List */}
             <div className="space-y-4">
