@@ -36,11 +36,7 @@ const CampaignPage = () => {
     },
     model: (location.state?.campaignModel || campaign?.campaign_model || 'manual') as 'manual' | 'automatic',
     reservedQuotas: [5, 12, 23, 45, 67, 89, 134, 156, 178, 199], // Mock reserved quotas
-    purchasedQuotas: [1, 3, 8, 15, 22, 34, 56, 78, 91, 123], // Mock purchased quotas
-    promotion: {
-      active: true,
-      text: 'Compre 4578 cotas por R$ 0,42'
-    }
+    purchasedQuotas: [1, 3, 8, 15, 22, 34, 56, 78, 91, 123] // Mock purchased quotas
   };
 
   // Initialize quantity with minimum tickets per purchase

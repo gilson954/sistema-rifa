@@ -673,6 +673,11 @@ const CreateCampaignStep2Page = () => {
             >
               <span className="text-lg">🎁</span>
               <span className="text-xs sm:text-sm font-medium">Promoção</span>
+              {promotions.length > 0 && (
+                <span className="bg-white/20 text-xs px-2 py-1 rounded-full">
+                  {promotions.length}
+                </span>
+              )}
             </button>
           </div>
 
@@ -1300,7 +1305,7 @@ const CreateCampaignStep2Page = () => {
         <PromotionModal
           isOpen={isPromotionModalOpen}
           onClose={() => setIsPromotionModalOpen(false)}
-          onSavePromotions={handleManualSavePromotions}
+          onSavePromotions={handleSavePromotions}
           initialPromotions={promotions}
           originalTicketPrice={originalTicketPrice}
         />
