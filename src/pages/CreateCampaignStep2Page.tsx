@@ -282,6 +282,10 @@ const CreateCampaignStep2Page = () => {
     setIsPromotionModalOpen(true);
   };
 
+  const handleSavePromotions = (newPromotions: Promotion[]) => {
+    setPromotions(newPromotions);
+  };
+
   const handleFinalize = async () => {
     if (!campaignId) {
       alert('Erro: ID da campanha não encontrado para finalizar.');
@@ -1296,7 +1300,7 @@ const CreateCampaignStep2Page = () => {
         <PromotionModal
           isOpen={isPromotionModalOpen}
           onClose={() => setIsPromotionModalOpen(false)}
-          onSavePromotions={setPromotions}
+          onSavePromotions={handleSavePromotions}
           initialPromotions={promotions}
           originalTicketPrice={originalTicketPrice}
         />
