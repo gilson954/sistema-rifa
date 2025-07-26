@@ -12,8 +12,6 @@ import PromotionModal from '../components/PromotionModal';
 import PrizesModal from '../components/PrizesModal';
 import { Prize } from '../types/promotion';
 import { Promotion } from '../types/promotion';
-export default CreateCampaignStep2Page;
-
 
 interface Prize {
   id: string;
@@ -1308,3 +1306,5 @@ const CreateCampaignStep2Page = () => {
     </div>
   );
 };
+
+export default CreateCampaignStep2Page;
