@@ -85,7 +85,6 @@ const CreateCampaignStep2Page = () => {
   const [showBackButton, setShowBackButton] = useState(true);
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
-  const [savingPromotions, setSavingPromotions] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Check if coming from Step 1 to hide back button
