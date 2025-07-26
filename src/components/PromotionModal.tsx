@@ -177,6 +177,14 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
           <span>Adicionar</span>
         </button>
 
+        {/* Save Button */}
+        <button
+          onClick={handleCloseModal}
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center space-x-2 mb-6"
+        >
+          <span>Salvar</span>
+        </button>
+
         {/* Promotions List */}
         {promotions.length > 0 && (
           <div className="border-t border-gray-700 pt-6">
