@@ -226,13 +226,6 @@ const PrizesModal: React.FC<PrizesModalProps> = ({
         >
           {saving ? (
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-          ) : (
-            <>
-              <Plus className="h-5 w-5" />
-              <span>Adicionar +</span>
-            </>
-          )}
-        </button>
         {/* Prizes List */}
         {localPrizes.length > 0 && (
           <div className="border-t border-gray-700 pt-6">
