@@ -195,51 +195,12 @@ const CreateCampaignStep2Page = () => {
   }, [formData, selectedDate, selectedTime, informarData]);
 
   /**
-   * Auto-save function with debouncing
+   * Handles updating local prizes state (called from PrizesModal)
    */
-  const handleAutoSave = async () => {
-    if (!campaignId || !user || saveStatus === 'saving') return;
-
-    try {
-      setSaveStatus('saving');
-      
-      // Convert form data to API format
-      let finalDrawDate = null;
-      if (informarData && selectedDate) {
-        const date = new Date(selectedDate);
-        date.setHours(parseInt(selectedTime.hour));
-        date.setMinutes(parseInt(selectedTime.minute));
-        finalDrawDate = date.toISOString();
-      }
-
-      const updateData = {
-        id: campaignId,
-        title: formData.title,
-        total_tickets: formData.ticketQuantity,
-        ticket_price: parseFloat(formData.ticketPrice.replace(',', '.')),
-        draw_method: formData.drawLocation,
-        phone_number: formData.phoneNumber.replace(/\D/g, ''),
-        description: formData.description,
-        min_tickets_per_purchase: formData.minQuantity,
-        max_tickets_per_purchase: formData.maxQuantity,
-        initial_filter: formData.initialFilter,
-        draw_date: finalDrawDate,
-        payment_deadline_hours: formData.paymentDeadlineHours,
-        require_email: formData.requireEmail,
-        show_ranking: formData.showRanking,
-        campaign_model: formData.model
-      };
-
-      await updateCampaign(updateData);
-      setSaveStatus('saved');
-      
-      // Reset to idle after 2 seconds
-      setTimeout(() => setSaveStatus('idle'), 2000);
-    } catch (error) {
-      console.error('Auto-save error:', error);
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus('idle'), 3000);
-    }
+  const handleSavePrizes = (updatedPrizes: Prize[]) => {
+    // Update local state - database save is handled by PrizesModal
+    setPrizes(updatedPrizes);
+    console.log('Local prizes state updated:', updatedPrizes);
   };
 
   // Função para formatar o valor monetário
