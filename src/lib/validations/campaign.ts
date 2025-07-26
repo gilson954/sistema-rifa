@@ -74,7 +74,13 @@ export const createCampaignSchema = z.object({
   
   campaign_model: z
     .enum(['manual', 'automatic'])
-    .default('manual')
+    .default('manual'),
+  
+  promotions: z
+    .array(z.any())
+    .optional()
+    .nullable()
+    .default([])
 }).refine(
   (data) => data.min_tickets_per_purchase <= data.max_tickets_per_purchase,
   {

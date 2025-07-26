@@ -84,7 +84,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
   };
 
   const handleCloseModal = () => {
-    onSavePromotions(promotions);
+    // Não salva automaticamente ao fechar - apenas fecha o modal
     onClose();
   };
 
