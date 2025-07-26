@@ -142,7 +142,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
           </div>
 
           {/* Dynamic Ticket Value Display */}
-          <div className="text-sm text-gray-300">
+          <div className="text-sm text-gray-300 mb-2">
             Valor cota {formatCurrency(originalTicketPrice)}
           </div>
 

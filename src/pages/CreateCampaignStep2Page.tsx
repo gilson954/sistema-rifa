@@ -85,7 +85,7 @@ const CreateCampaignStep2Page = () => {
   const [showBackButton, setShowBackButton] = useState(true);
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
-  const [originalTicketPrice, setOriginalTicketPrice] = useState(1.00);
+  const [loading, setLoading] = useState(false);
 
   // Check if coming from Step 1 to hide back button
   useEffect(() => {
@@ -147,6 +147,9 @@ const CreateCampaignStep2Page = () => {
       setLoadingCampaign(false);
     }
   }, [campaignId, campaign, fetchingCampaign, fetchError]);
+
+  // Get the actual ticket price from the campaign data
+  const originalTicketPrice = campaign?.ticket_price || 1.00;
 
   const handleGoBack = () => {
     navigate('/dashboard/create-campaign');
