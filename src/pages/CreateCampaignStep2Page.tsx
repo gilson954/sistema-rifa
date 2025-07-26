@@ -194,6 +194,10 @@ const CreateCampaignStep2Page = () => {
     };
   }, [formData, selectedDate, selectedTime, informarData]);
 
+  const handleAutoSave = async () => {
+    // Auto-save implementation
+  };
+
   /**
    * Handles updating local prizes state (called from PrizesModal)
    */
@@ -255,12 +259,6 @@ const CreateCampaignStep2Page = () => {
 
   const handleSavePromotions = (newPromotions: Promotion[]) => {
     setPromotions(newPromotions);
-  };
-
-  const handleSavePrizes = (updatedPrizes: Prize[]) => {
-    setPrizes(updatedPrizes);
-    // Here you could also save to the campaign data if needed
-    // For now, we'll keep it in local state
   };
 
   const handleFinalize = async () => {
@@ -413,6 +411,12 @@ const CreateCampaignStep2Page = () => {
       <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
         <div className="flex items-center justify-center py-12 text-red-500">
           <AlertTriangle className="h-8 w-8 mr-2" />
+          <span>{errorCampaign}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
       {/* Header */}
