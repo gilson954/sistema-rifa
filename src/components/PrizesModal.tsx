@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { Prize } from '../types/promotion';
+import { CampaignAPI } from '../lib/api/campaigns';
 
 interface PrizesModalProps {
   isOpen: boolean;
   onClose: () => void;
   prizes: Prize[];
   onSavePrizes: (prizes: Prize[]) => void;
-  saving?: boolean;
+  campaignId: string;
 }
 
 const PrizesModal: React.FC<PrizesModalProps> = ({
@@ -15,44 +16,161 @@ const PrizesModal: React.FC<PrizesModalProps> = ({
   onClose,
   prizes,
   onSavePrizes,
-  saving = false,
+  campaignId,
 }) => {
   const [prizeName, setPrizeName] = useState('');
   const [localPrizes, setLocalPrizes] = useState<Prize[]>(prizes);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string>('');
 
   // Update local prizes when props change
   React.useEffect(() => {
     setLocalPrizes(prizes);
   }, [prizes]);
 
-  const handleAddPrize = () => {
-    if (prizeName.trim()) {
-      const newPrize: Prize = {
-        id: Date.now().toString(),
-        name: prizeName.trim(),
-      };
+  /**
+   * Validates prize data before saving
+   */
+  const validatePrizeData = (name: string): string | null => {
+    const trimmedName = name.trim();
+    
+    if (!trimmedName) {
+      return 'Nome do prêmio é obrigatório';
+    }
+    
+    if (trimmedName.length < 3) {
+      return 'Nome do prêmio deve ter pelo menos 3 caracteres';
+    }
+    
+    if (trimmedName.length > 200) {
+      return 'Nome do prêmio deve ter no máximo 200 caracteres';
+    }
+    
+    // Check for duplicates
+    const isDuplicate = localPrizes.some(prize => 
+      prize.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+    
+    if (isDuplicate) {
+      return 'Este prêmio já foi adicionado';
+    }
+    
+    return null;
+  };
+
+  /**
+   * Saves prizes to Supabase database
+   */
+  const savePrizesToDatabase = async (updatedPrizes: Prize[]): Promise<boolean> => {
+    if (!campaignId) {
+      console.error('Campaign ID is required for saving prizes');
+      setError('ID da campanha não encontrado');
+      return false;
+    }
+
+    try {
+      setSaving(true);
+      setError('');
       
-      const updatedPrizes = [...localPrizes, newPrize];
-      setLocalPrizes(updatedPrizes);
-      onSavePrizes(updatedPrizes); // Auto-save ao adicionar
-      setPrizeName('');
+      console.log('Saving prizes to database:', {
+        campaignId,
+        prizesCount: updatedPrizes.length,
+        prizes: updatedPrizes
+      });
+
+      // Update campaign with new prizes data
+      const { data, error: updateError } = await CampaignAPI.updateCampaign({
+        id: campaignId,
+        prizes: updatedPrizes
+      });
+
+      if (updateError) {
+        console.error('Supabase update error:', updateError);
+        throw new Error(updateError.message || 'Erro ao salvar prêmios');
+      }
+
+      if (!data) {
+        throw new Error('Nenhum dado retornado do servidor');
+      }
+
+      console.log('Prizes saved successfully:', data);
+      
+      // Update parent component state
+      onSavePrizes(updatedPrizes);
+      
+      return true;
+    } catch (error) {
+      console.error('Error saving prizes:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao salvar prêmios';
+      setError(errorMessage);
+      return false;
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleRemovePrize = (id: string) => {
-    const updatedPrizes = localPrizes.filter(prize => prize.id !== id);
-    setLocalPrizes(updatedPrizes);
-    onSavePrizes(updatedPrizes); // Auto-save ao remover
+  /**
+   * Handles adding a new prize
+   */
+  const handleAddPrize = async () => {
+    // Validate input
+    const validationError = validatePrizeData(prizeName);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    if (prizeName.trim()) {
+      const trimmedName = prizeName.trim();
+      
+      const newPrize: Prize = {
+        id: Date.now().toString(),
+        name: trimmedName,
+      };
+      
+      const updatedPrizes = [...localPrizes, newPrize];
+      
+      // Save to database
+      const success = await savePrizesToDatabase(updatedPrizes);
+      
+      if (success) {
+        setLocalPrizes(updatedPrizes);
+        setPrizeName('');
+        setError('');
+      }
+    }
   };
 
+  /**
+   * Handles removing a prize
+   */
+  const handleRemovePrize = async (id: string) => {
+    const updatedPrizes = localPrizes.filter(prize => prize.id !== id);
+    
+    // Save to database
+    const success = await savePrizesToDatabase(updatedPrizes);
+    
+    if (success) {
+      setLocalPrizes(updatedPrizes);
+      setError('');
+    }
+  };
+
+  /**
+   * Handles Enter key press for quick adding
+   */
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleAddPrize();
     }
   };
 
+  /**
+   * Handles modal close with cleanup
+   */
   const handleCloseModal = () => {
     setPrizeName('');
+    setError('');
     onClose();
   };
 
@@ -76,6 +194,12 @@ const PrizesModal: React.FC<PrizesModalProps> = ({
           Adicione um novo prêmio para a sua campanha
         </p>
 
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-900/20 border border-red-800 rounded-lg p-3 mb-4">
+            <p className="text-red-300 text-sm">{error}</p>
+          </div>
+        )}
         {/* Prize Input */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -87,7 +211,10 @@ const PrizesModal: React.FC<PrizesModalProps> = ({
             onChange={(e) => setPrizeName(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Ex: um celular novo modelo S-20"
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
+            className={`w-full bg-gray-800 border rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200 ${
+              error ? 'border-red-500' : 'border-gray-700'
+            }`}
+            disabled={saving}
           />
         </div>
 
@@ -99,14 +226,6 @@ const PrizesModal: React.FC<PrizesModalProps> = ({
         >
           {saving ? (
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-          ) : (
-            <>
-              <span>Adicionar</span>
-              <Plus className="h-5 w-5" />
-            </>
-          )}
-        </button>
-
         {/* Prizes List */}
         {localPrizes.length > 0 && (
           <div className="border-t border-gray-700 pt-6">
@@ -136,6 +255,15 @@ const PrizesModal: React.FC<PrizesModalProps> = ({
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Success Message */}
+        {localPrizes.length > 0 && !saving && !error && (
+          <div className="mt-4 p-3 bg-green-900/20 border border-green-800 rounded-lg">
+            <p className="text-green-300 text-sm text-center">
+              ✅ {localPrizes.length} prêmio{localPrizes.length !== 1 ? 's' : ''} salvo{localPrizes.length !== 1 ? 's' : ''} com sucesso!
+            </p>
           </div>
         )}
       </div>
