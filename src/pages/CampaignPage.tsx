@@ -226,22 +226,34 @@ const CampaignPage = () => {
                     <span>Suporte</span>
                   </div>
                 )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Promotion Banner */}
-        {campaignData.promotion.active && (
-          <div className="bg-green-500 dark:bg-green-600 text-white rounded-lg p-4 mb-8 transition-colors duration-300">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-lg">🎉</span>
-              </div>
-              <div>
-                <div className="font-semibold">Promoção</div>
-                <div className="text-sm opacity-90">{campaignData.promotion.text}</div>
-              </div>
+        {campaignData.promotions && campaignData.promotions.length > 0 && (
+          <div className="mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {campaignData.promotions.map((promo) => {
+                // Calcular porcentagem de desconto
+                const originalValue = promo.ticketQuantity * campaignData.ticketPrice;
+                const discountPercentage = Math.round(((originalValue - promo.totalValue) / originalValue) * 100);
+                
+                return (
+                  <button
+                    key={promo.id}
+                    onClick={() => handlePromotionClick(promo)}
+                    className="relative bg-gray-900 dark:bg-gray-800 text-white rounded-lg p-4 hover:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 border border-gray-700 dark:border-gray-600 group"
+                  >
+                    {/* Badge de desconto */}
+                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      –{discountPercentage}%
+                    </div>
+                    
+                    {/* Texto principal */}
+                    <div className="text-center">
+                      <div className="text-sm font-semibold">
+                        {promo.ticketQuantity} cotas por {formatCurrency(promo.totalValue)}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
