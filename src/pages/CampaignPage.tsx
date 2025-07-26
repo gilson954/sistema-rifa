@@ -226,6 +226,11 @@ const CampaignPage = () => {
                     <span>Suporte</span>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {campaignData.promotions && campaignData.promotions.length > 0 && (
           <div className="mb-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
