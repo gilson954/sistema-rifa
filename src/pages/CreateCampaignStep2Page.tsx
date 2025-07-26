@@ -207,6 +207,8 @@ const CreateCampaignStep2Page = () => {
     console.log('Local prizes state updated:', updatedPrizes);
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+
   // Função para formatar o valor monetário
   const formatCurrency = (value: string) => {
     const numericValue = value.replace(/\D/g, '');
