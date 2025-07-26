@@ -5,6 +5,11 @@ import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
 import { useCampaign } from '../hooks/useCampaigns';
 
+interface Prize {
+  id: string;
+  name: string;
+}
+
 const CampaignPage = () => {
   const { campaignId } = useParams();
   const location = useLocation();
@@ -13,6 +18,7 @@ const CampaignPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [showPrizesModal, setShowPrizesModal] = useState(false);
 
   const { campaign, loading: campaignLoading } = useCampaign(campaignId || '');
   
@@ -36,7 +42,12 @@ const CampaignPage = () => {
     },
     model: (location.state?.campaignModel || campaign?.campaign_model || 'manual') as 'manual' | 'automatic',
     reservedQuotas: [5, 12, 23, 45, 67, 89, 134, 156, 178, 199], // Mock reserved quotas
-    purchasedQuotas: [1, 3, 8, 15, 22, 34, 56, 78, 91, 123] // Mock purchased quotas
+    purchasedQuotas: [1, 3, 8, 15, 22, 34, 56, 78, 91, 123], // Mock purchased quotas
+    prizes: [
+      { id: '1', name: 'SETUP VIRADA DE GAME 6.0! 💎💎 I9-14900K + RTX 5090 + PS5 + SETUP COMPLETO (SORTEIO)' },
+      { id: '2', name: 'iPhone 15 Pro Max 256GB' },
+      { id: '3', name: 'Notebook Gamer RTX 4060' }
+    ] as Prize[] // Mock prizes data
   };
 
   // Initialize quantity with minimum tickets per purchase
@@ -259,6 +270,19 @@ const CampaignPage = () => {
           </div>
         )}
 
+        {/* Prizes Button */}
+        <div className="flex justify-center mb-8">
+          <button 
+            onClick={() => setShowPrizesModal(true)}
+            className="bg-gray-700 dark:bg-gray-800 hover:bg-gray-600 dark:hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 shadow-md"
+          >
+            <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
+              <span className="text-black text-sm">🏆</span>
+            </div>
+            <span>Prêmios</span>
+          </button>
+        </div>
+
         {/* Purchase Section */}
         <div>
           {campaignData.model === 'manual' ? (
@@ -462,6 +486,63 @@ const CampaignPage = () => {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Prizes Modal */}
+      {showPrizesModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto text-white">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                  <span className="text-black text-lg">🏆</span>
+                </div>
+                <h2 className="text-xl font-semibold">Prêmios</h2>
+              </div>
+              <button
+                onClick={() => setShowPrizesModal(false)}
+                className="p-2 hover:bg-gray-700 rounded-full transition-colors duration-200"
+              >
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            </div>
+
+            <p className="text-gray-400 mb-6">
+              Esses são os prêmios no sorteio <span className="text-white font-semibold">36 - ÚLTIMA AÇÃO! 🏆💎 I9-14900K + RTX 4090 + PS5 + SETUP COMPLETO (SORTEIO)</span>
+            </p>
+
+            {/* Prizes List */}
+            <div className="space-y-4">
+              {campaignData.prizes.map((prize, index) => (
+                <div
+                  key={prize.id}
+                  className="bg-gray-800 rounded-lg p-4 border border-gray-700"
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className="text-2xl font-bold text-blue-400 flex-shrink-0">
+                      {index + 1}°
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm leading-relaxed">
+                        {prize.name}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {campaignData.prizes.length === 0 && (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">🏆</span>
+                </div>
+                <p className="text-gray-400">Nenhum prêmio adicionado ainda</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

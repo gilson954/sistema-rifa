@@ -9,7 +9,14 @@ import { ImageUpload } from '../components/ImageUpload';
 import { useAuth } from '../context/AuthContext';
 
 import PromotionModal from '../components/PromotionModal';
+import PrizesModal from '../components/PrizesModal';
 import { Promotion } from '../types/promotion';
+
+interface Prize {
+  id: string;
+  name: string;
+}
+
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -86,6 +93,8 @@ const CreateCampaignStep2Page = () => {
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showPrizesModal, setShowPrizesModal] = useState(false);
+  const [prizes, setPrizes] = useState<Prize[]>([]);
 
   // Check if coming from Step 1 to hide back button
   useEffect(() => {
@@ -284,6 +293,12 @@ const CreateCampaignStep2Page = () => {
 
   const handleSavePromotions = (newPromotions: Promotion[]) => {
     setPromotions(newPromotions);
+  };
+
+  const handleSavePrizes = (updatedPrizes: Prize[]) => {
+    setPrizes(updatedPrizes);
+    // Here you could also save to the campaign data if needed
+    // For now, we'll keep it in local state
   };
 
   const handleFinalize = async () => {
@@ -663,9 +678,17 @@ const CreateCampaignStep2Page = () => {
               <span className="text-lg">🎫</span>
               <span className="text-xs sm:text-sm font-medium">Cota premiada</span>
             </button>
-            <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            <button 
+              onClick={() => setShowPrizesModal(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+            >
               <span className="text-lg">🏆</span>
               <span className="text-xs sm:text-sm font-medium">Prêmio</span>
+              {prizes.length > 0 && (
+                <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
+                  {prizes.length}
+                </span>
+              )}
             </button>
             <button 
               onClick={handlePromotionClick}
@@ -1310,6 +1333,14 @@ const CreateCampaignStep2Page = () => {
           originalTicketPrice={originalTicketPrice}
         />
       )}
+
+      {/* Prizes Modal */}
+      <PrizesModal
+        isOpen={showPrizesModal}
+        onClose={() => setShowPrizesModal(false)}
+        prizes={prizes}
+        onSavePrizes={handleSavePrizes}
+      />
     </div>
   );
 };
