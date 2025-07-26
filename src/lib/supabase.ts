@@ -58,6 +58,7 @@ export type Database = {
           expires_at: string | null
           prize_image_urls: string[] | null
           promotions: any[] | null
+          prizes: any[] | null
         }
         Insert: {
           id?: string
@@ -78,6 +79,7 @@ export type Database = {
           expires_at?: string | null
           prize_image_urls?: string[] | null
           promotions?: any[] | null
+          prizes?: any[] | null
         }
         Update: {
           id?: string
@@ -98,6 +100,7 @@ export type Database = {
           expires_at?: string | null
           prize_image_urls?: string[] | null
           promotions?: any[] | null
+          prizes?: any[] | null
         }
       }
     }

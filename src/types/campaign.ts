@@ -27,6 +27,7 @@ export interface Campaign {
   created_at: string;
   updated_at: string;
   promotions: Promotion[] | null;
+  prizes: Prize[] | null;
 }
 
 export type CampaignStatus = 'draft' | 'active' | 'completed' | 'cancelled';
@@ -51,12 +52,14 @@ export interface CreateCampaignData {
   campaign_model?: 'manual' | 'automatic';
   prize_image_urls?: string[];
   promotions?: Promotion[];
+  prizes?: Prize[];
 }
 
 export interface UpdateCampaignData extends Partial<CreateCampaignData> {
   id: string;
   prize_image_urls?: string[];
   promotions?: Promotion[];
+  prizes?: Prize[];
 }
 
 export interface CampaignFormData {

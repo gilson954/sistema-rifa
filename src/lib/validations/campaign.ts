@@ -82,6 +82,12 @@ export const createCampaignSchema = z.object({
     .array(z.any())
     .optional()
     .nullable()
+    .default([]),
+  
+  prizes: z
+    .array(z.any())
+    .optional()
+    .nullable()
     .default([])
 }).refine(
   (data) => data.min_tickets_per_purchase <= data.max_tickets_per_purchase,

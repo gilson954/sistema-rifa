@@ -1,16 +1,13 @@
 import React, { useState } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
-
-interface Prize {
-  id: string;
-  name: string;
-}
+import { Prize } from '../types/promotion';
 
 interface PrizesModalProps {
   isOpen: boolean;
   onClose: () => void;
   prizes: Prize[];
   onSavePrizes: (prizes: Prize[]) => void;
+  saving?: boolean;
 }
 
 const PrizesModal: React.FC<PrizesModalProps> = ({
@@ -18,6 +15,7 @@ const PrizesModal: React.FC<PrizesModalProps> = ({
   onClose,
   prizes,
   onSavePrizes,
+  saving = false,
 }) => {
   const [prizeName, setPrizeName] = useState('');
   const [localPrizes, setLocalPrizes] = useState<Prize[]>(prizes);
@@ -36,7 +34,7 @@ const PrizesModal: React.FC<PrizesModalProps> = ({
       
       const updatedPrizes = [...localPrizes, newPrize];
       setLocalPrizes(updatedPrizes);
-      onSavePrizes(updatedPrizes);
+      onSavePrizes(updatedPrizes); // Auto-save ao adicionar
       setPrizeName('');
     }
   };
@@ -44,7 +42,7 @@ const PrizesModal: React.FC<PrizesModalProps> = ({
   const handleRemovePrize = (id: string) => {
     const updatedPrizes = localPrizes.filter(prize => prize.id !== id);
     setLocalPrizes(updatedPrizes);
-    onSavePrizes(updatedPrizes);
+    onSavePrizes(updatedPrizes); // Auto-save ao remover
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -96,11 +94,17 @@ const PrizesModal: React.FC<PrizesModalProps> = ({
         {/* Add Button */}
         <button
           onClick={handleAddPrize}
-          disabled={!prizeName.trim()}
+          disabled={!prizeName.trim() || saving}
           className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center space-x-2 mb-6"
         >
-          <span>Adicionar</span>
-          <Plus className="h-5 w-5" />
+          {saving ? (
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+          ) : (
+            <>
+              <span>Adicionar</span>
+              <Plus className="h-5 w-5" />
+            </>
+          )}
         </button>
 
         {/* Prizes List */}
@@ -123,7 +127,8 @@ const PrizesModal: React.FC<PrizesModalProps> = ({
                   </div>
                   <button
                     onClick={() => handleRemovePrize(prize.id)}
-                    className="p-1 text-red-400 hover:text-red-500 transition-colors duration-200"
+                    disabled={saving}
+                    className="p-1 text-red-400 hover:text-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                     title="Remover prêmio"
                   >
                     <Trash2 className="h-4 w-4" />
