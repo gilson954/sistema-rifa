@@ -413,12 +413,6 @@ const CreateCampaignStep2Page = () => {
       <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
         <div className="flex items-center justify-center py-12 text-red-500">
           <AlertTriangle className="h-8 w-8 mr-2" />
-          <span>{errorCampaign}</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
       {/* Header */}
