@@ -28,7 +28,7 @@ const CreateCampaignStep2Page = () => {
     requireEmail: true,
     showRanking: false,
     minTicketsPerPurchase: 1,
-    maxTicketsPerPurchase: 20000,
+    maxTicketsPerPurchase: 1000,
     initialFilter: 'all' as 'all' | 'available',
     campaignModel: 'automatic' as 'manual' | 'automatic'
   });
@@ -69,7 +69,7 @@ const CreateCampaignStep2Page = () => {
         requireEmail: campaign.require_email ?? true,
         showRanking: campaign.show_ranking ?? false,
         minTicketsPerPurchase: campaign.min_tickets_per_purchase || 1,
-        maxTicketsPerPurchase: campaign.max_tickets_per_purchase || 20000,
+        maxTicketsPerPurchase: campaign.max_tickets_per_purchase || 1000,
         initialFilter: (campaign.initial_filter as 'all' | 'available') || 'all',
         campaignModel: forcedModel
       });
@@ -91,46 +91,12 @@ const CreateCampaignStep2Page = () => {
     }
   }, [campaign, setExistingImages]);
 
-  // Validação dos campos de bilhetes por compra
-  const validateTicketLimits = () => {
-    const newErrors: Record<string, string> = {};
-
-    // Validação do mínimo de bilhetes
-    if (formData.minTicketsPerPurchase <= 0) {
-      newErrors.minTicketsPerPurchase = 'Mínimo deve ser maior que 0';
-    }
-
-    // Validação do máximo de bilhetes
-    if (formData.maxTicketsPerPurchase <= 0) {
-      newErrors.maxTicketsPerPurchase = 'Máximo deve ser maior que 0';
-    }
-
-    // Validação da relação entre mínimo e máximo
-    if (formData.minTicketsPerPurchase > formData.maxTicketsPerPurchase) {
-      newErrors.minTicketsPerPurchase = 'Mínimo não pode ser maior que o máximo';
-    }
-
-    // Validação em relação ao total de cotas da campanha
-    if (campaign?.total_tickets && formData.maxTicketsPerPurchase > campaign.total_tickets) {
-      newErrors.maxTicketsPerPurchase = `Máximo não pode exceder ${campaign.total_tickets.toLocaleString('pt-BR')} cotas`;
-    }
-
-    return newErrors;
-  };
-
   // Auto-save functionality
   const handleAutoSave = async () => {
     if (!campaignId || saving) return;
 
-    // Validar campos antes de salvar
-    const validationErrors = validateTicketLimits();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return; // Não salva se houver erros de validação
-    }
-
     setSaving(true);
-    setErrors({}); // Limpa erros anteriores se validação passou
+    setErrors({});
 
     try {
       // Upload images first if there are any new ones
@@ -657,14 +623,10 @@ const CreateCampaignStep2Page = () => {
                   <input
                     type="number"
                     min="1"
-                    max={formData.maxTicketsPerPurchase}
                     value={formData.minTicketsPerPurchase}
                     onChange={(e) => setFormData({ ...formData, minTicketsPerPurchase: parseInt(e.target.value) || 1 })}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
                   />
-                  {errors.minTicketsPerPurchase && (
-                    <p className="text-red-500 text-sm mt-1">{errors.minTicketsPerPurchase}</p>
-                  )}
                 </div>
                 
                 <div>
@@ -673,15 +635,11 @@ const CreateCampaignStep2Page = () => {
                   </label>
                   <input
                     type="number"
-                    min={formData.minTicketsPerPurchase}
-                    max="20000"
+                    min="1"
                     value={formData.maxTicketsPerPurchase}
-                    onChange={(e) => setFormData({ ...formData, maxTicketsPerPurchase: parseInt(e.target.value) || 20000 })}
+                    onChange={(e) => setFormData({ ...formData, maxTicketsPerPurchase: parseInt(e.target.value) || 1000 })}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
                   />
-                  {errors.maxTicketsPerPurchase && (
-                    <p className="text-red-500 text-sm mt-1">{errors.maxTicketsPerPurchase}</p>
-                  )}
                 </div>
               </div>
             </div>
