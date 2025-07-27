@@ -288,19 +288,6 @@ const CampaignPage = () => {
           </div>
         )}
 
-        {/* Prizes Button */}
-        <div className="flex justify-center mb-8">
-          <button 
-            onClick={() => setShowPrizesModal(true)}
-            className="bg-gray-700 dark:bg-gray-800 hover:bg-gray-600 dark:hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 shadow-md"
-          >
-            <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
-              <span className="text-black text-sm">🏆</span>
-            </div>
-            <span>Prêmios</span>
-          </button>
-        </div>
-
         {/* Purchase Section */}
         <div>
           {campaignData.model === 'manual' ? (
@@ -358,6 +345,19 @@ const CampaignPage = () => {
               />
             </div>
           )}
+        </div>
+
+        {/* Prizes Button */}
+        <div className="flex justify-center mb-8">
+          <button 
+            onClick={() => setShowPrizesModal(true)}
+            className="bg-gray-700 dark:bg-gray-800 hover:bg-gray-600 dark:hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 shadow-md"
+          >
+            <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
+              <span className="text-black text-sm">🏆</span>
+            </div>
+            <span>Prêmios</span>
+          </button>
         </div>
 
         {/* Description Section - REPOSITIONED AFTER PURCHASE SECTION */}
