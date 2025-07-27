@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Shield, Share2, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
 import { useParams, useLocation } from 'react-router-dom';
 import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
 import { useCampaign } from '../hooks/useCampaigns';
+import { Promotion, Prize } from '../types/promotion';
 
 interface Prize {
   id: string;
@@ -59,6 +60,92 @@ const CampaignPage = () => {
     reservedQuotas: campaign?.reserved_quotas || [5, 12, 23, 45, 67, 89, 134, 156, 178, 199],
     purchasedQuotas: campaign?.purchased_quotas || [1, 3, 8, 15, 22, 34, 56, 78, 91, 123],
   };
+
+  // --- SISTEMA DE APLICAÇÃO AUTOMÁTICA DE PROMOÇÕES ---
+
+  /**
+   * Ordena as promoções pela quantidade de bilhetes para definir as faixas de aplicação
+   * Performance: useMemo garante que a ordenação só aconteça quando as promoções mudarem
+   */
+  const sortedPromotions = useMemo(() => {
+    if (!campaignData.promotions || campaignData.promotions.length === 0) {
+      return [];
+    }
+    
+    // Filtra promoções válidas e ordena por quantidade crescente
+    return [...campaignData.promotions]
+      .filter(promo => promo.ticketQuantity > 0 && promo.totalValue > 0)
+      .sort((a, b) => a.ticketQuantity - b.ticketQuantity);
+  }, [campaignData.promotions]);
+
+  /**
+   * Calcula qual promoção deve ser aplicada baseada na quantidade atual de cotas
+   * Regra: Aplica a promoção com maior ticketQuantity que seja <= currentQuantity
+   * 
+   * Exemplo:
+   * - Promoção A: 100 cotas → Aplica de 100 a 299 cotas
+   * - Promoção B: 300 cotas → Aplica de 300 a 10.000.000 cotas
+   */
+  const getApplicablePromotion = useCallback((currentQuantity: number): Promotion | null => {
+    if (!sortedPromotions || sortedPromotions.length === 0 || currentQuantity <= 0) {
+      return null;
+    }
+
+    // Encontra a melhor promoção aplicável
+    let bestPromotion: Promotion | null = null;
+
+    for (const promo of sortedPromotions) {
+      if (currentQuantity >= promo.ticketQuantity) {
+        bestPromotion = promo; // Continua procurando por uma promoção melhor
+      } else {
+        break; // Como está ordenado, não há mais promoções aplicáveis
+      }
+    }
+
+    return bestPromotion;
+  }, [sortedPromotions]);
+
+  /**
+   * Calcula o preço efetivo por bilhete considerando promoções aplicáveis
+   * Este é o preço que será usado em todos os cálculos de total
+   */
+  const effectiveTicketPrice = useMemo(() => {
+    const currentQuantity = campaignData.model === 'automatic' ? quantity : selectedQuotas.length;
+    const applicablePromotion = getApplicablePromotion(currentQuantity);
+
+    if (applicablePromotion) {
+      return applicablePromotion.promotionalPricePerTicket;
+    }
+    
+    return campaignData.ticketPrice;
+  }, [quantity, selectedQuotas.length, campaignData.model, campaignData.ticketPrice, getApplicablePromotion]);
+
+  /**
+   * Calcula informações sobre a promoção aplicada (para exibição na UI)
+   */
+  const promotionInfo = useMemo(() => {
+    const currentQuantity = campaignData.model === 'automatic' ? quantity : selectedQuotas.length;
+    const applicablePromotion = getApplicablePromotion(currentQuantity);
+
+    if (!applicablePromotion) {
+      return null;
+    }
+
+    const originalTotal = currentQuantity * campaignData.ticketPrice;
+    const promotionalTotal = currentQuantity * applicablePromotion.promotionalPricePerTicket;
+    const savings = originalTotal - promotionalTotal;
+    const discountPercentage = Math.round((savings / originalTotal) * 100);
+
+    return {
+      promotion: applicablePromotion,
+      originalTotal,
+      promotionalTotal,
+      savings,
+      discountPercentage
+    };
+  }, [quantity, selectedQuotas.length, campaignData.model, campaignData.ticketPrice, getApplicablePromotion]);
+
+  // --- FIM DO SISTEMA DE PROMOÇÕES ---
 
   // Initialize quantity with minimum tickets per purchase
   React.useEffect(() => {
@@ -252,8 +339,13 @@ const CampaignPage = () => {
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Participe por apenas</span>
                 <span className="font-bold text-lg text-purple-600 dark:text-purple-400">
-                  R$ {campaignData.ticketPrice.toFixed(2).replace('.', ',')}
+                  R$ {effectiveTicketPrice.toFixed(2).replace('.', ',')}
                 </span>
+                {effectiveTicketPrice < campaignData.ticketPrice && (
+                  <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full">
+                    OFERTA
+                  </span>
+                )}
                 <span className="text-lg">🔥</span>
               </div>
             </div>
@@ -309,10 +401,24 @@ const CampaignPage = () => {
           </div>
         </div>
 
+        {/* Indicador de Promoção Ativa */}
+        {promotionInfo && (
+          <div className="mb-8 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+            <div className="flex items-center justify-center space-x-2 text-green-800 dark:text-green-200">
+              <span className="text-lg">🎉</span>
+              <div className="text-center">
+                <div className="font-semibold">Promoção Aplicada!</div>
+                <div className="text-sm">
+                  {promotionInfo.discountPercentage}% de desconto • Economia de {formatCurrency(promotionInfo.savings)}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {campaignData.promotions && campaignData.promotions.length > 0 && (
           <div className="mb-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {campaignData.promotions.map((promo) => {
+              {sortedPromotions.map((promo) => {
                 // Calcular porcentagem de desconto
                 const originalValue = promo.ticketQuantity * campaignData.ticketPrice;
                 const discountPercentage = Math.round(((originalValue - promo.totalValue) / originalValue) * 100);
@@ -375,8 +481,17 @@ const CampaignPage = () => {
                           .map(quota => quota.toString().padStart(campaignData.totalTickets.toString().length, '0'))
                           .join(', ')}
                       </div>
+                      {/* Exibição do preço com promoção aplicada */}
+                      {promotionInfo && effectiveTicketPrice < campaignData.ticketPrice && (
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          <span className="line-through">R$ {(selectedQuotas.length * campaignData.ticketPrice).toFixed(2).replace('.', ',')}</span>
+                          <span className="ml-2 text-green-600 dark:text-green-400 font-medium">
+                            Economia: {formatCurrency(promotionInfo.savings)}
+                          </span>
+                        </div>
+                      )}
                       <div className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                        Total: R$ {(selectedQuotas.length * campaignData.ticketPrice).toFixed(2).replace('.', ',')}
+                        Total: R$ {(selectedQuotas.length * effectiveTicketPrice).toFixed(2).replace('.', ',')}
                       </div>
                       <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold transition-colors duration-200">
                         RESERVAR COTAS SELECIONADAS
@@ -389,12 +504,14 @@ const CampaignPage = () => {
           ) : (
             <div>
               <QuotaSelector
-                ticketPrice={campaignData.ticketPrice}
+                ticketPrice={effectiveTicketPrice}
                 minTicketsPerPurchase={campaignData.minTicketsPerPurchase}
                 maxTicketsPerPurchase={campaignData.maxTicketsPerPurchase}
                 onQuantityChange={handleQuantityChange}
                 initialQuantity={quantity}
                 mode="automatic"
+                promotionInfo={promotionInfo}
+                originalTicketPrice={campaignData.ticketPrice}
               />
             </div>
           )}
