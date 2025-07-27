@@ -160,7 +160,22 @@ const CreateCampaignStep2Page = () => {
         prizes: prizes
       };
 
-      await updateCampaign(payload);
+      const updatedCampaign = await updateCampaign(payload);
+      
+      // Atualizar formData com os dados salvos para evitar reversão
+      if (updatedCampaign) {
+        setFormData(prevFormData => ({
+          ...prevFormData,
+          minTicketsPerPurchase: updatedCampaign.min_tickets_per_purchase || 1,
+          maxTicketsPerPurchase: updatedCampaign.max_tickets_per_purchase || 20000,
+          paymentDeadlineHours: updatedCampaign.payment_deadline_hours || 24,
+          requireEmail: updatedCampaign.require_email ?? true,
+          showRanking: updatedCampaign.show_ranking ?? false,
+          initialFilter: (updatedCampaign.initial_filter as 'all' | 'available') || 'all',
+          campaignModel: updatedCampaign.campaign_model || 'automatic'
+        }));
+      }
+      
       setLastSaved(new Date());
       setHasUnsavedChanges(false);
     } catch (error) {
