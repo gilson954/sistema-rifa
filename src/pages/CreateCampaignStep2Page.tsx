@@ -276,8 +276,51 @@ const CreateCampaignStep2Page = () => {
                     : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                 }`}
               >
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl">🎲</div>
+                <div className="flex items-start space-x-4">
+                  {/* Visual Mockup for Automatic Selection */}
+                  <div className="flex-shrink-0 bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600 shadow-sm">
+                    <div className="w-48 space-y-3">
+                      {/* Header */}
+                      <div className="text-center">
+                        <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          Quantidade de bilhetes
+                        </div>
+                      </div>
+                      
+                      {/* Quick Add Buttons */}
+                      <div className="grid grid-cols-4 gap-1">
+                        {['+1', '+5', '+15', '+150'].map((btn, idx) => (
+                          <div key={idx} className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs py-1 px-2 rounded text-center">
+                            {btn}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Quantity Selector */}
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
+                          <span className="text-xs text-gray-600 dark:text-gray-400">-</span>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm font-medium text-gray-900 dark:text-white">
+                          5
+                        </div>
+                        <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
+                          <span className="text-xs text-gray-600 dark:text-gray-400">+</span>
+                        </div>
+                      </div>
+                      
+                      {/* Total Display */}
+                      <div className="text-center">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Total</div>
+                        <div className="text-sm font-bold text-gray-900 dark:text-white">R$ 5,00</div>
+                      </div>
+                      
+                      {/* Action Button */}
+                      <div className="bg-blue-500 text-white text-xs py-2 px-3 rounded text-center font-medium">
+                        Seleção aleatória
+                      </div>
+                    </div>
+                  </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900 dark:text-white">
                       Sistema escolhe as cotas aleatoriamente
@@ -307,8 +350,66 @@ const CreateCampaignStep2Page = () => {
                     : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                 }`}
               >
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl">🎯</div>
+                <div className="flex items-start space-x-4">
+                  {/* Visual Mockup for Manual Selection */}
+                  <div className="flex-shrink-0 bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600 shadow-sm">
+                    <div className="w-48 space-y-3">
+                      {/* Header */}
+                      <div className="text-center">
+                        <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          Visualização dos bilhetes
+                        </div>
+                      </div>
+                      
+                      {/* Filter Buttons */}
+                      <div className="flex justify-center space-x-1">
+                        <div className="bg-gray-600 text-white text-xs py-1 px-2 rounded">
+                          Todos <span className="bg-gray-500 px-1 rounded">100</span>
+                        </div>
+                        <div className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs py-1 px-2 rounded">
+                          Disponíveis <span className="bg-gray-400 text-white px-1 rounded">95</span>
+                        </div>
+                      </div>
+                      
+                      {/* Numbers Grid */}
+                      <div className="grid grid-cols-8 gap-1">
+                        {Array.from({ length: 32 }, (_, i) => {
+                          const number = i + 1;
+                          const isSelected = [5, 12, 23].includes(number);
+                          const isPurchased = [8, 15].includes(number);
+                          const isReserved = [19, 27].includes(number);
+                          
+                          return (
+                            <div
+                              key={number}
+                              className={`w-5 h-5 text-xs flex items-center justify-center rounded text-white font-medium ${
+                                isSelected
+                                  ? 'bg-blue-500'
+                                  : isPurchased
+                                  ? 'bg-green-500'
+                                  : isReserved
+                                  ? 'bg-orange-500'
+                                  : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                              }`}
+                            >
+                              {number.toString().padStart(2, '0')}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Selection Info */}
+                      <div className="text-center">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Meus N°: 05, 12, 23</div>
+                        <div className="text-sm font-bold text-gray-900 dark:text-white">Total: R$ 3,00</div>
+                      </div>
+                      
+                      {/* Action Button */}
+                      <div className="bg-green-500 text-white text-xs py-2 px-3 rounded text-center font-medium">
+                        Seleção manual
+                      </div>
+                    </div>
+                  </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900 dark:text-white">
                       Cliente escolhe as cotas manualmente
