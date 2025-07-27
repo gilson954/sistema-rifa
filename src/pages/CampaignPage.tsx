@@ -3,10 +3,6 @@ import { Shield, Share2, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-rea
 import { useParams, useLocation } from 'react-router-dom';
 import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
-import CampaignStats from '../components/CampaignStats';
-import CampaignTimer from '../components/CampaignTimer';
-import RecentWinners from '../components/RecentWinners';
-import TrustBadges from '../components/TrustBadges';
 import { useCampaign } from '../hooks/useCampaigns';
 
 interface Prize {
@@ -273,27 +269,6 @@ const CampaignPage = () => {
             </div>
           </div>
         )}
-
-        {/* Campaign Statistics */}
-        <CampaignStats campaign={{
-          total_tickets: campaignData.totalTickets,
-          sold_tickets: campaignData.purchasedQuotas.length,
-          ticket_price: campaignData.ticketPrice,
-          created_at: new Date().toISOString(),
-          status: 'active'
-        }} />
-
-        {/* Campaign Timer */}
-        <CampaignTimer 
-          endDate={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()} // 7 days from now
-          status="active"
-        />
-
-        {/* Recent Winners */}
-        <RecentWinners />
-
-        {/* Trust Badges */}
-        <TrustBadges />
 
         {/* Prizes Button */}
         <div className="flex justify-center mb-8">
