@@ -76,7 +76,7 @@ export const createCampaignSchema = z.object({
   
   campaign_model: z
     .enum(['manual', 'automatic'])
-    .default('manual'),
+    .default('automatic'),
   
   promotions: z
     .array(z.any())

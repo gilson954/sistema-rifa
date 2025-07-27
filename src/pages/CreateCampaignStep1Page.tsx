@@ -237,7 +237,7 @@ const CreateCampaignStep1Page = () => {
         min_tickets_per_purchase: 1,
         max_tickets_per_purchase: 1000,
         initial_filter: 'all' as 'all' | 'available',
-        campaign_model: 'manual' as 'manual' | 'automatic',
+        campaign_model: 'automatic' as 'manual' | 'automatic',
         prize_image_urls: []
       };
 
