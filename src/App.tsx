@@ -61,7 +61,7 @@ function App() {
           }>
             <Route index element={<DashboardPage />} />
             <Route path="create-campaign/step-1" element={<CreateCampaignStep1Page />} />
-            <Route path="create-campaign" element={<CreateCampaignStep1Page />} />
+            <Route path="create-campaign/:campaignId?" element={<CreateCampaignStep1Page />} />
             <Route path="create-campaign/step-2" element={<CreateCampaignStep2Page />} />
             <Route path="create-campaign/step-3" element={<CreateCampaignStep3Page />} />
             <Route path="integrations" element={<PaymentIntegrationsPage />} />

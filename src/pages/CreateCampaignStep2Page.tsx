@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, Upload, Plus, Trash2, Eye, ChevronDown, Gift } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useCampaign, useCampaigns } from '../hooks/useCampaigns';
 import { useImageUpload } from '../hooks/useImageUpload';
 import { ImageUpload } from '../components/ImageUpload';
@@ -12,10 +12,11 @@ import { Promotion, Prize } from '../types/promotion';
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { campaignId: paramsCampaignId } = useParams<{ campaignId: string }>();
   const { updateCampaign } = useCampaigns();
   
   // Extract campaign ID from URL
-  const campaignId = new URLSearchParams(location.search).get('id');
+  const campaignId = new URLSearchParams(location.search).get('id') || paramsCampaignId;
   
   // Fetch campaign data using the hook
   const { campaign, loading: isLoading } = useCampaign(campaignId || '');
@@ -137,7 +138,12 @@ const CreateCampaignStep2Page = () => {
   }, [formData, promotions, prizes, images]);
 
   const handleGoBack = () => {
-    navigate(`/dashboard/create-campaign/step-1`);
+    // Pass the campaignId back to step-1 if it exists
+    if (campaignId) {
+      navigate(`/dashboard/create-campaign/${campaignId}`);
+    } else {
+      navigate(`/dashboard/create-campaign`);
+    }
   };
 
   const handleNext = () => {

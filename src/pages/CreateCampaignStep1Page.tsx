@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, ChevronDown } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useCampaigns } from '../hooks/useCampaigns';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useCampaigns, useCampaign } from '../hooks/useCampaigns';
 import CountryPhoneSelect from '../components/CountryPhoneSelect';
 import PublicationFeesModal from '../components/PublicationFeesModal';
 
@@ -14,7 +14,9 @@ interface Country {
 
 const CreateCampaignStep1Page = () => {
   const navigate = useNavigate();
-  const { createCampaign } = useCampaigns();
+  const { campaignId } = useParams<{ campaignId: string }>();
+  const { campaign, loading: campaignLoading } = useCampaign(campaignId || '');
+  const { createCampaign, updateCampaign } = useCampaigns();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -38,6 +40,61 @@ const CreateCampaignStep1Page = () => {
   const [estimatedRevenue, setEstimatedRevenue] = useState(0);
   const [publicationTax, setPublicationTax] = useState(0);
   const [rawTicketPrice, setRawTicketPrice] = useState(''); // Armazena apenas números
+
+  // Countries data for phone number selection
+  const countries = [
+    { code: 'BR', name: 'Brasil', dialCode: '+55', flag: '🇧🇷' },
+    { code: 'US', name: 'Estados Unidos', dialCode: '+1', flag: '🇺🇸' },
+    { code: 'CA', name: 'Canadá', dialCode: '+1', flag: '🇨🇦' },
+    { code: 'AR', name: 'Argentina', dialCode: '+54', flag: '🇦🇷' },
+    { code: 'CL', name: 'Chile', dialCode: '+56', flag: '🇨🇱' },
+    { code: 'CO', name: 'Colômbia', dialCode: '+57', flag: '🇨🇴' },
+    { code: 'PE', name: 'Peru', dialCode: '+51', flag: '🇵🇪' },
+    { code: 'UY', name: 'Uruguai', dialCode: '+598', flag: '🇺🇾' },
+    { code: 'PY', name: 'Paraguai', dialCode: '+595', flag: '🇵🇾' },
+    { code: 'BO', name: 'Bolívia', dialCode: '+591', flag: '🇧🇴' },
+    { code: 'EC', name: 'Equador', dialCode: '+593', flag: '🇪🇨' },
+    { code: 'VE', name: 'Venezuela', dialCode: '+58', flag: '🇻🇪' },
+    { code: 'MX', name: 'México', dialCode: '+52', flag: '🇲🇽' },
+    { code: 'PT', name: 'Portugal', dialCode: '+351', flag: '🇵🇹' },
+    { code: 'ES', name: 'Espanha', dialCode: '+34', flag: '🇪🇸' }
+  ];
+
+  // Populate form with existing campaign data when editing
+  useEffect(() => {
+    if (campaign && !campaignLoading) {
+      // Convert ticket_price from number (reais) to string (cents) for rawTicketPrice
+      const loadedTicketPriceCents = (campaign.ticket_price * 100).toFixed(0);
+      setRawTicketPrice(loadedTicketPriceCents);
+
+      // Extract phone number parts
+      const phoneNumberParts = campaign.phone_number?.split(' ') || [];
+      const dialCode = phoneNumberParts[0] || '+55';
+      const phoneNumber = phoneNumberParts.slice(1).join(' ') || '';
+
+      // Find matching country
+      const matchingCountry = countries.find(c => c.dialCode === dialCode) || {
+        code: 'BR',
+        name: 'Brasil',
+        dialCode: '+55',
+        flag: '🇧🇷'
+      };
+      setSelectedCountry(matchingCountry);
+
+      // Populate formData
+      setFormData({
+        title: campaign.title,
+        ticketQuantity: campaign.total_tickets.toString(),
+        ticketPrice: formatCurrencyDisplay(loadedTicketPriceCents),
+        drawMethod: campaign.draw_method || '',
+        phoneNumber: phoneNumber,
+        acceptTerms: true // Assume terms are accepted for existing campaigns
+      });
+
+      // Update calculations for existing campaign
+      updateCalculations(loadedTicketPriceCents, campaign.total_tickets.toString());
+    }
+  }, [campaign, campaignLoading]);
 
   // Format currency for display with Brazilian formatting
   const formatCurrencyForDisplay = (value: number): string => {
@@ -220,11 +277,9 @@ const CreateCampaignStep1Page = () => {
     setLoading(true);
 
     try {
-      // Convert price from Brazilian format to number
       const ticketPrice = parseFloat(rawTicketPrice) / 100; // Convert cents to reais
       const ticketQuantity = parseInt(formData.ticketQuantity);
 
-      // Create campaign data
       const campaignData = {
         title: formData.title,
         ticket_price: ticketPrice,
@@ -238,18 +293,24 @@ const CreateCampaignStep1Page = () => {
         max_tickets_per_purchase: 1000,
         initial_filter: 'all' as 'all' | 'available',
         campaign_model: 'automatic' as 'manual' | 'automatic',
-        prize_image_urls: []
+        prize_image_urls: campaign?.prize_image_urls || []
       };
 
-      const campaign = await createCampaign(campaignData);
-      
-      if (campaign) {
-        // Navigate to step 2 with the campaign ID
-        navigate(`/dashboard/create-campaign/step-2?id=${campaign.id}`);
+      let resultCampaign;
+      if (campaignId) {
+        // Update existing campaign
+        resultCampaign = await updateCampaign({ id: campaignId, ...campaignData });
+      } else {
+        // Create new campaign
+        resultCampaign = await createCampaign(campaignData);
+      }
+
+      if (resultCampaign) {
+        navigate(`/dashboard/create-campaign/step-2?id=${resultCampaign.id}`);
       }
     } catch (error) {
-      console.error('Error creating campaign:', error);
-      setErrors({ submit: 'Erro ao criar campanha. Tente novamente.' });
+      console.error('Error processing campaign:', error);
+      setErrors({ submit: 'Erro ao salvar campanha. Tente novamente.' });
     } finally {
       setLoading(false);
     }
@@ -260,10 +321,13 @@ const CreateCampaignStep1Page = () => {
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Criar campanha
+            {campaignId ? 'Editar campanha' : 'Criar campanha'}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Insira os dados de como deseja a sua campanha abaixo, eles poderão ser editados depois
+            {campaignId 
+              ? 'Edite os dados da sua campanha abaixo'
+              : 'Insira os dados de como deseja a sua campanha abaixo, eles poderão ser editados depois'
+            }
           </p>
         </div>
 
@@ -471,7 +535,7 @@ const CreateCampaignStep1Page = () => {
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
             ) : (
               <>
-                <span>Prosseguir</span>
+                <span>{campaignId ? 'Salvar alterações' : 'Prosseguir'}</span>
                 <ArrowRight className="h-5 w-5" />
               </>
             )}
