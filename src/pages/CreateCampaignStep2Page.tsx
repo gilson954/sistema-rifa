@@ -1063,8 +1063,8 @@ const CreateCampaignStep2Page = () => {
                   <option value="+993">🇹🇲 +993</option>
                   <option value="+994">🇦🇿 +994</option>
                   <option value="+995">🇬🇪 +995</option>
-                  <option value="+996">🇰🇬 +996</option>
                   <option value="+998">🇺🇿 +998</option>
+                  <option value="manual">Cliente escolhe as cotas manualmente</option>
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
               </div>
