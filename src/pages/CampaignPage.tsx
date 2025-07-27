@@ -109,14 +109,6 @@ const CampaignPage = () => {
     );
   };
 
-  const handlePromotionClick = (promo: any) => {
-    // Handle promotion click logic here
-  };
-
-  const formatCurrency = (value: number) => {
-    return `R$ ${value.toFixed(2).replace('.', ',')}`;
-  };
-
   const currentImage = campaignData.images[currentImageIndex];
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
@@ -275,16 +267,6 @@ const CampaignPage = () => {
                 );
               })}
             </div>
-          </div>
-        )}
-
-        {/* Description */}
-        {campaignData.description && (
-          <div className="mb-8 bg-white dark:bg-gray-900 rounded-lg p-6 border border-gray-200 dark:border-gray-800 transition-colors duration-300">
-            <div
-              className="text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert"
-              dangerouslySetInnerHTML={{ __html: campaignData.description }}
-            />
           </div>
         )}
 
