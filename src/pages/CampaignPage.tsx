@@ -597,17 +597,6 @@ const CampaignPage = () => {
           </div>
         </div>
       </footer>
-      
-      {/* Custom Scrollbar Styles */}
-      <style jsx>{`
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
     </div>
   );
 };
