@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { useNotifications } from './hooks/useNotifications';
+import NotificationCenter from './components/NotificationCenter';
 import Layout from './components/Layout';
 import DashboardLayout from './components/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -27,9 +29,15 @@ import TutorialsPage from './pages/TutorialsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 
 function App() {
+  const { notifications, removeNotification } = useNotifications();
+
   return (
     <AuthProvider>
       <Router>
+        <NotificationCenter 
+          notifications={notifications}
+          onRemove={removeNotification}
+        />
         <Routes>
           {/* Rotas Públicas */}
           <Route path="/" element={<Layout />}>
