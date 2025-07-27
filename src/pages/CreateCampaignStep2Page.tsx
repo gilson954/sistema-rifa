@@ -40,6 +40,9 @@ const CreateCampaignStep2Page = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  
+  // Check if campaign has more than 10,000 tickets
+  const hasMoreThan10kTickets = campaign?.total_tickets && campaign.total_tickets > 10000;
 
   // Image upload hook
   const {
@@ -56,6 +59,9 @@ const CreateCampaignStep2Page = () => {
   // Load campaign data when component mounts or campaign changes
   useEffect(() => {
     if (campaign) {
+      // Force automatic model if more than 10k tickets
+      const forcedModel = campaign.total_tickets > 10000 ? 'automatic' : campaign.campaign_model || 'automatic';
+      
       setFormData({
         description: campaign.description || '',
         drawDate: campaign.draw_date || '',
@@ -65,7 +71,7 @@ const CreateCampaignStep2Page = () => {
         minTicketsPerPurchase: campaign.min_tickets_per_purchase || 1,
         maxTicketsPerPurchase: campaign.max_tickets_per_purchase || 1000,
         initialFilter: (campaign.initial_filter as 'all' | 'available') || 'all',
-        campaignModel: campaign.campaign_model || 'automatic'
+        campaignModel: forcedModel
       });
 
       // Load existing images
@@ -272,10 +278,30 @@ const CreateCampaignStep2Page = () => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
               Modelo
             </label>
+            
+            {/* Alert message for campaigns with more than 10k tickets */}
+            {hasMoreThan10kTickets && (
+              <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-white text-sm font-bold">!</span>
+                  </div>
+                  <div>
+                    <p className="text-blue-800 dark:text-blue-200 text-sm font-medium mb-1">
+                      Seleção automática obrigatória
+                    </p>
+                    <p className="text-blue-700 dark:text-blue-300 text-sm">
+                      Ao ultrapassar 10.000 cotas, o sistema mudará automaticamente o modelo da campanha para seleção aleatória de cotas.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div className="space-y-3">
               {/* Automatic Model Option */}
               <div
-                onClick={() => setFormData({ ...formData, campaignModel: 'automatic' })}
+                onClick={() => !hasMoreThan10kTickets && setFormData({ ...formData, campaignModel: 'automatic' })}
                 className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
                   formData.campaignModel === 'automatic'
                     ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
@@ -349,11 +375,14 @@ const CreateCampaignStep2Page = () => {
 
               {/* Manual Model Option */}
               <div
-                onClick={() => setFormData({ ...formData, campaignModel: 'manual' })}
+                onClick={() => !hasMoreThan10kTickets && setFormData({ ...formData, campaignModel: 'manual' })}
                 className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                  hasMoreThan10kTickets
+                    ? 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 opacity-50 cursor-not-allowed'
+                    : 
                   formData.campaignModel === 'manual'
                     ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 cursor-pointer'
                 }`}
               >
                 <div className="flex items-start space-x-4">
@@ -420,17 +449,36 @@ const CreateCampaignStep2Page = () => {
                     <h3 className="font-semibold text-gray-900 dark:text-white">
                       Cliente escolhe as cotas manualmente
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      O cliente visualiza todas as cotas e escolhe quais quer comprar
+                    <p className={`text-sm ${
+                      hasMoreThan10kTickets 
+                        ? 'text-gray-400 dark:text-gray-500' 
+                        : 'text-gray-600 dark:text-gray-400'
+                    }`}>
+                      {hasMoreThan10kTickets 
+                        ? 'Indisponível para campanhas com mais de 10.000 cotas'
+                        : 'O cliente visualiza todas as cotas e escolhe quais quer comprar'
+                      }
                     </p>
+                    {hasMoreThan10kTickets && (
+                      <div className="mt-2 text-xs text-red-600 dark:text-red-400 font-medium">
+                        Desabilitado automaticamente
+                      </div>
+                    )}
                   </div>
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    formData.campaignModel === 'manual'
+                    formData.campaignModel === 'manual' && !hasMoreThan10kTickets
                       ? 'border-purple-500 bg-purple-500'
+                      : hasMoreThan10kTickets
+                      ? 'border-gray-400 dark:border-gray-600 bg-gray-200 dark:bg-gray-700'
                       : 'border-gray-300 dark:border-gray-600'
                   }`}>
-                    {formData.campaignModel === 'manual' && (
+                    {formData.campaignModel === 'manual' && !hasMoreThan10kTickets && (
                       <div className="w-2 h-2 bg-white rounded-full"></div>
+                    )}
+                    {hasMoreThan10kTickets && (
+                      <div className="w-3 h-3 flex items-center justify-center">
+                        <span className="text-gray-500 dark:text-gray-400 text-xs">✕</span>
+                      </div>
                     )}
                   </div>
                 </div>
