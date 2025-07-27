@@ -1,27 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, Upload, Plus, Trash2, Eye, ChevronDown, Gift } from 'lucide-react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { useCampaigns } from '../hooks/useCampaigns';
+import { useCampaign, useCampaigns } from '../hooks/useCampaigns';
 import { useImageUpload } from '../hooks/useImageUpload';
 import { ImageUpload } from '../components/ImageUpload';
 import RichTextEditor from '../components/RichTextEditor';
 import PromotionModal from '../components/PromotionModal';
 import PrizesModal from '../components/PrizesModal';
 import { Promotion, Prize } from '../types/promotion';
-import { Campaign } from '../types/campaign';
 
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { campaignId: paramsCampaignId } = useParams<{ campaignId: string }>();
-  const { campaigns, loading: campaignsLoading, updateCampaign } = useCampaigns();
+  const { updateCampaign } = useCampaigns();
   
   // Extract campaign ID from URL
   const campaignId = new URLSearchParams(location.search).get('id') || paramsCampaignId;
   
-  // Local state for current campaign and loading
-  const [currentCampaign, setCurrentCampaign] = useState<Campaign | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Fetch campaign data using the hook
+  const { campaign, loading: isLoading } = useCampaign(campaignId || '');
 
   const [formData, setFormData] = useState({
     description: '',
@@ -45,7 +43,7 @@ const CreateCampaignStep2Page = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   // Check if campaign has more than 10,000 tickets
-  const hasMoreThan10kTickets = currentCampaign?.total_tickets && currentCampaign.total_tickets > 10000;
+  const hasMoreThan10kTickets = campaign?.total_tickets && campaign.total_tickets > 10000;
 
   // Image upload hook
   const {
@@ -59,54 +57,43 @@ const CreateCampaignStep2Page = () => {
     setExistingImages
   } = useImageUpload();
 
-  // Find and set current campaign from campaigns array
-  useEffect(() => {
-    if (!campaignsLoading && campaigns && campaignId) {
-      const foundCampaign = campaigns.find(c => c.id === campaignId);
-      setCurrentCampaign(foundCampaign || null);
-      setIsLoading(false);
-    } else if (!campaignsLoading && !campaigns) {
-      setIsLoading(false);
-    }
-  }, [campaigns, campaignsLoading, campaignId]);
-
   // Load campaign data when component mounts or campaign changes
   useEffect(() => {
-    if (currentCampaign) {
+    if (campaign) {
       // Force automatic model if more than 10k tickets
-      const forcedModel = currentCampaign.total_tickets > 10000 ? 'automatic' : currentCampaign.campaign_model || 'automatic';
+      const forcedModel = campaign.total_tickets > 10000 ? 'automatic' : campaign.campaign_model || 'automatic';
       
       setFormData({
-        description: currentCampaign.description || '',
-        drawDate: currentCampaign.draw_date || '',
-        paymentDeadlineHours: currentCampaign.payment_deadline_hours || 24,
-        requireEmail: currentCampaign.require_email ?? true,
-        showRanking: currentCampaign.show_ranking ?? false,
-        minTicketsPerPurchase: currentCampaign.min_tickets_per_purchase || 1,
-        maxTicketsPerPurchase: currentCampaign.max_tickets_per_purchase || 20000,
-        initialFilter: (currentCampaign.initial_filter as 'all' | 'available') || 'all',
+        description: campaign.description || '',
+        drawDate: campaign.draw_date || '',
+        paymentDeadlineHours: campaign.payment_deadline_hours || 24,
+        requireEmail: campaign.require_email ?? true,
+        showRanking: campaign.show_ranking ?? false,
+        minTicketsPerPurchase: campaign.min_tickets_per_purchase || 1,
+        maxTicketsPerPurchase: campaign.max_tickets_per_purchase || 20000,
+        initialFilter: (campaign.initial_filter as 'all' | 'available') || 'all',
         campaignModel: forcedModel
       });
 
       // Load existing images
-      if (currentCampaign.prize_image_urls && currentCampaign.prize_image_urls.length > 0) {
-        setExistingImages(currentCampaign.prize_image_urls);
+      if (campaign.prize_image_urls && campaign.prize_image_urls.length > 0) {
+        setExistingImages(campaign.prize_image_urls);
       }
 
       // Load existing promotions
-      if (currentCampaign.promotions) {
-        setPromotions(currentCampaign.promotions as Promotion[]);
+      if (campaign.promotions) {
+        setPromotions(campaign.promotions as Promotion[]);
       }
 
       // Load existing prizes
-      if (currentCampaign.prizes) {
-        setPrizes(currentCampaign.prizes as Prize[]);
+      if (campaign.prizes) {
+        setPrizes(campaign.prizes as Prize[]);
       }
 
       // Reset unsaved changes flag when loading campaign data
       setHasUnsavedChanges(false);
     }
-  }, [currentCampaign, setExistingImages]);
+  }, [campaign, setExistingImages]);
 
   // Validação dos campos de bilhetes por compra
   const validateTicketLimits = () => {
@@ -128,8 +115,8 @@ const CreateCampaignStep2Page = () => {
     }
 
     // Validação em relação ao total de cotas da campanha
-    if (currentCampaign?.total_tickets && formData.maxTicketsPerPurchase > currentCampaign.total_tickets) {
-      newErrors.maxTicketsPerPurchase = `Máximo não pode exceder ${currentCampaign.total_tickets.toLocaleString('pt-BR')} cotas`;
+    if (campaign?.total_tickets && formData.maxTicketsPerPurchase > campaign.total_tickets) {
+      newErrors.maxTicketsPerPurchase = `Máximo não pode exceder ${campaign.total_tickets.toLocaleString('pt-BR')} cotas`;
     }
 
     return newErrors;
@@ -153,7 +140,7 @@ const CreateCampaignStep2Page = () => {
       // Upload images first if there are any new ones
       let imageUrls: string[] = [];
       if (images.length > 0) {
-        imageUrls = await uploadImages(currentCampaign?.user_id || '');
+        imageUrls = await uploadImages(campaign?.user_id || '');
       }
 
       // Prepare update payload
@@ -168,12 +155,26 @@ const CreateCampaignStep2Page = () => {
         max_tickets_per_purchase: formData.maxTicketsPerPurchase,
         initial_filter: formData.initialFilter,
         campaign_model: formData.campaignModel,
-        prize_image_urls: imageUrls.length > 0 ? imageUrls : currentCampaign?.prize_image_urls || [],
+        prize_image_urls: imageUrls.length > 0 ? imageUrls : campaign?.prize_image_urls || [],
         promotions: promotions,
         prizes: prizes
       };
 
       const updatedCampaign = await updateCampaign(payload);
+      
+      // Atualizar formData com os dados salvos para evitar reversão
+      if (updatedCampaign) {
+        setFormData(prevFormData => ({
+          ...prevFormData,
+          minTicketsPerPurchase: updatedCampaign.min_tickets_per_purchase || 1,
+          maxTicketsPerPurchase: updatedCampaign.max_tickets_per_purchase || 20000,
+          paymentDeadlineHours: updatedCampaign.payment_deadline_hours || 24,
+          requireEmail: updatedCampaign.require_email ?? true,
+          showRanking: updatedCampaign.show_ranking ?? false,
+          initialFilter: (updatedCampaign.initial_filter as 'all' | 'available') || 'all',
+          campaignModel: updatedCampaign.campaign_model || 'automatic'
+        }));
+      }
       
       setLastSaved(new Date());
       setHasUnsavedChanges(false);
@@ -209,7 +210,7 @@ const CreateCampaignStep2Page = () => {
     navigate(`/c/${campaignId}`, {
       state: {
         previewData: {
-          ...currentCampaign,
+          ...campaign,
           description: formData.description,
           campaignModel: formData.campaignModel,
           promotions: promotions,
@@ -235,7 +236,7 @@ const CreateCampaignStep2Page = () => {
     setHasUnsavedChanges(true);
   };
 
-  if (isLoading || campaignsLoading) {
+  if (isLoading) {
     return (
       <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
         <div className="flex items-center justify-center py-12">
@@ -245,7 +246,7 @@ const CreateCampaignStep2Page = () => {
     );
   }
 
-  if (!currentCampaign) {
+  if (!campaign) {
     return (
       <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
         <div className="text-center py-12">
@@ -272,7 +273,7 @@ const CreateCampaignStep2Page = () => {
                 Editar campanha
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
-                {currentCampaign.title}
+                {campaign.title}
               </p>
             </div>
           </div>
@@ -566,7 +567,7 @@ const CreateCampaignStep2Page = () => {
             {promotions.length > 0 ? (
               <div className="grid gap-3">
                 {promotions.map((promo) => {
-                  const originalValue = promo.ticketQuantity * (currentCampaign?.ticket_price || 0);
+                  const originalValue = promo.ticketQuantity * (campaign?.ticket_price || 0);
                   const discountPercentage = Math.round(((originalValue - promo.totalValue) / originalValue) * 100);
                   
                   return (
@@ -764,8 +765,8 @@ const CreateCampaignStep2Page = () => {
         onClose={() => setShowPromotionModal(false)}
         onSavePromotions={handleSavePromotions}
         initialPromotions={promotions}
-        originalTicketPrice={currentCampaign?.ticket_price || 0}
-        campaignTotalTickets={currentCampaign?.total_tickets || 0}
+        originalTicketPrice={campaign?.ticket_price || 0}
+        campaignTotalTickets={campaign?.total_tickets || 0}
       />
 
       <PrizesModal
