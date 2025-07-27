@@ -20,11 +20,11 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
 }) => {
   const [ticketQuantity, setTicketQuantity] = useState<string>('');
   const [totalValueInput, setTotalValueInput] = useState<string>('');
-  const [promotions, setPromotions] = useState<Promotion[]>(initialPromotions);
+  const [localPromotions, setLocalPromotions] = useState<Promotion[]>(initialPromotions);
   const [validationError, setValidationError] = useState<string>('');
 
   useEffect(() => {
-    setPromotions(initialPromotions);
+    setLocalPromotions(initialPromotions);
   }, [initialPromotions]);
 
   // Parse values for calculations
@@ -72,7 +72,9 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
         promotionalPricePerTicket: parsedTotalValue / parsedQuantity,
       };
       
-      setPromotions(prev => [...prev, newPromotion]);
+      const updatedPromotions = [...localPromotions, newPromotion];
+      setLocalPromotions(updatedPromotions);
+      onSavePromotions(updatedPromotions); // Auto-save ao adicionar
       setTicketQuantity('');
       setTotalValueInput('');
       setValidationError('');
@@ -80,7 +82,15 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
   };
 
   const handleDeletePromotion = (id: string) => {
-    setPromotions(prev => prev.filter(promo => promo.id !== id));
+    const updatedPromotions = localPromotions.filter(promotion => promotion.id !== id);
+    setLocalPromotions(updatedPromotions);
+    onSavePromotions(updatedPromotions); // Auto-save ao remover
+  };
+
+  const handleSaveAndClose = () => {
+    // Garante que a lista final seja salva antes de fechar
+    onSavePromotions(localPromotions);
+    handleCloseModal();
   };
 
   const handleCloseModal = () => {
@@ -179,20 +189,20 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
 
         {/* Save Button */}
         <button
-          onClick={handleCloseModal}
+          onClick={handleSaveAndClose}
           className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center space-x-2 mb-6"
         >
           <span>Salvar</span>
         </button>
 
         {/* Promotions List */}
-        {promotions.length > 0 && (
+        {localPromotions.length > 0 && (
           <div className="border-t border-gray-700 pt-6">
             <h3 className="text-lg font-semibold text-gray-300 mb-4">
               Promoções criadas
             </h3>
             <div className="space-y-3 max-h-60 overflow-y-auto">
-              {promotions.map((promo) => (
+              {localPromotions.map((promo) => (
                 <div
                   key={promo.id}
                   className="flex items-center justify-between bg-gray-800 p-3 rounded-lg"
