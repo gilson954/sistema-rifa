@@ -51,7 +51,7 @@ const CampaignPage = () => {
     maxTicketsPerPurchase: location.state?.previewData?.max_tickets_per_purchase || campaign?.max_tickets_per_purchase || 1000,
     drawMethod: location.state?.previewData?.draw_method || campaign?.draw_method || 'Loteria Federal',
     organizer: {
-      name: campaign?.user_id ? 'Organizador' : 'Gilson', // Placeholder, ideally fetch organizer name
+      name: campaign?.organizer_name || 'Organizador', // Use the fetched organizer name with fallback
       verified: true
     },
     model: (location.state?.previewData?.campaign_model || campaign?.campaign_model || 'manual') as 'manual' | 'automatic',

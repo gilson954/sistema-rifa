@@ -90,11 +90,27 @@ export class CampaignAPI {
     try {
       const { data, error } = await supabase
         .from('campaigns')
-        .select('*')
+        .select(`
+          *,
+          profiles (
+            name
+          )
+        `)
         .eq('id', id)
         .single();
 
-      return { data, error };
+      // Adapta o formato dos dados para incluir o nome do organizador diretamente
+      if (data && data.profiles) {
+        // Cria um novo objeto Campaign com o nome do organizador no nível superior
+        const campaignWithOrganizerName = {
+          ...data,
+          organizer_name: data.profiles.name, // Adiciona o nome do organizador
+          profiles: undefined // Remove o objeto profiles aninhado
+        };
+        return { data: campaignWithOrganizerName as Campaign, error: null };
+      }
+
+      return { data: data as Campaign, error };
     } catch (error) {
       console.error('Error fetching campaign:', error);
       return { data: null, error };
