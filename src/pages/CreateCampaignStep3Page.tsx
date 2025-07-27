@@ -24,7 +24,7 @@ const CreateCampaignStep3Page = () => {
   };
 
   const handleGoBack = () => {
-    navigate('/dashboard/create-campaign/step-2');
+    navigate(`/dashboard/create-campaign/step-2?id=${campaignId}`);
   };
 
   const handleEdit = () => {
