@@ -356,21 +356,6 @@ const CampaignPage = () => {
                 initialQuantity={quantity}
                 mode="automatic"
               />
-              
-              {/* Contador para modo automático */}
-              <div className="mt-6 text-center">
-                <div className="text-center">
-                  <div className="text-sm text-blue-600 dark:text-blue-400 mb-1">Cotas selecionadas</div>
-                  <div className="text-lg font-bold text-blue-700 dark:text-blue-300 mb-2">
-                    {selectedQuotas.length} cota{selectedQuotas.length !== 1 ? 's' : ''}
-                  </div>
-                  <div className="text-sm text-blue-600 dark:text-blue-400 mb-3">
-                    <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {quantity}/{campaignData.totalTickets}
-                    </span>
-                  </div>
-                </div>
-              </div>
             </div>
           )}
         </div>
