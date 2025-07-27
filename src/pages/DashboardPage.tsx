@@ -413,7 +413,7 @@ const DashboardPage = () => {
                     </div>
                   </div>
                 ))}
-                ) : (
+                )) : (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Search className="h-8 w-8 text-gray-400" />
@@ -443,7 +443,7 @@ const DashboardPage = () => {
         />
 
         {/* Campaign Cleanup Status - Only show for admin users or in development */}
-        {import.meta.env.DEV && (
+        {(import.meta.env.DEV || user?.user_metadata?.is_admin) && (
           <CampaignCleanupStatus className="mt-8" />
         )}
 
