@@ -70,7 +70,7 @@ const CreateCampaignStep2Page = () => {
     ticketPrice: '1,00',
     drawLocation: '',
     phoneNumber: '',
-    model: 'manual' as 'manual' | 'automatic',
+    model: 'automatic' as 'manual' | 'automatic',
     description: '',
     minQuantity: 1,
     maxQuantity: 200000,
