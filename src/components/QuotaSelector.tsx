@@ -9,6 +9,14 @@ interface PromotionInfo {
   discountPercentage: number;
 }
 
+interface PromotionInfo {
+  promotion: any;
+  originalTotal: number;
+  promotionalTotal: number;
+  savings: number;
+  discountPercentage: number;
+}
+
 interface QuotaSelectorProps {
   ticketPrice: number;
   minTicketsPerPurchase: number;
@@ -82,6 +90,13 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     return (quantity * ticketPrice).toFixed(2).replace('.', ',');
   };
 
+  const formatCurrency = (value: number) => {
+    return `R$ ${value.toFixed(2).replace('.', ',')}`;
+  };
+
+  const formatCurrency = (value: number) => {
+    return `R$ ${value.toFixed(2).replace('.', ',')}`;
+  };
   if (mode === 'manual') {
     return null; // Manual mode uses the quota grid for selection
   }
