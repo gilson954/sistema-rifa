@@ -26,8 +26,6 @@ interface QuotaSelectorProps {
   mode: 'manual' | 'automatic';
   promotionInfo?: PromotionInfo | null;
   originalTicketPrice?: number;
-  promotionInfo?: PromotionInfo | null;
-  originalTicketPrice?: number;
 }
 
 const QuotaSelector: React.FC<QuotaSelectorProps> = ({
@@ -37,8 +35,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   onQuantityChange,
   initialQuantity = 1,
   mode,
-  promotionInfo,
-  originalTicketPrice
   promotionInfo,
   originalTicketPrice
 }) => {
