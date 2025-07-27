@@ -669,21 +669,12 @@ const CreateCampaignStep2Page = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-6">
-            <button
-              onClick={handlePreview}
-              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center space-x-2"
-            >
-              <Eye className="h-5 w-5" />
-              <span>Visualizar</span>
-            </button>
-            
+          <div className="flex justify-center pt-6">
             <button
               onClick={handleNext}
-              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center space-x-2"
+              className="bg-purple-600 hover:bg-purple-700 text-white py-3 px-8 rounded-lg font-semibold transition-colors duration-200"
             >
-              <span>Continuar</span>
-              <ArrowRight className="h-5 w-5" />
+              Salvar alterações
             </button>
           </div>
         </div>
