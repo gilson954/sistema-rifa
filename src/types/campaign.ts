@@ -28,7 +28,6 @@ export interface Campaign {
   updated_at: string;
   promotions: Promotion[] | null;
   prizes: Prize[] | null;
-  organizer_name?: string | null;
 }
 
 export type CampaignStatus = 'draft' | 'active' | 'completed' | 'cancelled';
