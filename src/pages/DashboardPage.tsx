@@ -12,12 +12,15 @@ import {
   Edit,
   Trash2,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  Filter,
+  Search
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
 import CampaignCleanupStatus from '../components/CampaignCleanupStatus';
+import AdvancedFilters from '../components/AdvancedFilters';
 
 /**
  * Utility function to calculate time remaining until expiration
@@ -47,6 +50,15 @@ const getTimeRemaining = (expiresAt: string) => {
 const DashboardPage = () => {
   const [showRevenue, setShowRevenue] = useState(false);
   const [displayPaymentSetupCard, setDisplayPaymentSetupCard] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    priceRange: { min: 0, max: 1000 },
+    ticketRange: { min: 0, max: 10000 },
+    status: [],
+    sortBy: 'newest',
+    searchTerm: ''
+  });
   const navigate = useNavigate();
   const { campaigns, loading: campaignsLoading, deleteCampaign } = useCampaigns();
 
@@ -128,6 +140,51 @@ const DashboardPage = () => {
     }
   };
 
+  // Filter and search campaigns
+  const filteredCampaigns = campaigns?.filter(campaign => {
+    // Search filter
+    if (searchTerm && !campaign.title.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+    
+    // Status filter
+    if (filters.status.length > 0 && !filters.status.includes(campaign.status)) {
+      return false;
+    }
+    
+    // Price range filter
+    if (campaign.ticket_price < filters.priceRange.min || campaign.ticket_price > filters.priceRange.max) {
+      return false;
+    }
+    
+    // Ticket range filter
+    if (campaign.total_tickets < filters.ticketRange.min || campaign.total_tickets > filters.ticketRange.max) {
+      return false;
+    }
+    
+    return true;
+  }).sort((a, b) => {
+    switch (filters.sortBy) {
+      case 'newest':
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      case 'oldest':
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case 'price_low':
+        return a.ticket_price - b.ticket_price;
+      case 'price_high':
+        return b.ticket_price - a.ticket_price;
+      case 'tickets_low':
+        return a.total_tickets - b.total_tickets;
+      case 'tickets_high':
+        return b.total_tickets - a.total_tickets;
+      case 'progress':
+        const progressA = (a.sold_tickets / a.total_tickets) * 100;
+        const progressB = (b.sold_tickets / b.total_tickets) * 100;
+        return progressB - progressA;
+      default:
+        return 0;
+    }
+  }) || [];
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 sm:p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300 min-h-[calc(100vh-200px)]">
       <div className="space-y-6">
@@ -203,9 +260,34 @@ const DashboardPage = () => {
         {/* Campaigns List */}
         {campaigns && campaigns.length > 0 && (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Minhas Campanhas
-            </h3>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Minhas Campanhas ({campaigns.length})
+              </h3>
+              
+              <div className="flex items-center space-x-3 w-full sm:w-auto">
+                {/* Search */}
+                <div className="relative flex-1 sm:flex-initial">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Buscar campanhas..."
+                    className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 w-full sm:w-64"
+                  />
+                </div>
+                
+                {/* Advanced Filters Button */}
+                <button
+                  onClick={() => setShowFilters(true)}
+                  className="flex items-center space-x-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+                >
+                  <Filter className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Filtros</span>
+                </button>
+              </div>
+            </div>
             
             {campaignsLoading ? (
               <div className="flex items-center justify-center py-8">
@@ -213,7 +295,7 @@ const DashboardPage = () => {
               </div>
             ) : (
               <div className="grid gap-4">
-                {campaigns.map((campaign: Campaign) => (
+                {filteredCampaigns.length > 0 ? filteredCampaigns.map((campaign: Campaign) => (
                   <div
                     key={campaign.id}
                     className={`rounded-lg p-4 border hover:shadow-md transition-all duration-200 ${
@@ -331,10 +413,34 @@ const DashboardPage = () => {
                     </div>
                   </div>
                 ))}
+                )) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Search className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                      Nenhuma campanha encontrada
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      Tente ajustar os filtros de busca ou criar uma nova campanha.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
         )}
+
+        {/* Advanced Filters Modal */}
+        <AdvancedFilters
+          isOpen={showFilters}
+          onClose={() => setShowFilters(false)}
+          onApplyFilters={(newFilters) => {
+            setFilters(newFilters);
+            setSearchTerm(newFilters.searchTerm);
+          }}
+          initialFilters={filters}
+        />
 
         {/* Campaign Cleanup Status - Only show for admin users or in development */}
         {(import.meta.env.DEV || user?.user_metadata?.is_admin) && (
