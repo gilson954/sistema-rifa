@@ -40,7 +40,6 @@ const CreateCampaignStep2Page = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   // Check if campaign has more than 10,000 tickets
   const hasMoreThan10kTickets = campaign?.total_tickets && campaign.total_tickets > 10000;
@@ -89,9 +88,6 @@ const CreateCampaignStep2Page = () => {
       if (campaign.prizes) {
         setPrizes(campaign.prizes as Prize[]);
       }
-
-      // Reset unsaved changes flag when loading campaign data
-      setHasUnsavedChanges(false);
     }
   }, [campaign, setExistingImages]);
 
@@ -122,8 +118,8 @@ const CreateCampaignStep2Page = () => {
     return newErrors;
   };
 
-  // Manual save functionality
-  const handleSaveChanges = async () => {
+  // Auto-save functionality
+  const handleAutoSave = async () => {
     if (!campaignId || saving) return;
 
     // Validar campos antes de salvar
@@ -162,7 +158,6 @@ const CreateCampaignStep2Page = () => {
 
       await updateCampaign(payload);
       setLastSaved(new Date());
-      setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Error saving campaign:', error);
       setErrors({ submit: 'Erro ao salvar alterações. Tente novamente.' });
@@ -170,6 +165,17 @@ const CreateCampaignStep2Page = () => {
       setSaving(false);
     }
   };
+
+  // Auto-save when form data changes (debounced)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (campaignId && campaign) {
+        handleAutoSave();
+      }
+    }, 1000); // 1 second delay
+
+    return () => clearTimeout(timeoutId);
+  }, [formData, promotions, prizes, images]);
 
   const handleGoBack = () => {
     // Pass the campaignId back to step-1 if it exists
@@ -180,14 +186,8 @@ const CreateCampaignStep2Page = () => {
     }
   };
 
-  const handleSaveAndContinue = async () => {
-    // Save changes first
-    await handleSaveChanges();
-    
-    // Only navigate if save was successful (no errors)
-    if (Object.keys(errors).length === 0) {
-      navigate(`/dashboard/create-campaign/step-3?id=${campaignId}`);
-    }
+  const handleNext = () => {
+    navigate(`/dashboard/create-campaign/step-3?id=${campaignId}`);
   };
 
   const handlePreview = () => {
@@ -207,18 +207,10 @@ const CreateCampaignStep2Page = () => {
 
   const handleSavePromotions = (newPromotions: Promotion[]) => {
     setPromotions(newPromotions);
-    setHasUnsavedChanges(true);
   };
 
   const handleSavePrizes = (newPrizes: Prize[]) => {
     setPrizes(newPrizes);
-    setHasUnsavedChanges(true);
-  };
-
-  // Track changes in form data
-  const handleFormDataChange = (newFormData: typeof formData) => {
-    setFormData(newFormData);
-    setHasUnsavedChanges(true);
   };
 
   if (isLoading) {
@@ -268,18 +260,12 @@ const CreateCampaignStep2Page = () => {
             {saving && (
               <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                <span className="text-sm">Salvando alterações...</span>
+                <span className="text-sm">Salvando...</span>
               </div>
             )}
             {lastSaved && !saving && (
               <span className="text-sm text-green-600 dark:text-green-400">
                 Salvo às {lastSaved.toLocaleTimeString()}
-              </span>
-            )}
-            {hasUnsavedChanges && !saving && (
-              <span className="text-sm text-orange-600 dark:text-orange-400 flex items-center space-x-1">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <span>Alterações não salvas</span>
               </span>
             )}
           </div>
@@ -315,7 +301,7 @@ const CreateCampaignStep2Page = () => {
             </label>
             <RichTextEditor
               value={formData.description}
-              onChange={(value) => handleFormDataChange({ ...formData, description: value })}
+              onChange={(value) => setFormData({ ...formData, description: value })}
               placeholder="Digite a descrição da sua campanha..."
               error={errors.description}
             />
@@ -349,7 +335,7 @@ const CreateCampaignStep2Page = () => {
             <div className="space-y-3">
               {/* Automatic Model Option */}
               <div
-                onClick={() => !hasMoreThan10kTickets && handleFormDataChange({ ...formData, campaignModel: 'automatic' })}
+                onClick={() => !hasMoreThan10kTickets && setFormData({ ...formData, campaignModel: 'automatic' })}
                 className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
                   formData.campaignModel === 'automatic'
                     ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
@@ -423,7 +409,7 @@ const CreateCampaignStep2Page = () => {
 
               {/* Manual Model Option */}
               <div
-                onClick={() => !hasMoreThan10kTickets && handleFormDataChange({ ...formData, campaignModel: 'manual' })}
+                onClick={() => !hasMoreThan10kTickets && setFormData({ ...formData, campaignModel: 'manual' })}
                 className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
                   hasMoreThan10kTickets
                     ? 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 opacity-50 cursor-not-allowed'
@@ -657,7 +643,7 @@ const CreateCampaignStep2Page = () => {
                   min="1"
                   max="168"
                   value={formData.paymentDeadlineHours}
-                  onChange={(e) => handleFormDataChange({ ...formData, paymentDeadlineHours: parseInt(e.target.value) || 24 })}
+                  onChange={(e) => setFormData({ ...formData, paymentDeadlineHours: parseInt(e.target.value) || 24 })}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
                 />
               </div>
@@ -673,7 +659,7 @@ const CreateCampaignStep2Page = () => {
                     min="1"
                     max={formData.maxTicketsPerPurchase}
                     value={formData.minTicketsPerPurchase}
-                    onChange={(e) => handleFormDataChange({ ...formData, minTicketsPerPurchase: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => setFormData({ ...formData, minTicketsPerPurchase: parseInt(e.target.value) || 1 })}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
                   />
                   {errors.minTicketsPerPurchase && (
@@ -690,7 +676,7 @@ const CreateCampaignStep2Page = () => {
                     min={formData.minTicketsPerPurchase}
                     max="20000"
                     value={formData.maxTicketsPerPurchase}
-                    onChange={(e) => handleFormDataChange({ ...formData, maxTicketsPerPurchase: parseInt(e.target.value) || 20000 })}
+                    onChange={(e) => setFormData({ ...formData, maxTicketsPerPurchase: parseInt(e.target.value) || 20000 })}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
                   />
                   {errors.maxTicketsPerPurchase && (
@@ -706,7 +692,7 @@ const CreateCampaignStep2Page = () => {
                 <input
                   type="checkbox"
                   checked={formData.requireEmail}
-                  onChange={(e) => handleFormDataChange({ ...formData, requireEmail: e.target.checked })}
+                  onChange={(e) => setFormData({ ...formData, requireEmail: e.target.checked })}
                   className="w-4 h-4 text-purple-600 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
                 />
                 <span className="text-gray-700 dark:text-gray-300">Exigir email do comprador</span>
@@ -716,7 +702,7 @@ const CreateCampaignStep2Page = () => {
                 <input
                   type="checkbox"
                   checked={formData.showRanking}
-                  onChange={(e) => handleFormDataChange({ ...formData, showRanking: e.target.checked })}
+                  onChange={(e) => setFormData({ ...formData, showRanking: e.target.checked })}
                   className="w-4 h-4 text-purple-600 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
                 />
                 <span className="text-gray-700 dark:text-gray-300">Mostrar ranking de compradores</span>
@@ -727,18 +713,10 @@ const CreateCampaignStep2Page = () => {
           {/* Action Buttons */}
           <div className="flex justify-center pt-6">
             <button
-              onClick={handleSaveAndContinue}
-              disabled={saving}
-              className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white py-3 px-8 rounded-lg font-semibold transition-colors duration-200 flex items-center space-x-2"
+              onClick={handleNext}
+              className="bg-purple-600 hover:bg-purple-700 text-white py-3 px-8 rounded-lg font-semibold transition-colors duration-200"
             >
-              {saving ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Salvando...</span>
-                </>
-              ) : (
-                <span>Salvar alterações</span>
-              )}
+              Salvar alterações
             </button>
           </div>
         </div>
