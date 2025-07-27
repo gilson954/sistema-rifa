@@ -120,7 +120,60 @@ const CampaignPage = () => {
   };
 
   const handlePromotionClick = (promo: any) => {
-    // Handle promotion click logic here
+    console.log('Promoção clicada:', promo);
+    
+    if (campaignData.model === 'automatic') {
+      // Para modelo automático: atualiza a quantidade no seletor
+      setQuantity(promo.ticketQuantity);
+      
+      // Scroll suave para o seletor de cotas para mostrar a atualização
+      const quotaSelector = document.querySelector('.quota-selector');
+      if (quotaSelector) {
+        quotaSelector.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }
+      
+      // Feedback visual opcional - você pode adicionar uma notificação toast aqui
+      console.log(`Quantidade atualizada para ${promo.ticketQuantity} bilhetes`);
+      
+    } else if (campaignData.model === 'manual') {
+      // Para modelo manual: seleciona automaticamente as primeiras cotas disponíveis
+      const availableQuotas = [];
+      
+      // Encontra as primeiras cotas disponíveis
+      for (let i = 0; i < campaignData.totalTickets && availableQuotas.length < promo.ticketQuantity; i++) {
+        const quotaNumber = i;
+        const isAvailable = !campaignData.reservedQuotas.includes(quotaNumber) && 
+                           !campaignData.purchasedQuotas.includes(quotaNumber) &&
+                           !selectedQuotas.includes(quotaNumber);
+        
+        if (isAvailable) {
+          availableQuotas.push(quotaNumber);
+        }
+      }
+      
+      // Adiciona as cotas encontradas à seleção
+      if (availableQuotas.length > 0) {
+        setSelectedQuotas(prev => [...prev, ...availableQuotas]);
+        
+        // Scroll para a grade de cotas
+        const quotaGrid = document.querySelector('.quota-grid');
+        if (quotaGrid) {
+          quotaGrid.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+        }
+        
+        console.log(`${availableQuotas.length} cotas selecionadas automaticamente`);
+      } else {
+        // Não há cotas suficientes disponíveis
+        console.warn('Não há cotas suficientes disponíveis para esta promoção');
+        // Aqui você poderia mostrar uma mensagem de erro para o usuário
+      }
+    }
   };
 
   const formatCurrency = (value: number) => {

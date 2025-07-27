@@ -182,7 +182,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
       </div>
 
       {/* Quota Grid */}
-      <div className={`grid ${getGridCols()} gap-1 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden`}>
+      <div className={`quota-grid grid ${getGridCols()} gap-1 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden`}>
         {filteredQuotas.map((quotaNumber) => {
           const status = getQuotaStatus(quotaNumber);
           const padLength = getPadLength();
