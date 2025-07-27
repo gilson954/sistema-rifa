@@ -18,7 +18,6 @@ import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
 import CampaignCleanupStatus from '../components/CampaignCleanupStatus';
-import { useNotifications } from '../hooks/useNotifications';
 
 /**
  * Utility function to calculate time remaining until expiration
@@ -50,7 +49,6 @@ const DashboardPage = () => {
   const [displayPaymentSetupCard, setDisplayPaymentSetupCard] = useState(true);
   const navigate = useNavigate();
   const { campaigns, loading: campaignsLoading, deleteCampaign } = useCampaigns();
-  const { showSuccess, showError } = useNotifications();
 
   // Check if payment is configured on component mount
   useEffect(() => {
@@ -82,10 +80,9 @@ const DashboardPage = () => {
     if (window.confirm(`Tem certeza que deseja excluir a campanha "${campaignTitle}"?`)) {
       try {
         await deleteCampaign(campaignId);
-        showSuccess('Campanha excluída', `A campanha "${campaignTitle}" foi excluída com sucesso.`);
       } catch (error) {
         console.error('Error deleting campaign:', error);
-        showError('Erro ao excluir', 'Não foi possível excluir a campanha. Tente novamente.');
+        alert('Erro ao excluir campanha. Tente novamente.');
       }
     }
   };
@@ -340,7 +337,7 @@ const DashboardPage = () => {
         )}
 
         {/* Campaign Cleanup Status - Only show for admin users or in development */}
-        {(import.meta.env.DEV) && (
+        {(import.meta.env.DEV || user?.user_metadata?.is_admin) && (
           <CampaignCleanupStatus className="mt-8" />
         )}
 
