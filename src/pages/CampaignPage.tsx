@@ -210,18 +210,8 @@ const CampaignPage = () => {
     console.log('Promoção clicada:', promo);
     
     if (campaignData.model === 'automatic') {
-      // NOVO: Para modelo automático: ADICIONA a quantidade da promoção à quantidade atual
-      setQuantity(prevQuantity => {
-        const newCalculatedQuantity = prevQuantity + promo.ticketQuantity;
-        
-        // Garante que não exceda o limite máximo de bilhetes por compra
-        if (newCalculatedQuantity > campaignData.maxTicketsPerPurchase) {
-          console.warn(`Limite máximo atingido: ${campaignData.maxTicketsPerPurchase} bilhetes`);
-          return campaignData.maxTicketsPerPurchase;
-        }
-        
-        return newCalculatedQuantity;
-      });
+      // Para modelo automático: atualiza a quantidade no seletor
+      setQuantity(promo.ticketQuantity);
       
       // Scroll suave para o seletor de cotas para mostrar a atualização
       const quotaSelector = document.querySelector('.quota-selector');
@@ -232,7 +222,8 @@ const CampaignPage = () => {
         });
       }
       
-      console.log(`+${promo.ticketQuantity} bilhetes adicionados ao carrinho`);
+      // Feedback visual opcional - você pode adicionar uma notificação toast aqui
+      console.log(`Quantidade atualizada para ${promo.ticketQuantity} bilhetes`);
       
     } else if (campaignData.model === 'manual') {
       // Para modelo manual: seleciona automaticamente as primeiras cotas disponíveis
@@ -355,11 +346,6 @@ const CampaignPage = () => {
                     OFERTA
                   </span>
                 )}
-                {effectiveTicketPrice < campaignData.ticketPrice && (
-                  <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full">
-                    OFERTA
-                  </span>
-                )}
                 <span className="text-lg">🔥</span>
               </div>
             </div>
@@ -429,27 +415,13 @@ const CampaignPage = () => {
             </div>
           </div>
         )}
-
-        {promotionInfo && (
-          <div className="mb-8 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-            <div className="flex items-center justify-center space-x-2 text-green-800 dark:text-green-200">
-              <span className="text-lg">🎉</span>
-              <div className="text-center">
-                <div className="font-semibold">Promoção Aplicada!</div>
-                <div className="text-sm">
-                  {promotionInfo.discountPercentage}% de desconto • Economia de {formatCurrency(promotionInfo.savings)}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
         {campaignData.promotions && campaignData.promotions.length > 0 && (
           <div className="mb-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {sortedPromotions.map((promo) => {
                 // Calcular porcentagem de desconto
                 const originalValue = promo.ticketQuantity * campaignData.ticketPrice;
-                const discountPercentage = originalValue > 0 ? Math.round(((originalValue - promo.totalValue) / originalValue) * 100) : 0;
+                const discountPercentage = Math.round(((originalValue - promo.totalValue) / originalValue) * 100);
                 
                 return (
                   <button
@@ -518,15 +490,6 @@ const CampaignPage = () => {
                           </span>
                         </div>
                       )}
-                      {/* Exibição do preço com promoção aplicada */}
-                      {promotionInfo && effectiveTicketPrice < campaignData.ticketPrice && (
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                          <span className="line-through">R$ {(selectedQuotas.length * campaignData.ticketPrice).toFixed(2).replace('.', ',')}</span>
-                          <span className="ml-2 text-green-600 dark:text-green-400 font-medium">
-                            Economia: {formatCurrency(promotionInfo.savings)}
-                          </span>
-                        </div>
-                      )}
                       <div className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                         Total: R$ {(selectedQuotas.length * effectiveTicketPrice).toFixed(2).replace('.', ',')}
                       </div>
@@ -547,8 +510,6 @@ const CampaignPage = () => {
                 onQuantityChange={handleQuantityChange}
                 initialQuantity={quantity}
                 mode="automatic"
-                promotionInfo={promotionInfo}
-                originalTicketPrice={campaignData.ticketPrice}
                 promotionInfo={promotionInfo}
                 originalTicketPrice={campaignData.ticketPrice}
               />

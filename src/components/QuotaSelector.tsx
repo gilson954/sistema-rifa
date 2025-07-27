@@ -9,14 +9,6 @@ interface PromotionInfo {
   discountPercentage: number;
 }
 
-interface PromotionInfo {
-  promotion: any;
-  originalTotal: number;
-  promotionalTotal: number;
-  savings: number;
-  discountPercentage: number;
-}
-
 interface QuotaSelectorProps {
   ticketPrice: number;
   minTicketsPerPurchase: number;
@@ -24,8 +16,6 @@ interface QuotaSelectorProps {
   onQuantityChange: (quantity: number) => void;
   initialQuantity?: number;
   mode: 'manual' | 'automatic';
-  promotionInfo?: PromotionInfo | null;
-  originalTicketPrice?: number;
   promotionInfo?: PromotionInfo | null;
   originalTicketPrice?: number;
 }
@@ -37,8 +27,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   onQuantityChange,
   initialQuantity = 1,
   mode,
-  promotionInfo,
-  originalTicketPrice
   promotionInfo,
   originalTicketPrice
 }) => {
@@ -97,10 +85,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   const formatCurrency = (value: number) => {
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
-
-  const formatCurrency = (value: number) => {
-    return `R$ ${value.toFixed(2).replace('.', ',')}`;
-  };
   if (mode === 'manual') {
     return null; // Manual mode uses the quota grid for selection
   }
@@ -110,20 +94,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 text-center">
         SELECIONE A QUANTIDADE DE COTAS
       </h2>
-
-      {/* Indicador de Promoção Ativa no Seletor */}
-      {promotionInfo && (
-        <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-          <div className="text-center">
-            <div className="text-sm font-medium text-green-800 dark:text-green-200 mb-1">
-              🎉 Promoção Aplicada: {promotionInfo.discountPercentage}% OFF
-            </div>
-            <div className="text-xs text-green-600 dark:text-green-400">
-              Você está economizando {formatCurrency(promotionInfo.savings)}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Indicador de Promoção Ativa no Seletor */}
       {promotionInfo && (
@@ -196,14 +166,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             </span>
           </div>
         )}
-        {/* Exibição do preço original riscado se houver promoção */}
-        {promotionInfo && originalTicketPrice && (
-          <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-            <span className="line-through">
-              {formatCurrency(quantity * originalTicketPrice)}
-            </span>
-          </div>
-        )}
         <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Valor final</div>
         <div className={`text-2xl font-bold ${promotionInfo ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'}`}>
           R$ {calculateTotal()}
@@ -212,10 +174,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
 
       {/* Buy Button */}
       <button className={`w-full py-4 rounded-lg font-bold text-lg transition-colors duration-200 shadow-md ${
-        promotionInfo 
-          ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' 
-          : 'bg-green-600 hover:bg-green-700'
-      } text-white`}>
         promotionInfo 
           ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' 
           : 'bg-green-600 hover:bg-green-700'
