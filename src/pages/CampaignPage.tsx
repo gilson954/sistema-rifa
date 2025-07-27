@@ -279,9 +279,6 @@ const CampaignPage = () => {
         )}
 
         {/* Description Section */}
-        {campaignData.description && (
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-200 dark:border-gray-800 transition-colors duration-300 mb-8">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
         {campaignData.description && campaignData.description.trim() && (
           <div className="mb-8 bg-white dark:bg-gray-900 rounded-lg p-6 border border-gray-200 dark:border-gray-800 transition-colors duration-300">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
