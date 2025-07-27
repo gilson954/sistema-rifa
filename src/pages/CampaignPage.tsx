@@ -22,32 +22,42 @@ const CampaignPage = () => {
 
   const { campaign, loading: campaignLoading } = useCampaign(campaignId || '');
   
-  // Get data from location state (for preview mode) or campaign data
-  const campaignData = location.state?.previewData || {
-    title: campaign?.title || 'Setup Gamer',
-    ticketPrice: campaign?.ticket_price || 1.00,
-    totalTickets: campaign?.total_tickets || 100,
-    minTicketsPerPurchase: campaign?.min_tickets_per_purchase || 1,
-    maxTicketsPerPurchase: campaign?.max_tickets_per_purchase || 1000,
-    drawMethod: campaign?.draw_method || 'Loteria Federal',
-    images: campaign?.prize_image_urls || [
+  // Combine real campaign data with preview data if available
+  // Prioritize real campaign data for public viewing, but allow previewData to override specific fields
+  const campaignData = {
+    // Use real campaign data as base
+    ...campaign,
+    // Override with previewData if present (for preview of unsaved changes)
+    ...(location.state?.previewData || {}),
+    // Explicitly ensure description comes from campaign if not in previewData
+    description: location.state?.previewData?.description || campaign?.description || '',
+    // Ensure images are handled correctly, combining existing and new
+    images: location.state?.previewData?.prize_image_urls || campaign?.prize_image_urls || [
+      // Fallback mock images if no images are available
       'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
       'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
       'https://images.pexels.com/photos/1029757/pexels-photo-1029757.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
       'https://images.pexels.com/photos/2047905/pexels-photo-2047905.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
     ],
+    // Ensure prizes come from campaign or previewData
+    prizes: location.state?.previewData?.prizes || campaign?.prizes || [] as Prize[],
+    // Ensure promotions come from campaign or previewData
+    promotions: location.state?.previewData?.promotions || campaign?.promotions || [],
+    // Ensure other fields like title, ticketPrice, totalTickets, etc. are correctly sourced
+    title: location.state?.previewData?.title || campaign?.title || 'Setup Gamer',
+    ticketPrice: location.state?.previewData?.ticket_price || campaign?.ticket_price || 1.00,
+    totalTickets: location.state?.previewData?.total_tickets || campaign?.total_tickets || 100,
+    minTicketsPerPurchase: location.state?.previewData?.min_tickets_per_purchase || campaign?.min_tickets_per_purchase || 1,
+    maxTicketsPerPurchase: location.state?.previewData?.max_tickets_per_purchase || campaign?.max_tickets_per_purchase || 1000,
+    drawMethod: location.state?.previewData?.draw_method || campaign?.draw_method || 'Loteria Federal',
     organizer: {
-      name: 'Gilson',
+      name: campaign?.user_id ? 'Organizador' : 'Gilson', // Placeholder, ideally fetch organizer name
       verified: true
     },
-    model: (location.state?.campaignModel || campaign?.campaign_model || 'manual') as 'manual' | 'automatic',
-    reservedQuotas: [5, 12, 23, 45, 67, 89, 134, 156, 178, 199], // Mock reserved quotas
-    purchasedQuotas: [1, 3, 8, 15, 22, 34, 56, 78, 91, 123], // Mock purchased quotas
-    prizes: [
-      { id: '1', name: 'SETUP VIRADA DE GAME 6.0! 💎💎 I9-14900K + RTX 5090 + PS5 + SETUP COMPLETO (SORTEIO)' },
-      { id: '2', name: 'iPhone 15 Pro Max 256GB' },
-      { id: '3', name: 'Notebook Gamer RTX 4060' }
-    ] as Prize[] // Mock prizes data
+    model: (location.state?.previewData?.campaign_model || campaign?.campaign_model || 'manual') as 'manual' | 'automatic',
+    // Mock reserved/purchased quotas for demonstration if not coming from DB
+    reservedQuotas: campaign?.reserved_quotas || [5, 12, 23, 45, 67, 89, 134, 156, 178, 199],
+    purchasedQuotas: campaign?.purchased_quotas || [1, 3, 8, 15, 22, 34, 56, 78, 91, 123],
   };
 
   // Initialize quantity with minimum tickets per purchase
@@ -285,6 +295,8 @@ const CampaignPage = () => {
               <span className="mr-2">📜</span>
               Descrição / Regulamento
             </h2>
+            {/* Debug log to check description content */}
+            {console.log('Descrição recebida por CampaignPage:', campaignData.description)}
             <div
               className="text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert"
               dangerouslySetInnerHTML={{ __html: campaignData.description }}
