@@ -262,10 +262,9 @@ const CampaignPage = () => {
                       <div className="text-sm font-semibold">
                         {promo.ticketQuantity} cotas por {formatCurrency(promo.totalValue)}
                       </div>
-                    </div>
-                  </button>
+              className="text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+              dangerouslySetInnerHTML={{ __html: campaignData.description }}
                 );
-              })}
             </div>
           </div>
         )}
