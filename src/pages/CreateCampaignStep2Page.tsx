@@ -687,7 +687,6 @@ const CreateCampaignStep2Page = () => {
         onSavePromotions={handleSavePromotions}
         initialPromotions={promotions}
         originalTicketPrice={campaign?.ticket_price || 0}
-        campaignTotalTickets={campaign?.total_tickets || 0} // NOVO: Passa o total de cotas da campanha
       />
 
       <PrizesModal
