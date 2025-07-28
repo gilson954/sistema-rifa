@@ -21,6 +21,7 @@ export type Database = {
           created_at: string | null
           updated_at: string | null
           show_percentage: boolean
+          primary_color: string | null
         }
         Insert: {
           id: string
@@ -30,6 +31,7 @@ export type Database = {
           created_at?: string | null
           updated_at?: string | null
           show_percentage?: boolean
+          primary_color?: string | null
         }
         Update: {
           id?: string
@@ -39,6 +41,7 @@ export type Database = {
           created_at?: string | null
           updated_at?: string | null
           show_percentage?: boolean
+          primary_color?: string | null
         }
       }
       campaigns: {

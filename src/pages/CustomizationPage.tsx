@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { Upload, Plus, ArrowRight, X } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 
 const CustomizationPage = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('cores-tema');
   const [selectedTheme, setSelectedTheme] = useState('claro');
   const [selectedColor, setSelectedColor] = useState('#3B82F6');
+  const [saving, setSaving] = useState(false);
   const [showDomainModal, setShowDomainModal] = useState(false);
   const [newDomain, setNewDomain] = useState('');
 
@@ -19,6 +23,59 @@ const CustomizationPage = () => {
     { id: 'sua-logo', label: 'Sua logo' },
     { id: 'dominios', label: 'Domínios' }
   ];
+
+  // Carregar cor principal do usuário ao montar o componente
+  React.useEffect(() => {
+    const loadUserPrimaryColor = async () => {
+      if (user) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('primary_color')
+            .eq('id', user.id)
+            .single();
+
+          if (error) {
+            console.error('Error loading user primary color:', error);
+          } else if (data?.primary_color) {
+            setSelectedColor(data.primary_color);
+          }
+        } catch (error) {
+          console.error('Error loading user primary color:', error);
+        }
+      }
+    };
+
+    loadUserPrimaryColor();
+  }, [user]);
+
+  // Função para salvar a cor principal
+  const handleSaveChanges = async () => {
+    if (!user) {
+      alert('Você precisa estar logado para salvar as alterações');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ primary_color: selectedColor })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error saving primary color:', error);
+        alert('Erro ao salvar a cor principal. Tente novamente.');
+      } else {
+        alert('Cor principal salva com sucesso!');
+      }
+    } catch (error) {
+      console.error('Error saving primary color:', error);
+      alert('Erro ao salvar a cor principal. Tente novamente.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // Helper function to get a lighter version of the selected color for the light theme
   const getLighterColor = (color: string) => {
@@ -220,9 +277,19 @@ const CustomizationPage = () => {
               </div>
 
               {/* Save Button */}
-              <button className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2">
-                <span>Salvar alterações</span>
-                <ArrowRight className="h-4 w-4" />
+              <button 
+                onClick={handleSaveChanges}
+                disabled={saving}
+                className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-gray-900 dark:text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+              >
+                {saving ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 dark:border-white"></div>
+                ) : (
+                  <>
+                    <span>Salvar alterações</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
               </button>
             </div>
           </div>

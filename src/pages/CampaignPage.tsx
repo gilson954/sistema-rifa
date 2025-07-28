@@ -4,6 +4,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
 import { useCampaign } from '../hooks/useCampaigns';
+import { supabase } from '../lib/supabase';
 import { Promotion, Prize } from '../types/promotion';
 
 interface Prize {
@@ -20,6 +21,7 @@ const CampaignPage = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [showPrizesModal, setShowPrizesModal] = useState(false);
+  const [primaryColor, setPrimaryColor] = useState<string | null>(null);
 
   const { campaign, loading: campaignLoading } = useCampaign(campaignId || '');
   
@@ -62,6 +64,31 @@ const CampaignPage = () => {
     reservedQuotas: campaign?.reserved_quotas || [5, 12, 23, 45, 67, 89, 134, 156, 178, 199],
     purchasedQuotas: campaign?.purchased_quotas || [1, 3, 8, 15, 22, 34, 56, 78, 91, 123],
   };
+
+  // Buscar cor principal do organizador da campanha
+  useEffect(() => {
+    const fetchOrganizerPrimaryColor = async () => {
+      if (campaignData.user_id) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('primary_color')
+            .eq('id', campaignData.user_id)
+            .single();
+
+          if (error) {
+            console.error('Error fetching organizer primary color:', error);
+          } else if (data?.primary_color) {
+            setPrimaryColor(data.primary_color);
+          }
+        } catch (error) {
+          console.error('Error fetching organizer primary color:', error);
+        }
+      }
+    };
+
+    fetchOrganizerPrimaryColor();
+  }, [campaignData.user_id]);
 
   // --- SISTEMA DE APLICAÇÃO AUTOMÁTICA DE PROMOÇÕES ---
 
@@ -271,7 +298,10 @@ const CampaignPage = () => {
 
   const currentImage = campaignData.images[currentImageIndex];
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+    <div 
+      className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300"
+      style={{ '--primary-color': primaryColor || '#3B82F6' } as React.CSSProperties}
+    >
       {/* Demo Banner */}
       <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 py-4 transition-colors duration-300">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -429,7 +459,8 @@ const CampaignPage = () => {
                   <button
                     key={promo.id}
                     onClick={() => handlePromotionClick(promo)}
-                    className="relative bg-gray-900 dark:bg-gray-800 text-white rounded-lg p-4 hover:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 border border-gray-700 dark:border-gray-600 group"
+                    className="relative text-white rounded-lg p-4 hover:brightness-90 transition-all duration-200 border border-gray-700 dark:border-gray-600 group"
+                    style={{ backgroundColor: primaryColor || '#3B82F6' }}
                   >
                     {/* Badge de desconto */}
                     <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
@@ -495,7 +526,10 @@ const CampaignPage = () => {
                       <div className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                         Total: R$ {(selectedQuotas.length * effectiveTicketPrice).toFixed(2).replace('.', ',')}
                       </div>
-                      <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold transition-colors duration-200">
+                      <button 
+                        className="w-full text-white py-3 rounded-lg font-bold hover:brightness-90 transition-all duration-200"
+                        style={{ backgroundColor: primaryColor || '#3B82F6' }}
+                      >
                         RESERVAR COTAS SELECIONADAS
                       </button>
                     </div>
@@ -514,6 +548,7 @@ const CampaignPage = () => {
                 mode="automatic"
                 promotionInfo={promotionInfo}
                 originalTicketPrice={campaignData.ticketPrice}
+                primaryColor={primaryColor}
               />
             </div>
           )}

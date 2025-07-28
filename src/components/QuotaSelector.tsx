@@ -18,6 +18,7 @@ interface QuotaSelectorProps {
   mode: 'manual' | 'automatic';
   promotionInfo?: PromotionInfo | null;
   originalTicketPrice?: number;
+  primaryColor?: string | null;
 }
 
 const QuotaSelector: React.FC<QuotaSelectorProps> = ({
@@ -28,7 +29,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   initialQuantity = 1,
   mode,
   promotionInfo,
-  originalTicketPrice
+  originalTicketPrice,
+  primaryColor
 }) => {
   const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -114,7 +116,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           <button
             key={index}
             onClick={() => handleIncrement(button.value)}
-            className="bg-gray-100 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 text-gray-900 dark:text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 border border-gray-200 dark:border-gray-700"
+            className="text-white py-3 px-4 rounded-lg font-medium hover:brightness-90 transition-all duration-200 border border-gray-200 dark:border-gray-700"
+            style={{ backgroundColor: primaryColor || '#3B82F6' }}
           >
             {button.label}
           </button>
@@ -175,9 +178,13 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       {/* Buy Button */}
       <button className={`w-full py-4 rounded-lg font-bold text-lg transition-colors duration-200 shadow-md ${
         promotionInfo 
-          ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' 
-          : 'bg-green-600 hover:bg-green-700'
-      } text-white`}>
+          ? 'text-white hover:brightness-90' 
+          : 'text-white hover:brightness-90'
+      }`}
+      style={{ 
+        backgroundColor: promotionInfo ? undefined : (primaryColor || '#3B82F6'),
+        background: promotionInfo ? `linear-gradient(to right, ${primaryColor || '#3B82F6'}, ${primaryColor || '#10B981'})` : undefined
+      }}>
         RESERVAR
       </button>
     </div>
