@@ -164,7 +164,7 @@ const CampaignPage = () => {
     
     // Filtra promoções válidas e ordena por quantidade crescente
     return [...campaignData.promotions]
-      .filter(promo => promo.ticketQuantity > 0 && promo.totalValue > 0)
+      .filter(promo => promo.ticketQuantity > 0 && promo.discountedTotalValue > 0)
       .sort((a, b) => a.ticketQuantity - b.ticketQuantity);
   }, [campaignData.promotions]);
 
@@ -356,6 +356,10 @@ const CampaignPage = () => {
   };
 
   const formatCurrency = (value: number) => {
+    // Verificação de segurança para valores inválidos
+    if (value === null || value === undefined || isNaN(value)) {
+      return 'R$ 0,00';
+    }
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
 
