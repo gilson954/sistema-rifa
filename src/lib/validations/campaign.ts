@@ -106,7 +106,19 @@ export const createCampaignSchema = z.object({
 // Schema para validação de atualização de campanha
 export const updateCampaignSchema = createCampaignSchema.partial().extend({
   id: z.string().uuid('ID da campanha inválido')
-});
+}).refine(
+  (data) => !data.min_tickets_per_purchase || !data.max_tickets_per_purchase || data.min_tickets_per_purchase <= data.max_tickets_per_purchase,
+  {
+    message: 'A quantidade mínima deve ser menor ou igual à máxima',
+    path: ['min_tickets_per_purchase']
+  }
+).refine(
+  (data) => !data.max_tickets_per_purchase || !data.total_tickets || data.max_tickets_per_purchase <= data.total_tickets,
+  {
+    message: 'A quantidade máxima por compra não pode ser maior que o total de cotas',
+    path: ['max_tickets_per_purchase']
+  }
+);
 
 // Schema para validação do formulário (frontend)
 export const campaignFormSchema = z.object({

@@ -57,17 +57,28 @@ const CreateCampaignStep2Page = () => {
 
   // Load campaign data when component mounts or campaign changes
   useEffect(() => {
+    console.log('🔄 [DEBUG] Loading campaign data:', campaign);
     if (campaign) {
+      console.log('📊 [DEBUG] Campaign model from DB:', campaign.campaign_model);
+      console.log('📊 [DEBUG] Min tickets from DB:', campaign.min_tickets_per_purchase);
+      console.log('📊 [DEBUG] Max tickets from DB:', campaign.max_tickets_per_purchase);
+      
       setFormData({
         description: campaign.description || '',
         drawDate: campaign.draw_date || '',
         paymentDeadlineHours: campaign.payment_deadline_hours || 24,
         requireEmail: campaign.require_email ?? true,
         showRanking: campaign.show_ranking ?? false,
-        minTicketsPerPurchase: campaign.min_tickets_per_purchase || 1,
-        maxTicketsPerPurchase: campaign.max_tickets_per_purchase || 20000,
+        minTicketsPerPurchase: campaign.min_tickets_per_purchase ?? 1,
+        maxTicketsPerPurchase: campaign.max_tickets_per_purchase ?? 1000,
         initialFilter: (campaign.initial_filter as 'all' | 'available') || 'all',
         campaignModel: campaign.campaign_model || 'automatic'
+      });
+      
+      console.log('✅ [DEBUG] Form data set:', {
+        campaignModel: campaign.campaign_model || 'automatic',
+        minTicketsPerPurchase: campaign.min_tickets_per_purchase ?? 1,
+        maxTicketsPerPurchase: campaign.max_tickets_per_purchase ?? 1000
       });
 
       // Load existing images
@@ -121,10 +132,15 @@ const CreateCampaignStep2Page = () => {
     }
 
     try {
+      console.log('💾 [DEBUG] Saving campaign data...');
+      console.log('📝 [DEBUG] Form data before save:', formData);
+      
       // Upload images first if there are any new ones
       let imageUrls: string[] = [];
       if (images.length > 0) {
+        console.log('📸 [DEBUG] Uploading images...');
         imageUrls = await uploadImages(campaign?.user_id || '');
+        console.log('✅ [DEBUG] Images uploaded:', imageUrls);
       }
 
       // Prepare update payload
@@ -139,15 +155,21 @@ const CreateCampaignStep2Page = () => {
         max_tickets_per_purchase: formData.maxTicketsPerPurchase,
         initial_filter: formData.initialFilter,
         campaign_model: formData.campaignModel,
+        campaign_model: formData.campaignModel,
         prize_image_urls: imageUrls.length > 0 ? imageUrls : campaign?.prize_image_urls || [],
         promotions: promotions,
         prizes: prizes
       };
 
+      console.log('📤 [DEBUG] Payload being sent:', payload);
+      
       await updateCampaign(payload);
+      console.log('✅ [DEBUG] Campaign updated successfully');
       
       // Refetch campaign data to ensure UI shows latest values
+      console.log('🔄 [DEBUG] Refetching campaign data...');
       await refetch();
+      console.log('✅ [DEBUG] Campaign data refetched');
       
       // Navigate to step 3 after successful save
       navigate(`/dashboard/create-campaign/step-3?id=${campaignId}`);

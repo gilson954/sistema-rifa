@@ -41,12 +41,20 @@ export class CampaignAPI {
     try {
       const { id, ...updateData } = data;
       
+      console.log('🔧 [API DEBUG] Updating campaign with data:', updateData);
+      
       const { data: campaign, error } = await supabase
         .from('campaigns')
         .update(updateData)
         .eq('id', id)
         .select()
         .single();
+
+      if (error) {
+        console.error('❌ [API DEBUG] Update error:', error);
+      } else {
+        console.log('✅ [API DEBUG] Campaign updated successfully:', campaign);
+      }
 
       return { data: campaign, error };
     } catch (error) {
