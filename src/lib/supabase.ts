@@ -20,7 +20,8 @@ export type Database = {
           avatar_url: string | null
           created_at: string | null
           updated_at: string | null
-          show_percentage: boolean
+          is_admin: boolean
+          logo_url: string | null
           primary_color: string | null
           theme: string | null
         }
@@ -31,7 +32,8 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           updated_at?: string | null
-          show_percentage?: boolean
+          is_admin?: boolean
+          logo_url?: string | null
           primary_color?: string | null
           theme?: string | null
         }
@@ -42,7 +44,8 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           updated_at?: string | null
-          show_percentage?: boolean
+          is_admin?: boolean
+          logo_url?: string | null
           primary_color?: string | null
           theme?: string | null
         }
