@@ -51,6 +51,8 @@ const CampaignPage = () => {
     minTicketsPerPurchase: location.state?.previewData?.min_tickets_per_purchase || campaign?.min_tickets_per_purchase || 1,
     maxTicketsPerPurchase: location.state?.previewData?.max_tickets_per_purchase || campaign?.max_tickets_per_purchase || 1000,
     drawMethod: location.state?.previewData?.draw_method || campaign?.draw_method || 'Loteria Federal',
+    showPercentage: location.state?.previewData?.show_percentage || campaign?.show_percentage || false,
+    soldTickets: location.state?.previewData?.sold_tickets || campaign?.sold_tickets || 0,
     organizer: {
       name: campaign?.user_id ? 'Organizador' : 'Gilson', // Placeholder, ideally fetch organizer name
       verified: true
@@ -529,6 +531,27 @@ const CampaignPage = () => {
             <span>Prêmios</span>
           </button>
         </div>
+
+        {/* Progress Percentage */}
+        {campaignData.showPercentage && (
+          <div className="flex justify-center mb-8">
+            <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-800 transition-colors duration-300 shadow-sm">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">%</span>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {Math.round((campaignData.soldTickets / campaignData.totalTickets) * 100)}% concluído
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    {campaignData.soldTickets.toLocaleString('pt-BR')} de {campaignData.totalTickets.toLocaleString('pt-BR')} cotas vendidas
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Description Section - REPOSITIONED AFTER PURCHASE SECTION */}
         {campaignData.description && campaignData.description.trim() && (

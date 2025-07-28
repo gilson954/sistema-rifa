@@ -30,7 +30,8 @@ const CreateCampaignStep2Page = () => {
     minTicketsPerPurchase: 1,
     maxTicketsPerPurchase: 1000,
     initialFilter: 'all' as 'all' | 'available',
-    campaignModel: 'automatic' as 'manual' | 'automatic'
+    campaignModel: 'automatic' as 'manual' | 'automatic',
+    showPercentage: false
   });
 
   const [promotions, setPromotions] = useState<Promotion[]>([]);
@@ -83,7 +84,8 @@ const CreateCampaignStep2Page = () => {
         minTicketsPerPurchase: campaign.min_tickets_per_purchase ?? 1,
         maxTicketsPerPurchase: Math.min(campaign.max_tickets_per_purchase ?? 20000, maxAllowed),
         initialFilter: (campaign.initial_filter as 'all' | 'available') || 'all',
-        campaignModel: campaign.campaign_model || 'automatic'
+        campaignModel: campaign.campaign_model || 'automatic',
+        showPercentage: campaign.show_percentage ?? false
       });
       
       console.log('✅ [DEBUG] Form data set:', {
@@ -169,7 +171,8 @@ const CreateCampaignStep2Page = () => {
         campaign_model: formData.campaignModel,
         prize_image_urls: imageUrls.length > 0 ? imageUrls : campaign?.prize_image_urls || [],
         promotions: promotions,
-        prizes: prizes
+        prizes: prizes,
+        show_percentage: formData.showPercentage
       };
 
       console.log('📤 [DEBUG] Payload being sent:', payload);
@@ -733,6 +736,16 @@ const CreateCampaignStep2Page = () => {
                   className="w-4 h-4 text-purple-600 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
                 />
                 <span className="text-gray-700 dark:text-gray-300">Mostrar ranking de compradores</span>
+              </label>
+
+              <label className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  checked={formData.showPercentage}
+                  onChange={(e) => setFormData({ ...formData, showPercentage: e.target.checked })}
+                  className="w-4 h-4 text-purple-600 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
+                />
+                <span className="text-gray-700 dark:text-gray-300">Mostrar porcentagem de progresso</span>
               </label>
             </div>
           </div>

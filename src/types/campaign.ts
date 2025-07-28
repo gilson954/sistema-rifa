@@ -28,6 +28,7 @@ export interface Campaign {
   updated_at: string;
   promotions: Promotion[] | null;
   prizes: Prize[] | null;
+  show_percentage: boolean;
 }
 
 export type CampaignStatus = 'draft' | 'active' | 'completed' | 'cancelled';
@@ -53,6 +54,7 @@ export interface CreateCampaignData {
   prize_image_urls?: string[];
   promotions?: Promotion[];
   prizes?: Prize[];
+  show_percentage?: boolean;
 }
 
 export interface UpdateCampaignData extends Partial<CreateCampaignData> {
@@ -60,6 +62,7 @@ export interface UpdateCampaignData extends Partial<CreateCampaignData> {
   prize_image_urls?: string[];
   promotions?: Promotion[];
   prizes?: Prize[];
+  show_percentage?: boolean;
 }
 
 export interface CampaignFormData {

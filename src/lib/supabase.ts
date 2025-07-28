@@ -20,6 +20,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string | null
           updated_at: string | null
+          show_percentage: boolean
         }
         Insert: {
           id: string
@@ -28,6 +29,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           updated_at?: string | null
+          show_percentage?: boolean
         }
         Update: {
           id?: string
@@ -36,6 +38,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           updated_at?: string | null
+          show_percentage?: boolean
         }
       }
       campaigns: {
@@ -59,6 +62,7 @@ export type Database = {
           prize_image_urls: string[] | null
           promotions: any[] | null
           prizes: any[] | null
+          show_percentage: boolean
         }
         Insert: {
           id?: string
@@ -80,6 +84,7 @@ export type Database = {
           prize_image_urls?: string[] | null
           promotions?: any[] | null
           prizes?: any[] | null
+          show_percentage?: boolean
         }
         Update: {
           id?: string
@@ -101,6 +106,7 @@ export type Database = {
           prize_image_urls?: string[] | null
           promotions?: any[] | null
           prizes?: any[] | null
+          show_percentage?: boolean
         }
       }
     }
