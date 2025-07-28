@@ -101,7 +101,7 @@ const CreateCampaignStep2Page = () => {
 
       // Load existing promotions
       if (campaign.promotions) {
-        setPromotions(campaign.promotions as Promotion[]);
+        setPromotions(campaign.promotions || []);
       }
 
       // Load existing prizes
