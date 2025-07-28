@@ -148,6 +148,9 @@ const CreateCampaignStep2Page = () => {
       };
 
       await updateCampaign(payload);
+      
+      // Navigate to step 3 after successful save
+      navigate(`/dashboard/create-campaign/step-3?id=${campaignId}`);
     } catch (error) {
       console.error('Error saving campaign:', error);
       setErrors({ submit: 'Erro ao salvar alterações. Tente novamente.' });
