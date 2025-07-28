@@ -845,7 +845,7 @@ const CampaignPage = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 flex items-center justify-center">
                   <span className="text-black text-lg">🏆</span>
                 </div>
                 <h2 className="text-xl font-semibold">Prêmios</h2>
