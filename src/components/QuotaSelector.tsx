@@ -153,9 +153,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             <div className={`text-sm font-medium ${getThemeClasses(campaignTheme).text} mb-1`}>
               🎉 Promoção Aplicada: {promotionInfo.discountPercentage}% OFF
             </div>
-            <div className={`text-xs ${getThemeClasses(campaignTheme).textSecondary}`}>
-              Você está economizando {formatCurrency(promotionInfo.savings)}
-            </div>
           </div>
         </div>
       )}
