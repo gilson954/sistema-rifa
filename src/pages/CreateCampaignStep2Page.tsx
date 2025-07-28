@@ -81,7 +81,7 @@ const CreateCampaignStep2Page = () => {
         requireEmail: campaign.require_email ?? true,
         showRanking: campaign.show_ranking ?? false,
         minTicketsPerPurchase: campaign.min_tickets_per_purchase ?? 1,
-        maxTicketsPerPurchase: adjustedMax,
+        maxTicketsPerPurchase: Math.min(campaign.max_tickets_per_purchase ?? 20000, maxAllowed),
         initialFilter: (campaign.initial_filter as 'all' | 'available') || 'all',
         campaignModel: campaign.campaign_model || 'automatic'
       });
