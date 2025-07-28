@@ -557,7 +557,7 @@ const CreateCampaignStep2Page = () => {
                         <div className="text-2xl">🎁</div>
                         <div>
                           <div className="font-medium text-gray-900 dark:text-white">
-                            {promo.ticketQuantity} bilhetes por R$ {promo.discountedTotalValue.toFixed(2).replace('.', ',')}
+                            {promo.ticketQuantity} bilhetes por R$ {(promo.discountedTotalValue || 0).toFixed(2).replace('.', ',')}
                           </div>
                           <div className="text-sm text-green-600 dark:text-green-400">
                             {discountPercentage}% de desconto
