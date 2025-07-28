@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Plus, ArrowRight, X } from 'lucide-react';
+import { Upload, Plus, ArrowRight, X, Loader2, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -11,6 +11,11 @@ const CustomizationPage = () => {
   const [saving, setSaving] = useState(false);
   const [showDomainModal, setShowDomainModal] = useState(false);
   const [newDomain, setNewDomain] = useState('');
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
+  const [currentLogoUrl, setCurrentLogoUrl] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = React.useRef<HTMLInputElement>(null);
 
   const colors = [
     '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16', '#22C55E',
@@ -31,7 +36,7 @@ const CustomizationPage = () => {
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('primary_color, theme')
+            .select('primary_color, theme, logo_url')
             .eq('id', user.id)
             .single();
 
@@ -44,6 +49,9 @@ const CustomizationPage = () => {
             if (data.theme) {
               setSelectedTheme(data.theme);
             }
+            if (data.logo_url) {
+              setCurrentLogoUrl(data.logo_url);
+            }
           }
         } catch (error) {
           console.error('Error loading user settings:', error);
@@ -53,6 +61,139 @@ const CustomizationPage = () => {
 
     loadUserSettings();
   }, [user]);
+
+  // Função para lidar com a seleção de arquivos de logo
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validar tipo de arquivo
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor, selecione apenas arquivos de imagem.');
+        return;
+      }
+      
+      // Validar tamanho do arquivo (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('A imagem deve ter no máximo 5MB.');
+        return;
+      }
+      
+      setLogoFile(file);
+      
+      // Criar preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreviewUrl(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+    // Reset input value para permitir selecionar o mesmo arquivo novamente
+    e.target.value = '';
+  };
+
+  // Função para fazer upload da logo
+  const handleUploadLogo = async () => {
+    if (!logoFile || !user) {
+      alert('Por favor, selecione uma imagem primeiro.');
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      // Criar nome único para o arquivo
+      const fileExt = logoFile.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+
+      // Upload para Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('logos')
+        .upload(filePath, logoFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Obter URL pública
+      const { data: { publicUrl } } = supabase.storage
+        .from('logos')
+        .getPublicUrl(filePath);
+
+      // Atualizar perfil do usuário com a URL da logo
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ logo_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Atualizar estado local
+      setCurrentLogoUrl(publicUrl);
+      
+      // Limpar estado de upload
+      setLogoFile(null);
+      setLogoPreviewUrl(null);
+      
+      alert('Logo atualizada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao fazer upload da logo:', error);
+      alert('Erro ao fazer upload da imagem. Tente novamente.');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  // Função para remover a logo
+  const handleRemoveLogo = async () => {
+    if (!currentLogoUrl || !user) return;
+
+    if (!window.confirm('Tem certeza que deseja remover sua logo?')) {
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      // Extrair caminho do arquivo da URL
+      const urlParts = currentLogoUrl.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      const filePath = `logos/${fileName}`;
+
+      // Remover arquivo do Storage
+      const { error: deleteError } = await supabase.storage
+        .from('logos')
+        .remove([filePath]);
+
+      if (deleteError) {
+        console.warn('Erro ao remover arquivo do storage:', deleteError);
+        // Continua mesmo com erro no storage, pois o importante é limpar o perfil
+      }
+
+      // Atualizar perfil do usuário
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ logo_url: null })
+        .eq('id', user.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Limpar estado local
+      setCurrentLogoUrl(null);
+      
+      alert('Logo removida com sucesso!');
+    } catch (error) {
+      console.error('Erro ao remover logo:', error);
+      alert('Erro ao remover logo. Tente novamente.');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   // Função para salvar as configurações
   const handleSaveChanges = async () => {
@@ -484,18 +625,112 @@ const CustomizationPage = () => {
                 Recomendamos as dimensões: <span className="text-gray-900 dark:text-white font-medium">largura:100px e altura:50px</span>
               </p>
 
-              {/* Upload Area */}
-              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200">
-                <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Upload className="h-8 w-8 text-gray-400" />
+              {/* Logo Atual */}
+              {currentLogoUrl && (
+                <div className="mb-6">
+                  <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">
+                    Logo atual
+                  </h4>
+                  <div className="relative inline-block">
+                    <img
+                      src={currentLogoUrl}
+                      alt="Logo atual"
+                      className="max-w-xs max-h-24 object-contain bg-white dark:bg-gray-700 p-2 rounded-lg border border-gray-300 dark:border-gray-600"
+                    />
+                    <button
+                      onClick={handleRemoveLogo}
+                      disabled={uploadingLogo}
+                      className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 disabled:bg-red-400 text-white p-1 rounded-full transition-colors duration-200"
+                      title="Remover logo"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Arraste e solte sua logo aqui ou clique para selecionar
+              )}
+
+              {/* Input de arquivo oculto */}
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleLogoSelect}
+                className="hidden"
+              />
+
+              {/* Preview da nova logo */}
+              {logoPreviewUrl && (
+                <div className="mb-6">
+                  <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">
+                    Pré-visualização
+                  </h4>
+                  <div className="relative inline-block">
+                    <img
+                      src={logoPreviewUrl}
+                      alt="Preview da nova logo"
+                      className="max-w-xs max-h-24 object-contain bg-white dark:bg-gray-700 p-2 rounded-lg border border-gray-300 dark:border-gray-600"
+                    />
+                    <button
+                      onClick={() => {
+                        setLogoFile(null);
+                        setLogoPreviewUrl(null);
+                      }}
+                      className="absolute -top-2 -right-2 bg-gray-500 hover:bg-gray-600 text-white p-1 rounded-full transition-colors duration-200"
+                      title="Cancelar"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  
+                  {/* Botão para confirmar upload */}
+                  <div className="mt-4">
+                    <button
+                      onClick={handleUploadLogo}
+                      disabled={uploadingLogo}
+                      className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+                    >
+                      {uploadingLogo ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Enviando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Confirmar Upload</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Upload Area */}
+              {!logoPreviewUrl && (
+                <div 
+                  onClick={() => logoInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200 cursor-pointer"
+                >
+                  <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <Upload className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Arraste e solte sua logo aqui ou clique para selecionar
+                  </p>
+                  <div className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 mx-auto w-fit">
+                    <span>Adicionar</span>
+                    <Upload className="h-4 w-4" />
+                  </div>
+                </div>
+              )}
+
+              {/* Informações sobre formato */}
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  <strong>Formatos aceitos:</strong> JPG, PNG, WebP<br />
+                  <strong>Tamanho máximo:</strong> 5MB<br />
+                  <strong>Dimensões recomendadas:</strong> 100x50px (proporção 2:1)
                 </p>
-                <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 mx-auto">
-                  <span>Adicionar</span>
-                  <Upload className="h-4 w-4" />
-                </button>
               </div>
             </div>
           </div>
