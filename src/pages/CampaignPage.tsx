@@ -337,7 +337,7 @@ const CampaignPage = () => {
             )}
             
             {/* Price Tag */}
-            <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-900 px-4 py-2 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+            <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg border border-white/20 dark:border-gray-700/50 transition-colors duration-300">
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Participe por apenas</span>
                 <span className="font-bold text-lg text-purple-600 dark:text-purple-400">
@@ -384,7 +384,7 @@ const CampaignPage = () => {
 
         {/* Organizer Info */}
         <div className="flex items-center justify-center mb-8">
-          <div className="flex items-center space-x-3 bg-white dark:bg-gray-900 px-6 py-3 rounded-lg shadow-md border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+          <div className="flex items-center space-x-3 bg-transparent px-6 py-3 rounded-lg border border-transparent transition-colors duration-300">
             <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
               {campaignData.organizer.name.charAt(0).toUpperCase()}
             </div>
@@ -405,7 +405,7 @@ const CampaignPage = () => {
 
         {/* Indicador de Promoção Ativa */}
         {promotionInfo && (
-          <div className="mb-8 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+          <div className="mb-8 bg-transparent border border-transparent rounded-lg p-4">
             <div className="flex items-center justify-center space-x-2 text-green-800 dark:text-green-200">
               <span className="text-lg">🎉</span>
               <div className="text-center">
@@ -452,7 +452,7 @@ const CampaignPage = () => {
         {/* Purchase Section */}
         <div>
           {campaignData.model === 'manual' ? (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+            <div className="bg-transparent rounded-2xl p-6 sm:p-8 border border-transparent transition-colors duration-300">
               <QuotaGrid
                 totalQuotas={campaignData.totalTickets}
                 selectedQuotas={selectedQuotas}
@@ -475,7 +475,7 @@ const CampaignPage = () => {
                   </div>
                   
                   {/* Lista de Cotas Selecionadas */}
-                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="p-4 bg-transparent rounded-lg border border-transparent">
                     <div className="text-center">
                       <div className="text-sm text-blue-600 dark:text-blue-400 mb-2">
                         Meus N°: {selectedQuotas
@@ -536,7 +536,7 @@ const CampaignPage = () => {
         {campaignData.showPercentage && (
           <div className="flex justify-center mb-8">
             <div className="w-full max-w-md mx-auto">
-              <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 transition-colors duration-300 shadow-lg">
+              <div className="bg-transparent rounded-2xl p-6 border border-transparent transition-colors duration-300">
                 {/* Progress Text */}
                 <div className="text-center mb-4">
                   <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
@@ -581,7 +581,7 @@ const CampaignPage = () => {
 
         {/* Description Section - REPOSITIONED AFTER PURCHASE SECTION */}
         {campaignData.description && campaignData.description.trim() && (
-          <div className="mb-8 bg-white dark:bg-gray-900 rounded-lg p-6 border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+          <div className="mb-8 bg-transparent rounded-lg p-6 border border-transparent transition-colors duration-300">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
               <span className="mr-2">📜</span>
               Descrição / Regulamento
@@ -596,7 +596,7 @@ const CampaignPage = () => {
         )}
 
         {/* Share Section */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-200 dark:border-gray-800 transition-colors duration-300 mt-8">
+        <div className="bg-transparent rounded-2xl p-6 sm:p-8 border border-transparent transition-colors duration-300 mt-8">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 text-center">
             Compartilhar
           </h2>
@@ -635,7 +635,7 @@ const CampaignPage = () => {
         {/* Payment and Draw Info */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">
           {/* Payment Method */}
-          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+          <div className="bg-transparent rounded-lg p-6 border border-transparent transition-colors duration-300">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-3">MÉTODO DE PAGAMENTO</h3>
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
@@ -646,7 +646,7 @@ const CampaignPage = () => {
           </div>
 
           {/* Draw Method */}
-          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+          <div className="bg-transparent rounded-lg p-6 border border-transparent transition-colors duration-300">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-3">SORTEIO</h3>
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
