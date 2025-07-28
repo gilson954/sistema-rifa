@@ -133,14 +133,10 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
 
   return (
     <div 
-      className="quota-selector rounded-2xl shadow-xl p-6 sm:p-8 border transition-colors duration-300"
-      style={{ 
-        backgroundColor: primaryColor || '#3B82F6',
-        borderColor: primaryColor || '#3B82F6'
-      }}
+      className={`quota-selector rounded-2xl shadow-xl p-6 sm:p-8 border transition-colors duration-300 ${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).border}`}
     >
       <h2 className={`text-xl font-bold ${getThemeClasses(campaignTheme).text} mb-6 text-center`}>
-        <span className="text-white">SELECIONE A QUANTIDADE DE COTAS</span>
+        <span className={getThemeClasses(campaignTheme).text}>SELECIONE A QUANTIDADE DE COTAS</span>
       </h2>
 
       {/* Indicador de Promoção Ativa no Seletor */}
