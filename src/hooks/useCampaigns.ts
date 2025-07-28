@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Campaign, CampaignStatus } from '../types/campaign';
 import { CampaignAPI } from '../lib/api/campaigns';
 import { useAuth } from '../context/AuthContext';
