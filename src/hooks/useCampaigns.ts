@@ -145,3 +145,36 @@ export const useCampaign = (id: string) => {
 
   return { campaign, loading, error };
 };
+
+export const useCampaignWithRefetch = (id: string) => {
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchCampaign = useCallback(async () => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const { data, error: apiError } = await CampaignAPI.getCampaignById(id);
+
+    if (apiError) {
+      setError('Erro ao carregar campanha');
+      console.error('Error fetching campaign:', apiError);
+    } else {
+      setCampaign(data);
+    }
+
+    setLoading(false);
+  }, [id]);
+
+  useEffect(() => {
+    fetchCampaign();
+  }, [fetchCampaign]);
+
+  return { campaign, loading, error, refetch: fetchCampaign };
+};

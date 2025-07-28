@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, Upload, Plus, Trash2, Eye, ChevronDown, Gift } from 'lucide-react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { useCampaign, useCampaigns } from '../hooks/useCampaigns';
+import { useCampaignWithRefetch, useCampaigns } from '../hooks/useCampaigns';
 import { useImageUpload } from '../hooks/useImageUpload';
 import { ImageUpload } from '../components/ImageUpload';
 import RichTextEditor from '../components/RichTextEditor';
@@ -19,7 +19,7 @@ const CreateCampaignStep2Page = () => {
   const campaignId = new URLSearchParams(location.search).get('id') || paramsCampaignId;
   
   // Fetch campaign data using the hook
-  const { campaign, loading: isLoading } = useCampaign(campaignId || '');
+  const { campaign, loading: isLoading, refetch } = useCampaignWithRefetch(campaignId || '');
 
   const [formData, setFormData] = useState({
     description: '',
@@ -148,6 +148,9 @@ const CreateCampaignStep2Page = () => {
       };
 
       await updateCampaign(payload);
+      
+      // Refetch campaign data to ensure UI shows latest values
+      await refetch();
       
       // Navigate to step 3 after successful save
       navigate(`/dashboard/create-campaign/step-3?id=${campaignId}`);
