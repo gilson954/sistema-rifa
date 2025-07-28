@@ -38,8 +38,7 @@ const CreateCampaignStep2Page = () => {
   const [showPromotionModal, setShowPromotionModal] = useState(false);
   const [showPrizesModal, setShowPrizesModal] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [loading, setLoading] = useState(false);
   
   // Check if campaign has more than 10,000 tickets
   const hasMoreThan10kTickets = campaign?.total_tickets && campaign.total_tickets > 10000;
@@ -69,7 +68,7 @@ const CreateCampaignStep2Page = () => {
         requireEmail: campaign.require_email ?? true,
         showRanking: campaign.show_ranking ?? false,
         minTicketsPerPurchase: campaign.min_tickets_per_purchase || 1,
-        maxTicketsPerPurchase: campaign.max_tickets_per_purchase || 1000,
+        maxTicketsPerPurchase: campaign.max_tickets_per_purchase || 20000,
         initialFilter: (campaign.initial_filter as 'all' | 'available') || 'all',
         campaignModel: forcedModel
       });
@@ -91,12 +90,38 @@ const CreateCampaignStep2Page = () => {
     }
   }, [campaign, setExistingImages]);
 
-  // Auto-save functionality
-  const handleAutoSave = async () => {
-    if (!campaignId || saving) return;
+  // Manual save functionality
+  const handleManualSave = async () => {
+    if (!campaignId || loading) return;
 
-    setSaving(true);
+    setLoading(true);
     setErrors({});
+
+    // Validate form data before saving
+    const validationErrors: Record<string, string> = {};
+
+    // Validate min/max tickets per purchase
+    if (formData.minTicketsPerPurchase <= 0) {
+      validationErrors.minTicketsPerPurchase = 'Mínimo deve ser maior que 0';
+    }
+
+    if (formData.maxTicketsPerPurchase <= 0) {
+      validationErrors.maxTicketsPerPurchase = 'Máximo deve ser maior que 0';
+    }
+
+    if (formData.minTicketsPerPurchase > formData.maxTicketsPerPurchase) {
+      validationErrors.minTicketsPerPurchase = 'Mínimo deve ser menor ou igual ao máximo';
+    }
+
+    if (campaign && formData.maxTicketsPerPurchase > campaign.total_tickets) {
+      validationErrors.maxTicketsPerPurchase = `Máximo não pode exceder o total de cotas (${campaign.total_tickets})`;
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setLoading(false);
+      return;
+    }
 
     try {
       // Upload images first if there are any new ones
@@ -123,7 +148,6 @@ const CreateCampaignStep2Page = () => {
       };
 
       await updateCampaign(payload);
-      setLastSaved(new Date());
     } catch (error) {
       console.error('Error saving campaign:', error);
       setErrors({ submit: 'Erro ao salvar alterações. Tente novamente.' });
@@ -131,17 +155,6 @@ const CreateCampaignStep2Page = () => {
       setSaving(false);
     }
   };
-
-  // Auto-save when form data changes (debounced)
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (campaignId && campaign) {
-        handleAutoSave();
-      }
-    }, 1000); // 1 second delay
-
-    return () => clearTimeout(timeoutId);
-  }, [formData, promotions, prizes, images]);
 
   const handleGoBack = () => {
     // Pass the campaignId back to step-1 if it exists
@@ -221,20 +234,6 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
-          {/* Auto-save indicator */}
-          <div className="flex items-center space-x-4">
-            {saving && (
-              <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                <span className="text-sm">Salvando...</span>
-              </div>
-            )}
-            {lastSaved && !saving && (
-              <span className="text-sm text-green-600 dark:text-green-400">
-                Salvo às {lastSaved.toLocaleTimeString()}
-              </span>
-            )}
-          </div>
         </div>
 
         {/* Error Message */}
@@ -627,6 +626,9 @@ const CreateCampaignStep2Page = () => {
                     onChange={(e) => setFormData({ ...formData, minTicketsPerPurchase: parseInt(e.target.value) || 1 })}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
                   />
+                  {errors.minTicketsPerPurchase && (
+                    <p className="text-red-500 text-sm mt-1">{errors.minTicketsPerPurchase}</p>
+                  )}
                 </div>
                 
                 <div>
@@ -636,10 +638,14 @@ const CreateCampaignStep2Page = () => {
                   <input
                     type="number"
                     min="1"
+                    max="20000"
                     value={formData.maxTicketsPerPurchase}
-                    onChange={(e) => setFormData({ ...formData, maxTicketsPerPurchase: parseInt(e.target.value) || 1000 })}
+                    onChange={(e) => setFormData({ ...formData, maxTicketsPerPurchase: parseInt(e.target.value) || 20000 })}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
                   />
+                  {errors.maxTicketsPerPurchase && (
+                    <p className="text-red-500 text-sm mt-1">{errors.maxTicketsPerPurchase}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -671,10 +677,15 @@ const CreateCampaignStep2Page = () => {
           {/* Action Buttons */}
           <div className="flex justify-center pt-6">
             <button
-              onClick={handleNext}
-              className="bg-purple-600 hover:bg-purple-700 text-white py-3 px-8 rounded-lg font-semibold transition-colors duration-200"
+              onClick={handleManualSave}
+              disabled={loading}
+              className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white py-3 px-8 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center space-x-2"
             >
-              Salvar alterações
+              {loading ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              ) : (
+                <span>Salvar alterações</span>
+              )}
             </button>
           </div>
         </div>
@@ -695,7 +706,7 @@ const CreateCampaignStep2Page = () => {
         onClose={() => setShowPrizesModal(false)}
         prizes={prizes}
         onSavePrizes={handleSavePrizes}
-        saving={saving}
+        saving={loading}
       />
     </div>
   );
