@@ -152,7 +152,7 @@ const CreateCampaignStep2Page = () => {
       console.error('Error saving campaign:', error);
       setErrors({ submit: 'Erro ao salvar alterações. Tente novamente.' });
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
