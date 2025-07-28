@@ -156,7 +156,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           <button
             key={index}
             onClick={() => handleIncrement(button.value)}
-            className={`text-white py-3 px-4 rounded-lg font-medium hover:brightness-90 transition-all duration-200 border ${getThemeClasses(campaignTheme).border}`}
+            className="text-white py-3 px-4 rounded-lg font-medium hover:brightness-90 transition-all duration-200"
             style={{ backgroundColor: primaryColor || '#3B82F6' }}
           >
             {button.label}
@@ -226,8 +226,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           : 'text-white hover:brightness-90'
       }`}
       style={{ 
-        backgroundColor: promotionInfo ? undefined : (primaryColor || '#3B82F6'),
-        background: promotionInfo ? `linear-gradient(to right, ${primaryColor || '#3B82F6'}, ${primaryColor || '#10B981'})` : undefined
+        backgroundColor: primaryColor || '#3B82F6'
       }}>
         RESERVAR
       </button>

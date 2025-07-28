@@ -440,8 +440,11 @@ const CampaignPage = () => {
             {/* Price Tag */}
             <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-900 px-4 py-2 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 transition-colors duration-300">
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Participe por apenas</span>
-                <span className="font-bold text-lg text-purple-600 dark:text-purple-400">
+                <span className={`text-sm ${getTextClasses(campaignTheme).secondary}`}>Participe por apenas</span>
+                <span 
+                  className="font-bold text-lg"
+                  style={{ color: primaryColor || '#3B82F6' }}
+                >
                   R$ {effectiveTicketPrice.toFixed(2).replace('.', ',')}
                 </span>
                 {effectiveTicketPrice < campaignData.ticketPrice && (
@@ -485,14 +488,17 @@ const CampaignPage = () => {
 
         {/* Organizer Info */}
         <div className="flex items-center justify-center mb-8">
-          <div className="flex items-center space-x-3 bg-white dark:bg-gray-900 px-6 py-3 rounded-lg shadow-md border border-gray-200 dark:border-gray-800 transition-colors duration-300">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+          <div className={`flex items-center space-x-3 px-6 py-3 rounded-lg shadow-md border transition-colors duration-300 ${getCardBackgroundClasses(campaignTheme)}`}>
+            <div 
+              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
+              style={{ backgroundColor: primaryColor || '#3B82F6' }}
+            >
               {campaignData.organizer.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Organizado por:</div>
+              <div className={`text-sm ${getTextClasses(campaignTheme).secondary}`}>Organizado por:</div>
               <div className="flex items-center space-x-2">
-                <span className="font-semibold text-gray-900 dark:text-white">{campaignData.organizer.name}</span>
+                <span className={`font-semibold ${getTextClasses(campaignTheme).primary}`}>{campaignData.organizer.name}</span>
                 {campaignData.organizer.verified && (
                   <div className="bg-green-500 text-white px-2 py-1 rounded text-xs font-medium flex items-center space-x-1">
                     <Shield className="h-3 w-3" />
@@ -516,7 +522,7 @@ const CampaignPage = () => {
                   <button
                     key={promo.id}
                     onClick={() => handlePromotionClick(promo)}
-                    className="relative text-white rounded-lg p-4 hover:brightness-90 transition-all duration-200 border border-gray-700 dark:border-gray-600 group"
+                    className={`relative text-white rounded-lg p-4 hover:brightness-90 transition-all duration-200 border ${getTextClasses(campaignTheme).muted === 'text-gray-500' ? 'border-gray-300' : 'border-gray-600'} group`}
                     style={{ backgroundColor: primaryColor || '#3B82F6' }}
                   >
                     {/* Badge de desconto */}
@@ -540,7 +546,7 @@ const CampaignPage = () => {
         {/* Purchase Section */}
         <div>
           {campaignData.model === 'manual' ? (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+            <div className={`rounded-2xl shadow-xl p-6 sm:p-8 border transition-colors duration-300 ${getCardBackgroundClasses(campaignTheme)}`}>
               <QuotaGrid
                 totalQuotas={campaignData.totalTickets}
                 selectedQuotas={selectedQuotas}
@@ -550,6 +556,8 @@ const CampaignPage = () => {
                 mode="manual"
                 reservedQuotas={campaignData.reservedQuotas}
                 purchasedQuotas={campaignData.purchasedQuotas}
+                campaignTheme={campaignTheme}
+                primaryColor={primaryColor}
               />
               
               {/* Contador e Lista de Cotas Selecionadas */}
@@ -557,15 +565,18 @@ const CampaignPage = () => {
                 <div className="mt-6 space-y-4">
                   {/* Contador X/Y */}
                   <div className="text-center">
-                    <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <span className={`text-lg font-semibold ${getTextClasses(campaignTheme).primary}`}>
                       {selectedQuotas.length}/{campaignData.totalTickets}
                     </span>
                   </div>
                   
                   {/* Lista de Cotas Selecionadas */}
-                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className={`p-4 rounded-lg border ${getInnerElementBackgroundClasses(campaignTheme)}`}>
                     <div className="text-center">
-                      <div className="text-sm text-blue-600 dark:text-blue-400 mb-2">
+                      <div 
+                        className="text-sm mb-2"
+                        style={{ color: primaryColor || '#3B82F6' }}
+                      >
                         Meus N°: {selectedQuotas
                           .sort((a, b) => a - b)
                           .map(quota => quota.toString().padStart(campaignData.totalTickets.toString().length, '0'))
@@ -573,14 +584,14 @@ const CampaignPage = () => {
                       </div>
                       {/* Exibição do preço com promoção aplicada */}
                       {promotionInfo && effectiveTicketPrice < campaignData.ticketPrice && (
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                        <div className={`text-sm ${getTextClasses(campaignTheme).secondary} mb-2`}>
                           <span className="line-through">R$ {(selectedQuotas.length * campaignData.ticketPrice).toFixed(2).replace('.', ',')}</span>
                           <span className="ml-2 text-green-600 dark:text-green-400 font-medium">
                             Economia: {formatCurrency(promotionInfo.savings)}
                           </span>
                         </div>
                       )}
-                      <div className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                      <div className={`text-xl font-bold ${getTextClasses(campaignTheme).primary} mb-4`}>
                         Total: R$ {(selectedQuotas.length * effectiveTicketPrice).toFixed(2).replace('.', ',')}
                       </div>
                       <button 
@@ -629,10 +640,10 @@ const CampaignPage = () => {
         {campaignData.showPercentage && (
           <div className="flex justify-center mb-8">
             <div className="w-full max-w-md mx-auto">
-              <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 transition-colors duration-300 shadow-lg">
+              <div className={`rounded-2xl p-6 border transition-colors duration-300 shadow-lg ${getCardBackgroundClasses(campaignTheme)}`}>
                 {/* Progress Text */}
                 <div className="text-center mb-4">
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                  <div className={`text-2xl font-bold ${getTextClasses(campaignTheme).primary} mb-1`}>
                     {Math.round((campaignData.soldTickets / campaignData.totalTickets) * 100)}% concluído
                   </div>
                 </div>
@@ -640,13 +651,14 @@ const CampaignPage = () => {
                 {/* Progress Bar Container */}
                 <div className="relative">
                   {/* Background Track */}
-                  <div className="w-full h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden shadow-inner">
+                  <div className={`w-full h-4 rounded-full overflow-hidden shadow-inner ${campaignTheme === 'claro' ? 'bg-gray-200' : 'bg-gray-700'}`}>
                     {/* Progress Fill */}
                     <div 
-                      className="h-full bg-gradient-to-r from-purple-500 via-blue-500 to-green-500 rounded-full transition-all duration-1000 ease-out shadow-sm"
+                      className="h-full rounded-full transition-all duration-1000 ease-out shadow-sm"
                       style={{ 
                         width: `${Math.round((campaignData.soldTickets / campaignData.totalTickets) * 100)}%`,
-                        minWidth: Math.round((campaignData.soldTickets / campaignData.totalTickets) * 100) > 0 ? '8px' : '0px'
+                        minWidth: Math.round((campaignData.soldTickets / campaignData.totalTickets) * 100) > 0 ? '8px' : '0px',
+                        backgroundColor: primaryColor || '#3B82F6'
                       }}
                     >
                       {/* Shine Effect */}
@@ -657,13 +669,18 @@ const CampaignPage = () => {
                   {/* Progress Indicator Dot */}
                   {Math.round((campaignData.soldTickets / campaignData.totalTickets) * 100) > 0 && (
                     <div 
-                      className="absolute top-1/2 transform -translate-y-1/2 w-6 h-6 bg-white dark:bg-gray-900 border-4 border-purple-500 rounded-full shadow-lg transition-all duration-1000 ease-out"
+                      className={`absolute top-1/2 transform -translate-y-1/2 w-6 h-6 rounded-full shadow-lg transition-all duration-1000 ease-out ${campaignTheme === 'claro' ? 'bg-white' : 'bg-gray-900'}`}
                       style={{ 
                         left: `calc(${Math.round((campaignData.soldTickets / campaignData.totalTickets) * 100)}% - 12px)`,
-                        maxLeft: 'calc(100% - 24px)'
+                        maxLeft: 'calc(100% - 24px)',
+                        borderColor: primaryColor || '#3B82F6',
+                        borderWidth: '4px'
                       }}
                     >
-                      <div className="w-full h-full bg-purple-500 rounded-full animate-pulse"></div>
+                      <div 
+                        className="w-full h-full rounded-full animate-pulse"
+                        style={{ backgroundColor: primaryColor || '#3B82F6' }}
+                      ></div>
                     </div>
                   )}
                 </div>
@@ -674,23 +691,23 @@ const CampaignPage = () => {
 
         {/* Description Section - REPOSITIONED AFTER PURCHASE SECTION */}
         {campaignData.description && campaignData.description.trim() && (
-          <div className="mb-8 bg-white dark:bg-gray-900 rounded-lg p-6 border border-gray-200 dark:border-gray-800 transition-colors duration-300">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+          <div className={`mb-8 rounded-lg p-6 border transition-colors duration-300 ${getCardBackgroundClasses(campaignTheme)}`}>
+            <h2 className={`text-xl font-bold ${getTextClasses(campaignTheme).primary} mb-4 flex items-center`}>
               <span className="mr-2">📜</span>
               Descrição / Regulamento
             </h2>
             {/* Debug log to check description content */}
             {console.log('Descrição recebida por CampaignPage:', campaignData.description)}
             <div
-              className="text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+              className={`leading-relaxed prose prose-sm max-w-none ${getTextClasses(campaignTheme).secondary} ${campaignTheme !== 'claro' ? 'dark:prose-invert' : ''}`}
               dangerouslySetInnerHTML={{ __html: campaignData.description }}
             />
           </div>
         )}
 
         {/* Share Section */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-200 dark:border-gray-800 transition-colors duration-300 mt-8">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+        <div className={`rounded-2xl shadow-xl p-6 sm:p-8 border transition-colors duration-300 mt-8 ${getCardBackgroundClasses(campaignTheme)}`}>
+          <h2 className={`text-xl font-bold ${getTextClasses(campaignTheme).primary} mb-6 text-center`}>
             Compartilhar
           </h2>
           

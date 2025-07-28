@@ -9,6 +9,8 @@ interface QuotaGridProps {
   mode: 'manual' | 'automatic';
   reservedQuotas?: number[];
   purchasedQuotas?: number[];
+  campaignTheme: string;
+  primaryColor?: string | null;
 }
 
 const QuotaGrid: React.FC<QuotaGridProps> = ({
@@ -19,8 +21,48 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   onFilterChange,
   mode,
   reservedQuotas = [],
-  purchasedQuotas = []
+  purchasedQuotas = [],
+  campaignTheme,
+  primaryColor
 }) => {
+  // Function to get theme classes
+  const getThemeClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
+        return {
+          background: 'bg-white',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-gray-50',
+          border: 'border-gray-200'
+        };
+      case 'escuro':
+        return {
+          background: 'bg-gray-950',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-900',
+          border: 'border-gray-800'
+        };
+      case 'escuro-preto':
+        return {
+          background: 'bg-black',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-900',
+          border: 'border-gray-800'
+        };
+      default:
+        return {
+          background: 'bg-white',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-gray-50',
+          border: 'border-gray-200'
+        };
+    }
+  };
+
   const getQuotaStatus = (quotaNumber: number) => {
     if (purchasedQuotas.includes(quotaNumber)) return 'purchased';
     if (reservedQuotas.includes(quotaNumber)) return 'reserved';
@@ -35,11 +77,11 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
       case 'reserved':
         return 'bg-orange-500 text-white cursor-not-allowed border border-orange-600';
       case 'selected':
-        return 'bg-blue-500 text-white cursor-pointer hover:bg-blue-600 border border-blue-600 transform scale-105 shadow-md';
+        return `text-white cursor-pointer hover:brightness-90 border transform scale-105 shadow-md`;
       case 'available':
-        return 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-400 dark:hover:border-blue-500 hover:scale-105 transition-all duration-200';
+        return `${getThemeClasses(campaignTheme).background} ${getThemeClasses(campaignTheme).text} border ${getThemeClasses(campaignTheme).border} cursor-pointer hover:scale-105 transition-all duration-200`;
       default:
-        return 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600';
+        return `${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).text} border ${getThemeClasses(campaignTheme).border}`;
     }
   };
 
@@ -122,24 +164,34 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         <div className="flex flex-wrap justify-center gap-2 mb-4">
           <button 
             onClick={() => onFilterChange('all')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 border ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
               activeFilter === 'all' 
-                ? `${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).text} ${getThemeClasses(campaignTheme).border}` 
-                : `${getThemeClasses(campaignTheme).background} ${getThemeClasses(campaignTheme).text} ${getThemeClasses(campaignTheme).border} hover:opacity-80`
+                ? `text-white border-transparent` 
+                : `${getThemeClasses(campaignTheme).text} border ${getThemeClasses(campaignTheme).border} hover:opacity-80`
             }`}
+            style={activeFilter === 'all' ? { backgroundColor: primaryColor || '#3B82F6' } : {}}
           >
-            Todos <span className={`ml-1 ${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).text} px-2 py-1 rounded text-xs`}>{filterCounts.all}</span>
+            Todos <span className={`ml-1 px-2 py-1 rounded text-xs ${
+              activeFilter === 'all' 
+                ? 'bg-white/20 text-white' 
+                : `${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).text}`
+            }`}>{filterCounts.all}</span>
           </button>
           
           <button 
             onClick={() => onFilterChange('available')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 border ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
               activeFilter === 'available' 
-                ? `${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).text} ${getThemeClasses(campaignTheme).border}` 
-                : `${getThemeClasses(campaignTheme).background} ${getThemeClasses(campaignTheme).text} ${getThemeClasses(campaignTheme).border} hover:opacity-80`
+                ? `text-white border-transparent` 
+                : `${getThemeClasses(campaignTheme).text} border ${getThemeClasses(campaignTheme).border} hover:opacity-80`
             }`}
+            style={activeFilter === 'available' ? { backgroundColor: primaryColor || '#3B82F6' } : {}}
           >
-            Disponíveis <span className={`ml-1 ${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).text} px-2 py-1 rounded text-xs`}>{filterCounts.available}</span>
+            Disponíveis <span className={`ml-1 px-2 py-1 rounded text-xs ${
+              activeFilter === 'available' 
+                ? 'bg-white/20 text-white' 
+                : `${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).text}`
+            }`}>{filterCounts.available}</span>
           </button>
           
           <button 
@@ -166,13 +218,14 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           
           <button 
             onClick={() => onFilterChange('my-numbers')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 text-white ${
               activeFilter === 'my-numbers' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-blue-500 text-white hover:bg-blue-600'
+                ? 'opacity-100' 
+                : 'opacity-80 hover:opacity-100'
             }`}
+            style={{ backgroundColor: primaryColor || '#3B82F6' }}
           >
-            Meus Nº <span className="ml-1 bg-blue-600 text-white px-2 py-1 rounded text-xs">{filterCounts.myNumbers}</span>
+            Meus Nº <span className="ml-1 bg-white/20 text-white px-2 py-1 rounded text-xs">{filterCounts.myNumbers}</span>
           </button>
         </div>
         
@@ -186,6 +239,8 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         {filteredQuotas.map((quotaNumber) => {
           const status = getQuotaStatus(quotaNumber);
           const padLength = getPadLength();
+          const quotaStyles = getQuotaStyles(status);
+          const isSelected = status === 'selected';
           
           return (
             <button
@@ -193,9 +248,13 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
               onClick={() => handleQuotaClick(quotaNumber)}
               className={`
                 w-10 h-10 text-xs font-medium rounded flex items-center justify-center transition-all duration-200
-                ${getQuotaStyles(status)}
+                ${quotaStyles}
                 ${mode === 'automatic' || status === 'purchased' || status === 'reserved' ? 'cursor-not-allowed' : 'cursor-pointer'}
               `}
+              style={isSelected ? { 
+                backgroundColor: primaryColor || '#3B82F6',
+                borderColor: primaryColor || '#3B82F6'
+              } : {}}
               disabled={mode === 'automatic' || status === 'purchased' || status === 'reserved'}
               title={`Cota ${quotaNumber.toString().padStart(padLength, '0')} - ${
                 status === 'purchased' ? 'Comprada' : 
