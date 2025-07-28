@@ -630,7 +630,7 @@ const CampaignPage = () => {
             className="text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 shadow-md hover:brightness-90"
             style={{ backgroundColor: primaryColor || '#3B82F6' }}
           >
-            <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
+            <div className="w-6 h-6 flex items-center justify-center">
               <span className="text-black text-sm">🏆</span>
             </div>
             <span>Prêmios</span>
