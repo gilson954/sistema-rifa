@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Shield, Share2, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
 import { useParams, useLocation } from 'react-router-dom';
 import QuotaGrid from '../components/QuotaGrid';
