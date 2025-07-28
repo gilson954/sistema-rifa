@@ -115,6 +115,43 @@ const CustomizationPage = () => {
     setNewDomain('');
   };
 
+  // Função para obter classes de tema específico para previews
+  const getThemeClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
+        return {
+          background: 'bg-white',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-gray-50',
+          border: 'border-gray-200'
+        };
+      case 'escuro':
+        return {
+          background: 'bg-gray-800',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-700',
+          border: 'border-gray-600'
+        };
+      case 'escuro-preto':
+        return {
+          background: 'bg-black',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-900',
+          border: 'border-gray-700'
+        };
+      default:
+        return {
+          background: 'bg-white',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-gray-50',
+          border: 'border-gray-200'
+        };
+    }
+  };
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
       {/* Tab Navigation */}
@@ -160,31 +197,34 @@ const CustomizationPage = () => {
                       : 'hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600'
                   }`}
                 >
-                  <div className="w-32 h-24 bg-white rounded-lg p-3 mb-3 border border-gray-200">
+                  <div className={`w-40 h-32 ${getThemeClasses('claro').background} rounded-lg p-3 mb-3 ${getThemeClasses('claro').border} border`}>
                     <div className="space-y-2">
-                      <div 
-                        className="h-2 rounded w-3/4"
-                        style={{ backgroundColor: selectedColor }}
-                      ></div>
-                      <div className="flex space-x-1">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: selectedColor }}
-                        ></div>
-                        <div 
-                          className="h-2 rounded flex-1"
-                          style={{ backgroundColor: getLighterColor(selectedColor) }}
-                        ></div>
+                      {/* Título de exemplo */}
+                      <div className={`text-xs font-bold ${getThemeClasses('claro').text}`}>
+                        Rifa do iPhone
                       </div>
-                      <div className="flex space-x-1">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: selectedColor }}
-                        ></div>
-                        <div 
-                          className="h-2 rounded flex-1"
-                          style={{ backgroundColor: getLighterColor(selectedColor) }}
-                        ></div>
+                      {/* Texto de exemplo */}
+                      <div className={`text-xs ${getThemeClasses('claro').textSecondary}`}>
+                        R$ 5,00 por bilhete
+                      </div>
+                      {/* Card interno de exemplo */}
+                      <div className={`${getThemeClasses('claro').cardBg} rounded p-2 space-y-1`}>
+                        <div className={`text-xs ${getThemeClasses('claro').textSecondary}`}>
+                          Progresso
+                        </div>
+                        <div className="bg-gray-200 rounded-full h-1">
+                          <div 
+                            className="h-1 rounded-full w-2/3"
+                            style={{ backgroundColor: selectedColor }}
+                          ></div>
+                        </div>
+                      </div>
+                      {/* Botão de exemplo */}
+                      <div 
+                        className="text-white text-xs py-1 px-2 rounded text-center font-medium"
+                        style={{ backgroundColor: selectedColor }}
+                      >
+                        Participar
                       </div>
                     </div>
                   </div>
@@ -200,31 +240,34 @@ const CustomizationPage = () => {
                       : 'hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600'
                   }`}
                 >
-                  <div className="w-32 h-24 bg-gray-800 rounded-lg p-3 mb-3">
+                  <div className={`w-40 h-32 ${getThemeClasses('escuro').background} rounded-lg p-3 mb-3`}>
                     <div className="space-y-2">
-                      <div 
-                        className="h-2 rounded w-3/4"
-                        style={{ backgroundColor: selectedColor }}
-                      ></div>
-                      <div className="flex space-x-1">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: selectedColor }}
-                        ></div>
-                        <div 
-                          className="h-2 rounded flex-1"
-                          style={{ backgroundColor: getLighterColor(selectedColor) }}
-                        ></div>
+                      {/* Título de exemplo */}
+                      <div className={`text-xs font-bold ${getThemeClasses('escuro').text}`}>
+                        Rifa do iPhone
                       </div>
-                      <div className="flex space-x-1">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: selectedColor }}
-                        ></div>
-                        <div 
-                          className="h-2 rounded flex-1"
-                          style={{ backgroundColor: getLighterColor(selectedColor) }}
-                        ></div>
+                      {/* Texto de exemplo */}
+                      <div className={`text-xs ${getThemeClasses('escuro').textSecondary}`}>
+                        R$ 5,00 por bilhete
+                      </div>
+                      {/* Card interno de exemplo */}
+                      <div className={`${getThemeClasses('escuro').cardBg} rounded p-2 space-y-1`}>
+                        <div className={`text-xs ${getThemeClasses('escuro').textSecondary}`}>
+                          Progresso
+                        </div>
+                        <div className="bg-gray-600 rounded-full h-1">
+                          <div 
+                            className="h-1 rounded-full w-2/3"
+                            style={{ backgroundColor: selectedColor }}
+                          ></div>
+                        </div>
+                      </div>
+                      {/* Botão de exemplo */}
+                      <div 
+                        className="text-white text-xs py-1 px-2 rounded text-center font-medium"
+                        style={{ backgroundColor: selectedColor }}
+                      >
+                        Participar
                       </div>
                     </div>
                   </div>
@@ -240,31 +283,34 @@ const CustomizationPage = () => {
                       : 'hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600'
                   }`}
                 >
-                  <div className="w-32 h-24 bg-black rounded-lg p-3 mb-3">
+                  <div className={`w-40 h-32 ${getThemeClasses('escuro-preto').background} rounded-lg p-3 mb-3`}>
                     <div className="space-y-2">
-                      <div 
-                        className="h-2 rounded w-3/4"
-                        style={{ backgroundColor: selectedColor }}
-                      ></div>
-                      <div className="flex space-x-1">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: selectedColor }}
-                        ></div>
-                        <div 
-                          className="h-2 rounded flex-1"
-                          style={{ backgroundColor: getLighterColor(selectedColor) }}
-                        ></div>
+                      {/* Título de exemplo */}
+                      <div className={`text-xs font-bold ${getThemeClasses('escuro-preto').text}`}>
+                        Rifa do iPhone
                       </div>
-                      <div className="flex space-x-1">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: selectedColor }}
-                        ></div>
-                        <div 
-                          className="h-2 rounded flex-1"
-                          style={{ backgroundColor: getLighterColor(selectedColor) }}
-                        ></div>
+                      {/* Texto de exemplo */}
+                      <div className={`text-xs ${getThemeClasses('escuro-preto').textSecondary}`}>
+                        R$ 5,00 por bilhete
+                      </div>
+                      {/* Card interno de exemplo */}
+                      <div className={`${getThemeClasses('escuro-preto').cardBg} rounded p-2 space-y-1`}>
+                        <div className={`text-xs ${getThemeClasses('escuro-preto').textSecondary}`}>
+                          Progresso
+                        </div>
+                        <div className="bg-gray-700 rounded-full h-1">
+                          <div 
+                            className="h-1 rounded-full w-2/3"
+                            style={{ backgroundColor: selectedColor }}
+                          ></div>
+                        </div>
+                      </div>
+                      {/* Botão de exemplo */}
+                      <div 
+                        className="text-white text-xs py-1 px-2 rounded text-center font-medium"
+                        style={{ backgroundColor: selectedColor }}
+                      >
+                        Participar
                       </div>
                     </div>
                   </div>
@@ -273,6 +319,66 @@ const CustomizationPage = () => {
               </div>
             </div>
 
+            {/* Preview em Tempo Real */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Pré-visualização
+              </h3>
+              <div className={`${getThemeClasses(selectedTheme).background} rounded-lg p-6 ${getThemeClasses(selectedTheme).border} border transition-all duration-300`}>
+                <div className="space-y-4">
+                  {/* Título da campanha */}
+                  <h4 className={`text-xl font-bold ${getThemeClasses(selectedTheme).text}`}>
+                    Rifa do iPhone 15 Pro Max
+                  </h4>
+                  
+                  {/* Informações do organizador */}
+                  <div className={`${getThemeClasses(selectedTheme).cardBg} rounded-lg p-4 inline-flex items-center space-x-3`}>
+                    <div 
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+                      style={{ backgroundColor: selectedColor }}
+                    >
+                      G
+                    </div>
+                    <div>
+                      <div className={`text-sm ${getThemeClasses(selectedTheme).textSecondary}`}>
+                        Organizado por:
+                      </div>
+                      <div className={`font-semibold ${getThemeClasses(selectedTheme).text}`}>
+                        Gilson Organizador
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Progresso da campanha */}
+                  <div className={`${getThemeClasses(selectedTheme).cardBg} rounded-lg p-4`}>
+                    <div className={`text-sm ${getThemeClasses(selectedTheme).textSecondary} mb-2`}>
+                      Progresso da campanha
+                    </div>
+                    <div className="bg-gray-300 dark:bg-gray-600 rounded-full h-3 mb-2">
+                      <div 
+                        className="h-3 rounded-full w-3/4 transition-all duration-300"
+                        style={{ backgroundColor: selectedColor }}
+                      ></div>
+                    </div>
+                    <div className={`text-sm ${getThemeClasses(selectedTheme).text}`}>
+                      750/1000 bilhetes vendidos
+                    </div>
+                  </div>
+                  
+                  {/* Botão de participar */}
+                  <button 
+                    className="text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:brightness-90"
+                    style={{ backgroundColor: selectedColor }}
+                  >
+                    Participar da Rifa
+                  </button>
+                </div>
+              </div>
+              
+              <p className={`text-sm ${getThemeClasses(selectedTheme).textSecondary} mt-2 text-center`}>
+                Esta é uma prévia de como sua campanha aparecerá para os visitantes
+              </p>
+            </div>
             {/* Color Selection */}
             <div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -324,6 +430,23 @@ const CustomizationPage = () => {
                 </div>
               </div>
 
+              {/* Dica de Contraste */}
+              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-white text-sm font-bold">💡</span>
+                  </div>
+                  <div>
+                    <p className="text-blue-800 dark:text-blue-200 text-sm font-medium mb-1">
+                      Dica de Acessibilidade
+                    </p>
+                    <p className="text-blue-700 dark:text-blue-300 text-sm">
+                      Para melhor legibilidade, escolha cores mais escuras como cor principal. 
+                      Cores muito claras podem dificultar a leitura do texto branco nos botões.
+                    </p>
+                  </div>
+                </div>
+              </div>
               {/* Save Button */}
               <button 
                 onClick={handleSaveChanges}
