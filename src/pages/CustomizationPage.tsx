@@ -26,30 +26,35 @@ const CustomizationPage = () => {
 
   // Carregar cor principal do usuário ao montar o componente
   React.useEffect(() => {
-    const loadUserPrimaryColor = async () => {
+    const loadUserSettings = async () => {
       if (user) {
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('primary_color')
+            .select('primary_color, theme')
             .eq('id', user.id)
             .single();
 
           if (error) {
-            console.error('Error loading user primary color:', error);
+            console.error('Error loading user settings:', error);
           } else if (data?.primary_color) {
-            setSelectedColor(data.primary_color);
+            if (data.primary_color) {
+              setSelectedColor(data.primary_color);
+            }
+            if (data.theme) {
+              setSelectedTheme(data.theme);
+            }
           }
         } catch (error) {
-          console.error('Error loading user primary color:', error);
+          console.error('Error loading user settings:', error);
         }
       }
     };
 
-    loadUserPrimaryColor();
+    loadUserSettings();
   }, [user]);
 
-  // Função para salvar a cor principal
+  // Função para salvar as configurações
   const handleSaveChanges = async () => {
     if (!user) {
       alert('Você precisa estar logado para salvar as alterações');
@@ -60,18 +65,21 @@ const CustomizationPage = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ primary_color: selectedColor })
+        .update({ 
+          primary_color: selectedColor,
+          theme: selectedTheme
+        })
         .eq('id', user.id);
 
       if (error) {
-        console.error('Error saving primary color:', error);
-        alert('Erro ao salvar a cor principal. Tente novamente.');
+        console.error('Error saving settings:', error);
+        alert('Erro ao salvar as configurações. Tente novamente.');
       } else {
-        alert('Cor principal salva com sucesso!');
+        alert('Configurações salvas com sucesso!');
       }
     } catch (error) {
-      console.error('Error saving primary color:', error);
-      alert('Erro ao salvar a cor principal. Tente novamente.');
+      console.error('Error saving settings:', error);
+      alert('Erro ao salvar as configurações. Tente novamente.');
     } finally {
       setSaving(false);
     }
@@ -221,6 +229,46 @@ const CustomizationPage = () => {
                     </div>
                   </div>
                   <p className="text-center text-sm font-medium">Escuro</p>
+                </div>
+
+                {/* Dark Black Theme */}
+                <div
+                  onClick={() => setSelectedTheme('escuro-preto')}
+                  className={`cursor-pointer rounded-lg p-4 transition-all duration-200 ${
+                    selectedTheme === 'escuro-preto'
+                      ? 'ring-2 ring-purple-500'
+                      : 'hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600'
+                  }`}
+                >
+                  <div className="w-32 h-24 bg-black rounded-lg p-3 mb-3">
+                    <div className="space-y-2">
+                      <div 
+                        className="h-2 rounded w-3/4"
+                        style={{ backgroundColor: selectedColor }}
+                      ></div>
+                      <div className="flex space-x-1">
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: selectedColor }}
+                        ></div>
+                        <div 
+                          className="h-2 rounded flex-1"
+                          style={{ backgroundColor: getLighterColor(selectedColor) }}
+                        ></div>
+                      </div>
+                      <div className="flex space-x-1">
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: selectedColor }}
+                        ></div>
+                        <div 
+                          className="h-2 rounded flex-1"
+                          style={{ backgroundColor: getLighterColor(selectedColor) }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-center text-sm font-medium">Escuro Preto</p>
                 </div>
               </div>
             </div>

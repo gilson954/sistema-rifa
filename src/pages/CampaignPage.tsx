@@ -22,6 +22,7 @@ const CampaignPage = () => {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [showPrizesModal, setShowPrizesModal] = useState(false);
   const [primaryColor, setPrimaryColor] = useState<string | null>(null);
+  const [campaignTheme, setCampaignTheme] = useState<string>('claro');
 
   const { campaign, loading: campaignLoading } = useCampaign(campaignId || '');
   
@@ -67,27 +68,32 @@ const CampaignPage = () => {
 
   // Buscar cor principal do organizador da campanha
   useEffect(() => {
-    const fetchOrganizerPrimaryColor = async () => {
+    const fetchOrganizerSettings = async () => {
       if (campaignData.user_id) {
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('primary_color')
+            .select('primary_color, theme')
             .eq('id', campaignData.user_id)
             .single();
 
           if (error) {
-            console.error('Error fetching organizer primary color:', error);
-          } else if (data?.primary_color) {
-            setPrimaryColor(data.primary_color);
+            console.error('Error fetching organizer settings:', error);
+          } else if (data) {
+            if (data.primary_color) {
+              setPrimaryColor(data.primary_color);
+            }
+            if (data.theme) {
+              setCampaignTheme(data.theme);
+            }
           }
         } catch (error) {
-          console.error('Error fetching organizer primary color:', error);
+          console.error('Error fetching organizer settings:', error);
         }
       }
     };
 
-    fetchOrganizerPrimaryColor();
+    fetchOrganizerSettings();
   }, [campaignData.user_id]);
 
   // --- SISTEMA DE APLICAÇÃO AUTOMÁTICA DE PROMOÇÕES ---
@@ -296,10 +302,24 @@ const CampaignPage = () => {
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
 
+  // Função para obter as classes de fundo baseadas no tema
+  const getThemeBackgroundClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
+        return 'bg-gray-50';
+      case 'escuro':
+        return 'bg-gray-950';
+      case 'escuro-preto':
+        return 'bg-black';
+      default:
+        return 'bg-gray-50'; // Fallback para tema claro
+    }
+  };
+
   const currentImage = campaignData.images[currentImageIndex];
   return (
     <div 
-      className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300"
+      className={`min-h-screen ${getThemeBackgroundClasses(campaignTheme)} transition-colors duration-300`}
       style={{ '--primary-color': primaryColor || '#3B82F6' } as React.CSSProperties}
     >
       {/* Demo Banner */}
