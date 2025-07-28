@@ -19,6 +19,7 @@ interface QuotaSelectorProps {
   promotionInfo?: PromotionInfo | null;
   originalTicketPrice?: number;
   primaryColor?: string | null;
+  campaignTheme: string;
 }
 
 const QuotaSelector: React.FC<QuotaSelectorProps> = ({
@@ -30,7 +31,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   mode,
   promotionInfo,
   originalTicketPrice,
-  primaryColor
+  primaryColor,
+  campaignTheme
 }) => {
   const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -41,6 +43,44 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     setQuantity(validQuantity);
     onQuantityChange(validQuantity);
   }, [initialQuantity, minTicketsPerPurchase, onQuantityChange]);
+
+  // Function to get theme classes
+  const getThemeClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200'
+        };
+      case 'escuro':
+        return {
+          background: 'bg-gray-950',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-900',
+          border: 'border-gray-800'
+        };
+      case 'escuro-preto':
+        return {
+          background: 'bg-black',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-900',
+          border: 'border-gray-800'
+        };
+      default:
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200'
+        };
+    }
+  };
 
   const incrementButtons = [
     { label: '+1', value: 1 },
@@ -171,7 +211,10 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           </div>
         )}
         <div className={`text-sm ${getThemeClasses(campaignTheme).textSecondary} mb-1`}>Valor final</div>
-        <div className={`text-2xl font-bold ${promotionInfo ? '' : getThemeClasses(campaignTheme).text}`} ${promotionInfo ? 'style={{ color: "#10B981" }}' : ''}>
+        <div 
+          className={`text-2xl font-bold ${promotionInfo ? '' : getThemeClasses(campaignTheme).text}`}
+          style={promotionInfo ? { color: "#10B981" } : {}}
+        >
           R$ {calculateTotal()}
         </div>
       </div>

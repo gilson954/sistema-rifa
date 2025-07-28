@@ -606,6 +606,7 @@ const CampaignPage = () => {
                 promotionInfo={promotionInfo}
                 originalTicketPrice={campaignData.ticketPrice}
                 primaryColor={primaryColor}
+                campaignTheme={campaignTheme}
               />
             </div>
           )}
