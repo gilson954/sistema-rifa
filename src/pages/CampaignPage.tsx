@@ -727,24 +727,24 @@ const CampaignPage = () => {
         {/* Payment and Draw Info */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">
           {/* Payment Method */}
-          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 border border-gray-200 dark:border-gray-800 transition-colors duration-300">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">MÉTODO DE PAGAMENTO</h3>
+          <div className={`${getCardBackgroundClasses(campaignTheme)} rounded-lg p-6 transition-colors duration-300`}>
+            <h3 className={`font-semibold ${getTextClasses(campaignTheme).primary} mb-3`}>MÉTODO DE PAGAMENTO</h3>
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">₽</span>
               </div>
-              <span className="text-gray-700 dark:text-gray-300">PIX</span>
+              <span className={getTextClasses(campaignTheme).secondary}>PIX</span>
             </div>
           </div>
 
           {/* Draw Method */}
-          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 border border-gray-200 dark:border-gray-800 transition-colors duration-300">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">SORTEIO</h3>
+          <div className={`${getCardBackgroundClasses(campaignTheme)} rounded-lg p-6 transition-colors duration-300`}>
+            <h3 className={`font-semibold ${getTextClasses(campaignTheme).primary} mb-3`}>SORTEIO</h3>
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">🎲</span>
               </div>
-              <span className="text-gray-700 dark:text-gray-300">{campaignData.drawMethod.toUpperCase()}</span>
+              <span className={getTextClasses(campaignTheme).secondary}>{campaignData.drawMethod.toUpperCase()}</span>
             </div>
           </div>
         </div>

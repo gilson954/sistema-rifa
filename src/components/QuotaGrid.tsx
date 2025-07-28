@@ -110,36 +110,36 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
       {/* Filter Tabs */}
       <div className="mb-4">
         <div className="flex items-center justify-center mb-4">
-          <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+          <div className={`flex items-center space-x-2 ${getThemeClasses(campaignTheme).textSecondary}`}>
             <span className="text-lg">🔍</span>
             <span className="font-medium">Filtro de cota</span>
           </div>
         </div>
-        <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
+        <p className={`text-center text-sm ${getThemeClasses(campaignTheme).textSecondary} mb-4`}>
           Selecione abaixo quais cotas deseja ver
         </p>
         
         <div className="flex flex-wrap justify-center gap-2 mb-4">
           <button 
             onClick={() => onFilterChange('all')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 border ${
               activeFilter === 'all' 
-                ? 'bg-gray-600 text-white' 
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
+                ? `${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).text} ${getThemeClasses(campaignTheme).border}` 
+                : `${getThemeClasses(campaignTheme).background} ${getThemeClasses(campaignTheme).text} ${getThemeClasses(campaignTheme).border} hover:opacity-80`
             }`}
           >
-            Todos <span className="ml-1 bg-gray-400 text-white px-2 py-1 rounded text-xs">{filterCounts.all}</span>
+            Todos <span className={`ml-1 ${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).text} px-2 py-1 rounded text-xs`}>{filterCounts.all}</span>
           </button>
           
           <button 
             onClick={() => onFilterChange('available')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 border ${
               activeFilter === 'available' 
-                ? 'bg-gray-600 text-white' 
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
+                ? `${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).text} ${getThemeClasses(campaignTheme).border}` 
+                : `${getThemeClasses(campaignTheme).background} ${getThemeClasses(campaignTheme).text} ${getThemeClasses(campaignTheme).border} hover:opacity-80`
             }`}
           >
-            Disponíveis <span className="ml-1 bg-gray-400 text-white px-2 py-1 rounded text-xs">{filterCounts.available}</span>
+            Disponíveis <span className={`ml-1 ${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).text} px-2 py-1 rounded text-xs`}>{filterCounts.available}</span>
           </button>
           
           <button 
@@ -176,13 +176,13 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           </button>
         </div>
         
-        <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+        <div className={`text-center text-sm ${getThemeClasses(campaignTheme).textSecondary}`}>
           {activeFilter === 'my-numbers' ? selectedQuotas.length : filteredQuotas.length}/{totalQuotas}
         </div>
       </div>
 
       {/* Quota Grid */}
-      <div className={`quota-grid grid ${getGridCols()} gap-1 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden`}>
+      <div className={`quota-grid grid ${getGridCols()} gap-1 p-4 ${getThemeClasses(campaignTheme).cardBg} rounded-lg overflow-hidden`}>
         {filteredQuotas.map((quotaNumber) => {
           const status = getQuotaStatus(quotaNumber);
           const padLength = getPadLength();
