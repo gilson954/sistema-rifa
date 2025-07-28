@@ -168,7 +168,6 @@ const CreateCampaignStep2Page = () => {
         max_tickets_per_purchase: formData.maxTicketsPerPurchase,
         initial_filter: formData.initialFilter,
         campaign_model: formData.campaignModel,
-        campaign_model: formData.campaignModel,
         prize_image_urls: imageUrls.length > 0 ? imageUrls : campaign?.prize_image_urls || [],
         promotions: promotions,
         prizes: prizes,
@@ -672,6 +671,7 @@ const CreateCampaignStep2Page = () => {
                   {errors.minTicketsPerPurchase && (
                     <p className="text-red-500 text-sm mt-1">{errors.minTicketsPerPurchase}</p>
                   )}
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Máximo de bilhetes por compra
