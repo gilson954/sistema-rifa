@@ -26,6 +26,57 @@ const CampaignPage = () => {
 
   const { campaign, loading: campaignLoading } = useCampaign(campaignId || '');
   
+  // Funções para obter classes de tema adaptativas
+  const getCardBackgroundClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
+        return 'bg-white border-gray-200';
+      case 'escuro':
+        return 'bg-gray-900 border-gray-800';
+      case 'escuro-preto':
+        return 'bg-gray-900 border-gray-800';
+      default:
+        return 'bg-white border-gray-200';
+    }
+  };
+
+  const getInnerElementBackgroundClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
+        return 'bg-gray-50 border-gray-200';
+      case 'escuro':
+        return 'bg-gray-800 border-gray-700';
+      case 'escuro-preto':
+        return 'bg-gray-800 border-gray-700';
+      default:
+        return 'bg-gray-50 border-gray-200';
+    }
+  };
+
+  const getTextClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
+        return {
+          primary: 'text-gray-900',
+          secondary: 'text-gray-600',
+          muted: 'text-gray-500'
+        };
+      case 'escuro':
+      case 'escuro-preto':
+        return {
+          primary: 'text-white',
+          secondary: 'text-gray-300',
+          muted: 'text-gray-400'
+        };
+      default:
+        return {
+          primary: 'text-gray-900',
+          secondary: 'text-gray-600',
+          muted: 'text-gray-500'
+        };
+    }
+  };
+
   // Combine real campaign data with preview data if available
   // Prioritize real campaign data for public viewing, but allow previewData to override specific fields
   const campaignData = {
