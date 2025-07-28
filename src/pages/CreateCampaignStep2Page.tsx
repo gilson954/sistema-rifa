@@ -63,6 +63,17 @@ const CreateCampaignStep2Page = () => {
       console.log('📊 [DEBUG] Min tickets from DB:', campaign.min_tickets_per_purchase);
       console.log('📊 [DEBUG] Max tickets from DB:', campaign.max_tickets_per_purchase);
       
+      // Ensure maxTicketsPerPurchase doesn't exceed total_tickets
+      const maxAllowed = campaign.total_tickets;
+      const currentMax = campaign.max_tickets_per_purchase ?? 1000;
+      const adjustedMax = Math.min(currentMax, maxAllowed);
+      
+      console.log('🔧 [DEBUG] Max tickets adjustment:', {
+        totalTickets: campaign.total_tickets,
+        currentMax,
+        adjustedMax
+      });
+      
       setFormData({
         description: campaign.description || '',
         drawDate: campaign.draw_date || '',
@@ -70,7 +81,7 @@ const CreateCampaignStep2Page = () => {
         requireEmail: campaign.require_email ?? true,
         showRanking: campaign.show_ranking ?? false,
         minTicketsPerPurchase: campaign.min_tickets_per_purchase ?? 1,
-        maxTicketsPerPurchase: campaign.max_tickets_per_purchase ?? 1000,
+        maxTicketsPerPurchase: adjustedMax,
         initialFilter: (campaign.initial_filter as 'all' | 'available') || 'all',
         campaignModel: campaign.campaign_model || 'automatic'
       });
@@ -78,7 +89,7 @@ const CreateCampaignStep2Page = () => {
       console.log('✅ [DEBUG] Form data set:', {
         campaignModel: campaign.campaign_model || 'automatic',
         minTicketsPerPurchase: campaign.min_tickets_per_purchase ?? 1,
-        maxTicketsPerPurchase: campaign.max_tickets_per_purchase ?? 1000
+        maxTicketsPerPurchase: adjustedMax
       });
 
       // Load existing images
@@ -664,16 +675,39 @@ const CreateCampaignStep2Page = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Máximo de bilhetes por compra
                   </label>
+                  {campaign && (
+                    <div className="mb-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded text-sm text-blue-800 dark:text-blue-200">
+                      <span className="font-medium">Limite:</span> Máximo {campaign.total_tickets.toLocaleString('pt-BR')} bilhetes (total de cotas da campanha)
+                    </div>
+                  )}
                   <input
                     type="number"
                     min="1"
-                    max="20000"
+                    max={campaign?.total_tickets || 20000}
                     value={formData.maxTicketsPerPurchase}
-                    onChange={(e) => setFormData({ ...formData, maxTicketsPerPurchase: parseInt(e.target.value) || 20000 })}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 1;
+                      const maxAllowed = campaign?.total_tickets || 20000;
+                      const adjustedValue = Math.min(value, maxAllowed);
+                      
+                      console.log('🔢 [DEBUG] Max tickets input change:', {
+                        inputValue: value,
+                        maxAllowed,
+                        adjustedValue
+                      });
+                      
+                      setFormData({ ...formData, maxTicketsPerPurchase: adjustedValue });
+                    }}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
                   />
                   {errors.maxTicketsPerPurchase && (
                     <p className="text-red-500 text-sm mt-1">{errors.maxTicketsPerPurchase}</p>
+                  )}
+                  {campaign && formData.maxTicketsPerPurchase >= campaign.total_tickets && (
+                    <p className="text-orange-600 dark:text-orange-400 text-sm mt-1 flex items-center space-x-1">
+                      <span>⚠️</span>
+                      <span>Valor limitado ao total de cotas da campanha ({campaign.total_tickets.toLocaleString('pt-BR')})</span>
+                    </p>
                   )}
                 </div>
               </div>
