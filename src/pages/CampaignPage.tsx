@@ -535,18 +535,44 @@ const CampaignPage = () => {
         {/* Progress Percentage */}
         {campaignData.showPercentage && (
           <div className="flex justify-center mb-8">
-            <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-800 transition-colors duration-300 shadow-sm">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">%</span>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-gray-900 dark:text-white">
+            <div className="w-full max-w-md mx-auto">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 transition-colors duration-300 shadow-lg">
+                {/* Progress Text */}
+                <div className="text-center mb-4">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                     {Math.round((campaignData.soldTickets / campaignData.totalTickets) * 100)}% concluído
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    {campaignData.soldTickets.toLocaleString('pt-BR')} de {campaignData.totalTickets.toLocaleString('pt-BR')} cotas vendidas
+                </div>
+                
+                {/* Progress Bar Container */}
+                <div className="relative">
+                  {/* Background Track */}
+                  <div className="w-full h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden shadow-inner">
+                    {/* Progress Fill */}
+                    <div 
+                      className="h-full bg-gradient-to-r from-purple-500 via-blue-500 to-green-500 rounded-full transition-all duration-1000 ease-out shadow-sm"
+                      style={{ 
+                        width: `${Math.round((campaignData.soldTickets / campaignData.totalTickets) * 100)}%`,
+                        minWidth: Math.round((campaignData.soldTickets / campaignData.totalTickets) * 100) > 0 ? '8px' : '0px'
+                      }}
+                    >
+                      {/* Shine Effect */}
+                      <div className="h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+                    </div>
                   </div>
+                  
+                  {/* Progress Indicator Dot */}
+                  {Math.round((campaignData.soldTickets / campaignData.totalTickets) * 100) > 0 && (
+                    <div 
+                      className="absolute top-1/2 transform -translate-y-1/2 w-6 h-6 bg-white dark:bg-gray-900 border-4 border-purple-500 rounded-full shadow-lg transition-all duration-1000 ease-out"
+                      style={{ 
+                        left: `calc(${Math.round((campaignData.soldTickets / campaignData.totalTickets) * 100)}% - 12px)`,
+                        maxLeft: 'calc(100% - 24px)'
+                      }}
+                    >
+                      <div className="w-full h-full bg-purple-500 rounded-full animate-pulse"></div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
