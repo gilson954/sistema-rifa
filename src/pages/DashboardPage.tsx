@@ -87,6 +87,10 @@ const DashboardPage = () => {
     }
   };
 
+  const handleViewCampaign = (campaignId: string) => {
+    navigate(`/c/${campaignId}`);
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -311,6 +315,14 @@ const DashboardPage = () => {
                         
                         {/* Action Buttons */}
                         <div className="flex items-center space-x-2 mt-3">
+                          <button
+                            onClick={() => handleViewCampaign(campaign.id)}
+                            className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                            title="Visualizar campanha"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          
                           <button
                             onClick={() => handleEditCampaign(campaign.id)}
                             className="p-2 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
