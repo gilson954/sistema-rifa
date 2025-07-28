@@ -440,7 +440,7 @@ const CampaignPage = () => {
             {/* Price Tag */}
             <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-900 px-4 py-2 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 transition-colors duration-300">
               <div className="flex items-center space-x-2">
-                <span className={`text-sm ${getTextClasses(campaignTheme).secondary}`}>Participe por apenas</span>
+                <span className="text-sm text-white">Participe por apenas</span>
                 <span 
                   className="font-bold text-lg"
                   style={{ color: primaryColor || '#3B82F6' }}
