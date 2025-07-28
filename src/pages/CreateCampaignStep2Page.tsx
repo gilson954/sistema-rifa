@@ -58,9 +58,6 @@ const CreateCampaignStep2Page = () => {
   // Load campaign data when component mounts or campaign changes
   useEffect(() => {
     if (campaign) {
-      // Force automatic model if more than 10k tickets
-      const forcedModel = campaign.total_tickets > 10000 ? 'automatic' : campaign.campaign_model || 'automatic';
-      
       setFormData({
         description: campaign.description || '',
         drawDate: campaign.draw_date || '',
@@ -70,7 +67,7 @@ const CreateCampaignStep2Page = () => {
         minTicketsPerPurchase: campaign.min_tickets_per_purchase || 1,
         maxTicketsPerPurchase: campaign.max_tickets_per_purchase || 20000,
         initialFilter: (campaign.initial_filter as 'all' | 'available') || 'all',
-        campaignModel: forcedModel
+        campaignModel: campaign.campaign_model || 'automatic'
       });
 
       // Load existing images
@@ -380,14 +377,18 @@ const CreateCampaignStep2Page = () => {
 
               {/* Manual Model Option */}
               <div
-                onClick={() => !hasMoreThan10kTickets && setFormData({ ...formData, campaignModel: 'manual' })}
+                onClick={() => {
+                  if (!hasMoreThan10kTickets) {
+                    setFormData({ ...formData, campaignModel: 'manual' });
+                  }
+                }}
                 className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
                   hasMoreThan10kTickets
-                    ? 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 opacity-50 cursor-not-allowed'
+                    ? 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 opacity-60 cursor-not-allowed'
                     : 
                   formData.campaignModel === 'manual'
                     ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 cursor-pointer'
+                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                 }`}
               >
                 <div className="flex items-start space-x-4">
@@ -460,13 +461,13 @@ const CreateCampaignStep2Page = () => {
                         : 'text-gray-600 dark:text-gray-400'
                     }`}>
                       {hasMoreThan10kTickets 
-                        ? 'Indisponível para campanhas com mais de 10.000 cotas'
+                        ? 'Indisponível para campanhas com mais de 10.000 cotas por questões de performance'
                         : 'O cliente visualiza todas as cotas e escolhe quais quer comprar'
                       }
                     </p>
                     {hasMoreThan10kTickets && (
-                      <div className="mt-2 text-xs text-red-600 dark:text-red-400 font-medium">
-                        Desabilitado automaticamente
+                      <div className="mt-2 text-xs text-orange-600 dark:text-orange-400 font-medium">
+                        ⚠️ Opção desabilitada para otimização de performance
                       </div>
                     )}
                   </div>
@@ -474,15 +475,15 @@ const CreateCampaignStep2Page = () => {
                     formData.campaignModel === 'manual' && !hasMoreThan10kTickets
                       ? 'border-purple-500 bg-purple-500'
                       : hasMoreThan10kTickets
-                      ? 'border-gray-400 dark:border-gray-600 bg-gray-200 dark:bg-gray-700'
+                      ? 'border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700'
                       : 'border-gray-300 dark:border-gray-600'
                   }`}>
                     {formData.campaignModel === 'manual' && !hasMoreThan10kTickets && (
                       <div className="w-2 h-2 bg-white rounded-full"></div>
                     )}
                     {hasMoreThan10kTickets && (
-                      <div className="w-3 h-3 flex items-center justify-center">
-                        <span className="text-gray-500 dark:text-gray-400 text-xs">✕</span>
+                      <div className="w-4 h-4 flex items-center justify-center">
+                        <span className="text-orange-500 dark:text-orange-400 text-xs font-bold">⚠</span>
                       </div>
                     )}
                   </div>
