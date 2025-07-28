@@ -672,10 +672,10 @@ const CreateCampaignStep2Page = () => {
                   {errors.minTicketsPerPurchase && (
                     <p className="text-red-500 text-sm mt-1">{errors.minTicketsPerPurchase}</p>
                   )}
-                </div>
+                const discountPercentage = Math.round((promo.fixedDiscountAmount / originalValue) * 100);
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          {promo.ticketQuantity} bilhetes por R$ {promo.discountedTotalValue.toFixed(2).replace('.', ',')}
                     Máximo de bilhetes por compra
                   </label>
                   {campaign && (

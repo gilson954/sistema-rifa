@@ -196,18 +196,20 @@ const CampaignPage = () => {
   }, [sortedPromotions]);
 
   /**
-   * Calcula o preço efetivo por bilhete considerando promoções aplicáveis
-   * Este é o preço que será usado em todos os cálculos de total
+   * Calcula o valor total considerando promoções aplicáveis
+   * Mantém o preço original por bilhete e aplica desconto fixo quando aplicável
    */
-  const effectiveTicketPrice = useMemo(() => {
+  const calculateTotalWithPromotion = useMemo(() => {
     const currentQuantity = campaignData.model === 'automatic' ? quantity : selectedQuotas.length;
     const applicablePromotion = getApplicablePromotion(currentQuantity);
 
     if (applicablePromotion) {
-      return applicablePromotion.promotionalPricePerTicket;
+      // Se há promoção aplicável, retorna o valor com desconto
+      return applicablePromotion.discountedTotalValue;
     }
     
-    return campaignData.ticketPrice;
+    // Caso contrário, retorna o valor normal (quantidade * preço original)
+    return currentQuantity * campaignData.ticketPrice;
   }, [quantity, selectedQuotas.length, campaignData.model, campaignData.ticketPrice, getApplicablePromotion]);
 
   /**
@@ -222,8 +224,8 @@ const CampaignPage = () => {
     }
 
     const originalTotal = currentQuantity * campaignData.ticketPrice;
-    const promotionalTotal = currentQuantity * applicablePromotion.promotionalPricePerTicket;
-    const savings = originalTotal - promotionalTotal;
+    const promotionalTotal = applicablePromotion.discountedTotalValue;
+    const savings = applicablePromotion.fixedDiscountAmount;
     const discountPercentage = Math.round((savings / originalTotal) * 100);
 
     return {
@@ -449,9 +451,9 @@ const CampaignPage = () => {
                   className="font-bold text-lg"
                   style={{ color: primaryColor || '#3B82F6' }}
                 >
-                  R$ {effectiveTicketPrice.toFixed(2).replace('.', ',')}
+                  R$ {campaignData.ticketPrice.toFixed(2).replace('.', ',')}
                 </span>
-                {effectiveTicketPrice < campaignData.ticketPrice && (
+                {promotionInfo && (
                   <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full">
                     OFERTA
                   </span>
@@ -520,7 +522,7 @@ const CampaignPage = () => {
               {sortedPromotions.map((promo) => {
                 // Calcular porcentagem de desconto
                 const originalValue = promo.ticketQuantity * campaignData.ticketPrice;
-                const discountPercentage = Math.round(((originalValue - promo.totalValue) / originalValue) * 100);
+                const discountPercentage = Math.round((promo.fixedDiscountAmount / originalValue) * 100);
                 
                 return (
                   <button
@@ -537,7 +539,7 @@ const CampaignPage = () => {
                     {/* Texto principal */}
                     <div className="text-center">
                       <div className="text-sm font-semibold">
-                        {promo.ticketQuantity} cotas por {formatCurrency(promo.totalValue)}
+                        {promo.ticketQuantity} cotas por {formatCurrency(promo.discountedTotalValue)}
                       </div>
                     </div>
                   </button>
@@ -587,7 +589,7 @@ const CampaignPage = () => {
                           .join(', ')}
                       </div>
                       {/* Exibição do preço com promoção aplicada */}
-                      {promotionInfo && effectiveTicketPrice < campaignData.ticketPrice && (
+                      {promotionInfo && (
                         <div className={`text-sm ${getTextClasses(campaignTheme).secondary} mb-2`}>
                           <span className="line-through">R$ {(selectedQuotas.length * campaignData.ticketPrice).toFixed(2).replace('.', ',')}</span>
                           <span className="ml-2 text-green-600 dark:text-green-400 font-medium">
@@ -596,7 +598,7 @@ const CampaignPage = () => {
                         </div>
                       )}
                       <div className={`text-xl font-bold ${getTextClasses(campaignTheme).primary} mb-4`}>
-                        Total: R$ {(selectedQuotas.length * effectiveTicketPrice).toFixed(2).replace('.', ',')}
+                        Total: R$ {(promotionInfo ? promotionInfo.promotionalTotal : selectedQuotas.length * campaignData.ticketPrice).toFixed(2).replace('.', ',')}
                       </div>
                       <button 
                         className="w-full text-white py-3 rounded-lg font-bold hover:brightness-90 transition-all duration-200"
@@ -612,14 +614,13 @@ const CampaignPage = () => {
           ) : (
             <div>
               <QuotaSelector
-                ticketPrice={effectiveTicketPrice}
+                ticketPrice={campaignData.ticketPrice}
                 minTicketsPerPurchase={campaignData.minTicketsPerPurchase}
                 maxTicketsPerPurchase={campaignData.maxTicketsPerPurchase}
                 onQuantityChange={handleQuantityChange}
                 initialQuantity={quantity}
                 mode="automatic"
                 promotionInfo={promotionInfo}
-                originalTicketPrice={campaignData.ticketPrice}
                 primaryColor={primaryColor}
                 campaignTheme={campaignTheme}
               />

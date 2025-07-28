@@ -69,7 +69,7 @@ export type Database = {
           updated_at: string | null
           expires_at: string | null
           prize_image_urls: string[] | null
-          promotions: any[] | null
+          promotions: Promotion[] | null
           prizes: any[] | null
           show_percentage: boolean
         }
@@ -91,7 +91,7 @@ export type Database = {
           updated_at?: string | null
           expires_at?: string | null
           prize_image_urls?: string[] | null
-          promotions?: any[] | null
+          promotions?: Promotion[] | null
           prizes?: any[] | null
           show_percentage?: boolean
         }
@@ -113,7 +113,7 @@ export type Database = {
           updated_at?: string | null
           expires_at?: string | null
           prize_image_urls?: string[] | null
-          promotions?: any[] | null
+          promotions?: Promotion[] | null
           prizes?: any[] | null
           show_percentage?: boolean
         }

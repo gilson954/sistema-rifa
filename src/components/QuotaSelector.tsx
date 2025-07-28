@@ -17,7 +17,6 @@ interface QuotaSelectorProps {
   initialQuantity?: number;
   mode: 'manual' | 'automatic';
   promotionInfo?: PromotionInfo | null;
-  originalTicketPrice?: number;
   primaryColor?: string | null;
   campaignTheme: string;
 }
@@ -30,7 +29,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   initialQuantity = 1,
   mode,
   promotionInfo,
-  originalTicketPrice,
   primaryColor,
   campaignTheme
 }) => {
@@ -121,6 +119,11 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   };
 
   const calculateTotal = () => {
+    // Se há promoção aplicável, usa o valor promocional
+    if (promotionInfo) {
+      return promotionInfo.promotionalTotal.toFixed(2).replace('.', ',');
+    }
+    // Caso contrário, usa o cálculo normal
     return (quantity * ticketPrice).toFixed(2).replace('.', ',');
   };
 
@@ -205,10 +208,10 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       {/* Total Value */}
       <div className="text-center mb-6">
         {/* Exibição do preço original riscado se houver promoção */}
-        {promotionInfo && originalTicketPrice && (
+        {promotionInfo && (
           <div className={`text-sm ${getThemeClasses(campaignTheme).textSecondary} mb-1`}>
             <span className="line-through">
-              {formatCurrency(quantity * originalTicketPrice)}
+              {formatCurrency(promotionInfo.originalTotal)}
             </span>
           </div>
         )}

@@ -1,9 +1,8 @@
 export interface Promotion {
   id: string;
   ticketQuantity: number;
-  totalValue: number;
-  originalTotalValue: number; // Valor total se comprado pelo preço original
-  promotionalPricePerTicket: number; // Preço por bilhete na promoção
+  discountedTotalValue: number; // Valor final do pacote após desconto
+  fixedDiscountAmount: number; // Valor absoluto do desconto
 }
 
 export interface Prize {

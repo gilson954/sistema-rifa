@@ -21,7 +21,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
   campaignTotalTickets,
 }) => {
   const [ticketQuantity, setTicketQuantity] = useState<string>('');
-  const [totalValueInput, setTotalValueInput] = useState<string>('');
+  const [discountedValueInput, setDiscountedValueInput] = useState<string>('');
   const [localPromotions, setLocalPromotions] = useState<Promotion[]>(initialPromotions);
   const [validationError, setValidationError] = useState<string>('');
 
@@ -31,12 +31,13 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
 
   // Parse values for calculations
   const parsedQuantity = parseInt(ticketQuantity) || 0;
-  const parsedTotalValue = totalValueInput ? parseFloat(totalValueInput.replace(/\./g, '').replace(',', '.')) : 0;
+  const parsedDiscountedValue = discountedValueInput ? parseFloat(discountedValueInput.replace(/\./g, '').replace(',', '.')) : 0;
 
   // Calculations
   const originalTotalValue = parsedQuantity * originalTicketPrice;
-  const isValidPromotion = parsedTotalValue > 0 && parsedTotalValue < originalTotalValue;
-  const isAddButtonEnabled = parsedQuantity > 0 && parsedTotalValue > 0 && isValidPromotion;
+  const fixedDiscountAmount = originalTotalValue - parsedDiscountedValue;
+  const isValidPromotion = parsedDiscountedValue > 0 && parsedDiscountedValue < originalTotalValue;
+  const isAddButtonEnabled = parsedQuantity > 0 && parsedDiscountedValue > 0 && isValidPromotion;
 
   // NOVO: Conjunto de quantidades de bilhetes já utilizadas por promoções existentes
   // Usado para garantir a unicidade da quantidade de bilhetes por promoção
@@ -66,8 +67,8 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
     }
 
     // 3. Validação do valor do desconto
-    if (currentError === '' && parsedQuantity > 0 && parsedTotalValue > 0) {
-      if (parsedTotalValue >= originalTotalValue) {
+    if (currentError === '' && parsedQuantity > 0 && parsedDiscountedValue > 0) {
+      if (parsedDiscountedValue >= originalTotalValue) {
         currentError = 'O valor com desconto não pode ser maior ou igual ao valor original.';
       }
     }
@@ -83,7 +84,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
     }
 
     setValidationError(currentError);
-  }, [parsedQuantity, parsedTotalValue, originalTotalValue, usedTicketQuantities, campaignTotalTickets, remainingTicketsForPromotions, ticketQuantity]);
+  }, [parsedQuantity, parsedDiscountedValue, originalTotalValue, usedTicketQuantities, campaignTotalTickets, remainingTicketsForPromotions, ticketQuantity]);
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -93,9 +94,9 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
     }
   };
 
-  const handleTotalValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDiscountedValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedValue = formatInputCurrency(e.target.value);
-    setTotalValueInput(formattedValue);
+    setDiscountedValueInput(formattedValue);
   };
 
   const handleAddPromotion = () => {
@@ -108,9 +109,8 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
     const newPromotion: Promotion = {
       id: Date.now().toString(),
       ticketQuantity: parsedQuantity,
-      totalValue: parsedTotalValue,
-      originalTotalValue: originalTotalValue,
-      promotionalPricePerTicket: parsedTotalValue / parsedQuantity,
+      discountedTotalValue: parsedDiscountedValue,
+      fixedDiscountAmount: fixedDiscountAmount,
     };
     
     // Adiciona a nova promoção à lista local e salva
@@ -120,7 +120,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
     
     // Limpa os campos de entrada após adicionar
     setTicketQuantity('');
-    setTotalValueInput('');
+    setDiscountedValueInput('');
     // validationError será limpo automaticamente pelo useEffect quando os inputs forem limpos
   };
 
@@ -133,7 +133,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
   const handleCloseModal = () => {
     // Reseta o estado dos campos de entrada e erros ao fechar o modal
     setTicketQuantity('');
-    setTotalValueInput('');
+    setDiscountedValueInput('');
     setValidationError('');
     onClose();
   };
@@ -186,7 +186,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
           {/* Total Value */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Valor total
+              Valor final com desconto
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -194,8 +194,8 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
               </span>
               <input
                 type="text"
-                value={totalValueInput}
-                onChange={handleTotalValueChange}
+                value={discountedValueInput}
+                onChange={handleDiscountedValueChange}
                 placeholder="0,00"
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
               />
@@ -208,14 +208,23 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
           </div>
 
           {/* Automatic Calculation Display */}
-          {parsedQuantity > 0 && parsedTotalValue > 0 && (
+          {parsedQuantity > 0 && parsedDiscountedValue > 0 && (
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-300">
                 De {formatCurrency(originalTotalValue)}
               </span>
               <span className="text-green-400 font-bold">
-                Por apenas {formatCurrency(parsedTotalValue)}
+                Por apenas {formatCurrency(parsedDiscountedValue)}
               </span>
+            </div>
+          )}
+
+          {/* Fixed Discount Amount Display */}
+          {parsedQuantity > 0 && parsedDiscountedValue > 0 && fixedDiscountAmount > 0 && (
+            <div className="bg-green-900/20 border border-green-800 rounded-lg p-3">
+              <div className="text-sm text-green-300">
+                <span className="font-medium">Desconto fixo aplicado:</span> {formatCurrency(fixedDiscountAmount)}
+              </div>
             </div>
           )}
 
@@ -247,7 +256,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
             <div className="space-y-3 max-h-60 overflow-y-auto">
               {localPromotions.map((promo) => {
                 const originalValue = promo.ticketQuantity * originalTicketPrice;
-                const discountPercentage = originalValue > 0 ? Math.round(((originalValue - promo.totalValue) / originalValue) * 100) : 0;
+                const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0;
                 
                 return (
                   <div
@@ -268,8 +277,11 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                         <span className="text-gray-400">→</span>
                         <span className="text-gray-400">Por:</span>
                         <span className="text-green-400 font-bold">
-                          {formatCurrency(promo.totalValue)}
+                          {formatCurrency(promo.discountedTotalValue)}
                         </span>
+                      </div>
+                      <div className="text-xs text-green-300 mt-1">
+                        Desconto: {formatCurrency(promo.fixedDiscountAmount)} ({discountPercentage}%)
                       </div>
                     </div>
                     <button
