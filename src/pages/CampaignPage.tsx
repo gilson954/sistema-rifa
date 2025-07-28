@@ -197,15 +197,19 @@ const CampaignPage = () => {
 
   /**
    * Calcula o valor total considerando promoções aplicáveis
-   * Mantém o preço original por bilhete e aplica desconto fixo quando aplicável
+   * Aplica valor promocional para o bloco de cotas da promoção e preço original para cotas excedentes
    */
   const calculateTotalWithPromotion = useMemo(() => {
     const currentQuantity = campaignData.model === 'automatic' ? quantity : selectedQuotas.length;
     const applicablePromotion = getApplicablePromotion(currentQuantity);
 
     if (applicablePromotion) {
-      // Se há promoção aplicável, retorna o valor com desconto
-      return applicablePromotion.discountedTotalValue;
+      // Calcula o valor total: valor promocional + cotas excedentes com preço original
+      const promotionBlockCost = applicablePromotion.discountedTotalValue;
+      const excessTickets = currentQuantity - applicablePromotion.ticketQuantity;
+      const excessCost = excessTickets > 0 ? excessTickets * campaignData.ticketPrice : 0;
+      
+      return promotionBlockCost + excessCost;
     }
     
     // Caso contrário, retorna o valor normal (quantidade * preço original)
@@ -224,8 +228,14 @@ const CampaignPage = () => {
     }
 
     const originalTotal = currentQuantity * campaignData.ticketPrice;
-    const promotionalTotal = applicablePromotion.discountedTotalValue;
-    const savings = applicablePromotion.fixedDiscountAmount;
+    
+    // Calcula o valor promocional: valor da promoção + cotas excedentes com preço original
+    const promotionBlockCost = applicablePromotion.discountedTotalValue;
+    const excessTickets = currentQuantity - applicablePromotion.ticketQuantity;
+    const excessCost = excessTickets > 0 ? excessTickets * campaignData.ticketPrice : 0;
+    const promotionalTotal = promotionBlockCost + excessCost;
+    
+    const savings = originalTotal - promotionalTotal;
     const discountPercentage = Math.round((savings / originalTotal) * 100);
 
     return {

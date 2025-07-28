@@ -121,13 +121,17 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   const calculateTotal = () => {
     // Se há promoção aplicável, usa o valor promocional
     if (promotionInfo) {
-      return promotionInfo.promotionalTotal.toFixed(2).replace('.', ',');
+      return (promotionInfo.promotionalTotal || 0).toFixed(2).replace('.', ',');
     }
     // Caso contrário, usa o cálculo normal
     return (quantity * ticketPrice).toFixed(2).replace('.', ',');
   };
 
   const formatCurrency = (value: number) => {
+    // Verificação de segurança para valores inválidos
+    if (value === null || value === undefined || isNaN(value)) {
+      return 'R$ 0,00';
+    }
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
   if (mode === 'manual') {
