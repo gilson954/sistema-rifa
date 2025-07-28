@@ -23,6 +23,7 @@ const CampaignPage = () => {
   const [showPrizesModal, setShowPrizesModal] = useState(false);
   const [primaryColor, setPrimaryColor] = useState<string | null>(null);
   const [campaignTheme, setCampaignTheme] = useState<string>('claro');
+  const [organizerName, setOrganizerName] = useState<string>('Organizador');
 
   const { campaign, loading: campaignLoading } = useCampaign(campaignId || '');
   
@@ -108,7 +109,7 @@ const CampaignPage = () => {
     showPercentage: location.state?.previewData?.show_percentage || campaign?.show_percentage || false,
     soldTickets: location.state?.previewData?.sold_tickets || campaign?.sold_tickets || 0,
     organizer: {
-      name: campaign?.user_id ? 'Organizador' : 'Gilson', // Placeholder, ideally fetch organizer name
+      name: organizerName,
       verified: true
     },
     model: (location.state?.previewData?.campaign_model || campaign?.campaign_model || 'manual') as 'manual' | 'automatic',
@@ -124,7 +125,7 @@ const CampaignPage = () => {
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('primary_color, theme')
+            .select('primary_color, theme, name')
             .eq('id', campaignData.user_id)
             .single();
 
@@ -136,6 +137,9 @@ const CampaignPage = () => {
             }
             if (data.theme) {
               setCampaignTheme(data.theme);
+            }
+            if (data.name) {
+              setOrganizerName(data.name);
             }
           }
         } catch (error) {
