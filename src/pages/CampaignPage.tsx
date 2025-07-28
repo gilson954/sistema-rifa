@@ -482,7 +482,7 @@ const CampaignPage = () => {
         </div>
 
         {/* Campaign Title */}
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6 text-center transition-colors duration-300">
+        <h1 className={`text-3xl sm:text-4xl font-bold ${getTextClasses(campaignTheme).primary} mb-6 text-center transition-colors duration-300`}>
           {campaignData.title}
         </h1>
 
@@ -627,7 +627,8 @@ const CampaignPage = () => {
         <div className="flex justify-center mb-8">
           <button 
             onClick={() => setShowPrizesModal(true)}
-            className="bg-gray-700 dark:bg-gray-800 hover:bg-gray-600 dark:hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 shadow-md"
+            className="text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 shadow-md hover:brightness-90"
+            style={{ backgroundColor: primaryColor || '#3B82F6' }}
           >
             <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
               <span className="text-black text-sm">🏆</span>
