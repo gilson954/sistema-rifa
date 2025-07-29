@@ -34,11 +34,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         const { data } = await supabase
           .from('profiles')
           .select('name, email')
-          .eq('id', user.id)
-          .single();
+          .eq('id', user.id);
         
-        if (data) {
-          setProfile(data);
+        if (data && data.length > 0) {
+          setProfile(data[0]);
         }
       };
 
