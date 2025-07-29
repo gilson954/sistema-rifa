@@ -24,6 +24,7 @@ const CampaignPage = () => {
   const [primaryColor, setPrimaryColor] = useState<string | null>(null);
   const [campaignTheme, setCampaignTheme] = useState<string>('claro');
   const [organizerName, setOrganizerName] = useState<string>('Organizador');
+  const [organizerSocialLinks, setOrganizerSocialLinks] = useState<Record<string, string>>({});
 
   const { campaign, loading: campaignLoading } = useCampaign(campaignId || '');
   
@@ -125,7 +126,7 @@ const CampaignPage = () => {
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('primary_color, theme, name')
+            .select('primary_color, theme, name, social_media_links')
             .eq('id', campaignData.user_id)
             .single();
 
@@ -140,6 +141,9 @@ const CampaignPage = () => {
             }
             if (data.name) {
               setOrganizerName(data.name);
+            }
+            if (data.social_media_links) {
+              setOrganizerSocialLinks(data.social_media_links);
             }
           }
         } catch (error) {
@@ -365,6 +369,49 @@ const CampaignPage = () => {
     }
   };
 
+  // Social media icons configuration
+  const socialMediaConfig = {
+    facebook: { 
+      icon: '📘', 
+      color: '#1877F2',
+      name: 'Facebook'
+    },
+    instagram: { 
+      icon: '📷', 
+      color: '#E4405F',
+      name: 'Instagram'
+    },
+    tiktok: { 
+      icon: '🎵', 
+      color: '#000000',
+      name: 'TikTok'
+    },
+    telegram: { 
+      icon: '✈️', 
+      color: '#0088CC',
+      name: 'Telegram'
+    },
+    'whatsapp-group': { 
+      icon: '💬', 
+      color: '#25D366',
+      name: 'Grupo'
+    },
+    youtube: { 
+      icon: '📺', 
+      color: '#FF0000',
+      name: 'YouTube'
+    },
+    discord: { 
+      icon: '🎮', 
+      color: '#5865F2',
+      name: 'Discord'
+    }
+  };
+
+  const handleSocialMediaClick = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   const formatCurrency = (value: number) => {
     // Verificação de segurança para valores inválidos
     if (value === null || value === undefined || isNaN(value)) {
@@ -525,6 +572,41 @@ const CampaignPage = () => {
                     <span>Suporte</span>
                   </div>
                 )}
+                
+                {/* Social Media Icons */}
+                <div className="flex items-center space-x-1 ml-2">
+                  {/* WhatsApp Group - show as "Grupo" */}
+                  {organizerSocialLinks['whatsapp-group'] && (
+                    <button
+                      onClick={() => handleSocialMediaClick(organizerSocialLinks['whatsapp-group'])}
+                      className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs font-medium flex items-center space-x-1 transition-colors duration-200"
+                      title="WhatsApp Grupo"
+                    >
+                      <span>💬</span>
+                      <span>Grupo</span>
+                    </button>
+                  )}
+                  
+                  {/* Other Social Media Icons */}
+                  {Object.entries(organizerSocialLinks)
+                    .filter(([key]) => key !== 'whatsapp-group') // Exclude whatsapp-group as it's handled separately
+                    .map(([key, url]) => {
+                      const config = socialMediaConfig[key as keyof typeof socialMediaConfig];
+                      if (!config || !url) return null;
+                      
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => handleSocialMediaClick(url)}
+                          className="w-6 h-6 rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-200 shadow-sm"
+                          style={{ backgroundColor: config.color }}
+                          title={config.name}
+                        >
+                          <span className="text-white text-xs">{config.icon}</span>
+                        </button>
+                      );
+                    })}
+                </div>
               </div>
             </div>
           </div>

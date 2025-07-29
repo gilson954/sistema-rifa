@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, X, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Plus, X, ArrowRight, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 
 interface SocialNetwork {
   id: string;
@@ -12,9 +14,12 @@ interface SocialNetwork {
 
 const SocialMediaPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState<SocialNetwork | null>(null);
   const [linkInput, setLinkInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [socialNetworks, setSocialNetworks] = useState<SocialNetwork[]>([
     {
@@ -48,12 +53,6 @@ const SocialMediaPage = () => {
       connected: false
     },
     {
-      id: 'whatsapp-support',
-      name: 'Whatsapp suporte',
-      icon: '💬',
-      connected: false
-    },
-    {
       id: 'youtube',
       name: 'Youtube',
       icon: '📺',
@@ -67,28 +66,158 @@ const SocialMediaPage = () => {
     }
   ]);
 
+  // Load social media links when component mounts
+  React.useEffect(() => {
+    const loadSocialMediaLinks = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('social_media_links')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error loading social media links:', error);
+          return;
+        }
+
+        if (data?.social_media_links) {
+          const links = data.social_media_links;
+          setSocialNetworks(prev => 
+            prev.map(network => ({
+              ...network,
+              connected: !!links[network.id],
+              url: links[network.id] || undefined
+            }))
+          );
+        }
+      } catch (error) {
+        console.error('Error loading social media links:', error);
+      }
+    };
+
+    loadSocialMediaLinks();
+  }, [user]);
+
   const handleGoBack = () => {
     navigate('/dashboard');
   };
 
   const handleAddSocialNetwork = (network: SocialNetwork) => {
     setSelectedNetwork(network);
-    setLinkInput('');
+    setLinkInput(network.url || '');
     setShowModal(true);
   };
 
-  const handleSaveLink = () => {
-    if (selectedNetwork && linkInput.trim()) {
+  const handleSaveLink = async () => {
+    if (!selectedNetwork || !user) return;
+
+    setLoading(true);
+    try {
+      // Get current social media links
+      const { data: currentData, error: fetchError } = await supabase
+        .from('profiles')
+        .select('social_media_links')
+        .eq('id', user.id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching current links:', fetchError);
+        alert('Erro ao carregar dados. Tente novamente.');
+        return;
+      }
+
+      const currentLinks = currentData?.social_media_links || {};
+      const updatedLinks = {
+        ...currentLinks,
+        [selectedNetwork.id]: linkInput.trim()
+      };
+
+      // Update in database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ social_media_links: updatedLinks })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Error updating social media links:', updateError);
+        alert('Erro ao salvar link. Tente novamente.');
+        return;
+      }
+
+      // Update local state
       setSocialNetworks(prev => 
         prev.map(network => 
           network.id === selectedNetwork.id 
-            ? { ...network, connected: true, url: linkInput.trim() }
+            ? { ...network, connected: !!linkInput.trim(), url: linkInput.trim() || undefined }
             : network
         )
       );
+      
       setShowModal(false);
       setSelectedNetwork(null);
       setLinkInput('');
+    } catch (error) {
+      console.error('Error saving social media link:', error);
+      alert('Erro ao salvar link. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteLink = async () => {
+    if (!selectedNetwork || !user) return;
+
+    setDeleting(true);
+    try {
+      // Get current social media links
+      const { data: currentData, error: fetchError } = await supabase
+        .from('profiles')
+        .select('social_media_links')
+        .eq('id', user.id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching current links:', fetchError);
+        alert('Erro ao carregar dados. Tente novamente.');
+        return;
+      }
+
+      const currentLinks = currentData?.social_media_links || {};
+      const updatedLinks = { ...currentLinks };
+      delete updatedLinks[selectedNetwork.id];
+
+      // Update in database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ social_media_links: updatedLinks })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Error deleting social media link:', updateError);
+        alert('Erro ao excluir link. Tente novamente.');
+        return;
+      }
+
+      // Update local state
+      setSocialNetworks(prev => 
+        prev.map(network => 
+          network.id === selectedNetwork.id 
+            ? { ...network, connected: false, url: undefined }
+            : network
+        )
+      );
+      
+      setShowModal(false);
+      setSelectedNetwork(null);
+      setLinkInput('');
+    } catch (error) {
+      console.error('Error deleting social media link:', error);
+      alert('Erro ao excluir link. Tente novamente.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -175,7 +304,11 @@ const SocialMediaPage = () => {
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                     {network.name}
                   </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className={`text-sm ${
+                    network.connected 
+                      ? 'text-green-600 dark:text-green-400' 
+                      : 'text-gray-600 dark:text-gray-400'
+                  }`}>
                     {network.connected ? 'Conectado' : 'Não conectado'}
                   </p>
                 </div>
@@ -224,14 +357,43 @@ const SocialMediaPage = () => {
               />
             </div>
 
-            <button
-              onClick={handleSaveLink}
-              disabled={!linkInput.trim()}
-              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
-            >
-              <span>Adicionar</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
+            <div className="flex space-x-3">
+              {/* Delete Button - only show if network is connected */}
+              {selectedNetwork?.connected && (
+                <button
+                  onClick={handleDeleteLink}
+                  disabled={deleting || loading}
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+                >
+                  {deleting ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4" />
+                      <span>Excluir</span>
+                    </>
+                  )}
+                </button>
+              )}
+              
+              {/* Save Button */}
+              <button
+                onClick={handleSaveLink}
+                disabled={!linkInput.trim() || loading || deleting}
+                className={`bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 ${
+                  selectedNetwork?.connected ? 'flex-1' : 'w-full'
+                }`}
+              >
+                {loading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <>
+                    <span>Salvar</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
