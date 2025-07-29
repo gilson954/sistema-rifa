@@ -539,26 +539,36 @@ const CampaignPage = () => {
                 <div className="flex items-center space-x-1 ml-2">
                   {/* WhatsApp Support - from campaign phone number */}
                   {campaignData.phone_number && (
-                    <button
-                      onClick={() => handleSocialMediaClick(`https://wa.me/${campaignData.phone_number.replace(/\D/g, '')}`)}
-                      className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs font-medium flex items-center space-x-1 transition-colors duration-200"
-                      title="WhatsApp Suporte"
-                    >
-                      <socialMediaConfig['whatsapp-group'].icon className="w-3 h-3" />
-                      <span>Suporte</span>
-                    </button>
+                    (() => {
+                      const WhatsAppIcon = socialMediaConfig['whatsapp-group'].icon;
+                      return (
+                        <button
+                          onClick={() => handleSocialMediaClick(`https://wa.me/${campaignData.phone_number.replace(/\D/g, '')}`)}
+                          className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs font-medium flex items-center space-x-1 transition-colors duration-200"
+                          title="WhatsApp Suporte"
+                        >
+                          <WhatsAppIcon className="w-3 h-3" />
+                          <span>Suporte</span>
+                        </button>
+                      );
+                    })()
                   )}
                   
                   {/* WhatsApp Group - from social media links */}
                   {organizerSocialLinks['whatsapp-group'] && (
-                    <button
-                      onClick={() => handleSocialMediaClick(organizerSocialLinks['whatsapp-group'])}
-                      className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs font-medium flex items-center space-x-1 transition-colors duration-200"
-                      title="WhatsApp Grupo"
-                    >
-                      <socialMediaConfig['whatsapp-group'].icon className="w-3 h-3" />
-                      <span>Grupo</span>
-                    </button>
+                    (() => {
+                      const WhatsAppGroupIcon = socialMediaConfig['whatsapp-group'].icon;
+                      return (
+                        <button
+                          onClick={() => handleSocialMediaClick(organizerSocialLinks['whatsapp-group'])}
+                          className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs font-medium flex items-center space-x-1 transition-colors duration-200"
+                          title="WhatsApp Grupo"
+                        >
+                          <WhatsAppGroupIcon className="w-3 h-3" />
+                          <span>Grupo</span>
+                        </button>
+                      );
+                    })()
                   )}
                   
                   {/* Other Social Media Icons */}
