@@ -24,6 +24,7 @@ export type Database = {
           logo_url: string | null
           primary_color: string | null
           theme: string | null
+          social_media_links: any | null
         }
         Insert: {
           id: string
@@ -36,6 +37,7 @@ export type Database = {
           logo_url?: string | null
           primary_color?: string | null
           theme?: string | null
+          social_media_links?: any | null
         }
         Update: {
           id?: string
@@ -48,6 +50,7 @@ export type Database = {
           logo_url?: string | null
           primary_color?: string | null
           theme?: string | null
+          social_media_links?: any | null
         }
       }
       campaigns: {
