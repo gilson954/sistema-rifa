@@ -25,6 +25,7 @@ const AccountPage = () => {
   const [userData, setUserData] = useState({
     name: '',
     email: '',
+    cpf: '',
   });
   const [selectedCountry, setSelectedCountry] = useState<Country>({
     code: 'BR',
