@@ -24,7 +24,6 @@ const AccountPage = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [userData, setUserData] = useState({
     name: '',
-    cpf: '',
     email: '',
   });
   const [selectedCountry, setSelectedCountry] = useState<Country>({
@@ -44,7 +43,7 @@ const AccountPage = () => {
         try {
           const { data: profile, error } = await supabase
             .from('profiles')
-            .select('name, email, avatar_url, cpf, phone_number')
+            .select('name, email, avatar_url')
             .eq('id', user.id)
             .single();
 
@@ -54,46 +53,10 @@ const AccountPage = () => {
             setUserData(prev => ({
               ...prev,
               name: profile.name || '',
-              email: profile.email || '',
-              cpf: profile.cpf || ''
+              email: profile.email || ''
             }));
             setProfileImageUrl(profile.avatar_url);
             
-            // Parse phone number if exists
-            if (profile.phone_number) {
-              const phoneNumberParts = profile.phone_number.split(' ');
-              const dialCode = phoneNumberParts[0] || '+55';
-              const phoneNumber = phoneNumberParts.slice(1).join(' ') || '';
-              
-              // Find matching country
-              const countries = [
-                { code: 'BR', name: 'Brasil', dialCode: '+55', flag: '🇧🇷' },
-                { code: 'US', name: 'Estados Unidos', dialCode: '+1', flag: '🇺🇸' },
-                { code: 'CA', name: 'Canadá', dialCode: '+1', flag: '🇨🇦' },
-                { code: 'AR', name: 'Argentina', dialCode: '+54', flag: '🇦🇷' },
-                { code: 'CL', name: 'Chile', dialCode: '+56', flag: '🇨🇱' },
-                { code: 'CO', name: 'Colômbia', dialCode: '+57', flag: '🇨🇴' },
-                { code: 'PE', name: 'Peru', dialCode: '+51', flag: '🇵🇪' },
-                { code: 'UY', name: 'Uruguai', dialCode: '+598', flag: '🇺🇾' },
-                { code: 'PY', name: 'Paraguai', dialCode: '+595', flag: '🇵🇾' },
-                { code: 'BO', name: 'Bolívia', dialCode: '+591', flag: '🇧🇴' },
-                { code: 'EC', name: 'Equador', dialCode: '+593', flag: '🇪🇨' },
-                { code: 'VE', name: 'Venezuela', dialCode: '+58', flag: '🇻🇪' },
-                { code: 'MX', name: 'México', dialCode: '+52', flag: '🇲🇽' },
-                { code: 'PT', name: 'Portugal', dialCode: '+351', flag: '🇵🇹' },
-                { code: 'ES', name: 'Espanha', dialCode: '+34', flag: '🇪🇸' }
-              ];
-              
-              const matchingCountry = countries.find(c => c.dialCode === dialCode) || {
-                code: 'BR',
-                name: 'Brasil',
-                dialCode: '+55',
-                flag: '🇧🇷'
-              };
-              
-              setSelectedCountry(matchingCountry);
-              setPhoneNumberInput(phoneNumber);
-            }
           }
         } catch (error) {
           console.error('Error fetching user profile:', error);
@@ -197,18 +160,11 @@ const AccountPage = () => {
 
     if (user) {
       try {
-        // Prepare phone number
-        const fullPhoneNumber = phoneNumberInput.trim() 
-          ? `${selectedCountry.dialCode} ${phoneNumberInput.trim()}`
-          : null;
-
         const { error } = await supabase
           .from('profiles')
           .update({
             name: userData.name,
-            email: userData.email,
-            cpf: userData.cpf.trim() || null,
-            phone_number: fullPhoneNumber
+            email: userData.email
           })
           .eq('id', user.id);
 
@@ -367,16 +323,6 @@ const AccountPage = () => {
             <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">Email</label>
             <p className="text-gray-900 dark:text-white font-medium">{userData.email || '-'}</p>
           </div>
-          <div>
-            <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">Cpf</label>
-            <p className="text-gray-900 dark:text-white font-medium">{userData.cpf || '-'}</p>
-          </div>
-          <div>
-            <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">Número de celular</label>
-            <p className="text-gray-900 dark:text-white font-medium">
-              {phoneNumberInput ? `${selectedCountry.dialCode} ${phoneNumberInput}` : '-'}
-            </p>
-          </div>
         </div>
       </div>
 
@@ -453,25 +399,6 @@ const AccountPage = () => {
                 />
               </div>
 
-              {/* CPF */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Cpf
-                </label>
-                <input
-                  type="text"
-                  value={userData.cpf}
-                  onChange={(e) => setUserData({ ...userData, cpf: formatCPF(e.target.value) })}
-                  placeholder="Cpf"
-                  className={`w-full bg-white dark:bg-gray-700 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
-                    errors.cpf ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  }`}
-                />
-                {errors.cpf && (
-                  <p className="text-red-500 text-sm mt-1">{errors.cpf}</p>
-                )}
-              </div>
-
               {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -488,18 +415,6 @@ const AccountPage = () => {
                 {errors.email && (
                   <p className="text-red-500 text-sm mt-1">{errors.email}</p>
                 )}
-              </div>
-
-              {/* Phone Number with Country Selection */}
-              <div>
-                <CountryPhoneSelect
-                  selectedCountry={selectedCountry}
-                  onCountryChange={setSelectedCountry}
-                  phoneNumber={phoneNumberInput}
-                  onPhoneChange={setPhoneNumberInput}
-                  placeholder="Número de telefone"
-                  error={errors.phoneNumber}
-                />
               </div>
             </div>
 
