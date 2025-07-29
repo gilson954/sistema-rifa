@@ -72,6 +72,7 @@ const SocialMediaPage = () => {
       if (!user) return;
 
       try {
+        // Check if social_media_links column exists by trying to query it
         const { data, error } = await supabase
           .from('profiles')
           .select('social_media_links')
@@ -79,6 +80,11 @@ const SocialMediaPage = () => {
           .single();
 
         if (error) {
+          // If column doesn't exist, silently continue with default state
+          if (error.code === '42703') {
+            console.log('social_media_links column not yet created');
+            return;
+          }
           console.error('Error loading social media links:', error);
           return;
         }
@@ -124,6 +130,10 @@ const SocialMediaPage = () => {
         .single();
 
       if (fetchError) {
+        if (fetchError.code === '42703') {
+          alert('A coluna social_media_links ainda não foi criada no banco de dados. Entre em contato com o suporte.');
+          return;
+        }
         console.error('Error fetching current links:', fetchError);
         alert('Erro ao carregar dados. Tente novamente.');
         return;
@@ -142,6 +152,10 @@ const SocialMediaPage = () => {
         .eq('id', user.id);
 
       if (updateError) {
+        if (updateError.code === '42703') {
+          alert('A coluna social_media_links ainda não foi criada no banco de dados. Entre em contato com o suporte.');
+          return;
+        }
         console.error('Error updating social media links:', updateError);
         alert('Erro ao salvar link. Tente novamente.');
         return;
@@ -180,6 +194,10 @@ const SocialMediaPage = () => {
         .single();
 
       if (fetchError) {
+        if (fetchError.code === '42703') {
+          alert('A coluna social_media_links ainda não foi criada no banco de dados. Entre em contato com o suporte.');
+          return;
+        }
         console.error('Error fetching current links:', fetchError);
         alert('Erro ao carregar dados. Tente novamente.');
         return;
@@ -196,6 +214,10 @@ const SocialMediaPage = () => {
         .eq('id', user.id);
 
       if (updateError) {
+        if (updateError.code === '42703') {
+          alert('A coluna social_media_links ainda não foi criada no banco de dados. Entre em contato com o suporte.');
+          return;
+        }
         console.error('Error deleting social media link:', updateError);
         alert('Erro ao excluir link. Tente novamente.');
         return;
