@@ -528,12 +528,6 @@ const CampaignPage = () => {
               <div className={`text-sm ${getTextClasses(campaignTheme).secondary}`}>Organizado por:</div>
               <div className="flex items-center space-x-2">
                 <span className={`font-semibold ${getTextClasses(campaignTheme).primary}`}>{campaignData.organizer.name}</span>
-                {campaignData.organizer.verified && (
-                  <div className="bg-green-500 text-white px-2 py-1 rounded text-xs font-medium flex items-center space-x-1">
-                    <Shield className="h-3 w-3" />
-                    <span>Suporte</span>
-                  </div>
-                )}
                 
                 {/* Social Media Icons */}
                 <div className="flex items-center space-x-1 ml-2">
