@@ -47,6 +47,12 @@ const SocialMediaPage = () => {
       connected: false
     },
     {
+      id: 'whatsapp-support',
+      name: 'Whatsapp Suporte',
+      icon: '💬',
+      connected: false
+    },
+    {
       id: 'whatsapp-group',
       name: 'Whatsapp grupo',
       icon: '💬',

@@ -83,6 +83,11 @@ export const socialMediaConfig = {
     color: '#0088CC',
     name: 'Telegram'
   },
+  'whatsapp-support': { 
+    icon: WhatsAppIcon, 
+    color: '#25D366',
+    name: 'Suporte'
+  },
   'whatsapp-group': { 
     icon: WhatsAppIcon, 
     color: '#25D366',
