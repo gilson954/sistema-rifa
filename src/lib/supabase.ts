@@ -24,6 +24,8 @@ export type Database = {
           logo_url: string | null
           primary_color: string | null
           theme: string | null
+          cpf: string | null
+          phone_number: string | null
           social_media_links: any | null
         }
         Insert: {
@@ -37,6 +39,8 @@ export type Database = {
           logo_url?: string | null
           primary_color?: string | null
           theme?: string | null
+          cpf?: string | null
+          phone_number?: string | null
           social_media_links?: any | null
         }
         Update: {
@@ -50,6 +54,8 @@ export type Database = {
           logo_url?: string | null
           primary_color?: string | null
           theme?: string | null
+          cpf?: string | null
+          phone_number?: string | null
           social_media_links?: any | null
         }
       }
