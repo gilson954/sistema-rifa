@@ -314,6 +314,11 @@ const CampaignPage = () => {
   };
 
   const handlePromotionClick = (promo: any) => {
+    // Não executa ação se estiver no modo manual
+    if (campaignData.model === 'manual') {
+      return;
+    }
+    
     console.log('Promoção clicada:', promo);
     
     if (campaignData.model === 'automatic') {
@@ -584,12 +589,7 @@ const CampaignPage = () => {
                   <button
                     key={promo.id}
                     onClick={() => handlePromotionClick(promo)}
-                   disabled={campaignData.model === 'manual'}
-                   className={`relative text-white rounded-lg p-4 transition-all duration-200 border ${getTextClasses(campaignTheme).muted === 'text-gray-500' ? 'border-gray-300' : 'border-gray-600'} group ${
-                     campaignData.model === 'manual' 
-                       ? 'opacity-50 cursor-not-allowed' 
-                       : 'hover:brightness-90 cursor-pointer'
-                   }`}
+                    className={`relative text-white rounded-lg p-4 transition-all duration-200 border ${getTextClasses(campaignTheme).muted === 'text-gray-500' ? 'border-gray-300' : 'border-gray-600'} group hover:brightness-90 cursor-pointer`}
                     style={{ backgroundColor: primaryColor || '#3B82F6' }}
                   >
                     {/* Badge de desconto */}
