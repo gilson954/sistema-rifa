@@ -46,7 +46,7 @@ const AccountPage = () => {
             .from('profiles')
             .select('name, email, avatar_url')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
           if (error) {
             console.error('Error fetching profile:', error);
@@ -57,7 +57,13 @@ const AccountPage = () => {
               email: profile.email || ''
             }));
             setProfileImageUrl(profile.avatar_url);
-            
+          } else {
+            // Profile doesn't exist, use default values
+            setUserData(prev => ({
+              ...prev,
+              name: '',
+              email: user.email || ''
+            }));
           }
         } catch (error) {
           console.error('Error fetching user profile:', error);
