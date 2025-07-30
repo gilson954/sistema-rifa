@@ -146,6 +146,65 @@ export const useCampaign = (id: string) => {
   return { campaign, loading, error };
 };
 
+export const useCampaignBySlug = (slug: string) => {
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCampaign = async () => {
+      setLoading(true);
+      setError(null);
+
+      const { data, error: apiError } = await CampaignAPI.getCampaignBySlug(slug);
+
+      if (apiError) {
+        setError('Erro ao carregar campanha');
+        console.error('Error fetching campaign by slug:', apiError);
+      } else {
+        setCampaign(data);
+      }
+
+      setLoading(false);
+    };
+
+    if (slug) {
+      fetchCampaign();
+    }
+  }, [slug]);
+
+  return { campaign, loading, error };
+};
+
+export const useCampaignByCustomDomain = (domain: string) => {
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCampaign = async () => {
+      setLoading(true);
+      setError(null);
+
+      const { data, error: apiError } = await CampaignAPI.getCampaignByCustomDomain(domain);
+
+      if (apiError) {
+        setError('Erro ao carregar campanha por domínio personalizado');
+        console.error('Error fetching campaign by custom domain:', apiError);
+      } else {
+        setCampaign(data);
+      }
+
+      setLoading(false);
+    };
+
+    if (domain) {
+      fetchCampaign();
+    }
+  }, [domain]);
+
+  return { campaign, loading, error };
+};
 export const useCampaignWithRefetch = (id: string) => {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);

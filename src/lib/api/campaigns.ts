@@ -1,6 +1,7 @@
 import { supabase } from '../supabase';
 import { CreateCampaignInput, UpdateCampaignInput } from '../validations/campaign';
 import { Campaign, CampaignStatus } from '../../types/campaign';
+import { generateUniqueSlug } from '../../utils/slugGenerator';
 
 export class CampaignAPI {
   /**
@@ -8,12 +9,16 @@ export class CampaignAPI {
    */
   static async createCampaign(data: CreateCampaignInput, userId: string): Promise<{ data: Campaign | null; error: any }> {
     try {
+      // Gera slug único para a campanha
+      const slug = await generateUniqueSlug(data.title);
+      
       const now = new Date();
       const expiresAt = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
       
       const campaignData = {
         ...data,
         user_id: userId,
+        slug,
         sold_tickets: 0,
         status: 'draft' as CampaignStatus,
         start_date: now.toISOString(),
@@ -40,6 +45,12 @@ export class CampaignAPI {
   static async updateCampaign(data: UpdateCampaignInput): Promise<{ data: Campaign | null; error: any }> {
     try {
       const { id, ...updateData } = data;
+      
+      // Se o título foi alterado, regenera o slug
+      if (updateData.title) {
+        const newSlug = await generateUniqueSlug(updateData.title, id);
+        updateData.slug = newSlug;
+      }
       
       console.log('🔧 [API DEBUG] Updating campaign with data:', updateData);
       
@@ -109,6 +120,54 @@ export class CampaignAPI {
     }
   }
 
+  /**
+   * Busca uma campanha por slug
+   */
+  static async getCampaignBySlug(slug: string): Promise<{ data: Campaign | null; error: any }> {
+    try {
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Error fetching campaign by slug:', error);
+      return { data: null, error };
+    }
+  }
+
+  /**
+   * Busca uma campanha por domínio personalizado
+   */
+  static async getCampaignByCustomDomain(domain: string): Promise<{ data: Campaign | null; error: any }> {
+    try {
+      // Primeiro busca o domínio personalizado
+      const { data: customDomain, error: domainError } = await supabase
+        .from('custom_domains')
+        .select('campaign_id')
+        .eq('domain_name', domain)
+        .eq('is_verified', true)
+        .single();
+
+      if (domainError || !customDomain) {
+        return { data: null, error: domainError || new Error('Domínio personalizado não encontrado') };
+      }
+
+      // Depois busca a campanha associada
+      const { data: campaign, error: campaignError } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('id', customDomain.campaign_id)
+        .single();
+
+      return { data: campaign, error: campaignError };
+    } catch (error) {
+      console.error('Error fetching campaign by custom domain:', error);
+      return { data: null, error };
+    }
+  }
   /**
    * Deleta uma campanha
    */

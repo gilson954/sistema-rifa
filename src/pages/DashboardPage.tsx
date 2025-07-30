@@ -88,7 +88,15 @@ const DashboardPage = () => {
   };
 
   const handleViewCampaign = (campaignId: string) => {
-    navigate(`/c/${campaignId}`);
+    // Busca a campanha para obter o slug
+    const campaign = campaigns.find(c => c.id === campaignId);
+    if (campaign?.slug) {
+      // Abre em nova aba para visualizar como usuário final
+      window.open(`/c/${campaign.slug}`, '_blank');
+    } else {
+      // Fallback para ID se não houver slug
+      window.open(`/c/${campaignId}`, '_blank');
+    }
   };
 
   const formatCurrency = (value: number) => {

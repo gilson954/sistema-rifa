@@ -3,7 +3,7 @@ import { Shield, Share2, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-rea
 import { useParams, useLocation } from 'react-router-dom';
 import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
-import { useCampaign } from '../hooks/useCampaigns';
+import { useCampaignBySlug, useCampaignByCustomDomain } from '../hooks/useCampaigns';
 import { supabase } from '../lib/supabase';
 import { Promotion, Prize } from '../types/promotion';
 import { socialMediaConfig, shareSectionConfig } from '../components/SocialMediaIcons';
@@ -14,7 +14,7 @@ interface Prize {
 }
 
 const CampaignPage = () => {
-  const { campaignId } = useParams();
+  const { slug } = useParams<{ slug: string }>();
   const location = useLocation();
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
   const [activeFilter, setActiveFilter] = useState<'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers'>('all');
@@ -27,7 +27,27 @@ const CampaignPage = () => {
   const [organizerName, setOrganizerName] = useState<string>('Organizador');
   const [organizerSocialLinks, setOrganizerSocialLinks] = useState<Record<string, string>>({});
 
-  const { campaign, loading: campaignLoading } = useCampaign(campaignId || '');
+  // Detecta se o acesso é via domínio personalizado
+  const queryParams = new URLSearchParams(location.search);
+  const customDomain = queryParams.get('custom_domain');
+  
+  // Usa o hook apropriado baseado no tipo de acesso
+  const { 
+    campaign: campaignBySlug, 
+    loading: loadingBySlug, 
+    error: errorBySlug 
+  } = useCampaignBySlug(customDomain ? '' : slug || '');
+  
+  const { 
+    campaign: campaignByDomain, 
+    loading: loadingByDomain, 
+    error: errorByDomain 
+  } = useCampaignByCustomDomain(customDomain || '');
+  
+  // Determina qual campanha e estado de loading usar
+  const campaign = customDomain ? campaignByDomain : campaignBySlug;
+  const campaignLoading = customDomain ? loadingByDomain : loadingBySlug;
+  const campaignError = customDomain ? errorByDomain : errorBySlug;
   
   // Funções para obter classes de tema adaptativas
   const getCardBackgroundClasses = (theme: string) => {
@@ -269,6 +289,29 @@ const CampaignPage = () => {
     );
   }
 
+  if (campaignError || !campaign) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            Campanha não encontrada
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-8">
+            {customDomain 
+              ? `O domínio ${customDomain} não está configurado ou a campanha não foi encontrada.`
+              : `A campanha com o código "${slug}" não foi encontrada.`
+            }
+          </p>
+          <a 
+            href="/"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+          >
+            Voltar ao início
+          </a>
+        </div>
+      </div>
+    );
+  }
   const handleQuotaSelect = (quotaNumber: number) => {
     setSelectedQuotas(prev => {
       if (prev.includes(quotaNumber)) {

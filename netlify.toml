@@ -1,0 +1,108 @@
+# Configuração do Netlify para suporte a domínios personalizados e slugs
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Configurações de build
+[build.environment]
+  NODE_VERSION = "18"
+
+# Headers de segurança
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Regra principal para SPA (Single Page Application)
+# Garante que todas as rotas sejam servidas pelo index.html para o React Router
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+# Regra específica para domínios personalizados
+# Quando uma requisição vem de um domínio que não é o principal,
+# reescreve internamente para incluir o parâmetro custom_domain
+[[redirects]]
+  from = "/*"
+  to = "/c/:splat?custom_domain=:host"
+  status = 200
+  force = true
+  # Aplica apenas para domínios que NÃO são os principais
+  # Substitua pelos seus domínios reais
+  conditions = {Host = ["!meuapp.com", "!*.netlify.app"]}
+
+# Regra para APIs e assets estáticos (não reescrever)
+[[redirects]]
+  from = "/api/*"
+  to = "/api/:splat"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/_next/*"
+  to = "/_next/:splat"
+  status = 200
+  force = false
+
+# Configurações de cache para assets estáticos
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Configurações para PWA (se aplicável)
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Configurações de CORS para APIs (se necessário)
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+
+# Redirecionamentos para URLs antigas (se necessário)
+# Exemplo: redirecionar URLs antigas com ID para novas URLs com slug
+# [[redirects]]
+#   from = "/campanha/:id"
+#   to = "/c/:id"
+#   status = 301
+
+# Configurações de formulários (se usar Netlify Forms)
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+# Configurações de Edge Functions (se necessário no futuro)
+# [[edge_functions]]
+#   function = "custom-domain-router"
+#   path = "/*"

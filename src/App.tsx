@@ -41,7 +41,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           
           {/* Página Pública de Campanha */}
-          <Route path="/c/:campaignId" element={<CampaignPage />} />
+          <Route path="/c/:slug" element={<CampaignPage />} />
           
           {/* Rota de Login Administrativo */}
           <Route path="/admin/login" element={<AdminLoginPage />} />

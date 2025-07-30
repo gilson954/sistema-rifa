@@ -8,6 +8,15 @@ export const createCampaignSchema = z.object({
     .max(100, 'O título deve ter no máximo 100 caracteres')
     .trim(),
   
+  slug: z
+    .string()
+    .min(3, 'O slug deve ter pelo menos 3 caracteres')
+    .max(50, 'O slug deve ter no máximo 50 caracteres')
+    .regex(/^[a-z0-9-]+$/, 'O slug deve conter apenas letras minúsculas, números e hífens')
+    .refine(slug => !slug.startsWith('-') && !slug.endsWith('-'), 'O slug não pode começar ou terminar com hífen')
+    .refine(slug => !slug.includes('--'), 'O slug não pode conter hífens consecutivos')
+    .optional(),
+  
   description: z
     .string()
     .max(2000, 'A descrição deve ter no máximo 2000 caracteres')
