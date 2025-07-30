@@ -110,10 +110,15 @@ export class CampaignAPI {
       const { data, error } = await supabase
         .from('campaigns')
         .select('*')
-        .eq('id', id)
-        .single();
+        .eq('id', id);
 
-      return { data, error };
+      if (error) {
+        return { data: null, error };
+      }
+
+      // Return the first campaign if found, otherwise null
+      const campaign = data && data.length > 0 ? data[0] : null;
+      return { data: campaign, error: null };
     } catch (error) {
       console.error('Error fetching campaign:', error);
       return { data: null, error };
@@ -128,10 +133,15 @@ export class CampaignAPI {
       const { data, error } = await supabase
         .from('campaigns')
         .select('*')
-        .eq('slug', slug)
-        .single();
+        .eq('slug', slug);
 
-      return { data, error };
+      if (error) {
+        return { data: null, error };
+      }
+
+      // Return the first campaign if found, otherwise null
+      const campaign = data && data.length > 0 ? data[0] : null;
+      return { data: campaign, error: null };
     } catch (error) {
       console.error('Error fetching campaign by slug:', error);
       return { data: null, error };
@@ -144,25 +154,33 @@ export class CampaignAPI {
   static async getCampaignByCustomDomain(domain: string): Promise<{ data: Campaign | null; error: any }> {
     try {
       // Primeiro busca o domínio personalizado
-      const { data: customDomain, error: domainError } = await supabase
+      const { data: customDomainData, error: domainError } = await supabase
         .from('custom_domains')
         .select('campaign_id')
         .eq('domain_name', domain)
-        .eq('is_verified', true)
-        .single();
+        .eq('is_verified', true);
 
-      if (domainError || !customDomain) {
+      if (domainError) {
+        return { data: null, error: domainError };
+      }
+
+      const customDomain = customDomainData && customDomainData.length > 0 ? customDomainData[0] : null;
+      if (!customDomain) {
         return { data: null, error: domainError || new Error('Domínio personalizado não encontrado') };
       }
 
       // Depois busca a campanha associada
-      const { data: campaign, error: campaignError } = await supabase
+      const { data: campaignData, error: campaignError } = await supabase
         .from('campaigns')
         .select('*')
-        .eq('id', customDomain.campaign_id)
-        .single();
+        .eq('id', customDomain.campaign_id);
 
-      return { data: campaign, error: campaignError };
+      if (campaignError) {
+        return { data: null, error: campaignError };
+      }
+
+      const campaign = campaignData && campaignData.length > 0 ? campaignData[0] : null;
+      return { data: campaign, error: null };
     } catch (error) {
       console.error('Error fetching campaign by custom domain:', error);
       return { data: null, error };
