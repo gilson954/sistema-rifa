@@ -129,7 +129,7 @@ Deno.serve(async (req: Request) => {
     // Then delete user from auth
     const { error: deleteError } = await supabase.auth.admin.deleteUser(user_id)
 
-    if (deleteError) {
+    if (deleteError && deleteError.message !== 'User not found') {
       console.error('Error deleting user:', deleteError)
       return new Response(
         JSON.stringify({
@@ -142,6 +142,10 @@ Deno.serve(async (req: Request) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
+    }
+
+    if (deleteError && deleteError.message === 'User not found') {
+      console.log('⚠️ User already removed from auth system')
     }
 
     console.log('✅ User account deleted successfully')
