@@ -4,6 +4,8 @@ import { useParams, useLocation } from 'react-router-dom';
 import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
 import { useCampaignBySlug, useCampaignByCustomDomain } from '../hooks/useCampaigns';
+import { useTickets } from '../hooks/useTickets';
+import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Promotion, Prize } from '../types/promotion';
 import { socialMediaConfig, shareSectionConfig } from '../components/SocialMediaIcons';
@@ -16,6 +18,7 @@ interface Prize {
 const CampaignPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const location = useLocation();
+  const { user } = useAuth();
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
   const [activeFilter, setActiveFilter] = useState<'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers'>('all');
   const [quantity, setQuantity] = useState(1);
@@ -48,6 +51,21 @@ const CampaignPage = () => {
   const campaign = customDomain ? campaignByDomain : campaignBySlug;
   const campaignLoading = customDomain ? loadingByDomain : loadingBySlug;
   const campaignError = customDomain ? errorByDomain : errorBySlug;
+
+  // Hook para gerenciar tickets da campanha
+  const {
+    tickets,
+    loading: ticketsLoading,
+    error: ticketsError,
+    reserving,
+    purchasing,
+    reserveTickets,
+    finalizePurchase,
+    getMyTickets,
+    getAvailableTickets,
+    getReservedTickets,
+    getPurchasedTickets
+  } = useTickets(campaign?.id || '');
   
   // Funções para obter classes de tema adaptativas
   const getCardBackgroundClasses = (theme: string) => {
@@ -313,6 +331,12 @@ const CampaignPage = () => {
     );
   }
   const handleQuotaSelect = (quotaNumber: number) => {
+    // Verifica se a cota está disponível
+    const ticket = tickets.find(t => t.quota_number === quotaNumber);
+    if (ticket && ticket.status !== 'disponível' && !selectedQuotas.includes(quotaNumber)) {
+      return; // Não permite selecionar cotas reservadas ou compradas
+    }
+
     setSelectedQuotas(prev => {
       if (prev.includes(quotaNumber)) {
         // Remove da seleção se já estiver selecionada
@@ -422,6 +446,78 @@ const CampaignPage = () => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  const handleReserveTickets = async () => {
+    if (!user) {
+      alert('Você precisa estar logado para reservar cotas');
+      return;
+    }
+
+    if (selectedQuotas.length === 0) {
+      alert('Selecione pelo menos uma cota');
+      return;
+    }
+
+    try {
+      const result = await reserveTickets(selectedQuotas);
+      if (result) {
+        const successCount = result.filter(r => r.status === 'reservado').length;
+        const errorCount = result.filter(r => r.status === 'error').length;
+        
+        if (successCount > 0) {
+          alert(`${successCount} cota(s) reservada(s) com sucesso!`);
+          setSelectedQuotas([]); // Limpa a seleção após reserva
+        }
+        
+        if (errorCount > 0) {
+          const errorMessages = result
+            .filter(r => r.status === 'error')
+            .map(r => `Cota ${r.quota_number}: ${r.message}`)
+            .join('\n');
+          alert(`Algumas cotas não puderam ser reservadas:\n${errorMessages}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error reserving tickets:', error);
+      alert('Erro ao reservar cotas. Tente novamente.');
+    }
+  };
+
+  const handleAutomaticReserve = async () => {
+    if (!user) {
+      alert('Você precisa estar logado para reservar cotas');
+      return;
+    }
+
+    if (quantity <= 0) {
+      alert('Selecione uma quantidade válida');
+      return;
+    }
+
+    // Para modo automático, seleciona as primeiras cotas disponíveis
+    const availableTickets = getAvailableTickets();
+    const quotasToReserve = availableTickets
+      .slice(0, quantity)
+      .map(ticket => ticket.quota_number);
+
+    if (quotasToReserve.length < quantity) {
+      alert(`Apenas ${quotasToReserve.length} cotas disponíveis. Não é possível reservar ${quantity} cotas.`);
+      return;
+    }
+
+    try {
+      const result = await reserveTickets(quotasToReserve);
+      if (result) {
+        const successCount = result.filter(r => r.status === 'reservado').length;
+        
+        if (successCount > 0) {
+          alert(`${successCount} cota(s) reservada(s) com sucesso!`);
+        }
+      }
+    } catch (error) {
+      console.error('Error reserving tickets:', error);
+      alert('Erro ao reservar cotas. Tente novamente.');
+    }
+  };
   const formatCurrency = (value: number) => {
     // Verificação de segurança para valores inválidos
     if (value === null || value === undefined || isNaN(value)) {
@@ -664,8 +760,8 @@ const CampaignPage = () => {
                 activeFilter={activeFilter}
                 onFilterChange={handleFilterChange}
                 mode="manual"
-                reservedQuotas={campaignData.reservedQuotas}
-                purchasedQuotas={campaignData.purchasedQuotas}
+                tickets={tickets}
+                currentUserId={user?.id}
                 campaignTheme={campaignTheme}
                 primaryColor={primaryColor}
               />
@@ -705,10 +801,12 @@ const CampaignPage = () => {
                         Total: R$ {(promotionInfo ? promotionInfo.promotionalTotal : selectedQuotas.length * campaignData.ticketPrice).toFixed(2).replace('.', ',')}
                       </div>
                       <button 
-                        className="w-full text-white py-3 rounded-lg font-bold hover:brightness-90 transition-all duration-200"
+                        onClick={handleReserveTickets}
+                        disabled={reserving || selectedQuotas.length === 0}
+                        className="w-full text-white py-3 rounded-lg font-bold hover:brightness-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{ backgroundColor: primaryColor || '#3B82F6' }}
                       >
-                        RESERVAR COTAS SELECIONADAS
+                        {reserving ? 'RESERVANDO...' : 'RESERVAR COTAS SELECIONADAS'}
                       </button>
                     </div>
                   </div>
@@ -727,6 +825,8 @@ const CampaignPage = () => {
                 promotionInfo={promotionInfo}
                 primaryColor={primaryColor}
                 campaignTheme={campaignTheme}
+                onReserve={handleAutomaticReserve}
+                reserving={reserving}
               />
             </div>
           )}

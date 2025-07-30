@@ -19,6 +19,8 @@ interface QuotaSelectorProps {
   promotionInfo?: PromotionInfo | null;
   primaryColor?: string | null;
   campaignTheme: string;
+  onReserve?: () => void;
+  reserving?: boolean;
 }
 
 const QuotaSelector: React.FC<QuotaSelectorProps> = ({
@@ -30,7 +32,9 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   mode,
   promotionInfo,
   primaryColor,
-  campaignTheme
+  campaignTheme,
+  onReserve,
+  reserving = false
 }) => {
   const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -226,7 +230,10 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       </div>
 
       {/* Buy Button */}
-      <button className={`w-full py-4 rounded-lg font-bold text-lg transition-colors duration-200 shadow-md ${
+      <button 
+        onClick={onReserve}
+        disabled={reserving}
+        className={`w-full py-4 rounded-lg font-bold text-lg transition-colors duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
         promotionInfo 
           ? 'text-white hover:brightness-90' 
           : 'text-white hover:brightness-90'
@@ -234,7 +241,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       style={{ 
         backgroundColor: primaryColor || '#3B82F6'
       }}>
-        RESERVAR
+        {reserving ? 'RESERVANDO...' : 'RESERVAR'}
       </button>
     </div>
   );

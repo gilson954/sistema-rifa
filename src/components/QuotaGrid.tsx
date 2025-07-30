@@ -1,4 +1,5 @@
 import React from 'react';
+import { TicketStatusInfo } from '../lib/api/tickets';
 
 interface QuotaGridProps {
   totalQuotas: number;
@@ -7,8 +8,8 @@ interface QuotaGridProps {
   activeFilter: 'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers';
   onFilterChange: (filter: 'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers') => void;
   mode: 'manual' | 'automatic';
-  reservedQuotas?: number[];
-  purchasedQuotas?: number[];
+  tickets: TicketStatusInfo[];
+  currentUserId?: string;
   campaignTheme: string;
   primaryColor?: string | null;
 }
@@ -20,8 +21,8 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   activeFilter,
   onFilterChange,
   mode,
-  reservedQuotas = [],
-  purchasedQuotas = [],
+  tickets,
+  currentUserId,
   campaignTheme,
   primaryColor
 }) => {
@@ -64,8 +65,13 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   };
 
   const getQuotaStatus = (quotaNumber: number) => {
-    if (purchasedQuotas.includes(quotaNumber)) return 'purchased';
-    if (reservedQuotas.includes(quotaNumber)) return 'reserved';
+    // Find the ticket for this quota number
+    const ticket = tickets.find(t => t.quota_number === quotaNumber);
+    
+    if (!ticket) return 'available'; // Default if ticket not found
+    
+    if (ticket.status === 'comprado') return 'purchased';
+    if (ticket.status === 'reservado') return 'reserved';
     if (selectedQuotas.includes(quotaNumber)) return 'selected';
     return 'available';
   };
@@ -115,17 +121,25 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     
     switch (activeFilter) {
       case 'available':
-        return allQuotas.filter(quota => 
-          !reservedQuotas.includes(quota) && 
-          !purchasedQuotas.includes(quota) && 
-          !selectedQuotas.includes(quota)
-        );
+        return allQuotas.filter(quota => {
+          const ticket = tickets.find(t => t.quota_number === quota);
+          return ticket?.status === 'disponível' && !selectedQuotas.includes(quota);
+        });
       case 'reserved':
-        return allQuotas.filter(quota => reservedQuotas.includes(quota));
+        return allQuotas.filter(quota => {
+          const ticket = tickets.find(t => t.quota_number === quota);
+          return ticket?.status === 'reservado';
+        });
       case 'purchased':
-        return allQuotas.filter(quota => purchasedQuotas.includes(quota));
+        return allQuotas.filter(quota => {
+          const ticket = tickets.find(t => t.quota_number === quota);
+          return ticket?.status === 'comprado';
+        });
       case 'my-numbers':
-        return selectedQuotas.sort((a, b) => a - b);
+        return allQuotas.filter(quota => {
+          const ticket = tickets.find(t => t.quota_number === quota);
+          return ticket?.is_mine || selectedQuotas.includes(quota);
+        });
       case 'all':
       default:
         return allQuotas;
@@ -134,13 +148,17 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
 
   // Calcular contadores para os filtros
   const getFilterCounts = () => {
-    const availableCount = totalQuotas - reservedQuotas.length - purchasedQuotas.length - selectedQuotas.length;
+    const availableCount = tickets.filter(t => t.status === 'disponível').length;
+    const reservedCount = tickets.filter(t => t.status === 'reservado').length;
+    const purchasedCount = tickets.filter(t => t.status === 'comprado').length;
+    const myNumbersCount = tickets.filter(t => t.is_mine).length + selectedQuotas.length;
+    
     return {
       all: totalQuotas,
-      available: availableCount,
-      reserved: reservedQuotas.length,
-      purchased: purchasedQuotas.length,
-      myNumbers: selectedQuotas.length
+      available: Math.max(0, availableCount - selectedQuotas.length),
+      reserved: reservedCount,
+      purchased: purchasedCount,
+      myNumbers: myNumbersCount
     };
   };
 
