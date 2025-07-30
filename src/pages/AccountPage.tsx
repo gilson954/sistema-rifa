@@ -12,7 +12,7 @@ interface Country {
 }
 
 const AccountPage = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
