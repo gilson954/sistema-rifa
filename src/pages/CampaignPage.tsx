@@ -584,7 +584,12 @@ const CampaignPage = () => {
                   <button
                     key={promo.id}
                     onClick={() => handlePromotionClick(promo)}
-                    className={`relative text-white rounded-lg p-4 hover:brightness-90 transition-all duration-200 border ${getTextClasses(campaignTheme).muted === 'text-gray-500' ? 'border-gray-300' : 'border-gray-600'} group`}
+                   disabled={campaignData.model === 'manual'}
+                   className={`relative text-white rounded-lg p-4 transition-all duration-200 border ${getTextClasses(campaignTheme).muted === 'text-gray-500' ? 'border-gray-300' : 'border-gray-600'} group ${
+                     campaignData.model === 'manual' 
+                       ? 'opacity-50 cursor-not-allowed' 
+                       : 'hover:brightness-90 cursor-pointer'
+                   }`}
                     style={{ backgroundColor: primaryColor || '#3B82F6' }}
                   >
                     {/* Badge de desconto */}
