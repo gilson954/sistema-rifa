@@ -72,7 +72,7 @@ Deno.serve(async (req: Request) => {
       .from('campaigns')
       .select('id, title, status')
       .eq('user_id', user_id)
-      .eq('status', 'active')
+      .in('status', ['active', 'draft'])
 
     if (campaignsError) {
       console.error('❌ Error checking active campaigns:', campaignsError)
@@ -95,7 +95,7 @@ Deno.serve(async (req: Request) => {
       return new Response(
         JSON.stringify({
           success: false,
-          message: 'Não é possível excluir a conta pois você possui campanhas ativas. Finalize ou cancele suas campanhas antes de excluir a conta.',
+          message: 'Não é possível excluir conta com campanhas ativas ou em rascunho',
           error: 'User has active campaigns'
         } as DeleteAccountResponse),
         {
@@ -105,15 +105,36 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // Delete user from Supabase Auth (this will cascade delete the profile due to foreign key)
-    const { error: deleteError } = await supabase.auth.admin.deleteUser(user_id)
+    // First delete profile data
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', user_id)
 
-    if (deleteError) {
-      console.error('❌ Error deleting user from auth:', deleteError)
+    if (profileError) {
+      console.error('Error deleting profile:', profileError)
       return new Response(
         JSON.stringify({
           success: false,
-          message: 'Erro ao excluir conta. Tente novamente.',
+          message: 'Erro ao excluir dados do perfil',
+          error: profileError.message
+        } as DeleteAccountResponse),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    // Then delete user from auth
+    const { error: deleteError } = await supabase.auth.admin.deleteUser(user_id)
+
+    if (deleteError) {
+      console.error('Error deleting user:', deleteError)
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: 'Erro ao excluir conta de autenticação',
           error: deleteError.message
         } as DeleteAccountResponse),
         {
