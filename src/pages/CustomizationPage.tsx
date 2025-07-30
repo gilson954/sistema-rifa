@@ -485,7 +485,7 @@ const CustomizationPage = () => {
                         Organizado por:
                       </div>
                       <div className={`font-semibold ${getThemeClasses(selectedTheme).text}`}>
-                        Gilson Organizador
+                        João Silva
                       </div>
                     </div>
                   </div>
