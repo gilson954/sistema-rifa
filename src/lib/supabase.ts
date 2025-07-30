@@ -145,7 +145,8 @@ const CampaignPage = () => {
     organizer: {
       name: organizerName,
       verified: true
-    },
+    }
+  };
 
   // Buscar cor principal do organizador da campanha
   useEffect(() => {
