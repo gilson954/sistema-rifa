@@ -37,6 +37,8 @@ const PaymentIntegrationsPage = () => {
     secretKey: '',
     webhookUrl: ''
   });
+  
+  });
   const [isPay2mConfigured, setIsPay2mConfigured] = useState(false);
   const [loading, setLoading] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
