@@ -619,7 +619,7 @@ const PaymentIntegrationsPage = () => {
                     </p>
                   </div>
                 </div>
-                <button className="w-full sm:w-auto bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+                <button className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
                   Configurar
                 </button>
               </div>
