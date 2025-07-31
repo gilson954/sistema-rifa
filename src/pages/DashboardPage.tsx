@@ -17,6 +17,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
+import { useAuth } from '../context/AuthContext';
 import CampaignCleanupStatus from '../components/CampaignCleanupStatus';
 
 /**
