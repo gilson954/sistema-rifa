@@ -20,6 +20,12 @@ export interface PaymentIntegrationConfig {
     webhook_url: string;
     configured_at: string;
   };
+  paggue?: {
+    api_key: string;
+    secret_key: string;
+    webhook_url: string;
+    configured_at: string;
+  };
   // Future integrations can be added here
   // efi_bank?: { ... };
   // pay2m?: { ... };
@@ -129,7 +135,8 @@ export class PaymentsAPI {
         data.mercado_pago?.client_id || 
         data.mercado_pago?.access_token ||
         data.fluxsis?.api_key ||
-        data.pay2m?.api_key
+        data.pay2m?.api_key ||
+        data.paggue?.api_key
         // Add other payment methods here as they are implemented
       );
     } catch (error) {
@@ -190,6 +197,34 @@ export class PaymentsAPI {
       return { data: mockResponse, error: null };
     } catch (error) {
       console.error('Error creating Pay2m payment:', error);
+      return { data: null, error };
+    }
+  }
+
+  /**
+   * Create a payment with Paggue
+   * Note: This would typically call Paggue's API
+   */
+  static async createPagguePayment(
+    request: CreatePaymentRequest
+  ): Promise<{ data: PaymentResponse | null; error: any }> {
+    try {
+      // Generate external reference for tracking
+      const externalReference = `campaign_${request.campaign_id}_tickets_${request.quota_numbers.join(',')}`;
+
+      // In production, this would make an API call to Paggue
+      // For now, we'll return a mock response
+      const mockResponse: PaymentResponse = {
+        payment_id: `pag_${Date.now()}`,
+        status: 'pending',
+        payment_url: 'https://checkout.paggue.io/payment/mock_payment_id',
+        qr_code: 'mock_qr_code_data_paggue',
+        external_reference: externalReference
+      };
+
+      return { data: mockResponse, error: null };
+    } catch (error) {
+      console.error('Error creating Paggue payment:', error);
       return { data: null, error };
     }
   }

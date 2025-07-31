@@ -14,6 +14,7 @@ const PaymentIntegrationsPage = () => {
   const [isPaymentConfigured, setIsPaymentConfigured] = useState(false);
   const [isFluxsisModalOpen, setIsFluxsisModalOpen] = useState(false);
   const [isPay2mModalOpen, setIsPay2mModalOpen] = useState(false);
+  const [showPaggueModal, setShowPaggueModal] = useState(false);
   const [mercadoPagoConfig, setMercadoPagoConfig] = useState({
     clientId: '',
     clientSecret: '',
@@ -25,6 +26,10 @@ const PaymentIntegrationsPage = () => {
     apiKey: '',
     secretKey: '',
     webhookUrl: ''
+  const [paggueConfig, setPaggueConfig] = useState({
+    apiKey: '',
+    secretKey: ''
+  });
   });
   const [isFluxsisConfigured, setIsFluxsisConfigured] = useState(false);
   const [pay2mConfig, setPay2mConfig] = useState({
@@ -267,6 +272,44 @@ const PaymentIntegrationsPage = () => {
       
     } catch (error) {
       console.error('Error saving Fluxsis config:', error);
+      alert('Erro ao salvar configuração. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSavePaggue = async () => {
+    if (!paggueConfig.apiKey.trim() || !paggueConfig.secretKey.trim()) {
+      alert('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: currentConfig } = await PaymentsAPI.getPaymentConfig(user!.id);
+      
+      const updatedConfig = {
+        ...currentConfig,
+        paggue: {
+          api_key: paggueConfig.apiKey.trim(),
+          secret_key: paggueConfig.secretKey.trim(),
+          webhook_url: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paggue-webhook`,
+          configured_at: new Date().toISOString()
+        }
+      };
+
+      const { error } = await PaymentsAPI.updatePaymentConfig(user!.id, updatedConfig);
+      
+      if (error) {
+        console.error('Error saving Paggue config:', error);
+        alert('Erro ao salvar configuração. Tente novamente.');
+      } else {
+        alert('Configuração do Paggue salva com sucesso!');
+        setShowPaggueModal(false);
+        loadPaymentConfig(); // Reload to update UI
+      }
+    } catch (error) {
+      console.error('Error saving Paggue config:', error);
       alert('Erro ao salvar configuração. Tente novamente.');
     } finally {
       setLoading(false);
