@@ -34,16 +34,16 @@ export class CustomDomainsAPI {
     userId: string
   ): Promise<{ data: CustomDomain | null; error: any }> {
     try {
-      // Valida o formato do domínio
-      if (!this.isValidDomain(data.domain_name)) {
+      // Normaliza o domínio (remove protocolo, www, etc.)
+      const normalizedDomain = this.normalizeDomain(data.domain_name);
+
+      // Valida o formato do domínio após normalização
+      if (!this.isValidDomain(normalizedDomain)) {
         return { 
           data: null, 
           error: { message: 'Formato de domínio inválido' } 
         };
       }
-
-      // Normaliza o domínio (remove protocolo, www, etc.)
-      const normalizedDomain = this.normalizeDomain(data.domain_name);
 
       const domainData = {
         domain_name: normalizedDomain,
