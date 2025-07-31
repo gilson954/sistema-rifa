@@ -8,10 +8,15 @@ export interface PaymentIntegrationConfig {
     webhook_url: string;
     configured_at: string;
   };
+  fluxsis?: {
+    api_key: string;
+    secret_key: string;
+    webhook_url: string;
+    configured_at: string;
+  };
   // Future integrations can be added here
   // efi_bank?: { ... };
   // pay2m?: { ... };
-  // fluxsis?: { ... };
   // paggue?: { ... };
 }
 
@@ -116,12 +121,41 @@ export class PaymentsAPI {
       // Check if any payment method is configured
       return !!(
         data.mercado_pago?.client_id || 
-        data.mercado_pago?.access_token
+        data.mercado_pago?.access_token ||
+        data.fluxsis?.api_key
         // Add other payment methods here as they are implemented
       );
     } catch (error) {
       console.error('Error checking payment integration:', error);
       return false;
+    }
+  }
+
+  /**
+   * Create a payment with Fluxsis
+   * Note: This would typically call Fluxsis's API
+   */
+  static async createFluxsisPayment(
+    request: CreatePaymentRequest
+  ): Promise<{ data: PaymentResponse | null; error: any }> {
+    try {
+      // Generate external reference for tracking
+      const externalReference = `campaign_${request.campaign_id}_tickets_${request.quota_numbers.join(',')}`;
+
+      // In production, this would make an API call to Fluxsis
+      // For now, we'll return a mock response
+      const mockResponse: PaymentResponse = {
+        payment_id: `flx_${Date.now()}`,
+        status: 'pending',
+        payment_url: 'https://checkout.fluxsis.com.br/payment/mock_payment_id',
+        qr_code: 'mock_qr_code_data_fluxsis',
+        external_reference: externalReference
+      };
+
+      return { data: mockResponse, error: null };
+    } catch (error) {
+      console.error('Error creating Fluxsis payment:', error);
+      return { data: null, error };
     }
   }
 }

@@ -12,6 +12,7 @@ const PaymentIntegrationsPage = () => {
   const [pixKey, setPixKey] = useState('');
   const [pixKeyType, setPixKeyType] = useState('cpf');
   const [isPaymentConfigured, setIsPaymentConfigured] = useState(false);
+  const [isFluxsisModalOpen, setIsFluxsisModalOpen] = useState(false);
   const [mercadoPagoConfig, setMercadoPagoConfig] = useState({
     clientId: '',
     clientSecret: '',
@@ -19,8 +20,15 @@ const PaymentIntegrationsPage = () => {
     webhookUrl: ''
   });
   const [isMercadoPagoConfigured, setIsMercadoPagoConfigured] = useState(false);
+  const [fluxsisConfig, setFluxsisConfig] = useState({
+    apiKey: '',
+    secretKey: '',
+    webhookUrl: ''
+  });
+  const [isFluxsisConfigured, setIsFluxsisConfigured] = useState(false);
   const [loading, setLoading] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [copySuccessFluxsis, setCopySuccessFluxsis] = useState(false);
 
   // Check if payment is configured on component mount
   useEffect(() => {
@@ -36,7 +44,7 @@ const PaymentIntegrationsPage = () => {
 
   // Load Mercado Pago configuration
   useEffect(() => {
-    const loadMercadoPagoConfig = async () => {
+    const loadPaymentConfigs = async () => {
       if (!user) return;
 
       try {
@@ -53,6 +61,7 @@ const PaymentIntegrationsPage = () => {
 
         const config = data?.payment_integrations_config || {};
         const mercadoPago = config.mercado_pago || {};
+        const fluxsis = config.fluxsis || {};
         
         if (mercadoPago.client_id || mercadoPago.access_token) {
           setIsMercadoPagoConfigured(true);
@@ -63,16 +72,26 @@ const PaymentIntegrationsPage = () => {
             webhookUrl: mercadoPago.webhook_url || ''
           });
         }
+
+        if (fluxsis.api_key) {
+          setIsFluxsisConfigured(true);
+          setFluxsisConfig({
+            apiKey: fluxsis.api_key || '',
+            secretKey: fluxsis.secret_key || '',
+            webhookUrl: fluxsis.webhook_url || ''
+          });
+        }
       } catch (error) {
-        console.error('Error loading Mercado Pago config:', error);
+        console.error('Error loading payment configs:', error);
       }
     };
 
-    loadMercadoPagoConfig();
+    loadPaymentConfigs();
   }, [user]);
 
   // Generate webhook URL
   const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mercado-pago-webhook`;
+  const fluxsisWebhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fluxsis-webhook`;
 
   const handleGoBack = () => {
     navigate('/dashboard');
@@ -106,6 +125,11 @@ const PaymentIntegrationsPage = () => {
   const handleMercadoPagoConfiguration = () => {
     setMercadoPagoConfig(prev => ({ ...prev, webhookUrl }));
     setIsMercadoPagoModalOpen(true);
+  };
+
+  const handleFluxsisConfiguration = () => {
+    setFluxsisConfig(prev => ({ ...prev, webhookUrl: fluxsisWebhookUrl }));
+    setIsFluxsisModalOpen(true);
   };
 
   const handleSaveMercadoPagoConfiguration = async () => {
@@ -167,6 +191,64 @@ const PaymentIntegrationsPage = () => {
     }
   };
 
+  const handleSaveFluxsisConfiguration = async () => {
+    if (!user || !fluxsisConfig.apiKey.trim()) {
+      alert('Por favor, preencha a API Key');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Get current payment integrations config
+      const { data: currentData, error: fetchError } = await supabase
+        .from('profiles')
+        .select('payment_integrations_config')
+        .eq('id', user.id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching current config:', fetchError);
+        alert('Erro ao carregar configurações. Tente novamente.');
+        return;
+      }
+
+      const currentConfig = currentData?.payment_integrations_config || {};
+      
+      // Update Fluxsis configuration
+      const updatedConfig = {
+        ...currentConfig,
+        fluxsis: {
+          api_key: fluxsisConfig.apiKey.trim(),
+          secret_key: fluxsisConfig.secretKey.trim(),
+          webhook_url: fluxsisWebhookUrl,
+          configured_at: new Date().toISOString()
+        }
+      };
+
+      // Save to database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ payment_integrations_config: updatedConfig })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Error saving Fluxsis config:', updateError);
+        alert('Erro ao salvar configuração. Tente novamente.');
+        return;
+      }
+
+      setIsFluxsisConfigured(true);
+      setIsFluxsisModalOpen(false);
+      alert('Configuração do Fluxsis salva com sucesso!');
+      
+    } catch (error) {
+      console.error('Error saving Fluxsis config:', error);
+      alert('Erro ao salvar configuração. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCloseMercadoPagoModal = () => {
     setIsMercadoPagoModalOpen(false);
     setMercadoPagoConfig({
@@ -177,11 +259,31 @@ const PaymentIntegrationsPage = () => {
     });
   };
 
+  const handleCloseFluxsisModal = () => {
+    setIsFluxsisModalOpen(false);
+    setFluxsisConfig({
+      apiKey: '',
+      secretKey: '',
+      webhookUrl: ''
+    });
+  };
+
   const handleCopyWebhookUrl = async () => {
     try {
       await navigator.clipboard.writeText(webhookUrl);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      alert('Erro ao copiar URL. Tente selecionar e copiar manualmente.');
+    }
+  };
+
+  const handleCopyFluxsisWebhookUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(fluxsisWebhookUrl);
+      setCopySuccessFluxsis(true);
+      setTimeout(() => setCopySuccessFluxsis(false), 2000);
     } catch (error) {
       console.error('Error copying to clipboard:', error);
       alert('Erro ao copiar URL. Tente selecionar e copiar manualmente.');
@@ -306,15 +408,24 @@ const PaymentIntegrationsPage = () => {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
-                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400 truncate px-1">Fluxsis</span>
+                      <span className="text-base font-medium text-gray-900 dark:text-white">Fluxsis</span>
+                      {isFluxsisConfigured && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                          <Check className="w-3 h-3 mr-1" />
+                          Configurado
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 truncate px-1">
-                      Gateway de pagamento completo
+                      Pagamentos automáticos via PIX e cartão
                     </p>
                   </div>
                 </div>
-                <button className="w-full sm:w-auto bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
-                  Configurar
+                <button 
+                  onClick={handleFluxsisConfiguration}
+                  className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+                >
+                  {isFluxsisConfigured ? 'Editar' : 'Configurar'}
                 </button>
               </div>
 
@@ -627,6 +738,131 @@ const PaymentIntegrationsPage = () => {
               <button
                 onClick={handleSaveMercadoPagoConfiguration}
                 disabled={loading || (!mercadoPagoConfig.clientId.trim() && !mercadoPagoConfig.accessToken.trim())}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+              >
+                {loading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <>
+                    <span>Salvar configuração</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fluxsis Configuration Modal */}
+      {isFluxsisModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Configurar Fluxsis
+              </h2>
+              <button
+                onClick={handleCloseFluxsisModal}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
+              >
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            </div>
+            
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              Configure suas credenciais do Fluxsis para receber pagamentos automáticos
+            </p>
+
+            <div className="space-y-6">
+              {/* Webhook URL Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  URL do Webhook
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={fluxsisWebhookUrl}
+                    readOnly
+                    className="flex-1 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white text-sm"
+                  />
+                  <button
+                    onClick={handleCopyFluxsisWebhookUrl}
+                    className="px-4 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg transition-colors duration-200 flex items-center space-x-2"
+                  >
+                    <Copy className="h-4 w-4" />
+                    <span>{copySuccessFluxsis ? 'Copiado!' : 'Copiar'}</span>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Configure esta URL no painel do Fluxsis para receber notificações de pagamento
+                </p>
+              </div>
+
+              {/* Credentials Section */}
+              <div className="space-y-4">
+                <h3 className="text-md font-medium text-gray-900 dark:text-white">
+                  Credenciais da API
+                </h3>
+                
+                {/* API Key */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    API Key *
+                  </label>
+                  <input
+                    type="password"
+                    value={fluxsisConfig.apiKey}
+                    onChange={(e) => setFluxsisConfig({ ...fluxsisConfig, apiKey: e.target.value })}
+                    placeholder="Sua API Key do Fluxsis"
+                    className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  />
+                </div>
+
+                {/* Secret Key */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Secret Key
+                  </label>
+                  <input
+                    type="password"
+                    value={fluxsisConfig.secretKey}
+                    onChange={(e) => setFluxsisConfig({ ...fluxsisConfig, secretKey: e.target.value })}
+                    placeholder="Sua Secret Key do Fluxsis"
+                    className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  />
+                </div>
+              </div>
+
+              {/* Instructions */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2 flex items-center">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Como configurar no Fluxsis
+                </h4>
+                <ol className="text-sm text-blue-700 dark:text-blue-300 space-y-1 list-decimal list-inside">
+                  <li>Acesse o <a href="https://fluxsis.com.br" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-600">painel do Fluxsis</a></li>
+                  <li>Vá para a seção de "Integrações" ou "API"</li>
+                  <li>Copie sua API Key e Secret Key</li>
+                  <li>Configure a URL do webhook nas notificações</li>
+                  <li>Cole as credenciais nos campos acima e salve</li>
+                </ol>
+              </div>
+            </div>
+
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={handleCloseFluxsisModal}
+                disabled={loading}
+                className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 dark:text-white py-3 rounded-lg font-medium transition-colors duration-200"
+              >
+                Cancelar
+              </button>
+              
+              <button
+                onClick={handleSaveFluxsisConfiguration}
+                disabled={loading || !fluxsisConfig.apiKey.trim()}
                 className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
               >
                 {loading ? (
