@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Shield, Share2, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
 import { useParams, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
+import ReservationModal, { CustomerData } from '../components/ReservationModal';
 import { useCampaignBySlug, useCampaignByCustomDomain } from '../hooks/useCampaigns';
 import { useTickets } from '../hooks/useTickets';
 import { useAuth } from '../context/AuthContext';
@@ -18,6 +20,7 @@ interface Prize {
 const CampaignPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
   const [activeFilter, setActiveFilter] = useState<'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers'>('all');
@@ -25,6 +28,7 @@ const CampaignPage = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [showPrizesModal, setShowPrizesModal] = useState(false);
+  const [showReservationModal, setShowReservationModal] = useState(false);
   const [primaryColor, setPrimaryColor] = useState<string | null>(null);
   const [campaignTheme, setCampaignTheme] = useState<string>('claro');
   const [organizerName, setOrganizerName] = useState<string>('Organizador');
@@ -446,26 +450,58 @@ const CampaignPage = () => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  const handleReserveTickets = async () => {
+  const handleOpenReservationModal = () => {
     if (!user) {
-      alert('Você precisa estar logado para reservar cotas');
+      // For non-logged users, open the reservation modal
+      setShowReservationModal(true);
       return;
     }
 
-    if (selectedQuotas.length === 0) {
+    // For logged users, proceed directly with reservation
+    handleDirectReservation();
+  };
+
+  const handleDirectReservation = async () => {
+    if (!user) return;
+
+    if (campaignData.model === 'manual' && selectedQuotas.length === 0) {
       alert('Selecione pelo menos uma cota');
       return;
     }
 
+    if (campaignData.model === 'automatic' && quantity <= 0) {
+      alert('Selecione uma quantidade válida');
+      return;
+    }
+
     try {
-      const result = await reserveTickets(selectedQuotas);
+      let quotasToReserve: number[];
+      
+      if (campaignData.model === 'manual') {
+        quotasToReserve = selectedQuotas;
+      } else {
+        // For automatic mode, select first available tickets
+        const availableTickets = getAvailableTickets();
+        quotasToReserve = availableTickets
+          .slice(0, quantity)
+          .map(ticket => ticket.quota_number);
+
+        if (quotasToReserve.length < quantity) {
+          alert(`Apenas ${quotasToReserve.length} cotas disponíveis. Não é possível reservar ${quantity} cotas.`);
+          return;
+        }
+      }
+
+      const result = await reserveTickets(quotasToReserve);
       if (result) {
         const successCount = result.filter(r => r.status === 'reservado').length;
         const errorCount = result.filter(r => r.status === 'error').length;
         
         if (successCount > 0) {
           alert(`${successCount} cota(s) reservada(s) com sucesso!`);
-          setSelectedQuotas([]); // Limpa a seleção após reserva
+          if (campaignData.model === 'manual') {
+            setSelectedQuotas([]); // Clear selection after reservation
+          }
         }
         
         if (errorCount > 0) {
@@ -482,9 +518,61 @@ const CampaignPage = () => {
     }
   };
 
+  const handleReservationSubmit = async (customerData: CustomerData) => {
+    try {
+      let quotasToReserve: number[];
+      
+      if (campaignData.model === 'manual') {
+        if (selectedQuotas.length === 0) {
+          alert('Selecione pelo menos uma cota');
+          return;
+        }
+        quotasToReserve = selectedQuotas;
+      } else {
+        // For automatic mode, select first available tickets
+        const availableTickets = getAvailableTickets();
+        quotasToReserve = availableTickets
+          .slice(0, quantity)
+          .map(ticket => ticket.quota_number);
+
+        if (quotasToReserve.length < quantity) {
+          alert(`Apenas ${quotasToReserve.length} cotas disponíveis. Não é possível reservar ${quantity} cotas.`);
+          return;
+        }
+      }
+
+      // For demo purposes, we'll simulate a successful reservation
+      // In production, this would create a user account and reserve tickets
+      const reservationId = `${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 9)}`.toUpperCase();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 minutes from now
+
+      const reservationData = {
+        reservationId,
+        customerName: customerData.name,
+        customerEmail: customerData.email,
+        customerPhone: `${customerData.countryCode} ${customerData.phoneNumber}`,
+        quotaCount: campaignData.model === 'manual' ? selectedQuotas.length : quantity,
+        totalValue: promotionInfo ? promotionInfo.promotionalTotal : (campaignData.model === 'manual' ? selectedQuotas.length : quantity) * campaignData.ticketPrice,
+        selectedQuotas: campaignData.model === 'manual' ? selectedQuotas : quotasToReserve,
+        campaignTitle: campaignData.title,
+        campaignId: campaign?.id || '',
+        expiresAt
+      };
+
+      // Navigate to payment confirmation page
+      navigate('/payment-confirmation', {
+        state: { reservationData }
+      });
+
+    } catch (error) {
+      console.error('Error processing reservation:', error);
+      alert('Erro ao processar reserva. Tente novamente.');
+    }
+  };
+
   const handleAutomaticReserve = async () => {
     if (!user) {
-      alert('Você precisa estar logado para reservar cotas');
+      setShowReservationModal(true);
       return;
     }
 
@@ -518,6 +606,7 @@ const CampaignPage = () => {
       alert('Erro ao reservar cotas. Tente novamente.');
     }
   };
+
   const formatCurrency = (value: number) => {
     // Verificação de segurança para valores inválidos
     if (value === null || value === undefined || isNaN(value)) {
@@ -801,7 +890,7 @@ const CampaignPage = () => {
                         Total: R$ {(promotionInfo ? promotionInfo.promotionalTotal : selectedQuotas.length * campaignData.ticketPrice).toFixed(2).replace('.', ',')}
                       </div>
                       <button 
-                        onClick={handleReserveTickets}
+                        onClick={handleOpenReservationModal}
                         disabled={reserving || selectedQuotas.length === 0}
                         className="w-full text-white py-3 rounded-lg font-bold hover:brightness-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{ backgroundColor: primaryColor || '#3B82F6' }}
@@ -825,7 +914,7 @@ const CampaignPage = () => {
                 promotionInfo={promotionInfo}
                 primaryColor={primaryColor}
                 campaignTheme={campaignTheme}
-                onReserve={handleAutomaticReserve}
+                onReserve={handleOpenReservationModal}
                 reserving={reserving}
               />
             </div>
@@ -1091,6 +1180,20 @@ const CampaignPage = () => {
           </div>
         </div>
       )}
+
+      {/* Reservation Modal */}
+      <ReservationModal
+        isOpen={showReservationModal}
+        onClose={() => setShowReservationModal(false)}
+        onReserve={handleReservationSubmit}
+        quotaCount={campaignData.model === 'manual' ? selectedQuotas.length : quantity}
+        totalValue={promotionInfo ? promotionInfo.promotionalTotal : (campaignData.model === 'manual' ? selectedQuotas.length : quantity) * campaignData.ticketPrice}
+        selectedQuotas={campaignData.model === 'manual' ? selectedQuotas : undefined}
+        campaignTitle={campaignData.title}
+        primaryColor={primaryColor}
+        campaignTheme={campaignTheme}
+        reserving={reserving}
+      />
 
       {/* Footer */}
       <footer className="bg-gray-900 dark:bg-black text-white py-8 mt-16 transition-colors duration-300">

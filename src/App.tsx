@@ -14,6 +14,7 @@ import CreateCampaignStep1Page from './pages/CreateCampaignStep1Page';
 import CreateCampaignStep2Page from './pages/CreateCampaignStep2Page';
 import CreateCampaignStep3Page from './pages/CreateCampaignStep3Page';
 import CampaignPage from './pages/CampaignPage';
+import PaymentConfirmationPage from './pages/PaymentConfirmationPage';
 import PaymentIntegrationsPage from './pages/PaymentIntegrationsPage';
 import RankingPage from './pages/RankingPage';
 import AffiliationsPage from './pages/AffiliationsPage';
@@ -42,6 +43,9 @@ function App() {
           
           {/* Página Pública de Campanha */}
           <Route path="/c/:slug" element={<CampaignPage />} />
+          
+          {/* Página de Confirmação de Pagamento */}
+          <Route path="/payment-confirmation" element={<PaymentConfirmationPage />} />
           
           {/* Rota de Login Administrativo */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
