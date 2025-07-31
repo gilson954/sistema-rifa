@@ -31,7 +31,6 @@ const PaymentIntegrationsPage = () => {
     apiKey: '',
     secretKey: ''
   });
-  });
   const [isFluxsisConfigured, setIsFluxsisConfigured] = useState(false);
   const [pay2mConfig, setPay2mConfig] = useState({
     apiKey: '',
@@ -39,7 +38,6 @@ const PaymentIntegrationsPage = () => {
     webhookUrl: ''
   });
   
-  });
   const [isPay2mConfigured, setIsPay2mConfigured] = useState(false);
   const [loading, setLoading] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
