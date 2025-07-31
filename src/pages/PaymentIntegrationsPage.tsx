@@ -30,6 +30,7 @@ const PaymentIntegrationsPage = () => {
   const [paggueConfig, setPaggueConfig] = useState({
     apiKey: '',
     secretKey: ''
+  });
   const [isFluxsisConfigured, setIsFluxsisConfigured] = useState(false);
   const [pay2mConfig, setPay2mConfig] = useState({
     apiKey: '',
