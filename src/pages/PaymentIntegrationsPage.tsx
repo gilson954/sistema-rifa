@@ -26,6 +26,7 @@ const PaymentIntegrationsPage = () => {
     apiKey: '',
     secretKey: '',
     webhookUrl: ''
+  });
   const [paggueConfig, setPaggueConfig] = useState({
     apiKey: '',
     secretKey: ''
