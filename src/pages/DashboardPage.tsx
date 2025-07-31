@@ -49,20 +49,41 @@ const DashboardPage = () => {
   const [displayPaymentSetupCard, setDisplayPaymentSetupCard] = useState(true);
   const navigate = useNavigate();
   const { campaigns, loading: campaignsLoading, deleteCampaign } = useCampaigns();
+  const { user } = useAuth();
 
-  // Check if payment is configured on component mount
+  // Check if payment is configured on component mount and when user changes
   useEffect(() => {
-    const isPaymentConfigured = localStorage.getItem('isPaymentConfigured');
-    if (isPaymentConfigured) {
+    const checkPaymentConfiguration = async () => {
+      if (!user) {
+        setDisplayPaymentSetupCard(true);
+        return;
+      }
+
       try {
-        const configured = JSON.parse(isPaymentConfigured);
+        // First check localStorage for quick response
+        const localStorageValue = localStorage.getItem('isPaymentConfigured');
+        if (localStorageValue) {
+          const configured = JSON.parse(localStorageValue);
+          setDisplayPaymentSetupCard(!configured);
+        }
+
+        // Then verify with database for accuracy
+        const { PaymentsAPI } = await import('../lib/api/payments');
+        const hasIntegration = await PaymentsAPI.hasPaymentIntegration(user.id);
+        
+        // Update localStorage with current status
+        localStorage.setItem('isPaymentConfigured', JSON.stringify(hasIntegration));
+        
+        // Update display state
         setDisplayPaymentSetupCard(!configured);
       } catch (error) {
         console.error('Error parsing payment configuration status:', error);
         setDisplayPaymentSetupCard(true);
       }
-    }
-  }, []);
+    };
+
+    checkPaymentConfiguration();
+  }, [user]);
 
   const handleConfigurePayment = () => {
     navigate('/dashboard/integrations');
