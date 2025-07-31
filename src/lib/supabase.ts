@@ -41,6 +41,7 @@ export type Database = {
           prizes: any | null
           show_percentage: boolean
           slug: string | null
+          reservation_timeout_minutes: number | null
         }
         Insert: {
           id?: string
@@ -74,6 +75,7 @@ export type Database = {
           prizes?: any | null
           show_percentage?: boolean
           slug?: string | null
+          reservation_timeout_minutes?: number | null
         }
         Update: {
           id?: string
@@ -107,6 +109,7 @@ export type Database = {
           prizes?: any | null
           show_percentage?: boolean
           slug?: string | null
+          reservation_timeout_minutes?: number | null
         }
       }
       profiles: {

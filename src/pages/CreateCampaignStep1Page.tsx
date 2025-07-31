@@ -293,7 +293,8 @@ const CreateCampaignStep1Page = () => {
         max_tickets_per_purchase: 1000,
         initial_filter: 'all' as 'all' | 'available',
         campaign_model: 'automatic' as 'manual' | 'automatic',
-        prize_image_urls: campaign?.prize_image_urls || []
+        prize_image_urls: campaign?.prize_image_urls || [],
+        reservation_timeout_minutes: 15
       };
 
       let resultCampaign;

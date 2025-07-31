@@ -97,7 +97,14 @@ export const createCampaignSchema = z.object({
     .array(z.any())
     .optional()
     .nullable()
-    .default([])
+    .default([]),
+  
+  reservation_timeout_minutes: z
+    .number()
+    .int()
+    .min(1, 'Timeout deve ser pelo menos 1 minuto')
+    .max(10080, 'Timeout máximo de 7 dias (10080 minutos)')
+    .default(15)
 }).refine(
   (data) => data.min_tickets_per_purchase <= data.max_tickets_per_purchase,
   {

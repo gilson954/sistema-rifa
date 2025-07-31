@@ -31,7 +31,8 @@ const CreateCampaignStep2Page = () => {
     maxTicketsPerPurchase: 1000,
     initialFilter: 'all' as 'all' | 'available',
     campaignModel: 'automatic' as 'manual' | 'automatic',
-    showPercentage: false
+    showPercentage: false,
+    reservationTimeoutMinutes: 15
   });
 
   const [promotions, setPromotions] = useState<Promotion[]>([]);
@@ -85,7 +86,8 @@ const CreateCampaignStep2Page = () => {
         maxTicketsPerPurchase: Math.min(campaign.max_tickets_per_purchase ?? 20000, maxAllowed),
         initialFilter: (campaign.initial_filter as 'all' | 'available') || 'all',
         campaignModel: campaign.campaign_model || 'automatic',
-        showPercentage: campaign.show_percentage ?? false
+        showPercentage: campaign.show_percentage ?? false,
+        reservationTimeoutMinutes: campaign.reservation_timeout_minutes ?? 15
       });
       
       console.log('✅ [DEBUG] Form data set:', {
@@ -172,6 +174,7 @@ const CreateCampaignStep2Page = () => {
         promotions: promotions,
         prizes: prizes,
         show_percentage: formData.showPercentage
+        reservation_timeout_minutes: formData.reservationTimeoutMinutes
       };
 
       console.log('📤 [DEBUG] Payload being sent:', payload);
@@ -745,6 +748,30 @@ const CreateCampaignStep2Page = () => {
                 />
                 <span className="text-gray-700 dark:text-gray-300">Mostrar porcentagem de progresso</span>
               </label>
+
+              {/* Reservation Timeout */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Prazo para reserva expirar
+                </label>
+                <select
+                  value={formData.reservationTimeoutMinutes}
+                  onChange={(e) => setFormData({ ...formData, reservationTimeoutMinutes: parseInt(e.target.value) })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
+                >
+                  <option value={10}>10 minutos</option>
+                  <option value={30}>30 minutos</option>
+                  <option value={60}>1 hora</option>
+                  <option value={180}>3 horas</option>
+                  <option value={720}>12 horas</option>
+                  <option value={1440}>1 dia</option>
+                  <option value={2880}>2 dias</option>
+                  <option value={5760}>4 dias</option>
+                </select>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Tempo que uma cota fica reservada antes de ser liberada automaticamente
+                </p>
+              </div>
             </div>
           </div>
 
