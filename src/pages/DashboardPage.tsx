@@ -76,7 +76,7 @@ const DashboardPage = () => {
         localStorage.setItem('isPaymentConfigured', JSON.stringify(hasIntegration));
         
         // Update display state
-        setDisplayPaymentSetupCard(!configured);
+        setDisplayPaymentSetupCard(!hasIntegration);
       } catch (error) {
         console.error('Error parsing payment configuration status:', error);
         setDisplayPaymentSetupCard(true);
