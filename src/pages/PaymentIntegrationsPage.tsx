@@ -1,13 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, X, ArrowRight, Check, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Plus, X, ArrowRight, Check, AlertCircle, Copy, ExternalLink, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 
 const PaymentIntegrationsPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isPixModalOpen, setIsPixModalOpen] = useState(false);
+  const [isMercadoPagoModalOpen, setIsMercadoPagoModalOpen] = useState(false);
   const [pixKey, setPixKey] = useState('');
   const [pixKeyType, setPixKeyType] = useState('cpf');
   const [isPaymentConfigured, setIsPaymentConfigured] = useState(false);
+  const [mercadoPagoConfig, setMercadoPagoConfig] = useState({
+    clientId: '',
+    clientSecret: '',
+    accessToken: '',
+    webhookUrl: ''
+  });
+  const [isMercadoPagoConfigured, setIsMercadoPagoConfigured] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   // Check if payment is configured on component mount
   useEffect(() => {
@@ -20,6 +33,46 @@ const PaymentIntegrationsPage = () => {
       }
     }
   }, []);
+
+  // Load Mercado Pago configuration
+  useEffect(() => {
+    const loadMercadoPagoConfig = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('payment_integrations_config')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error loading payment integrations:', error);
+          return;
+        }
+
+        const config = data?.payment_integrations_config || {};
+        const mercadoPago = config.mercado_pago || {};
+        
+        if (mercadoPago.client_id || mercadoPago.access_token) {
+          setIsMercadoPagoConfigured(true);
+          setMercadoPagoConfig({
+            clientId: mercadoPago.client_id || '',
+            clientSecret: mercadoPago.client_secret || '',
+            accessToken: mercadoPago.access_token || '',
+            webhookUrl: mercadoPago.webhook_url || ''
+          });
+        }
+      } catch (error) {
+        console.error('Error loading Mercado Pago config:', error);
+      }
+    };
+
+    loadMercadoPagoConfig();
+  }, [user]);
+
+  // Generate webhook URL
+  const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mercado-pago-webhook`;
 
   const handleGoBack = () => {
     navigate('/dashboard');
@@ -48,6 +101,91 @@ const PaymentIntegrationsPage = () => {
     setIsPixModalOpen(false);
     setPixKey('');
     setPixKeyType('cpf');
+  };
+
+  const handleMercadoPagoConfiguration = () => {
+    setMercadoPagoConfig(prev => ({ ...prev, webhookUrl }));
+    setIsMercadoPagoModalOpen(true);
+  };
+
+  const handleSaveMercadoPagoConfiguration = async () => {
+    if (!user || (!mercadoPagoConfig.clientId.trim() && !mercadoPagoConfig.accessToken.trim())) {
+      alert('Por favor, preencha pelo menos o Client ID ou Access Token');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Get current payment integrations config
+      const { data: currentData, error: fetchError } = await supabase
+        .from('profiles')
+        .select('payment_integrations_config')
+        .eq('id', user.id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching current config:', fetchError);
+        alert('Erro ao carregar configurações. Tente novamente.');
+        return;
+      }
+
+      const currentConfig = currentData?.payment_integrations_config || {};
+      
+      // Update Mercado Pago configuration
+      const updatedConfig = {
+        ...currentConfig,
+        mercado_pago: {
+          client_id: mercadoPagoConfig.clientId.trim(),
+          client_secret: mercadoPagoConfig.clientSecret.trim(),
+          access_token: mercadoPagoConfig.accessToken.trim(),
+          webhook_url: webhookUrl,
+          configured_at: new Date().toISOString()
+        }
+      };
+
+      // Save to database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ payment_integrations_config: updatedConfig })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Error saving Mercado Pago config:', updateError);
+        alert('Erro ao salvar configuração. Tente novamente.');
+        return;
+      }
+
+      setIsMercadoPagoConfigured(true);
+      setIsMercadoPagoModalOpen(false);
+      alert('Configuração do Mercado Pago salva com sucesso!');
+      
+    } catch (error) {
+      console.error('Error saving Mercado Pago config:', error);
+      alert('Erro ao salvar configuração. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCloseMercadoPagoModal = () => {
+    setIsMercadoPagoModalOpen(false);
+    setMercadoPagoConfig({
+      clientId: '',
+      clientSecret: '',
+      accessToken: '',
+      webhookUrl: ''
+    });
+  };
+
+  const handleCopyWebhookUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(webhookUrl);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      alert('Erro ao copiar URL. Tente selecionar e copiar manualmente.');
+    }
   };
 
   const formatPixKey = (value: string, type: string) => {
@@ -228,15 +366,24 @@ const PaymentIntegrationsPage = () => {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
-                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400 truncate px-1">Mercado Pago</span>
+                      <span className="text-base font-medium text-gray-900 dark:text-white">Mercado Pago</span>
+                      {isMercadoPagoConfigured && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                          <Check className="w-3 h-3 mr-1" />
+                          Configurado
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 truncate px-1">
-                      Solução completa de pagamentos
+                      Pagamentos automáticos via PIX e cartão
                     </p>
                   </div>
                 </div>
-                <button className="w-full sm:w-auto bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
-                  Configurar
+                <button 
+                  onClick={handleMercadoPagoConfiguration}
+                  className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+                >
+                  {isMercadoPagoConfigured ? 'Editar' : 'Configurar'}
                 </button>
               </div>
 
@@ -350,6 +497,148 @@ const PaymentIntegrationsPage = () => {
               <span>Salvar configuração</span>
               <ArrowRight className="h-4 w-4" />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Mercado Pago Configuration Modal */}
+      {isMercadoPagoModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Configurar Mercado Pago
+              </h2>
+              <button
+                onClick={handleCloseMercadoPagoModal}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
+              >
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            </div>
+            
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              Configure suas credenciais do Mercado Pago para receber pagamentos automáticos
+            </p>
+
+            <div className="space-y-6">
+              {/* Webhook URL Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  URL do Webhook
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={webhookUrl}
+                    readOnly
+                    className="flex-1 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white text-sm"
+                  />
+                  <button
+                    onClick={handleCopyWebhookUrl}
+                    className="px-4 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg transition-colors duration-200 flex items-center space-x-2"
+                  >
+                    <Copy className="h-4 w-4" />
+                    <span>{copySuccess ? 'Copiado!' : 'Copiar'}</span>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Configure esta URL no painel do Mercado Pago para receber notificações de pagamento
+                </p>
+              </div>
+
+              {/* Credentials Section */}
+              <div className="space-y-4">
+                <h3 className="text-md font-medium text-gray-900 dark:text-white">
+                  Credenciais da Aplicação
+                </h3>
+                
+                {/* Client ID */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Client ID
+                  </label>
+                  <input
+                    type="text"
+                    value={mercadoPagoConfig.clientId}
+                    onChange={(e) => setMercadoPagoConfig({ ...mercadoPagoConfig, clientId: e.target.value })}
+                    placeholder="Seu Client ID do Mercado Pago"
+                    className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  />
+                </div>
+
+                {/* Client Secret */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Client Secret
+                  </label>
+                  <input
+                    type="password"
+                    value={mercadoPagoConfig.clientSecret}
+                    onChange={(e) => setMercadoPagoConfig({ ...mercadoPagoConfig, clientSecret: e.target.value })}
+                    placeholder="Seu Client Secret do Mercado Pago"
+                    className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  />
+                </div>
+
+                {/* Access Token */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Access Token (Opcional)
+                  </label>
+                  <input
+                    type="password"
+                    value={mercadoPagoConfig.accessToken}
+                    onChange={(e) => setMercadoPagoConfig({ ...mercadoPagoConfig, accessToken: e.target.value })}
+                    placeholder="Seu Access Token do Mercado Pago"
+                    className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Use o Access Token para testes ou quando não tiver Client ID/Secret
+                  </p>
+                </div>
+              </div>
+
+              {/* Instructions */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2 flex items-center">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Como configurar no Mercado Pago
+                </h4>
+                <ol className="text-sm text-blue-700 dark:text-blue-300 space-y-1 list-decimal list-inside">
+                  <li>Acesse o <a href="https://www.mercadopago.com.br/developers" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-600">painel de desenvolvedores</a></li>
+                  <li>Crie uma nova aplicação ou use uma existente</li>
+                  <li>Copie o Client ID e Client Secret da sua aplicação</li>
+                  <li>Configure a URL do webhook nas notificações IPN</li>
+                  <li>Cole as credenciais nos campos acima e salve</li>
+                </ol>
+              </div>
+            </div>
+
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={handleCloseMercadoPagoModal}
+                disabled={loading}
+                className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 dark:text-white py-3 rounded-lg font-medium transition-colors duration-200"
+              >
+                Cancelar
+              </button>
+              
+              <button
+                onClick={handleSaveMercadoPagoConfiguration}
+                disabled={loading || (!mercadoPagoConfig.clientId.trim() && !mercadoPagoConfig.accessToken.trim())}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+              >
+                {loading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <>
+                    <span>Salvar configuração</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -125,6 +125,7 @@ export type Database = {
           theme: string | null
           logo_url: string | null
           social_media_links: any | null
+          payment_integrations_config: any | null
         }
         Insert: {
           id: string
@@ -138,6 +139,7 @@ export type Database = {
           theme?: string | null
           logo_url?: string | null
           social_media_links?: any | null
+          payment_integrations_config?: any | null
         }
         Update: {
           id?: string
@@ -151,6 +153,7 @@ export type Database = {
           theme?: string | null
           logo_url?: string | null
           social_media_links?: any | null
+          payment_integrations_config?: any | null
         }
       }
       tickets: {
