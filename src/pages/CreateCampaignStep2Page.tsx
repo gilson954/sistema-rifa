@@ -173,7 +173,7 @@ const CreateCampaignStep2Page = () => {
         prize_image_urls: imageUrls.length > 0 ? imageUrls : campaign?.prize_image_urls || [],
         promotions: promotions,
         prizes: prizes,
-        show_percentage: formData.showPercentage
+        show_percentage: formData.showPercentage,
         reservation_timeout_minutes: formData.reservationTimeoutMinutes
       };
 
