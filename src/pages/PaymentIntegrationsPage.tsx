@@ -514,9 +514,11 @@ const PaymentIntegrationsPage = () => {
         {/* Mercado Pago */}
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">MP</span>
-            </div>
+            <img 
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Mercado_Pago_logo.png/800px-Mercado_Pago_logo.png" 
+              alt="Mercado Pago Logo" 
+              className="w-12 h-12 object-contain"
+            />
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                 Mercado Pago
@@ -550,9 +552,11 @@ const PaymentIntegrationsPage = () => {
         {/* Fluxsis */}
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">FX</span>
-            </div>
+            <img 
+              src="https://fluxsis.com.br/wp-content/uploads/2023/09/logo-fluxsis-horizontal-preto.png" 
+              alt="Fluxsis Logo" 
+              className="w-12 h-12 object-contain"
+            />
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                 Fluxsis
@@ -586,9 +590,11 @@ const PaymentIntegrationsPage = () => {
         {/* Pay2m */}
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">P2</span>
-            </div>
+            <img 
+              src="https://pay2m.com.br/wp-content/uploads/2023/03/logo-pay2m-horizontal.png" 
+              alt="Pay2m Logo" 
+              className="w-12 h-12 object-contain"
+            />
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                 Pay2m
@@ -622,9 +628,11 @@ const PaymentIntegrationsPage = () => {
         {/* Paggue */}
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">PG</span>
-            </div>
+            <img 
+              src="https://paggue.io/wp-content/uploads/2023/03/logo-paggue-horizontal.png" 
+              alt="Paggue Logo" 
+              className="w-12 h-12 object-contain"
+            />
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                 Paggue
@@ -658,9 +666,11 @@ const PaymentIntegrationsPage = () => {
         {/* Efi Bank */}
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">EF</span>
-            </div>
+            <img 
+              src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Efi-bank-logo.png" 
+              alt="Efi Bank Logo" 
+              className="w-12 h-12 object-contain"
+            />
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                 Efi Bank
