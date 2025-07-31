@@ -13,6 +13,7 @@ const PaymentIntegrationsPage = () => {
   const [pixKeyType, setPixKeyType] = useState('cpf');
   const [isPaymentConfigured, setIsPaymentConfigured] = useState(false);
   const [isFluxsisModalOpen, setIsFluxsisModalOpen] = useState(false);
+  const [isPay2mModalOpen, setIsPay2mModalOpen] = useState(false);
   const [mercadoPagoConfig, setMercadoPagoConfig] = useState({
     clientId: '',
     clientSecret: '',
@@ -26,9 +27,16 @@ const PaymentIntegrationsPage = () => {
     webhookUrl: ''
   });
   const [isFluxsisConfigured, setIsFluxsisConfigured] = useState(false);
+  const [pay2mConfig, setPay2mConfig] = useState({
+    apiKey: '',
+    secretKey: '',
+    webhookUrl: ''
+  });
+  const [isPay2mConfigured, setIsPay2mConfigured] = useState(false);
   const [loading, setLoading] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [copySuccessFluxsis, setCopySuccessFluxsis] = useState(false);
+  const [copySuccessPay2m, setCopySuccessPay2m] = useState(false);
 
   // Check if payment is configured on component mount
   useEffect(() => {
@@ -62,6 +70,7 @@ const PaymentIntegrationsPage = () => {
         const config = data?.payment_integrations_config || {};
         const mercadoPago = config.mercado_pago || {};
         const fluxsis = config.fluxsis || {};
+        const pay2m = config.pay2m || {};
         
         if (mercadoPago.client_id || mercadoPago.access_token) {
           setIsMercadoPagoConfigured(true);
@@ -81,6 +90,15 @@ const PaymentIntegrationsPage = () => {
             webhookUrl: fluxsis.webhook_url || ''
           });
         }
+
+        if (pay2m.api_key) {
+          setIsPay2mConfigured(true);
+          setPay2mConfig({
+            apiKey: pay2m.api_key || '',
+            secretKey: pay2m.secret_key || '',
+            webhookUrl: pay2m.webhook_url || ''
+          });
+        }
       } catch (error) {
         console.error('Error loading payment configs:', error);
       }
@@ -92,6 +110,7 @@ const PaymentIntegrationsPage = () => {
   // Generate webhook URL
   const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mercado-pago-webhook`;
   const fluxsisWebhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fluxsis-webhook`;
+  const pay2mWebhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pay2m-webhook`;
 
   const handleGoBack = () => {
     navigate('/dashboard');
@@ -130,6 +149,11 @@ const PaymentIntegrationsPage = () => {
   const handleFluxsisConfiguration = () => {
     setFluxsisConfig(prev => ({ ...prev, webhookUrl: fluxsisWebhookUrl }));
     setIsFluxsisModalOpen(true);
+  };
+
+  const handlePay2mConfiguration = () => {
+    setPay2mConfig(prev => ({ ...prev, webhookUrl: pay2mWebhookUrl }));
+    setIsPay2mModalOpen(true);
   };
 
   const handleSaveMercadoPagoConfiguration = async () => {
@@ -249,6 +273,64 @@ const PaymentIntegrationsPage = () => {
     }
   };
 
+  const handleSavePay2mConfiguration = async () => {
+    if (!user || !pay2mConfig.apiKey.trim()) {
+      alert('Por favor, preencha a API Key');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Get current payment integrations config
+      const { data: currentData, error: fetchError } = await supabase
+        .from('profiles')
+        .select('payment_integrations_config')
+        .eq('id', user.id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching current config:', fetchError);
+        alert('Erro ao carregar configurações. Tente novamente.');
+        return;
+      }
+
+      const currentConfig = currentData?.payment_integrations_config || {};
+      
+      // Update Pay2m configuration
+      const updatedConfig = {
+        ...currentConfig,
+        pay2m: {
+          api_key: pay2mConfig.apiKey.trim(),
+          secret_key: pay2mConfig.secretKey.trim(),
+          webhook_url: pay2mWebhookUrl,
+          configured_at: new Date().toISOString()
+        }
+      };
+
+      // Save to database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ payment_integrations_config: updatedConfig })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Error saving Pay2m config:', updateError);
+        alert('Erro ao salvar configuração. Tente novamente.');
+        return;
+      }
+
+      setIsPay2mConfigured(true);
+      setIsPay2mModalOpen(false);
+      alert('Configuração do Pay2m salva com sucesso!');
+      
+    } catch (error) {
+      console.error('Error saving Pay2m config:', error);
+      alert('Erro ao salvar configuração. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCloseMercadoPagoModal = () => {
     setIsMercadoPagoModalOpen(false);
     setMercadoPagoConfig({
@@ -262,6 +344,15 @@ const PaymentIntegrationsPage = () => {
   const handleCloseFluxsisModal = () => {
     setIsFluxsisModalOpen(false);
     setFluxsisConfig({
+      apiKey: '',
+      secretKey: '',
+      webhookUrl: ''
+    });
+  };
+
+  const handleClosePay2mModal = () => {
+    setIsPay2mModalOpen(false);
+    setPay2mConfig({
       apiKey: '',
       secretKey: '',
       webhookUrl: ''
@@ -284,6 +375,17 @@ const PaymentIntegrationsPage = () => {
       await navigator.clipboard.writeText(fluxsisWebhookUrl);
       setCopySuccessFluxsis(true);
       setTimeout(() => setCopySuccessFluxsis(false), 2000);
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      alert('Erro ao copiar URL. Tente selecionar e copiar manualmente.');
+    }
+  };
+
+  const handleCopyPay2mWebhookUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(pay2mWebhookUrl);
+      setCopySuccessPay2m(true);
+      setTimeout(() => setCopySuccessPay2m(false), 2000);
     } catch (error) {
       console.error('Error copying to clipboard:', error);
       alert('Erro ao copiar URL. Tente selecionar e copiar manualmente.');
@@ -437,15 +539,24 @@ const PaymentIntegrationsPage = () => {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
-                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400 truncate px-1">Pay2m</span>
+                      <span className="text-base font-medium text-gray-900 dark:text-white">Pay2m</span>
+                      {isPay2mConfigured && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                          <Check className="w-3 h-3 mr-1" />
+                          Configurado
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 truncate px-1">
                       Soluções de pagamento digital
                     </p>
                   </div>
                 </div>
-                <button className="w-full sm:w-auto bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
-                  Configurar
+                <button 
+                  onClick={handlePay2mConfiguration}
+                  className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+                >
+                  {isPay2mConfigured ? 'Editar' : 'Configurar'}
                 </button>
               </div>
 
@@ -863,6 +974,131 @@ const PaymentIntegrationsPage = () => {
               <button
                 onClick={handleSaveFluxsisConfiguration}
                 disabled={loading || !fluxsisConfig.apiKey.trim()}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+              >
+                {loading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <>
+                    <span>Salvar configuração</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pay2m Configuration Modal */}
+      {isPay2mModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Configurar Pay2m
+              </h2>
+              <button
+                onClick={handleClosePay2mModal}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
+              >
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            </div>
+            
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              Configure suas credenciais do Pay2m para receber pagamentos automáticos
+            </p>
+
+            <div className="space-y-6">
+              {/* Webhook URL Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  URL do Webhook
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={pay2mWebhookUrl}
+                    readOnly
+                    className="flex-1 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white text-sm"
+                  />
+                  <button
+                    onClick={handleCopyPay2mWebhookUrl}
+                    className="px-4 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg transition-colors duration-200 flex items-center space-x-2"
+                  >
+                    <Copy className="h-4 w-4" />
+                    <span>{copySuccessPay2m ? 'Copiado!' : 'Copiar'}</span>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Configure esta URL no painel do Pay2m para receber notificações de pagamento
+                </p>
+              </div>
+
+              {/* Credentials Section */}
+              <div className="space-y-4">
+                <h3 className="text-md font-medium text-gray-900 dark:text-white">
+                  Credenciais da API
+                </h3>
+                
+                {/* API Key */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    API Key *
+                  </label>
+                  <input
+                    type="password"
+                    value={pay2mConfig.apiKey}
+                    onChange={(e) => setPay2mConfig({ ...pay2mConfig, apiKey: e.target.value })}
+                    placeholder="Sua API Key do Pay2m"
+                    className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  />
+                </div>
+
+                {/* Secret Key */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Secret Key
+                  </label>
+                  <input
+                    type="password"
+                    value={pay2mConfig.secretKey}
+                    onChange={(e) => setPay2mConfig({ ...pay2mConfig, secretKey: e.target.value })}
+                    placeholder="Sua Secret Key do Pay2m"
+                    className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  />
+                </div>
+              </div>
+
+              {/* Instructions */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2 flex items-center">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Como configurar no Pay2m
+                </h4>
+                <ol className="text-sm text-blue-700 dark:text-blue-300 space-y-1 list-decimal list-inside">
+                  <li>Acesse o <a href="https://pay2m.com.br" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-600">painel do Pay2m</a></li>
+                  <li>Vá para a seção de "Integrações" ou "API"</li>
+                  <li>Copie sua API Key e Secret Key</li>
+                  <li>Configure a URL do webhook nas notificações</li>
+                  <li>Cole as credenciais nos campos acima e salve</li>
+                </ol>
+              </div>
+            </div>
+
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={handleClosePay2mModal}
+                disabled={loading}
+                className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 dark:text-white py-3 rounded-lg font-medium transition-colors duration-200"
+              >
+                Cancelar
+              </button>
+              
+              <button
+                onClick={handleSavePay2mConfiguration}
+                disabled={loading || !pay2mConfig.apiKey.trim()}
                 className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
               >
                 {loading ? (
