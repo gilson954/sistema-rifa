@@ -32,18 +32,13 @@ const CreateCampaignStep3Page = () => {
   };
 
   const handlePreview = () => {
-    navigate(`/c/${campaignId || 'mock-campaign-id'}`);
-  };
-
-  const handlePayment = () => {
-    // Implementar processamento do pagamento
-    console.log('Processar pagamento:', selectedPaymentMethod);
-    // Redirecionar para dashboard após pagamento
-    navigate('/dashboard');
-  };
-
-  const handlePreviousImage = () => {
-    setCurrentImageIndex(prev => 
+    // Navigate to campaign page using slug
+    if (campaign?.slug) {
+      window.open(`/c/${campaign.slug}`, '_blank');
+    } else {
+      // Fallback to ID if no slug exists
+      window.open(`/c/${campaignId}`, '_blank');
+    }
       prev === 0 ? campaignData.images.length - 1 : prev - 1
     );
   };
