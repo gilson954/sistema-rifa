@@ -39,6 +39,14 @@ const CreateCampaignStep3Page = () => {
       // Fallback to ID if no slug exists
       window.open(`/c/${campaignId}`, '_blank');
     }
+  };
+
+  const handlePayment = () => {
+    // Handle payment logic here
+  };
+
+  const handlePreviousImage = () => {
+    setCurrentImageIndex(prev => 
       prev === 0 ? campaignData.images.length - 1 : prev - 1
     );
   };
