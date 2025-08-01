@@ -26,6 +26,7 @@ import AccountPage from './pages/AccountPage';
 import SocialMediaPage from './pages/SocialMediaPage';
 import TutorialsPage from './pages/TutorialsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import MyTicketsPage from './pages/MyTicketsPage';
 
 function App() {
   return (
@@ -46,6 +47,9 @@ function App() {
           
           {/* Página de Confirmação de Pagamento */}
           <Route path="/payment-confirmation" element={<PaymentConfirmationPage />} />
+          
+          {/* Página Minhas Cotas */}
+          <Route path="/my-tickets" element={<MyTicketsPage />} />
           
           {/* Rota de Login Administrativo */}
           <Route path="/admin/login" element={<AdminLoginPage />} />

@@ -27,6 +27,20 @@ export interface ReservationResult {
   message: string;
 }
 
+export interface CustomerTicket {
+  ticket_id: string;
+  campaign_id: string;
+  campaign_title: string;
+  campaign_slug: string | null;
+  prize_image_urls: string[] | null;
+  quota_number: number;
+  status: string;
+  bought_at: string | null;
+  customer_name: string | null;
+  customer_email: string | null;
+  customer_phone: string | null;
+}
+
 export class TicketsAPI {
   /**
    * Busca o status de todos os tickets de uma campanha (otimizado para frontend)
@@ -141,6 +155,22 @@ export class TicketsAPI {
       return { data, error };
     } catch (error) {
       console.error('Error fetching user tickets:', error);
+      return { data: null, error };
+    }
+  }
+
+  /**
+   * Busca tickets por número de telefone (para clientes não logados)
+   */
+  static async getTicketsByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerTicket[] | null; error: any }> {
+    try {
+      const { data, error } = await supabase.rpc('get_tickets_by_phone', {
+        p_phone_number: phoneNumber
+      });
+
+      return { data, error };
+    } catch (error) {
+      console.error('Error fetching tickets by phone:', error);
       return { data: null, error };
     }
   }

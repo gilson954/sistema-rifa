@@ -108,6 +108,12 @@ const Header = () => {
             {!user && (
               <>
                 <button 
+                  onClick={() => navigate('/my-tickets')}
+                  className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 px-4 py-2 rounded-lg font-medium transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  Minhas cotas
+                </button>
+                <button 
                   onClick={handleRegisterClick}
                   className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200 hover:bg-purple-50 dark:hover:bg-purple-900/20"
                 >
@@ -168,6 +174,15 @@ const Header = () => {
                     {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                   </button>
                 </div>
+                <button 
+                  onClick={() => {
+                    navigate('/my-tickets');
+                    setIsMenuOpen(false);
+                  }}
+                  className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  Minhas cotas
+                </button>
                 <button 
                   onClick={handleRegisterClick}
                   className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-left hover:bg-purple-50 dark:hover:bg-purple-900/20"

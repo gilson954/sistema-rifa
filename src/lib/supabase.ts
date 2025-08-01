@@ -167,6 +167,9 @@ export type Database = {
           bought_at: string | null
           created_at: string | null
           updated_at: string | null
+          customer_name: string | null
+          customer_email: string | null
+          customer_phone: string | null
         }
         Insert: {
           id?: string
@@ -178,6 +181,9 @@ export type Database = {
           bought_at?: string | null
           created_at?: string | null
           updated_at?: string | null
+          customer_name?: string | null
+          customer_email?: string | null
+          customer_phone?: string | null
         }
         Update: {
           id?: string
@@ -189,6 +195,9 @@ export type Database = {
           bought_at?: string | null
           created_at?: string | null
           updated_at?: string | null
+          customer_name?: string | null
+          customer_email?: string | null
+          customer_phone?: string | null
         }
       }
       custom_domains: {
@@ -277,6 +286,24 @@ export type Database = {
           user_id: string | null
           reserved_at: string | null
           bought_at: string | null
+        }[]
+      }
+      get_tickets_by_phone: {
+        Args: {
+          p_phone_number: string
+        }
+        Returns: {
+          ticket_id: string
+          campaign_id: string
+          campaign_title: string
+          campaign_slug: string | null
+          prize_image_urls: string[] | null
+          quota_number: number
+          status: string
+          bought_at: string | null
+          customer_name: string | null
+          customer_email: string | null
+          customer_phone: string | null
         }[]
       }
     }
