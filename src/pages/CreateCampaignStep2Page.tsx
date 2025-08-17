@@ -525,7 +525,7 @@ const CreateCampaignStep2Page = () => {
               Dados Básicos da Campanha
             </h2>
             
-            <div className="flex flex-col lg:flex-row lg:space-x-8 space-y-8 lg:space-y-0">
+            <div className="space-y-6">
               {/* Campaign Title */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -651,25 +651,23 @@ const CreateCampaignStep2Page = () => {
                 onCountryChange={setSelectedCountry}
                 phoneNumber={basicFormData.phoneNumber}
                 onPhoneChange={(phone) => setBasicFormData({ ...basicFormData, phoneNumber: phone })}
-              <div className="w-full lg:w-1/2">
-                <div className="flex items-start space-x-4 mb-4">
-                  <input
-                    type="radio"
-                    id="automatic"
-                    name="campaignModel"
-                    value="automatic"
-                    checked={formData.campaignModel === 'automatic'}
-                    onChange={(e) => setFormData({ ...formData, campaignModel: e.target.value as 'manual' | 'automatic' })}
-                    className="w-4 h-4 text-purple-600 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-purple-500 focus:ring-2 mt-1 flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2 break-words">
-                      Sistema escolhe as cotas aleatoriamente
-                    </h4>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                      O cliente escolhe a quantidade e o sistema sorteia os números automaticamente
-                    </p>
-                  </div>
+                placeholder="Número de telefone"
+                error={errors.phoneNumber}
+              />
+
+              {/* Publication Tax Section */}
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Taxas de publicação
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowFeesModal(true)}
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
+                  >
+                    Ver taxas
+                  </button>
                 </div>
                 
                 <div className="space-y-2">
