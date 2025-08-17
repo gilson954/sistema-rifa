@@ -95,7 +95,7 @@ const DashboardPage = () => {
   };
 
   const handleEditCampaign = (campaignId: string) => {
-    navigate(`/dashboard/create-campaign/${campaignId}`);
+    navigate(`/dashboard/create-campaign/step-2?id=${campaignId}`);
   };
 
   const handleDeleteCampaign = async (campaignId: string, campaignTitle: string) => {
