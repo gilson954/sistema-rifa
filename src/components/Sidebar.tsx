@@ -69,12 +69,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       action: null
     },
     {
-      icon: FileText,
-      label: 'Exemplo Formulário',
-      path: '/dashboard/form-example',
-      action: null
-    },
-    {
       icon: CreditCard,
       label: 'Métodos de pagamentos',
       path: '/dashboard/integrations',
