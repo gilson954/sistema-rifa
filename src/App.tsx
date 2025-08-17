@@ -27,6 +27,9 @@ import SocialMediaPage from './pages/SocialMediaPage';
 import TutorialsPage from './pages/TutorialsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import MyTicketsPage from './pages/MyTicketsPage';
+import MultiStepFormContainer from './components/MultiStepFormContainer';
+import { MultiStepFormProvider } from './context/MultiStepFormContext';
+import { initialFormData } from './lib/validations/formSteps';
 
 function App() {
   return (
@@ -68,6 +71,11 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<DashboardPage />} />
+            <Route path="form-example" element={
+              <MultiStepFormProvider initialData={initialFormData}>
+                <MultiStepFormContainer />
+              </MultiStepFormProvider>
+            } />
             <Route path="create-campaign/step-1" element={<CreateCampaignStep1Page />} />
             <Route path="create-campaign/:campaignId?" element={<CreateCampaignStep1Page />} />
             <Route path="create-campaign/step-2" element={<CreateCampaignStep2Page />} />

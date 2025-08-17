@@ -12,7 +12,8 @@ import {
   Trophy,
   Users,
   Menu,
-  LogOut
+  LogOut,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -65,6 +66,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       icon: LayoutGrid,
       label: 'Campanhas (Home)',
       path: '/dashboard',
+      action: null
+    },
+    {
+      icon: FileText,
+      label: 'Exemplo Formulário',
+      path: '/dashboard/form-example',
       action: null
     },
     {
