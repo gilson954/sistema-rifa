@@ -1178,42 +1178,6 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
-          {/* Prazo para reserva expirar */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Prazo para reserva expirar (minutos)
-            </label>
-            <input
-              type="number"
-              value={formData.reservationTimeoutMinutes}
-              onChange={(e) => setFormData({ ...formData, reservationTimeoutMinutes: parseInt(e.target.value) || 15 })}
-              min="1"
-              max="60"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
-            />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Tempo que as cotas ficam reservadas antes de serem liberadas automaticamente
-            </p>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-6">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
-            >
-              {loading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              ) : (
-                <>
-                  <span>Salvar alterações</span>
-                  <ArrowRight className="h-5 w-5" />
-                </>
-              )}
-            </button>
-          </div>
-
           {/* Action Buttons */}
           <div className="flex justify-center space-x-4 pt-6">
             <button
