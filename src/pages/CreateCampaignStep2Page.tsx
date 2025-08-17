@@ -651,6 +651,7 @@ const CreateCampaignStep2Page = () => {
                 onCountryChange={setSelectedCountry}
                 phoneNumber={basicFormData.phoneNumber}
                 onPhoneChange={(phone) => setBasicFormData({ ...basicFormData, phoneNumber: phone })}
+              />
               <div className="w-full lg:w-1/2">
                 <div className="flex items-start space-x-4 mb-4">
                   <input
