@@ -531,7 +531,7 @@ const CreateCampaignStep2Page = () => {
                     <select
                       value={basicFormData.ticketQuantity}
                       onChange={handleBasicQuantityChange}
-                      className={`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
+                      className={\`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
                         errors.ticketQuantity ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                       required
@@ -560,7 +560,7 @@ const CreateCampaignStep2Page = () => {
                     value={basicFormData.ticketPrice}
                     onChange={handleBasicPriceChange}
                     placeholder="R$ 0,00"
-                    className={`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
+                    className={\`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
                       errors.ticketPrice ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                     required
@@ -600,7 +600,7 @@ const CreateCampaignStep2Page = () => {
                   <select
                     value={basicFormData.drawMethod}
                     onChange={(e) => setBasicFormData({ ...basicFormData, drawMethod: e.target.value })}
-                    className={`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
+                    className={\`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
                       errors.drawMethod ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                     required
@@ -719,7 +719,7 @@ const CreateCampaignStep2Page = () => {
               {/* Automatic Model Option */}
               <div
                 onClick={() => !hasMoreThan10kTickets && setFormData({ ...formData, campaignModel: 'automatic' })}
-                className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                className={\`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
                   formData.campaignModel === 'automatic'
                     ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                     : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
@@ -778,7 +778,7 @@ const CreateCampaignStep2Page = () => {
                       O cliente escolhe a quantidade e o sistema sorteia os números automaticamente
                     </p>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                  <div className={\`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                     formData.campaignModel === 'automatic'
                       ? 'border-purple-500 bg-purple-500'
                       : 'border-gray-300 dark:border-gray-600'
@@ -797,7 +797,7 @@ const CreateCampaignStep2Page = () => {
                     setFormData({ ...formData, campaignModel: 'manual' });
                   }
                 }}
-                className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                className={\`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
                   hasMoreThan10kTickets
                     ? 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 opacity-60 cursor-not-allowed'
                     : 
@@ -838,7 +838,7 @@ const CreateCampaignStep2Page = () => {
                           return (
                             <div
                               key={number}
-                              className={`w-5 h-5 text-xs flex items-center justify-center rounded text-white font-medium ${
+                              className={\`w-5 h-5 text-xs flex items-center justify-center rounded text-white font-medium ${
                                 isSelected
                                   ? 'bg-blue-500'
                                   : isPurchased
@@ -870,7 +870,7 @@ const CreateCampaignStep2Page = () => {
                     <h3 className="font-semibold text-gray-900 dark:text-white">
                       Cliente escolhe as cotas manualmente
                     </h3>
-                    <p className={`text-sm ${
+                    <p className={\`text-sm ${
                       hasMoreThan10kTickets 
                         ? 'text-gray-400 dark:text-gray-500' 
                         : 'text-gray-600 dark:text-gray-400'
@@ -886,7 +886,7 @@ const CreateCampaignStep2Page = () => {
                       </div>
                     )}
                   </div>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                  <div className={\`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                     formData.campaignModel === 'manual' && !hasMoreThan10kTickets
                       ? 'border-purple-500 bg-purple-500'
                       : hasMoreThan10kTickets
