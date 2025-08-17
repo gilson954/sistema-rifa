@@ -511,32 +511,6 @@ const CreateCampaignStep2Page = () => {
           </div>
         </div>
 
-        {/* Error Message */}
-        {errors.submit && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
-            <p className="text-red-700 dark:text-red-300 text-sm">{errors.submit}</p>
-          </div>
-        )}
-
-        <div className="space-y-8">
-          {/* Basic Campaign Data Section */}
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Dados Básicos da Campanha
-            </h2>
-            
-            <div className="space-y-6">
-              {/* Campaign Title */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Título *
-                </label>
-                <input
-                  type="text"
-                  value={basicFormData.title}
-                  onChange={(e) => setBasicFormData({ ...basicFormData, title: e.target.value })}
-                  placeholder="Digite o título sua campanha"
-                  className={`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
                     errors.title ? 'border-red-500' : 'border-green-500'
                   }`}
                   required
