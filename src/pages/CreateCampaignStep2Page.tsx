@@ -876,6 +876,10 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  O cliente escolhe os números que deseja comprar
+                </p>
               </div>
             </div>
           </div>
@@ -1146,7 +1150,6 @@ const CreateCampaignStep2Page = () => {
             </button>
           </div>
         </form>
-      </div>
 
         {/* Modals */}
         <PromotionModal
