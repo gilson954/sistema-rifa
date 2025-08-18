@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Plus, Trash2, X, ChevronDown, Upload, Eye, EyeOff, Calendar, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Plus, Trash2, X, ChevronDown, Upload, Eye, EyeOff, Calendar, Clock, AlertTriangle, CheckCircle, Phone } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaignWithRefetch } from '../hooks/useCampaigns';
 import { CampaignAPI } from '../lib/api/campaigns';
@@ -8,7 +8,15 @@ import { ImageUpload } from '../components/ImageUpload';
 import RichTextEditor from '../components/RichTextEditor';
 import PromotionModal from '../components/PromotionModal';
 import PrizesModal from '../components/PrizesModal';
+import CountryPhoneSelect from '../components/CountryPhoneSelect';
 import { Promotion, Prize } from '../types/promotion';
+
+interface Country {
+  code: string;
+  name: string;
+  dialCode: string;
+  flag: string;
+}
 
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
@@ -34,6 +42,11 @@ const CreateCampaignStep2Page = () => {
 
   // Form state
   const [formData, setFormData] = useState({
+    title: '',
+    ticketQuantity: '',
+    ticketPrice: '0,00',
+    drawMethod: '',
+    phoneNumber: '',
     description: '',
     drawDate: '',
     requireEmail: true,
@@ -46,6 +59,15 @@ const CreateCampaignStep2Page = () => {
   });
 
   const [reservationTimeout, setReservationTimeout] = useState<string>('15');
+  const [selectedCountry, setSelectedCountry] = useState<Country>({
+    code: 'BR',
+    name: 'Brasil',
+    dialCode: '+55',
+    flag: '🇧🇷'
+  });
+  const [rawTicketPrice, setRawTicketPrice] = useState('');
+  const [estimatedRevenue, setEstimatedRevenue] = useState(0);
+  const [publicationTax, setPublicationTax] = useState(0);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [showPromotionModal, setShowPromotionModal] = useState(false);
@@ -65,10 +87,143 @@ const CreateCampaignStep2Page = () => {
     { value: 5760, label: '4 dias' }
   ];
 
+  const ticketQuantityOptions = [
+    { value: 25, label: '25 cotas' },
+    { value: 50, label: '50 cotas' },
+    { value: 100, label: '100 cotas' },
+    { value: 200, label: '200 cotas' },
+    { value: 300, label: '300 cotas' },
+    { value: 400, label: '400 cotas' },
+    { value: 500, label: '500 cotas' },
+    { value: 600, label: '600 cotas' },
+    { value: 700, label: '700 cotas' },
+    { value: 800, label: '800 cotas' },
+    { value: 900, label: '900 cotas' },
+    { value: 1000, label: '1.000 cotas' },
+    { value: 2000, label: '2.000 cotas' },
+    { value: 3000, label: '3.000 cotas' },
+    { value: 4000, label: '4.000 cotas' },
+    { value: 5000, label: '5.000 cotas' },
+    { value: 10000, label: '10.000 cotas' },
+    { value: 20000, label: '20.000 cotas' },
+    { value: 30000, label: '30.000 cotas' },
+    { value: 40000, label: '40.000 cotas' },
+    { value: 50000, label: '50.000 cotas' },
+    { value: 100000, label: '100.000 cotas' },
+    { value: 500000, label: '500.000 cotas' },
+    { value: 1000000, label: '1.000.000 cotas' },
+    { value: 10000000, label: '10.000.000 cotas' }
+  ];
+
+  const drawMethods = [
+    'Loteria Federal',
+    'Sorteador.com.br',
+    'Live no Instagram',
+    'Live no Youtube',
+    'Live no TikTok',
+    'Outros'
+  ];
+
+  // Calculate publication tax based on estimated revenue
+  const calculatePublicationTax = (revenue: number): number => {
+    if (revenue <= 100) return 7.00;
+    if (revenue <= 200) return 17.00;
+    if (revenue <= 400) return 27.00;
+    if (revenue <= 701) return 37.00;
+    if (revenue <= 1000) return 57.00;
+    if (revenue <= 2000) return 67.00;
+    if (revenue <= 4000) return 77.00;
+    if (revenue <= 7000) return 127.00;
+    if (revenue <= 10000) return 197.00;
+    if (revenue <= 20000) return 247.00;
+    if (revenue <= 30000) return 497.00;
+    if (revenue <= 50000) return 997.00;
+    if (revenue <= 70000) return 1297.00;
+    if (revenue <= 100000) return 1997.00;
+    if (revenue <= 150000) return 2997.00;
+    return 3997.00;
+  };
+
+  // Update calculations when price or quantity changes
+  const updateCalculations = (price: string, quantity: string) => {
+    const ticketPrice = parseFloat(price) / 100 || 0;
+    const ticketQuantity = parseInt(quantity) || 0;
+    const revenue = ticketPrice * ticketQuantity;
+    const tax = calculatePublicationTax(revenue);
+    
+    setEstimatedRevenue(revenue);
+    setPublicationTax(tax);
+  };
+
+  /**
+   * Formats raw numeric input as Brazilian currency
+   */
+  const formatCurrencyDisplay = (rawValue: string): string => {
+    const numericValue = rawValue.replace(/\D/g, '');
+    
+    if (!numericValue) return '';
+    
+    const cents = parseInt(numericValue, 10);
+    const reais = cents / 100;
+    
+    const formatted = reais.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    
+    return formatted;
+  };
+
+  /**
+   * Parse phone number from full format to extract country and number
+   */
+  const parsePhoneNumber = (fullPhoneNumber: string) => {
+    if (!fullPhoneNumber) return { dialCode: '+55', phoneNumber: '', country: selectedCountry };
+    
+    // Extract dial code and phone number
+    const parts = fullPhoneNumber.split(' ');
+    const dialCode = parts[0] || '+55';
+    const phoneNumber = parts.slice(1).join(' ') || '';
+    
+    // Find matching country
+    const countries = [
+      { code: 'BR', name: 'Brasil', dialCode: '+55', flag: '🇧🇷' },
+      { code: 'US', name: 'Estados Unidos', dialCode: '+1', flag: '🇺🇸' },
+      { code: 'CA', name: 'Canadá', dialCode: '+1', flag: '🇨🇦' },
+      // Add more countries as needed
+    ];
+    
+    const country = countries.find(c => c.dialCode === dialCode) || countries[0];
+    
+    return { dialCode, phoneNumber, country };
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const numericValue = inputValue.replace(/\D/g, '');
+    
+    setRawTicketPrice(numericValue);
+    const formattedValue = formatCurrencyDisplay(numericValue);
+    setFormData({ ...formData, ticketPrice: formattedValue });
+    
+    updateCalculations(numericValue, formData.ticketQuantity);
+  };
+
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const quantity = e.target.value;
+    setFormData({ ...formData, ticketQuantity: quantity });
+    updateCalculations(rawTicketPrice, quantity);
+  };
+
   // Load campaign data when component mounts or campaign changes
   useEffect(() => {
     if (campaign) {
       setFormData({
+        title: campaign.title || '',
+        ticketQuantity: campaign.total_tickets?.toString() || '',
+        ticketPrice: campaign.ticket_price ? (campaign.ticket_price * 100).toString() : '0,00',
+        drawMethod: campaign.draw_method || '',
+        phoneNumber: '',
         description: campaign.description || '',
         drawDate: campaign.draw_date ? new Date(campaign.draw_date).toISOString().slice(0, 16) : '',
         requireEmail: campaign.require_email ?? true,
@@ -79,6 +234,21 @@ const CreateCampaignStep2Page = () => {
         campaignModel: campaign.campaign_model || 'automatic',
         showPercentage: campaign.show_percentage ?? false
       });
+
+      // Set raw ticket price for calculations
+      if (campaign.ticket_price) {
+        const rawPrice = (campaign.ticket_price * 100).toString();
+        setRawTicketPrice(rawPrice);
+        const formattedPrice = formatCurrencyDisplay(rawPrice);
+        setFormData(prev => ({ ...prev, ticketPrice: formattedPrice }));
+      }
+
+      // Parse and set phone number
+      if (campaign.phone_number) {
+        const { dialCode, phoneNumber, country } = parsePhoneNumber(campaign.phone_number);
+        setSelectedCountry(country);
+        setFormData(prev => ({ ...prev, phoneNumber }));
+      }
 
       // Set reservation timeout
       setReservationTimeout((campaign.reservation_timeout_minutes || 15).toString());
@@ -97,11 +267,49 @@ const CreateCampaignStep2Page = () => {
       if (campaign.prizes && Array.isArray(campaign.prizes)) {
         setPrizes(campaign.prizes);
       }
+
+      // Update calculations with loaded data
+      if (campaign.ticket_price && campaign.total_tickets) {
+        const rawPrice = (campaign.ticket_price * 100).toString();
+        updateCalculations(rawPrice, campaign.total_tickets.toString());
+      }
     }
   }, [campaign, setExistingImages]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+
+    // Validate Step 1 fields
+    if (!formData.title.trim()) {
+      newErrors.title = 'Título é obrigatório';
+    } else if (formData.title.length < 3) {
+      newErrors.title = 'Título deve ter pelo menos 3 caracteres';
+    }
+
+    if (!formData.ticketQuantity) {
+      newErrors.ticketQuantity = 'Quantidade de cotas é obrigatória';
+    }
+
+    if (!rawTicketPrice || rawTicketPrice === '0') {
+      newErrors.ticketPrice = 'Preço da cota é obrigatório';
+    }
+
+    if (!formData.drawMethod) {
+      newErrors.drawMethod = 'Método de sorteio é obrigatório';
+    }
+
+    if (!formData.phoneNumber.trim()) {
+      newErrors.phoneNumber = 'Número de celular é obrigatório';
+    } else {
+      const numbers = formData.phoneNumber.replace(/\D/g, '');
+      if (selectedCountry.code === 'BR' && numbers.length !== 11) {
+        newErrors.phoneNumber = 'Número de celular deve ter 11 dígitos';
+      } else if ((selectedCountry.code === 'US' || selectedCountry.code === 'CA') && numbers.length !== 10) {
+        newErrors.phoneNumber = 'Número de telefone deve ter 10 dígitos';
+      } else if (numbers.length < 7) {
+        newErrors.phoneNumber = 'Número de telefone inválido';
+      }
+    }
 
     if (formData.minTicketsPerPurchase < 1) {
       newErrors.minTicketsPerPurchase = 'Mínimo deve ser pelo menos 1';
@@ -150,9 +358,17 @@ const CreateCampaignStep2Page = () => {
       }
 
       const drawDate = formData.drawDate ? new Date(formData.drawDate).toISOString() : null;
+      const ticketPrice = parseFloat(rawTicketPrice) / 100;
+      const ticketQuantity = parseInt(formData.ticketQuantity);
+      const fullPhoneNumber = `${selectedCountry.dialCode} ${formData.phoneNumber}`;
 
       const updateData = {
         id: campaign.id,
+        title: formData.title,
+        ticket_price: ticketPrice,
+        total_tickets: ticketQuantity,
+        draw_method: formData.drawMethod,
+        phone_number: fullPhoneNumber,
         description: formData.description,
         draw_date: drawDate,
         require_email: formData.requireEmail,
@@ -267,6 +483,144 @@ const CreateCampaignStep2Page = () => {
               <p className="text-red-700 dark:text-red-300 text-sm">{errors.submit}</p>
             </div>
           )}
+
+          {/* Step 1 Fields - Basic Campaign Data */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+              Dados Básicos da Campanha
+            </h3>
+            
+            <div className="space-y-6">
+              {/* Campaign Title */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Título *
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Digite o título sua campanha"
+                  className={`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
+                    errors.title ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                  required
+                />
+                {errors.title && (
+                  <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+                )}
+              </div>
+
+              {/* Ticket Configuration Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Ticket Quantity */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Quantidade de cotas *
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={formData.ticketQuantity}
+                      onChange={handleQuantityChange}
+                      className={`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
+                        errors.ticketQuantity ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                      required
+                    >
+                      <option value="">Escolha uma opção</option>
+                      {ticketQuantityOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                  </div>
+                  {errors.ticketQuantity && (
+                    <p className="text-red-500 text-sm mt-1">{errors.ticketQuantity}</p>
+                  )}
+                </div>
+
+                {/* Ticket Price */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Valor da cota *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.ticketPrice}
+                    onChange={handlePriceChange}
+                    placeholder="R$ 0,00"
+                    className={`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
+                      errors.ticketPrice ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                    required
+                  />
+                  {errors.ticketPrice && (
+                    <p className="text-red-500 text-sm mt-1">{errors.ticketPrice}</p>
+                  )}
+                  
+                  {/* Real-time Tax Display */}
+                  {rawTicketPrice && formData.ticketQuantity && (
+                    <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="text-sm space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-700 dark:text-gray-300">Arrecadação estimada:</span>
+                          <span className="font-medium text-green-600 dark:text-green-400">
+                            R$ {estimatedRevenue.toFixed(2).replace('.', ',')}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-700 dark:text-gray-300">Taxa da campanha:</span>
+                          <span className="font-medium text-red-600 dark:text-red-400">
+                            R$ {publicationTax.toFixed(2).replace('.', ',')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Draw Method */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Por onde será feito o sorteio? *
+                </label>
+                <div className="relative">
+                  <select
+                    value={formData.drawMethod}
+                    onChange={(e) => setFormData({ ...formData, drawMethod: e.target.value })}
+                    className={`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
+                      errors.drawMethod ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                    required
+                  >
+                    <option value="">Escolha uma opção</option>
+                    {drawMethods.map((method) => (
+                      <option key={method} value={method}>
+                        {method}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                </div>
+                {errors.drawMethod && (
+                  <p className="text-red-500 text-sm mt-1">{errors.drawMethod}</p>
+                )}
+              </div>
+
+              {/* Phone Number with Country Selection */}
+              <CountryPhoneSelect
+                selectedCountry={selectedCountry}
+                onCountryChange={setSelectedCountry}
+                phoneNumber={formData.phoneNumber}
+                onPhoneChange={(phone) => setFormData({ ...formData, phoneNumber: phone })}
+                placeholder="Número de telefone"
+                error={errors.phoneNumber}
+              />
+            </div>
+          </div>
 
           {/* Prize Images Section */}
           <div>
