@@ -1075,67 +1075,6 @@ const CreateCampaignStep2Page = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
                   O comprador escolhe exatamente quais números quer comprar
                 </p>
-              </div>
-            )}
-          </div>
-
-          {/* Initial Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
-              Filtro inicial dos bilhetes
-            </label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div
-                onClick={() => setFormData({ ...formData, initialFilter: 'all' })}
-                className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                  formData.initialFilter === 'all'
-                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-gray-900 dark:text-white">Todos</h4>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    formData.initialFilter === 'all'
-                      ? 'border-green-500 bg-green-500'
-                      : 'border-gray-300 dark:border-gray-600'
-                  }`}>
-                    {formData.initialFilter === 'all' && (
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
-                    )}
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Mostra todos os bilhetes (disponíveis, reservados e comprados)
-                </p>
-              </div>
-
-              <div
-                onClick={() => setFormData({ ...formData, initialFilter: 'available' })}
-                className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                  formData.initialFilter === 'available'
-                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-gray-900 dark:text-white">Disponíveis</h4>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    formData.initialFilter === 'available'
-                      ? 'border-green-500 bg-green-500'
-                      : 'border-gray-300 dark:border-gray-600'
-                  }`}>
-                    {formData.initialFilter === 'available' && (
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
-                    )}
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Mostra apenas os bilhetes disponíveis para compra
-                </p>
-              </div>
-            </div>
-          </div>
 
           {/* Additional Options */}
           <div className="space-y-4">
