@@ -1075,6 +1075,9 @@ const CreateCampaignStep2Page = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
                   O comprador escolhe exatamente quais números quer comprar
                 </p>
+              </div>
+            )}
+          </div>
 
           {/* Additional Options */}
           <div className="space-y-4">
