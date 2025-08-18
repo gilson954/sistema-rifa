@@ -53,6 +53,18 @@ const CreateCampaignStep2Page = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
+  // Reservation timeout options
+  const reservationTimeoutOptions = [
+    { value: 10, label: '10 minutos' },
+    { value: 30, label: '30 minutos' },
+    { value: 60, label: '1 hora' },
+    { value: 180, label: '3 horas' },
+    { value: 720, label: '12 horas' },
+    { value: 1440, label: '1 dia' },
+    { value: 2880, label: '2 dias' },
+    { value: 5760, label: '4 dias' }
+  ];
+
   // Load campaign data when component mounts or campaign changes
   useEffect(() => {
     if (campaign) {
@@ -443,24 +455,27 @@ const CreateCampaignStep2Page = () => {
               </label>
               <div className="relative">
                 <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  type="number"
+                <select
                   value={reservationTimeout}
                   onChange={(e) => setReservationTimeout(e.target.value)}
-                  min="1"
-                  max="10080"
                   className={`w-full pl-10 pr-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
                     errors.reservationTimeout ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
-                  placeholder="15"
                   required
-                />
+                >
+                  {reservationTimeoutOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
               </div>
               {errors.reservationTimeout && (
                 <p className="text-red-500 text-sm mt-1">{errors.reservationTimeout}</p>
               )}
               <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                Tempo que o cliente tem para finalizar o pagamento após reservar (1-10080 minutos)
+                Tempo que o cliente tem para finalizar o pagamento após reservar
               </p>
             </div>
           </div>
