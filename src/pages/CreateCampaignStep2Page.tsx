@@ -934,6 +934,150 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
+          {/* Campaign Model Preview */}
+          <div className="mt-6">
+            <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
+              Pré-visualização do Modelo
+            </h4>
+            
+            {/* Automatic Model Preview */}
+            {formData.campaignModel === 'automatic' && (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                <h5 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">
+                  Modelo Automático
+                </h5>
+                
+                <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-600 mb-4">
+                  <h6 className="text-md font-medium text-gray-900 dark:text-white mb-4 text-center">
+                    SELECIONE A QUANTIDADE DE COTAS
+                  </h6>
+                  
+                  {/* Increment Buttons */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                    <button className="bg-blue-500 text-white py-2 px-3 rounded text-sm font-medium">
+                      +1
+                    </button>
+                    <button className="bg-blue-500 text-white py-2 px-3 rounded text-sm font-medium">
+                      +5
+                    </button>
+                    <button className="bg-blue-500 text-white py-2 px-3 rounded text-sm font-medium">
+                      +15
+                    </button>
+                    <button className="bg-blue-500 text-white py-2 px-3 rounded text-sm font-medium">
+                      +150
+                    </button>
+                  </div>
+                  
+                  {/* Quantity Selector */}
+                  <div className="flex items-center justify-center space-x-4 mb-4">
+                    <button className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
+                      <span className="text-gray-600 dark:text-gray-300">-</span>
+                    </button>
+                    <input
+                      type="number"
+                      value="5"
+                      readOnly
+                      className="w-16 text-center py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
+                    />
+                    <button className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
+                      <span className="text-gray-600 dark:text-gray-300">+</span>
+                    </button>
+                  </div>
+                  
+                  {/* Total Value */}
+                  <div className="text-center mb-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Valor final</div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      R$ {(5 * (parseFloat(rawTicketPrice) / 100 || 1)).toFixed(2).replace('.', ',')}
+                    </div>
+                  </div>
+                  
+                  {/* Buy Button */}
+                  <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg">
+                    RESERVAR
+                  </button>
+                </div>
+                
+                <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+                  Os números serão escolhidos automaticamente pelo sistema
+                </p>
+              </div>
+            )}
+            
+            {/* Manual Model Preview */}
+            {formData.campaignModel === 'manual' && (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                <h5 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">
+                  Modelo Manual
+                </h5>
+                
+                <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-600 mb-4">
+                  {/* Filter Tabs */}
+                  <div className="flex flex-wrap justify-center gap-2 mb-4">
+                    <button className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium">
+                      Todos <span className="ml-1 bg-white/20 px-1 rounded text-xs">100</span>
+                    </button>
+                    <button className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded text-sm">
+                      Disponíveis <span className="ml-1 bg-gray-300 dark:bg-gray-600 px-1 rounded text-xs">75</span>
+                    </button>
+                    <button className="bg-orange-500 text-white px-3 py-1 rounded text-sm">
+                      Reservados <span className="ml-1 bg-orange-600 px-1 rounded text-xs">15</span>
+                    </button>
+                    <button className="bg-green-500 text-white px-3 py-1 rounded text-sm">
+                      Comprados <span className="ml-1 bg-green-600 px-1 rounded text-xs">10</span>
+                    </button>
+                  </div>
+                  
+                  {/* Numbers Grid */}
+                  <div className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-15 gap-1 mb-4">
+                    {Array.from({ length: 60 }, (_, index) => {
+                      const number = index + 1;
+                      let bgColor = 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600'; // Available
+                      
+                      if ([5, 12, 23].includes(number)) {
+                        bgColor = 'bg-blue-600 text-white border border-blue-700'; // Selected
+                      } else if ([8, 15, 31, 42].includes(number)) {
+                        bgColor = 'bg-green-500 text-white border border-green-600'; // Purchased
+                      } else if ([3, 19, 27].includes(number)) {
+                        bgColor = 'bg-orange-500 text-white border border-orange-600'; // Reserved
+                      }
+                      
+                      return (
+                        <div
+                          key={number}
+                          className={`w-8 h-8 text-xs font-medium rounded flex items-center justify-center cursor-pointer transition-all duration-200 ${bgColor}`}
+                        >
+                          {number.toString().padStart(2, '0')}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Selected Summary */}
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-blue-800 dark:text-blue-200">
+                        3 cotas selecionadas: 05, 12, 23
+                      </span>
+                      <span className="font-bold text-blue-900 dark:text-blue-100">
+                        R$ {(3 * (parseFloat(rawTicketPrice) / 100 || 1)).toFixed(2).replace('.', ',')}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Buy Button */}
+                  <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg">
+                    RESERVAR NÚMEROS SELECIONADOS
+                  </button>
+                </div>
+                
+                <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+                  O comprador escolhe exatamente quais números quer comprar
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Initial Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
