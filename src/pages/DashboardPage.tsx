@@ -18,7 +18,6 @@ import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
 import { useAuth } from '../context/AuthContext';
-import CampaignCleanupStatus from '../components/CampaignCleanupStatus';
 
 /**
  * Utility function to calculate time remaining until expiration
@@ -376,11 +375,6 @@ const DashboardPage = () => {
               </div>
             )}
           </div>
-        )}
-
-        {/* Campaign Cleanup Status - Only show for admin users or in development */}
-        {(import.meta.env.DEV || user?.user_metadata?.is_admin) && (
-          <CampaignCleanupStatus className="mt-8" />
         )}
 
         {/* Video Tutorial Section */}
