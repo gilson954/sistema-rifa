@@ -23,7 +23,6 @@ const CreateCampaignStep1Page = () => {
     drawMethod: '',
     phoneNumber: '',
     acceptTerms: false,
-    reservationTimeoutMinutes: '15'
   });
 
   const [selectedCountry, setSelectedCountry] = useState<Country>({
@@ -199,17 +198,6 @@ const CreateCampaignStep1Page = () => {
       newErrors.acceptTerms = 'Você deve aceitar os termos de uso';
     }
 
-    if (!formData.reservationTimeoutMinutes) {
-      newErrors.reservationTimeoutMinutes = 'Prazo para reserva expirar é obrigatório';
-    } else {
-      const timeoutMinutes = parseInt(formData.reservationTimeoutMinutes);
-      if (isNaN(timeoutMinutes) || timeoutMinutes < 1) {
-        newErrors.reservationTimeoutMinutes = 'Prazo deve ser pelo menos 1 minuto';
-      } else if (timeoutMinutes > 10080) {
-        newErrors.reservationTimeoutMinutes = 'Prazo máximo é de 7 dias (10080 minutos)';
-      }
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -239,8 +227,7 @@ const CreateCampaignStep1Page = () => {
         max_tickets_per_purchase: 1000,
         initial_filter: 'all' as 'all' | 'available',
         campaign_model: 'automatic' as 'manual' | 'automatic',
-        prize_image_urls: [],
-        reservation_timeout_minutes: parseInt(formData.reservationTimeoutMinutes)
+       prize_image_urls: []
       };
 
       // Always create new campaign in step1
@@ -413,31 +400,6 @@ const CreateCampaignStep1Page = () => {
             placeholder="Número de telefone"
             error={errors.phoneNumber}
           />
-
-          {/* Reservation Timeout */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Prazo para reserva expirar (minutos) *
-            </label>
-            <input
-              type="number"
-              value={formData.reservationTimeoutMinutes}
-              onChange={(e) => setFormData({ ...formData, reservationTimeoutMinutes: e.target.value })}
-              placeholder="15"
-              min="1"
-              max="10080"
-              className={`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
-                errors.reservationTimeoutMinutes ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-              }`}
-              required
-            />
-            {errors.reservationTimeoutMinutes && (
-              <p className="text-red-500 text-sm mt-1">{errors.reservationTimeoutMinutes}</p>
-            )}
-            <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
-              Tempo em minutos que as cotas ficam reservadas antes de expirar (máximo: 7 dias)
-            </p>
-          </div>
 
           {/* Publication Tax Section */}
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
