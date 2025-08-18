@@ -954,32 +954,32 @@ const CreateCampaignStep2Page = () => {
                   
                   {/* Increment Buttons */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-                    <button className="bg-blue-500 text-white py-2 px-3 rounded text-sm font-medium">
+                    <button disabled={true} className="bg-blue-600 text-white py-2 px-3 rounded text-sm font-medium cursor-not-allowed opacity-75 transition-all duration-200">
                       +1
                     </button>
-                    <button className="bg-blue-500 text-white py-2 px-3 rounded text-sm font-medium">
+                    <button disabled={true} className="bg-blue-600 text-white py-2 px-3 rounded text-sm font-medium cursor-not-allowed opacity-75 transition-all duration-200">
                       +5
                     </button>
-                    <button className="bg-blue-500 text-white py-2 px-3 rounded text-sm font-medium">
+                    <button disabled={true} className="bg-blue-600 text-white py-2 px-3 rounded text-sm font-medium cursor-not-allowed opacity-75 transition-all duration-200">
                       +15
                     </button>
-                    <button className="bg-blue-500 text-white py-2 px-3 rounded text-sm font-medium">
+                    <button disabled={true} className="bg-blue-600 text-white py-2 px-3 rounded text-sm font-medium cursor-not-allowed opacity-75 transition-all duration-200">
                       +150
                     </button>
                   </div>
                   
                   {/* Quantity Selector */}
                   <div className="flex items-center justify-center space-x-4 mb-4">
-                    <button className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
+                    <button disabled={true} className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center cursor-not-allowed opacity-75 transition-colors duration-200">
                       <span className="text-gray-600 dark:text-gray-300">-</span>
                     </button>
                     <input
                       type="number"
                       value="5"
-                      readOnly
-                      className="w-16 text-center py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
+                      readOnly={true}
+                      className="w-16 text-center py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white cursor-not-allowed opacity-75 transition-colors duration-200"
                     />
-                    <button className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
+                    <button disabled={true} className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center cursor-not-allowed opacity-75 transition-colors duration-200">
                       <span className="text-gray-600 dark:text-gray-300">+</span>
                     </button>
                   </div>
@@ -993,7 +993,7 @@ const CreateCampaignStep2Page = () => {
                   </div>
                   
                   {/* Buy Button */}
-                  <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg">
+                  <button disabled={true} className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg cursor-not-allowed opacity-75 transition-colors duration-200 shadow-md">
                     RESERVAR
                   </button>
                 </div>
@@ -1014,16 +1014,16 @@ const CreateCampaignStep2Page = () => {
                 <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-600 mb-4">
                   {/* Filter Tabs */}
                   <div className="flex flex-wrap justify-center gap-2 mb-4">
-                    <button className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium">
+                    <button disabled={true} className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium cursor-not-allowed opacity-75 transition-colors duration-200">
                       Todos <span className="ml-1 bg-white/20 px-1 rounded text-xs">100</span>
                     </button>
-                    <button className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded text-sm">
+                    <button disabled={true} className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded text-sm cursor-not-allowed opacity-75 transition-colors duration-200">
                       Disponíveis <span className="ml-1 bg-gray-300 dark:bg-gray-600 px-1 rounded text-xs">75</span>
                     </button>
-                    <button className="bg-orange-500 text-white px-3 py-1 rounded text-sm">
+                    <button disabled={true} className="bg-orange-500 text-white px-3 py-1 rounded text-sm cursor-not-allowed opacity-75 transition-colors duration-200">
                       Reservados <span className="ml-1 bg-orange-600 px-1 rounded text-xs">15</span>
                     </button>
-                    <button className="bg-green-500 text-white px-3 py-1 rounded text-sm">
+                    <button disabled={true} className="bg-green-500 text-white px-3 py-1 rounded text-sm cursor-not-allowed opacity-75 transition-colors duration-200">
                       Comprados <span className="ml-1 bg-green-600 px-1 rounded text-xs">10</span>
                     </button>
                   </div>
@@ -1032,20 +1032,21 @@ const CreateCampaignStep2Page = () => {
                   <div className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-15 gap-1 mb-4">
                     {Array.from({ length: 60 }, (_, index) => {
                       const number = index + 1;
-                      let bgColor = 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600'; // Available
+                      let bgColor = 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 cursor-not-allowed opacity-75'; // Available
                       
                       if ([5, 12, 23].includes(number)) {
-                        bgColor = 'bg-blue-600 text-white border border-blue-700'; // Selected
+                        bgColor = 'bg-blue-600 text-white border border-blue-700 cursor-not-allowed opacity-75'; // Selected
                       } else if ([8, 15, 31, 42].includes(number)) {
-                        bgColor = 'bg-green-500 text-white border border-green-600'; // Purchased
+                        bgColor = 'bg-green-500 text-white border border-green-600 cursor-not-allowed opacity-75'; // Purchased
                       } else if ([3, 19, 27].includes(number)) {
-                        bgColor = 'bg-orange-500 text-white border border-orange-600'; // Reserved
+                        bgColor = 'bg-orange-500 text-white border border-orange-600 cursor-not-allowed opacity-75'; // Reserved
                       }
                       
                       return (
                         <div
                           key={number}
-                          className={`w-8 h-8 text-xs font-medium rounded flex items-center justify-center cursor-pointer transition-all duration-200 ${bgColor}`}
+                          disabled={true}
+                          className={`w-8 h-8 text-xs font-medium rounded flex items-center justify-center transition-all duration-200 ${bgColor}`}
                         >
                           {number.toString().padStart(2, '0')}
                         </div>
@@ -1066,7 +1067,7 @@ const CreateCampaignStep2Page = () => {
                   </div>
                   
                   {/* Buy Button */}
-                  <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg">
+                  <button disabled={true} className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg cursor-not-allowed opacity-75 transition-colors duration-200 shadow-md">
                     RESERVAR NÚMEROS SELECIONADOS
                   </button>
                 </div>
