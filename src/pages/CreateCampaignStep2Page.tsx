@@ -876,6 +876,56 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
+          {/* Campaign Model */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+              Modelo da campanha
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div
+                onClick={() => setFormData({ ...formData, campaignModel: 'automatic' })}
+                className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                  formData.campaignModel === 'automatic'
+                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium text-gray-900 dark:text-white">Automático</h4>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                    formData.campaignModel === 'automatic'
+                      ? 'border-green-500 bg-green-500'
+                      : 'border-gray-300 dark:border-gray-600'
+                  }`}>
+                    {formData.campaignModel === 'automatic' && (
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    )}
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  O sistema escolhe automaticamente os números disponíveis
+                </p>
+              </div>
+
+              <div
+                onClick={() => setFormData({ ...formData, campaignModel: 'manual' })}
+                className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                  formData.campaignModel === 'manual'
+                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium text-gray-900 dark:text-white">Manual</h4>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                    formData.campaignModel === 'manual'
+                      ? 'border-green-500 bg-green-500'
+                      : 'border-gray-300 dark:border-gray-600'
+                  }`}>
+                    {formData.campaignModel === 'manual' && (
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    )}
+                  </div>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   O cliente escolhe os números que deseja comprar
