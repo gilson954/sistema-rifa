@@ -36,14 +36,14 @@ export const createCampaignSchema = z.object({
   draw_method: z
     .enum(['Loteria Federal', 'Sorteador.com.br', 'Live no Instagram', 'Live no Youtube', 'Live no TikTok', 'Outros'], {
       errorMap: () => ({ message: 'Selecione um método de sorteio válido' })
-    })
+    }),
     .transform(val => val.trim()),
   
   phone_number: z
     .string()
     .min(10, 'Número de telefone inválido')
     .max(20, 'Número de telefone muito longo')
-    .regex(/^[\d\s\-\(\)\+]+$/, 'Formato de telefone inválido')
+    .regex(/^[\d\s\-\(\)\+]+$/, 'Formato de telefone inválido'),
     .transform(val => val.trim()),
   
   draw_date: z
@@ -117,12 +117,6 @@ export const createCampaignSchema = z.object({
     message: 'A quantidade máxima por compra não pode ser maior que o total de cotas',
     path: ['max_tickets_per_purchase']
   }
-).refine(
-  (data) => !(data.total_tickets > 10000 && data.campaign_model === 'manual'),
-  {
-    message: 'Para campanhas com mais de 10.000 cotas, apenas o modelo automático é permitido',
-    path: ['campaign_model']
-  }
 );
 
 // Schema para validação de atualização de campanha
@@ -139,12 +133,6 @@ export const updateCampaignSchema = createCampaignSchema.partial().extend({
   {
     message: 'A quantidade máxima por compra não pode ser maior que o total de cotas',
     path: ['max_tickets_per_purchase']
-  }
-).refine(
-  (data) => !(data.total_tickets && data.campaign_model && data.total_tickets > 10000 && data.campaign_model === 'manual'),
-  {
-    message: 'Para campanhas com mais de 10.000 cotas, apenas o modelo automático é permitido',
-    path: ['campaign_model']
   }
 );
 
@@ -207,13 +195,7 @@ export const campaignFormSchema = z.object({
   
   initialFilter: z.enum(['all', 'available']),
   campaignModel: z.enum(['manual', 'automatic'])
-}).refine(
-  (data) => !(data.ticketQuantity > 10000 && data.campaignModel === 'manual'),
-  {
-    message: 'Para campanhas com mais de 10.000 cotas, apenas o modelo automático é permitido',
-    path: ['campaignModel']
-  }
-);
+});
 
 export type CreateCampaignInput = z.infer<typeof createCampaignSchema>;
 export type UpdateCampaignInput = z.infer<typeof updateCampaignSchema>;
