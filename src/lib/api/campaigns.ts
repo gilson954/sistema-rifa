@@ -1,7 +1,8 @@
 import { supabase } from '../supabase';
-import { CreateCampaignInput, UpdateCampaignInput } from '../validations/campaign';
+import { CreateCampaignInput, UpdateCampaignInput, createCampaignSchema, updateCampaignSchema } from '../validations/campaign';
 import { Campaign, CampaignStatus } from '../../types/campaign';
 import { generateUniqueSlug } from '../../utils/slugGenerator';
+import { ZodError } from 'zod';
 
 export class CampaignAPI {
   /**
@@ -9,6 +10,25 @@ export class CampaignAPI {
    */
   static async createCampaign(data: CreateCampaignInput, userId: string): Promise<{ data: Campaign | null; error: any }> {
     try {
+      // Validate input data against schema before processing
+      try {
+        createCampaignSchema.parse(data);
+      } catch (validationError) {
+        if (validationError instanceof ZodError) {
+          const errorMessage = validationError.errors.map(err => err.message).join(', ');
+          console.error('❌ [API VALIDATION] Campaign creation validation failed:', errorMessage);
+          return { 
+            data: null, 
+            error: { 
+              message: errorMessage,
+              code: 'VALIDATION_ERROR',
+              details: validationError.errors
+            }
+          };
+        }
+        throw validationError;
+      }
+
       // Gera slug único para a campanha
       const slug = await generateUniqueSlug(data.title);
       
@@ -44,6 +64,25 @@ export class CampaignAPI {
    */
   static async updateCampaign(data: UpdateCampaignInput): Promise<{ data: Campaign | null; error: any }> {
     try {
+      // Validate input data against schema before processing
+      try {
+        updateCampaignSchema.parse(data);
+      } catch (validationError) {
+        if (validationError instanceof ZodError) {
+          const errorMessage = validationError.errors.map(err => err.message).join(', ');
+          console.error('❌ [API VALIDATION] Campaign update validation failed:', errorMessage);
+          return { 
+            data: null, 
+            error: { 
+              message: errorMessage,
+              code: 'VALIDATION_ERROR',
+              details: validationError.errors
+            }
+          };
+        }
+        throw validationError;
+      }
+
       const { id, ...updateData } = data;
       
       // Se o título foi alterado, regenera o slug
