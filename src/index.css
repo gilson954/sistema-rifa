@@ -17,6 +17,8 @@
   overflow: hidden;
   position: static !important;
   transform: none !important;
+  display: flex;
+  flex-direction: row-reverse;
 }
 
 .dark .react-datepicker,
@@ -125,6 +127,7 @@
 /* Month Container */
 .react-datepicker__month-container {
   background-color: white;
+  flex: 1;
 }
 
 .dark .react-datepicker__month-container {
@@ -203,15 +206,15 @@
 
 /* Time Selection Container */
 .react-datepicker__time-container {
-  border-top: 1px solid rgb(229 231 235);
-  border-left: none;
-  width: 100%;
+  border-top: none;
+  border-right: 1px solid rgb(229 231 235);
+  width: 120px;
   background-color: white;
-  padding: 1rem;
+  padding: 1rem 0.5rem;
 }
 
 .dark .react-datepicker__time-container {
-  border-top-color: rgb(75 85 99);
+  border-right-color: rgb(75 85 99);
   background-color: rgb(31 41 55);
 }
 
@@ -234,13 +237,19 @@
 }
 
 .react-datepicker__time-list {
-  height: 200px !important;
+  height: 180px !important;
   overflow-y: auto;
   padding: 0;
   margin: 0;
   background: white;
-  border: 1px solid rgb(229 231 235);
+  border: none;
   border-radius: 8px;
+  box-shadow: none;
+}
+
+.dark .react-datepicker__time-list {
+  background: rgb(31 41 55);
+  border: none;
 }
 
 /* Date Display in Footer */
