@@ -578,7 +578,6 @@ const CreateCampaignStep2Page = () => {
                 <select
                   name="reservationTimeoutMinutes"
                   value={formData.reservationTimeoutMinutes}
-                  onChange={handleInputChange}
                   className={`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200 ${
                     'border-gray-300 dark:border-gray-600'
                   }`}
