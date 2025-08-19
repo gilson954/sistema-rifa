@@ -303,9 +303,6 @@
 }
 
 /* Hide default time list */
-.react-datepicker__time-list {
-  display: none !important;
-}
 
 /* Input Field Enhancement */
 .react-datepicker__input-container input {
