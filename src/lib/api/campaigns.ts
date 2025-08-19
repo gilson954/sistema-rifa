@@ -15,14 +15,14 @@ export class CampaignAPI {
         createCampaignSchema.parse(data);
       } catch (validationError) {
         if (validationError instanceof ZodError) {
-          const errorMessage = validationError.errors.map(err => err.message).join(', ');
+          const errorMessage = (validationError.errors || []).map(err => err.message).join(', ');
           console.error('❌ [API VALIDATION] Campaign creation validation failed:', errorMessage);
           return { 
             data: null, 
             error: { 
               message: errorMessage,
               code: 'VALIDATION_ERROR',
-              details: validationError.errors
+              details: validationError.errors || []
             }
           };
         }
@@ -69,14 +69,14 @@ export class CampaignAPI {
         updateCampaignSchema.parse(data);
       } catch (validationError) {
         if (validationError instanceof ZodError) {
-          const errorMessage = validationError.errors.map(err => err.message).join(', ');
+          const errorMessage = (validationError.errors || []).map(err => err.message).join(', ');
           console.error('❌ [API VALIDATION] Campaign update validation failed:', errorMessage);
           return { 
             data: null, 
             error: { 
               message: errorMessage,
               code: 'VALIDATION_ERROR',
-              details: validationError.errors
+              details: validationError.errors || []
             }
           };
         }
