@@ -741,6 +741,7 @@ const CreateCampaignStep2Page = () => {
             </button>
           </div>
         </form>
+        </form>
 
         {/* Promotion Modal */}
         <PromotionModal
