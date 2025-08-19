@@ -35,15 +35,13 @@ const CreateCampaignStep2Page = () => {
   // Form state
   const [formData, setFormData] = useState({
     description: '',
-    paymentDeadlineHours: 24,
     requireEmail: true,
     showRanking: false,
     minTicketsPerPurchase: 1,
     maxTicketsPerPurchase: 1000,
-    initialFilter: 'all' as 'all' | 'available',
     campaignModel: 'automatic' as 'manual' | 'automatic',
     showPercentage: false,
-    reservationTimeoutMinutes: 15
+    reservationTimeoutMinutes: 30
   });
 
   // Modal states
@@ -66,15 +64,13 @@ const CreateCampaignStep2Page = () => {
     if (campaign) {
       setFormData({
         description: campaign.description || '',
-        paymentDeadlineHours: campaign.payment_deadline_hours || 24,
         requireEmail: campaign.require_email ?? true,
         showRanking: campaign.show_ranking ?? false,
         minTicketsPerPurchase: campaign.min_tickets_per_purchase || 1,
         maxTicketsPerPurchase: campaign.max_tickets_per_purchase || 1000,
-        initialFilter: campaign.initial_filter || 'all',
         campaignModel: campaign.campaign_model || 'automatic',
         showPercentage: campaign.show_percentage ?? false,
-        reservationTimeoutMinutes: campaign.reservation_timeout_minutes || 15
+        reservationTimeoutMinutes: campaign.reservation_timeout_minutes || 30
       });
 
       // Load existing images
@@ -153,12 +149,8 @@ const CreateCampaignStep2Page = () => {
       newErrors.maxTicketsPerPurchase = 'Máximo não pode ser maior que o total de cotas';
     }
 
-    if (formData.paymentDeadlineHours < 1 || formData.paymentDeadlineHours > 168) {
-      newErrors.paymentDeadlineHours = 'Prazo deve estar entre 1 e 168 horas';
-    }
-
-    if (formData.reservationTimeoutMinutes < 1 || formData.reservationTimeoutMinutes > 10080) {
-      newErrors.reservationTimeoutMinutes = 'Timeout deve estar entre 1 e 10080 minutos';
+    if (formData.reservationTimeoutMinutes < 10 || formData.reservationTimeoutMinutes > 5760) {
+      newErrors.reservationTimeoutMinutes = 'Prazo deve estar entre 10 minutos e 4 dias';
     }
 
     setErrors(newErrors);
@@ -190,12 +182,10 @@ const CreateCampaignStep2Page = () => {
         id: campaignId,
         description: formData.description,
         prize_image_urls: imageUrls.length > 0 ? imageUrls : campaign?.prize_image_urls || [],
-        payment_deadline_hours: formData.paymentDeadlineHours,
         require_email: formData.requireEmail,
         show_ranking: formData.showRanking,
         min_tickets_per_purchase: formData.minTicketsPerPurchase,
         max_tickets_per_purchase: formData.maxTicketsPerPurchase,
-        initial_filter: formData.initialFilter,
         campaign_model: formData.campaignModel,
         promotions: promotions,
         prizes: prizes,
@@ -229,6 +219,18 @@ const CreateCampaignStep2Page = () => {
   const formatCurrency = (value: number) => {
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
+
+  // Reservation timeout options
+  const reservationTimeoutOptions = [
+    { value: 10, label: '10 minutos' },
+    { value: 30, label: '30 minutos' },
+    { value: 60, label: '1 hora' },
+    { value: 180, label: '3 horas' },
+    { value: 720, label: '12 horas' },
+    { value: 1440, label: '1 dia' },
+    { value: 2880, label: '2 dias' },
+    { value: 5760, label: '4 dias' }
+  ];
 
   if (campaignLoading) {
     return (
@@ -429,43 +431,28 @@ const CreateCampaignStep2Page = () => {
 
           {/* Campaign Settings */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Payment Deadline */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Prazo para pagamento (horas)
-              </label>
-              <input
-                type="number"
-                name="paymentDeadlineHours"
-                value={formData.paymentDeadlineHours}
-                onChange={handleInputChange}
-                min="1"
-                max="168"
-                className={`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200 ${
-                  errors.paymentDeadlineHours ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                }`}
-              />
-              {errors.paymentDeadlineHours && (
-                <p className="text-red-500 text-sm mt-1">{errors.paymentDeadlineHours}</p>
-              )}
-            </div>
-
             {/* Reservation Timeout */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Timeout de reserva (minutos)
+                Prazo para uma reserva expirar
               </label>
-              <input
-                type="number"
-                name="reservationTimeoutMinutes"
-                value={formData.reservationTimeoutMinutes}
-                onChange={handleInputChange}
-                min="1"
-                max="10080"
-                className={`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200 ${
-                  errors.reservationTimeoutMinutes ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                }`}
-              />
+              <div className="relative">
+                <select
+                  name="reservationTimeoutMinutes"
+                  value={formData.reservationTimeoutMinutes}
+                  onChange={handleInputChange}
+                  className={`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200 ${
+                    errors.reservationTimeoutMinutes ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                >
+                  {reservationTimeoutOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+              </div>
               {errors.reservationTimeoutMinutes && (
                 <p className="text-red-500 text-sm mt-1">{errors.reservationTimeoutMinutes}</p>
               )}
@@ -509,25 +496,6 @@ const CreateCampaignStep2Page = () => {
               {errors.maxTicketsPerPurchase && (
                 <p className="text-red-500 text-sm mt-1">{errors.maxTicketsPerPurchase}</p>
               )}
-            </div>
-
-            {/* Initial Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Filtro inicial
-              </label>
-              <div className="relative">
-                <select
-                  name="initialFilter"
-                  value={formData.initialFilter}
-                  onChange={handleInputChange}
-                  className="w-full appearance-none px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
-                >
-                  <option value="all">Todos</option>
-                  <option value="available">Disponíveis</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-              </div>
             </div>
 
             {/* Campaign Model */}
