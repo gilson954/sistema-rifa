@@ -81,33 +81,66 @@ export async function generateUniqueSlug(
     throw new Error('Não foi possível gerar um slug válido a partir do título');
   }
 
-  let uniqueSlug = baseSlug;
-  let counter = 0;
-  const maxAttempts = 100; // Evita loop infinito
+  // First, check if the base slug is available
+  const baseExists = await slugExists(baseSlug, excludeCampaignId);
+  if (!baseExists) {
+    return baseSlug;
+  }
 
-  while (counter < maxAttempts) {
-    const exists = await slugExists(uniqueSlug, excludeCampaignId);
-    
-    if (!exists) {
-      return uniqueSlug;
+  // If base slug exists, try a few numbered variations
+  const maxAttempts = 10; // Reduced from 100 to prevent timeout
+  const slugsToCheck: string[] = [];
+  
+  for (let i = 1; i <= maxAttempts; i++) {
+    slugsToCheck.push(`${baseSlug}-${i}`);
+  }
+
+  // Check all slug variations in a single query for better performance
+  try {
+    let query = supabase
+      .from('campaigns')
+      .select('slug')
+      .in('slug', slugsToCheck);
+
+    if (excludeCampaignId) {
+      query = query.neq('id', excludeCampaignId);
     }
 
-    // Slug já existe, tenta com contador
-    counter++;
-    uniqueSlug = `${baseSlug}-${counter}`;
-  }
+    const { data: existingSlugs, error } = await query;
 
-  // Se chegou aqui, não conseguiu gerar um slug único
-  // Adiciona timestamp como último recurso
-  const timestamp = Date.now().toString().slice(-6);
-  uniqueSlug = `${baseSlug}-${timestamp}`;
-  
-  const finalExists = await slugExists(uniqueSlug, excludeCampaignId);
-  if (finalExists) {
-    throw new Error('Não foi possível gerar um slug único após múltiplas tentativas');
-  }
+    if (error) {
+      console.error('Erro ao verificar slugs existentes:', error);
+      throw new Error('Falha ao verificar unicidade do slug');
+    }
 
-  return uniqueSlug;
+    const existingSlugSet = new Set(existingSlugs?.map(item => item.slug) || []);
+
+    // Find the first available slug
+    for (const slug of slugsToCheck) {
+      if (!existingSlugSet.has(slug)) {
+        return slug;
+      }
+    }
+
+    // If all numbered variations are taken, use timestamp as fallback
+    const timestamp = Date.now().toString().slice(-6);
+    const timestampSlug = `${baseSlug}-${timestamp}`;
+    
+    const timestampExists = await slugExists(timestampSlug, excludeCampaignId);
+    if (!timestampExists) {
+      return timestampSlug;
+    }
+
+    // Final fallback with random suffix
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    return `${baseSlug}-${randomSuffix}`;
+
+  } catch (error) {
+    console.error('Erro na geração de slug único:', error);
+    // Fallback to timestamp-based slug if query fails
+    const timestamp = Date.now().toString().slice(-6);
+    return `${baseSlug}-${timestamp}`;
+  }
 }
 
 /**
