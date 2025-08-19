@@ -491,15 +491,13 @@ const CreateCampaignStep2Page = () => {
                       onChange={handleDrawDateChange}
                       showTimeSelect
                       timeFormat="HH:mm"
-                      timeIntervals={15}
                       dateFormat="dd/MM/yyyy, HH:mm"
-                      locale="pt-BR"
                       placeholderText="Selecione data e hora"
                       minDate={new Date()}
                       className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
                       wrapperClassName="w-full"
-                      popperClassName="react-datepicker-popper"
-                      calendarClassName="react-datepicker-calendar"
+                      timeCaption="Hora"
+                      showTimeSelectOnly={false}
                     />
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
