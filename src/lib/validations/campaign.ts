@@ -36,14 +36,14 @@ export const createCampaignSchema = z.object({
   draw_method: z
     .enum(['Loteria Federal', 'Sorteador.com.br', 'Live no Instagram', 'Live no Youtube', 'Live no TikTok', 'Outros'], {
       errorMap: () => ({ message: 'Selecione um método de sorteio válido' })
-    }),
+    })
     .transform(val => val.trim()),
   
   phone_number: z
     .string()
     .min(10, 'Número de telefone inválido')
     .max(20, 'Número de telefone muito longo')
-    .regex(/^[\d\s\-\(\)\+]+$/, 'Formato de telefone inválido'),
+    .regex(/^[\d\s\-\(\)\+]+$/, 'Formato de telefone inválido')
     .transform(val => val.trim()),
   
   draw_date: z
@@ -213,7 +213,7 @@ export const campaignFormSchema = z.object({
     message: 'Para campanhas com mais de 10.000 cotas, apenas o modelo automático é permitido',
     path: ['campaignModel']
   }
-});
+);
 
 export type CreateCampaignInput = z.infer<typeof createCampaignSchema>;
 export type UpdateCampaignInput = z.infer<typeof updateCampaignSchema>;
