@@ -8,8 +8,8 @@ import { useImageUpload } from '../hooks/useImageUpload';
 import RichTextEditor from '../components/RichTextEditor';
 import PromotionModal from '../components/PromotionModal';
 import PrizesModal from '../components/PrizesModal';
-import DatePicker from 'react-datepicker';
 import { Promotion, Prize } from '../types/promotion';
+import DatePicker from 'react-datepicker';
 
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
@@ -584,10 +584,8 @@ const CreateCampaignStep2Page = () => {
                 <p className="text-red-500 text-sm mt-1">{errors.maxTicketsPerPurchase}</p>
               )}
             </div>
-          </div>
 
-          {/* Campaign Model - Full Width */}
-          <div className="grid grid-cols-1 gap-6">
+            {/* Campaign Model */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Modelo
