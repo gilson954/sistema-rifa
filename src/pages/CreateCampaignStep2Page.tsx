@@ -505,56 +505,57 @@ const CreateCampaignStep2Page = () => {
               </div>
 
               {/* Date Picker - Only show when "Mostra data" is selected */}
-                      {/* Inline Date Picker - Always visible when "Mostra data" is selected */}
-                      <div className="mb-4 flex justify-center">
-                        <DatePicker
-                          selected={formData.drawDate}
-                          onChange={handleDrawDateChange}
-                          showTimeSelect
-                          timeFormat="HH:mm"
-                          dateFormat="EEE. MMM dd yyyy"
-                          timeCaption="Hora"
-                          minDate={new Date()}
-                          locale="pt-BR"
-                          inline
-                          className="inline-datepicker"
-                          renderCustomHeader={({
-                            date,
-                            decreaseMonth,
-                            increaseMonth,
-                            prevMonthButtonDisabled,
-                            nextMonthButtonDisabled,
-                          }) => (
-                            <div className="flex items-center justify-between px-2 py-1">
-                              <button
-                                onClick={decreaseMonth}
-                                disabled={prevMonthButtonDisabled}
-                                type="button"
-                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200 disabled:opacity-50"
-                              >
-                                <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                </svg>
-                              </button>
-                              
-                              <span className="text-gray-900 dark:text-white font-medium text-base">
-                                {date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-                              </span>
-                              
-                              <button
-                                onClick={increaseMonth}
-                                disabled={nextMonthButtonDisabled}
-                                type="button"
-                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200 disabled:opacity-50"
-                              >
-                                <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                              </button>
-                            </div>
-                          )}
-                        />
-                  
+              {/* Inline Date Picker - Always visible when "Mostra data" is selected */}
+              {formData.showDrawDateOption === 'show-date' && (
+                <div className="mb-4 flex justify-center">
+                  <DatePicker
+                    selected={formData.drawDate}
+                    onChange={handleDrawDateChange}
+                    showTimeSelect
+                    timeFormat="HH:mm"
+                    dateFormat="EEE. MMM dd yyyy"
+                    timeCaption="Hora"
+                    minDate={new Date()}
+                    locale="pt-BR"
+                    inline
+                    className="inline-datepicker"
+                    renderCustomHeader={({
+                      date,
+                      decreaseMonth,
+                      increaseMonth,
+                      prevMonthButtonDisabled,
+                      nextMonthButtonDisabled,
+                    }) => (
+                      <div className="flex items-center justify-between px-2 py-1">
+                        <button
+                          onClick={decreaseMonth}
+                          disabled={prevMonthButtonDisabled}
+                          type="button"
+                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200 disabled:opacity-50"
+                        >
+                          <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+                        
+                        <span className="text-gray-900 dark:text-white font-medium text-base">
+                          {date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                        </span>
+                        
+                        <button
+                          onClick={increaseMonth}
+                          disabled={nextMonthButtonDisabled}
+                          type="button"
+                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200 disabled:opacity-50"
+                        >
+                          <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  />
+            
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     A data será exibida publicamente na página da campanha
                   </p>
