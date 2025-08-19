@@ -12,6 +12,7 @@ import { Promotion, Prize } from '../types/promotion';
 import DatePicker from 'react-datepicker';
 import { registerLocale, setDefaultLocale } from 'react-datepicker';
 import { ptBR } from 'date-fns/locale';
+import 'react-datepicker/dist/react-datepicker.css';
 
 // Register Portuguese locale
 registerLocale('pt-BR', ptBR);
@@ -504,42 +505,55 @@ const CreateCampaignStep2Page = () => {
               </div>
 
               {/* Date Picker - Only show when "Mostra data" is selected */}
-              {formData.showDrawDateOption === 'show-date' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Selecione a data e hora do sorteio
-                  </label>
-                  
-                  {/* Date Input Field */}
-                  <div className="relative mb-4">
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 z-10" />
-                    <input
-                      type="text"
-                      value={formData.drawDate ? formData.drawDate.toLocaleString('pt-BR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }) : ''}
-                      placeholder="Clique para selecionar data e hora"
-                      readOnly
-                      onClick={() => setShowInlineDatePicker(!showInlineDatePicker)}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200 cursor-pointer"
-                    />
-                  </div>
-                  
-                  {/* Inline Date Picker */}
-                  {showInlineDatePicker && (
-                    <div className="mb-4 flex justify-center">
-                      <DatePicker
-                        selected={formData.drawDate}
-                        onChange={handleDrawDateChange}
-                        showTimeSelect
-                        timeFormat="HH:mm"
-                        dateFormat="dd/MM/yyyy, HH:mm"
-                        minDate={new Date()}
-                        locale="pt-BR"
+                      {/* Inline Date Picker - Always visible when "Mostra data" is selected */}
+                      <div className="mb-4 flex justify-center">
+                        <DatePicker
+                          selected={formData.drawDate}
+                          onChange={handleDrawDateChange}
+                          showTimeSelect
+                          timeFormat="HH:mm"
+                          dateFormat="EEE. MMM dd yyyy"
+                          minDate={new Date()}
+                          locale="pt-BR"
+                          inline
+                          className="inline-datepicker"
+                          renderCustomHeader={({
+                            date,
+                            decreaseMonth,
+                            increaseMonth,
+                            prevMonthButtonDisabled,
+                            nextMonthButtonDisabled,
+                          }) => (
+                            <div className="flex items-center justify-between px-2 py-1">
+                              <button
+                                onClick={decreaseMonth}
+                                disabled={prevMonthButtonDisabled}
+                                type="button"
+                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200 disabled:opacity-50"
+                              >
+                                <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                              </button>
+                              
+                              <span className="text-gray-900 dark:text-white font-medium text-base">
+                                {date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                              </span>
+                              
+                              <button
+                                onClick={increaseMonth}
+                                disabled={nextMonthButtonDisabled}
+                                type="button"
+                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200 disabled:opacity-50"
+                              >
+                                <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </button>
+                            </div>
+                          )}
+                        />
+                      </div>
                         timeCaption="Hora"
                         inline
                         className="inline-datepicker"
