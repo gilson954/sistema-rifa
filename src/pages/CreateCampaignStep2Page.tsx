@@ -573,14 +573,22 @@ const CreateCampaignStep2Page = () => {
           </div>
 
           {/* Campaign Settings */}
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              Configurações da campanha
+            </h2>
+            
+            {/* Reservation Timeout */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Tempo de reserva das cotas (minutos)
               </label>
               <div className="relative">
                 <select
                   name="reservationTimeoutMinutes"
                   value={formData.reservationTimeoutMinutes}
-                  className={`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200 ${
-                    'border-gray-300 dark:border-gray-600'
-                  }`}
+                  onChange={handleInputChange}
+                  className="w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200 border-gray-300 dark:border-gray-600"
                 >
                   {reservationTimeoutOptions.map((option) => (
                     <option key={option.value} value={option.value}>
