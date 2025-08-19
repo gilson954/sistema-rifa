@@ -69,7 +69,7 @@ export class CampaignAPI {
         updateCampaignSchema.parse(data);
       } catch (validationError) {
         if (validationError instanceof ZodError) {
-          const errorMessage = (validationError.errors || []).map(err => err.message).join(', ');
+          const errorMessage = (validationError.errors || []).map(err => err.message).join(', ') || 'Erro de validação nos dados da campanha';
           console.error('❌ [API VALIDATION] Campaign update validation failed:', errorMessage);
           return { 
             data: null, 
