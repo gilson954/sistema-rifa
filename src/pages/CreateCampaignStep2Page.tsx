@@ -132,6 +132,18 @@ const CreateCampaignStep2Page = () => {
     setFormData(prev => ({ ...prev, description: value }));
   };
 
+  const handleDrawDateOptionChange = (option: 'show-date' | 'no-date') => {
+    setFormData(prev => ({
+      ...prev,
+      showDrawDateOption: option,
+      drawDate: option === 'no-date' ? null : prev.drawDate
+    }));
+  };
+
+  const handleDrawDateChange = (date: Date | null) => {
+    setFormData(prev => ({ ...prev, drawDate: date }));
+  };
+
   const handleSavePromotions = (newPromotions: Promotion[]) => {
     setPromotions(newPromotions);
   };
@@ -149,10 +161,6 @@ const CreateCampaignStep2Page = () => {
 
     if (formData.maxTicketsPerPurchase > (campaign?.total_tickets || 0)) {
       newErrors.maxTicketsPerPurchase = 'Máximo não pode ser maior que o total de cotas';
-    }
-
-    if (formData.reservationTimeoutMinutes < 10 || formData.reservationTimeoutMinutes > 5760) {
-      newErrors.reservationTimeoutMinutes = 'Prazo deve estar entre 10 minutos e 4 dias';
     }
 
     setErrors(newErrors);
