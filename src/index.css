@@ -7,19 +7,30 @@
   width: 100%;
 }
 
-.react-datepicker {
+.react-datepicker,
+.react-datepicker.react-datepicker--time-only {
   font-family: inherit;
   border: 1px solid rgb(209 213 219);
   border-radius: 12px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   background-color: white;
   overflow: hidden;
+  position: static !important;
+  transform: none !important;
 }
 
-.dark .react-datepicker {
+.dark .react-datepicker,
+.dark .react-datepicker.react-datepicker--time-only {
   background-color: rgb(31 41 55);
   border-color: rgb(75 85 99);
   color: rgb(243 244 246);
+}
+
+/* Inline DatePicker Specific Styles */
+.inline-datepicker {
+  position: static !important;
+  transform: none !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 /* Header Styling */
@@ -203,6 +214,44 @@
   background: white;
   border: 1px solid rgb(229 231 235);
   border-radius: 8px;
+/* Time Selection Dropdowns */
+.react-datepicker__time-box select {
+  width: 100%;
+  padding: 0.5rem;
+  margin: 0.25rem 0;
+  border: 1px solid rgb(209 213 219);
+  border-radius: 6px;
+  background-color: white;
+  color: rgb(55 65 81);
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+.dark .react-datepicker__time-box select {
+  background-color: rgb(55 65 81);
+  border-color: rgb(75 85 99);
+  color: rgb(209 213 219);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%9ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+}
+
+.react-datepicker__time-box select:hover {
+  border-color: rgb(147 51 234);
+}
+
+.react-datepicker__time-box select:focus {
+  outline: none;
+  border-color: rgb(147 51 234);
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+}
+
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
@@ -291,6 +340,11 @@
 
 .dark .react-datepicker__time-name {
   color: rgb(156 163 175);
+}
+
+/* Hide time list when using dropdowns */
+.react-datepicker__time-list {
+  display: none !important;
 }
 
 /* Custom Scrollbar for Time Lists */

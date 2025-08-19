@@ -10,6 +10,12 @@ import PromotionModal from '../components/PromotionModal';
 import PrizesModal from '../components/PrizesModal';
 import { Promotion, Prize } from '../types/promotion';
 import DatePicker from 'react-datepicker';
+import { registerLocale, setDefaultLocale } from 'react-datepicker';
+import { ptBR } from 'date-fns/locale';
+
+// Register Portuguese locale
+registerLocale('pt-BR', ptBR);
+setDefaultLocale('pt-BR');
 
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
@@ -47,6 +53,9 @@ const CreateCampaignStep2Page = () => {
     showDrawDateOption: 'no-date' as 'show-date' | 'no-date'
   });
 
+  // State for inline date picker visibility
+  const [showInlineDatePicker, setShowInlineDatePicker] = useState(false);
+
   // Modal states
   const [showPromotionModal, setShowPromotionModal] = useState(false);
   const [showPrizesModal, setShowPrizesModal] = useState(false);
@@ -77,6 +86,9 @@ const CreateCampaignStep2Page = () => {
         drawDate: campaign.draw_date ? new Date(campaign.draw_date) : null,
         showDrawDateOption: campaign.draw_date ? 'show-date' : 'no-date'
       });
+
+      // Set inline date picker visibility based on existing draw date
+      setShowInlineDatePicker(!!campaign.draw_date);
 
       // Load existing images
       if (campaign.prize_image_urls && campaign.prize_image_urls.length > 0) {
@@ -141,6 +153,19 @@ const CreateCampaignStep2Page = () => {
       showDrawDateOption: option,
       drawDate: option === 'no-date' ? null : prev.drawDate
     }));
+    
+    if (option === 'show-date') {
+      setShowInlineDatePicker(true);
+      // Initialize with current date if no date is set
+      if (!formData.drawDate) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(20, 0, 0, 0); // Default to 8 PM
+        setFormData(prev => ({ ...prev, drawDate: tomorrow }));
+      }
+    } else {
+      setShowInlineDatePicker(false);
+    }
   };
 
   const handleDrawDateChange = (date: Date | null) => {
@@ -484,22 +509,44 @@ const CreateCampaignStep2Page = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Selecione a data e hora do sorteio
                   </label>
-                  <div className="relative">
+                  
+                  {/* Date Input Field */}
+                  <div className="relative mb-4">
                     <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 z-10" />
-                    <DatePicker
-                      selected={formData.drawDate}
-                      onChange={handleDrawDateChange}
-                      showTimeSelect
-                      timeFormat="HH:mm"
-                      dateFormat="dd/MM/yyyy, HH:mm"
-                      placeholderText="Selecione data e hora"
-                      minDate={new Date()}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
-                      wrapperClassName="w-full"
-                      timeCaption="Hora"
-                      showTimeSelectOnly={false}
+                    <input
+                      type="text"
+                      value={formData.drawDate ? formData.drawDate.toLocaleString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) : ''}
+                      placeholder="Clique para selecionar data e hora"
+                      readOnly
+                      onClick={() => setShowInlineDatePicker(!showInlineDatePicker)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200 cursor-pointer"
                     />
                   </div>
+                  
+                  {/* Inline Date Picker */}
+                  {showInlineDatePicker && (
+                    <div className="mb-4 flex justify-center">
+                      <DatePicker
+                        selected={formData.drawDate}
+                        onChange={handleDrawDateChange}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        dateFormat="dd/MM/yyyy, HH:mm"
+                        minDate={new Date()}
+                        locale="pt-BR"
+                        timeCaption="Hora"
+                        inline
+                        className="inline-datepicker"
+                      />
+                    </div>
+                  )}
+                  
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     A data será exibida publicamente na página da campanha
                   </p>
