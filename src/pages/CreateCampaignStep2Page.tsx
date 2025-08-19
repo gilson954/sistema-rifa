@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Upload, X, Plus, Trash2, AlertTriangle, ChevronDown, Calendar } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Upload, X, Plus, Trash2, AlertTriangle, ChevronDown } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaignWithRefetch } from '../hooks/useCampaigns';
 import { CampaignAPI } from '../lib/api/campaigns';
@@ -9,7 +9,6 @@ import RichTextEditor from '../components/RichTextEditor';
 import PromotionModal from '../components/PromotionModal';
 import PrizesModal from '../components/PrizesModal';
 import { Promotion, Prize } from '../types/promotion';
-import DatePicker from 'react-datepicker';
 
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
@@ -42,9 +41,7 @@ const CreateCampaignStep2Page = () => {
     maxTicketsPerPurchase: 1000,
     campaignModel: 'automatic' as 'manual' | 'automatic',
     showPercentage: false,
-    reservationTimeoutMinutes: 30,
-    drawDate: null as Date | null,
-    showDrawDateOption: 'no-date' as 'show-date' | 'no-date'
+    reservationTimeoutMinutes: 30
   });
 
   // Modal states
