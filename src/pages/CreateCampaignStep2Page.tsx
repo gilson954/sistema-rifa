@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Upload, X, Plus, Trash2, AlertTriangle, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Upload, X, Plus, Trash2, AlertTriangle, ChevronDown, Calendar } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaignWithRefetch } from '../hooks/useCampaigns';
 import { CampaignAPI } from '../lib/api/campaigns';
@@ -9,6 +9,7 @@ import RichTextEditor from '../components/RichTextEditor';
 import PromotionModal from '../components/PromotionModal';
 import PrizesModal from '../components/PrizesModal';
 import { Promotion, Prize } from '../types/promotion';
+import DatePicker from 'react-datepicker';
 
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
@@ -41,7 +42,9 @@ const CreateCampaignStep2Page = () => {
     maxTicketsPerPurchase: 1000,
     campaignModel: 'automatic' as 'manual' | 'automatic',
     showPercentage: false,
-    reservationTimeoutMinutes: 30
+    reservationTimeoutMinutes: 30,
+    drawDate: null as Date | null,
+    showDrawDateOption: 'no-date' as 'show-date' | 'no-date'
   });
 
   // Modal states
@@ -442,6 +445,80 @@ const CreateCampaignStep2Page = () => {
             )}
           </div>
 
+          {/* Draw Date Section */}
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              Data do sorteio
+            </h2>
+            
+            {/* Date Display Options */}
+            <div className="mb-6">
+              <div className="flex space-x-4 mb-4">
+                <button
+                  type="button"
+                  onClick={() => handleDrawDateOptionChange('show-date')}
+                  className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors duration-200 border ${
+                    formData.showDrawDateOption === 'show-date'
+                      ? 'bg-purple-600 text-white border-purple-600'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-purple-500'
+                  }`}
+                >
+                  Mostra data
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDrawDateOptionChange('no-date')}
+                  className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors duration-200 border ${
+                    formData.showDrawDateOption === 'no-date'
+                      ? 'bg-purple-600 text-white border-purple-600'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-purple-500'
+                  }`}
+                >
+                  Não mostra data
+                </button>
+              </div>
+
+              {/* Date Picker - Only show when "Mostra data" is selected */}
+              {formData.showDrawDateOption === 'show-date' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Selecione a data e hora do sorteio
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 z-10" />
+                    <DatePicker
+                      selected={formData.drawDate}
+                      onChange={handleDrawDateChange}
+                      showTimeSelect
+                      timeFormat="HH:mm"
+                      timeIntervals={15}
+                      dateFormat="dd/MM/yyyy, HH:mm"
+                      locale="pt-BR"
+                      placeholderText="Selecione data e hora"
+                      minDate={new Date()}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
+                      wrapperClassName="w-full"
+                      popperClassName="react-datepicker-popper"
+                      calendarClassName="react-datepicker-calendar"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    A data será exibida publicamente na página da campanha
+                  </p>
+                </div>
+              )}
+
+              {formData.showDrawDateOption === 'no-date' && (
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
+                  <Calendar className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">
+                    A data do sorteio não será exibida publicamente
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Campaign Settings */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Reservation Timeout */}
@@ -455,7 +532,7 @@ const CreateCampaignStep2Page = () => {
                   value={formData.reservationTimeoutMinutes}
                   onChange={handleInputChange}
                   className={`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200 ${
-                    errors.reservationTimeoutMinutes ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    'border-gray-300 dark:border-gray-600'
                   }`}
                 >
                   {reservationTimeoutOptions.map((option) => (
@@ -466,9 +543,6 @@ const CreateCampaignStep2Page = () => {
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
               </div>
-              {errors.reservationTimeoutMinutes && (
-                <p className="text-red-500 text-sm mt-1">{errors.reservationTimeoutMinutes}</p>
-              )}
             </div>
 
             {/* Min Tickets Per Purchase */}
