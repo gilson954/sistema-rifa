@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Upload, X, Plus, Trash2, AlertTriangle, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Upload, X, Plus, Trash2, AlertTriangle, ChevronDown, Calendar } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaignWithRefetch } from '../hooks/useCampaigns';
 import { CampaignAPI } from '../lib/api/campaigns';
@@ -8,6 +8,7 @@ import { useImageUpload } from '../hooks/useImageUpload';
 import RichTextEditor from '../components/RichTextEditor';
 import PromotionModal from '../components/PromotionModal';
 import PrizesModal from '../components/PrizesModal';
+import DatePicker from 'react-datepicker';
 import { Promotion, Prize } from '../types/promotion';
 
 const CreateCampaignStep2Page = () => {
@@ -41,7 +42,9 @@ const CreateCampaignStep2Page = () => {
     maxTicketsPerPurchase: 1000,
     campaignModel: 'automatic' as 'manual' | 'automatic',
     showPercentage: false,
-    reservationTimeoutMinutes: 30
+    reservationTimeoutMinutes: 30,
+    drawDate: null as Date | null,
+    showDrawDateOption: 'no-date' as 'show-date' | 'no-date'
   });
 
   // Modal states
@@ -581,8 +584,10 @@ const CreateCampaignStep2Page = () => {
                 <p className="text-red-500 text-sm mt-1">{errors.maxTicketsPerPurchase}</p>
               )}
             </div>
+          </div>
 
-            {/* Campaign Model */}
+          {/* Campaign Model - Full Width */}
+          <div className="grid grid-cols-1 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Modelo
