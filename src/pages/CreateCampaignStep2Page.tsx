@@ -559,7 +559,6 @@ const CreateCampaignStep2Page = () => {
                         className="inline-datepicker"
                       />
                     </div>
-                  )}
                   
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     A data será exibida publicamente na página da campanha
@@ -579,11 +578,6 @@ const CreateCampaignStep2Page = () => {
           </div>
 
           {/* Campaign Settings */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Reservation Timeout */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Prazo para uma reserva expirar
               </label>
               <div className="relative">
                 <select
