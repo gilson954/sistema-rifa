@@ -163,10 +163,6 @@ const CreateCampaignStep2Page = () => {
       newErrors.maxTicketsPerPurchase = 'Máximo não pode ser maior que o total de cotas';
     }
 
-    if (formData.reservationTimeoutMinutes < 10 || formData.reservationTimeoutMinutes > 5760) {
-      newErrors.reservationTimeoutMinutes = 'Prazo deve estar entre 10 minutos e 4 dias';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -204,7 +200,10 @@ const CreateCampaignStep2Page = () => {
         promotions: promotions,
         prizes: prizes,
         show_percentage: formData.showPercentage,
-        reservation_timeout_minutes: formData.reservationTimeoutMinutes
+        reservation_timeout_minutes: formData.reservationTimeoutMinutes,
+        draw_date: formData.showDrawDateOption === 'show-date' && formData.drawDate 
+          ? formData.drawDate.toISOString() 
+          : null
       };
 
       const { data: updatedCampaign, error } = await CampaignAPI.updateCampaign(updateData);
