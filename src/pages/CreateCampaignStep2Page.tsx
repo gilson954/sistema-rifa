@@ -163,6 +163,10 @@ const CreateCampaignStep2Page = () => {
       newErrors.maxTicketsPerPurchase = 'Máximo não pode ser maior que o total de cotas';
     }
 
+    if (formData.reservationTimeoutMinutes < 10 || formData.reservationTimeoutMinutes > 5760) {
+      newErrors.reservationTimeoutMinutes = 'Prazo deve estar entre 10 minutos e 4 dias';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
