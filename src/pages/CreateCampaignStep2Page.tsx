@@ -513,6 +513,7 @@ const CreateCampaignStep2Page = () => {
                           showTimeSelect
                           timeFormat="HH:mm"
                           dateFormat="EEE. MMM dd yyyy"
+                          timeCaption="Hora"
                           minDate={new Date()}
                           locale="pt-BR"
                           inline
@@ -553,12 +554,6 @@ const CreateCampaignStep2Page = () => {
                             </div>
                           )}
                         />
-                      </div>
-                        timeCaption="Hora"
-                        inline
-                        className="inline-datepicker"
-                      />
-                    </div>
                   
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     A data será exibida publicamente na página da campanha
