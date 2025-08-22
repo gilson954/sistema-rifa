@@ -233,8 +233,12 @@ const CreateCampaignStep1Page = () => {
       // Always create new campaign in step1
       const resultCampaign = await createCampaign(campaignData);
 
-      if (resultCampaign) {
-        navigate(`/dashboard/create-campaign/step-2?id=${resultCampaign.id}`);
+      if (resultCampaign.data) {
+        navigate(`/dashboard/create-campaign/step-2?id=${resultCampaign.data.id}`);
+      } else if (resultCampaign.error) {
+        console.error('Campaign creation failed:', resultCampaign.error);
+        setErrors({ submit: resultCampaign.error.message || 'Erro ao criar campanha. Tente novamente.' });
+        return;
       }
     } catch (error) {
       console.error('Error creating campaign:', error);
