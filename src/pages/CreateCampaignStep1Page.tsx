@@ -2,15 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
-import CountryPhoneSelect from '../components/CountryPhoneSelect';
 import PublicationFeesModal from '../components/PublicationFeesModal';
-
-interface Country {
-  code: string;
-  name: string;
-  dialCode: string;
-  flag: string;
-}
 
 const CreateCampaignStep1Page = () => {
   const navigate = useNavigate();
@@ -21,15 +13,7 @@ const CreateCampaignStep1Page = () => {
     ticketQuantity: '',
     ticketPrice: '0,00',
     drawMethod: '',
-    phoneNumber: '',
     acceptTerms: false,
-  });
-
-  const [selectedCountry, setSelectedCountry] = useState<Country>({
-    code: 'BR',
-    name: 'Brasil',
-    dialCode: '+55',
-    flag: '🇧🇷'
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -180,20 +164,6 @@ const CreateCampaignStep1Page = () => {
       newErrors.drawMethod = 'Método de sorteio é obrigatório';
     }
 
-    if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = 'Número de celular é obrigatório';
-    } else {
-      // Validate phone number format based on country
-      const numbers = formData.phoneNumber.replace(/\D/g, '');
-      if (selectedCountry.code === 'BR' && numbers.length !== 11) {
-        newErrors.phoneNumber = 'Número de celular deve ter 11 dígitos';
-      } else if ((selectedCountry.code === 'US' || selectedCountry.code === 'CA') && numbers.length !== 10) {
-        newErrors.phoneNumber = 'Número de telefone deve ter 10 dígitos';
-      } else if (numbers.length < 7) {
-        newErrors.phoneNumber = 'Número de telefone inválido';
-      }
-    }
-
     if (!formData.acceptTerms) {
       newErrors.acceptTerms = 'Você deve aceitar os termos de uso';
     }
@@ -220,7 +190,6 @@ const CreateCampaignStep1Page = () => {
         ticket_price: ticketPrice,
         total_tickets: ticketQuantity,
         draw_method: formData.drawMethod,
-        phone_number: `${selectedCountry.dialCode} ${formData.phoneNumber}`,
         require_email: true,
         show_ranking: false,
         min_tickets_per_purchase: 1,
@@ -231,18 +200,26 @@ const CreateCampaignStep1Page = () => {
       };
 
       // Always create new campaign in step1
-      const resultCampaign = await createCampaign(campaignData);
+      const campaign = await createCampaign(campaignData);
 
-      if (resultCampaign.data) {
-        navigate(`/dashboard/create-campaign/step-2?id=${resultCampaign.data.id}`);
-      } else if (resultCampaign.error) {
-        console.error('Campaign creation failed:', resultCampaign.error);
-        setErrors({ submit: resultCampaign.error.message || 'Erro ao criar campanha. Tente novamente.' });
-        return;
+      if (campaign) {
+        navigate(`/dashboard/create-campaign/step-2?id=${campaign.id}`);
       }
     } catch (error) {
       console.error('Error creating campaign:', error);
-      setErrors({ submit: 'Erro ao criar campanha. Tente novamente.' });
+      
+      // Extract detailed error message
+      let errorMessage = 'Erro ao criar campanha. Tente novamente.';
+      
+      if (error && typeof error === 'object') {
+        if ('message' in error && typeof error.message === 'string') {
+          errorMessage = error.message;
+        } else if ('details' in error && Array.isArray(error.details)) {
+          errorMessage = error.details.map((detail: any) => detail.message).join(', ');
+        }
+      }
+      
+      setErrors({ submit: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -396,14 +373,6 @@ const CreateCampaignStep1Page = () => {
           </div>
 
           {/* Phone Number with Country Selection */}
-          <CountryPhoneSelect
-            selectedCountry={selectedCountry}
-            onCountryChange={setSelectedCountry}
-            phoneNumber={formData.phoneNumber}
-            onPhoneChange={(phone) => setFormData({ ...formData, phoneNumber: phone })}
-            placeholder="Número de telefone"
-            error={errors.phoneNumber}
-          />
 
           {/* Publication Tax Section */}
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">

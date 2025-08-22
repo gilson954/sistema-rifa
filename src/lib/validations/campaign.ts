@@ -44,7 +44,9 @@ export const createCampaignSchema = z.object({
     .min(10, 'Número de telefone inválido')
     .max(20, 'Número de telefone muito longo')
     .regex(/^[\d\s\-\(\)\+]+$/, 'Formato de telefone inválido')
-    .transform(val => val.trim()),
+    .transform(val => val.trim())
+    .optional()
+    .nullable(),
   
   draw_date: z
     .string()
