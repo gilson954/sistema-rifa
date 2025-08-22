@@ -104,7 +104,13 @@ export const createCampaignSchema = z.object({
     .int()
     .min(1, 'Timeout deve ser pelo menos 1 minuto')
     .max(10080, 'Timeout máximo de 7 dias (10080 minutos)')
-    .default(15)
+    .default(15),
+  
+  prize_image_urls: z
+    .array(z.string())
+    .optional()
+    .nullable()
+    .default([])
 }).refine(
   (data) => data.min_tickets_per_purchase <= data.max_tickets_per_purchase,
   {
