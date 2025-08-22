@@ -226,6 +226,7 @@ const CreateCampaignStep2Page = () => {
         min_tickets_per_purchase: formData.minTicketsPerPurchase,
         max_tickets_per_purchase: formData.maxTicketsPerPurchase,
         campaign_model: formData.campaignModel,
+        total_tickets: campaign.total_tickets,
         promotions: promotions,
         prizes: prizes,
         show_percentage: formData.showPercentage,

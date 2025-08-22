@@ -148,12 +148,6 @@ export const updateCampaignSchema = createCampaignSchema.partial().extend({
     message: 'O modelo manual não é permitido para campanhas com mais de 10.000 cotas',
     path: ['campaign_model']
   }
-).refine(
-  (data) => !(data.total_tickets > 10000 && data.campaign_model === 'manual'),
-  {
-    message: 'O modelo manual não é permitido para campanhas com mais de 10.000 cotas',
-    path: ['campaign_model']
-  }
 );
 
 // Schema para validação do formulário (frontend)
