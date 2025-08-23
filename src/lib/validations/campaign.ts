@@ -112,7 +112,11 @@ export const createCampaignSchema = z.object({
     .array(z.string())
     .optional()
     .nullable()
-    .default([])
+    .default([]),
+  
+  show_draw_date: z
+    .boolean()
+    .default(false)
 }).refine(
   (data) => data.min_tickets_per_purchase <= data.max_tickets_per_purchase,
   {

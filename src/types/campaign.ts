@@ -31,6 +31,7 @@ export interface Campaign {
   prizes: Prize[] | null;
   show_percentage: boolean;
   reservation_timeout_minutes: number;
+  show_draw_date: boolean;
 }
 
 export type CampaignStatus = 'draft' | 'active' | 'completed' | 'cancelled';
@@ -59,6 +60,7 @@ export interface CreateCampaignData {
   prizes?: Prize[];
   show_percentage?: boolean;
   reservation_timeout_minutes?: number;
+  show_draw_date?: boolean;
 }
 
 export interface UpdateCampaignData extends Partial<CreateCampaignData> {
@@ -69,6 +71,7 @@ export interface UpdateCampaignData extends Partial<CreateCampaignData> {
   prizes?: Prize[];
   show_percentage?: boolean;
   reservation_timeout_minutes?: number;
+  show_draw_date?: boolean;
 }
 
 export interface CampaignFormData {
