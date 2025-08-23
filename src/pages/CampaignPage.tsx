@@ -49,10 +49,11 @@ const CampaignPage = () => {
   useEffect(() => {
     const hostname = window.location.hostname;
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    const isIpAddress = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname);
     const isNetlifyDomain = hostname.includes('.netlify.app');
     const isMainDomain = hostname === 'meuapp.com'; // Replace with your actual domain
     
-    if (!isLocalhost && !isNetlifyDomain && !isMainDomain) {
+    if (!isLocalhost && !isIpAddress && !isNetlifyDomain && !isMainDomain) {
       setIsCustomDomain(true);
       setCurrentDomain(hostname);
     }
