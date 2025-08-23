@@ -452,7 +452,7 @@ const CampaignPage = () => {
 
             {/* Organizer and Draw Date Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Organizer Card */}
+            {campaign.draw_date && campaign.show_draw_date === true && (
               <div className={`${themeClasses.cardBg} rounded-lg p-4 border ${themeClasses.border}`}>
                 <div className="flex items-center space-x-3">
                   <div 
