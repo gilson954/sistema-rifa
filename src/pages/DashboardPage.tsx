@@ -371,6 +371,24 @@ const DashboardPage = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Draft Campaign Warning */}
+                  {campaign.status === 'draft' && (
+                    <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                      <div className="flex items-start space-x-2">
+                        <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-1">
+                            Campanha não está pública
+                          </p>
+                          <p className="text-xs text-yellow-700 dark:text-yellow-300 leading-relaxed">
+                            Esta campanha ainda está em rascunho e não pode ser visualizada publicamente. 
+                            Complete o processo de pagamento para torná-la ativa e visível para os participantes.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 ))}
               </div>
             )}
