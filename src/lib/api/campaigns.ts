@@ -144,22 +144,12 @@ export class CampaignAPI {
   /**
    * Busca uma campanha por ID
    */
-  static async getCampaignById(id: string, currentUserId?: string): Promise<{ data: Campaign | null; error: any }> {
+  static async getCampaignById(id: string): Promise<{ data: Campaign | null; error: any }> {
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from('campaigns')
         .select('*')
         .eq('id', id);
-
-      // If user is provided, allow them to see their own campaigns regardless of status
-      if (currentUserId) {
-        query = query.or(`status.eq.active,user_id.eq.${currentUserId}`);
-      } else {
-        // For anonymous users, only show active campaigns
-        query = query.eq('status', 'active');
-      }
-
-      const { data, error } = await query;
 
       if (error) {
         return { data: null, error };
@@ -177,22 +167,12 @@ export class CampaignAPI {
   /**
    * Busca uma campanha por slug
    */
-  static async getCampaignBySlug(slug: string, currentUserId?: string): Promise<{ data: Campaign | null; error: any }> {
+  static async getCampaignBySlug(slug: string): Promise<{ data: Campaign | null; error: any }> {
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from('campaigns')
         .select('*')
         .eq('slug', slug);
-
-      // If user is provided, allow them to see their own campaigns regardless of status
-      if (currentUserId) {
-        query = query.or(`status.eq.active,user_id.eq.${currentUserId}`);
-      } else {
-        // For anonymous users, only show active campaigns
-        query = query.eq('status', 'active');
-      }
-
-      const { data, error } = await query;
 
       if (error) {
         return { data: null, error };
@@ -210,7 +190,7 @@ export class CampaignAPI {
   /**
    * Busca uma campanha por domínio personalizado
    */
-  static async getCampaignByCustomDomain(domain: string, currentUserId?: string): Promise<{ data: Campaign | null; error: any }> {
+  static async getCampaignByCustomDomain(domain: string): Promise<{ data: Campaign | null; error: any }> {
     try {
       // Primeiro busca o domínio personalizado
       const { data: customDomainData, error: domainError } = await supabase
@@ -229,20 +209,10 @@ export class CampaignAPI {
       }
 
       // Depois busca a campanha associada
-      let query = supabase
+      const { data: campaignData, error: campaignError } = await supabase
         .from('campaigns')
         .select('*')
         .eq('id', customDomain.campaign_id);
-
-      // If user is provided, allow them to see their own campaigns regardless of status
-      if (currentUserId) {
-        query = query.or(`status.eq.active,user_id.eq.${currentUserId}`);
-      } else {
-        // For anonymous users, only show active campaigns
-        query = query.eq('status', 'active');
-      }
-
-      const { data: campaignData, error: campaignError } = await query;
 
       if (campaignError) {
         return { data: null, error: campaignError };

@@ -49,11 +49,10 @@ const CampaignPage = () => {
   useEffect(() => {
     const hostname = window.location.hostname;
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-    const isIpAddress = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname);
     const isNetlifyDomain = hostname.includes('.netlify.app');
     const isMainDomain = hostname === 'meuapp.com'; // Replace with your actual domain
     
-    if (!isLocalhost && !isIpAddress && !isNetlifyDomain && !isMainDomain) {
+    if (!isLocalhost && !isNetlifyDomain && !isMainDomain) {
       setIsCustomDomain(true);
       setCurrentDomain(hostname);
     }
@@ -453,6 +452,7 @@ const CampaignPage = () => {
 
             {/* Organizer and Draw Date Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Organizer Card */}
               <div className={`${themeClasses.cardBg} rounded-lg p-4 border ${themeClasses.border}`}>
                 <div className="flex items-center space-x-3">
                   <div 

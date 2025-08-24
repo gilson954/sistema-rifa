@@ -42,7 +42,6 @@ export type Database = {
           show_percentage: boolean
           slug: string | null
           reservation_timeout_minutes: number | null
-          show_draw_date: boolean | null
         }
         Insert: {
           id?: string
@@ -77,7 +76,6 @@ export type Database = {
           show_percentage?: boolean
           slug?: string | null
           reservation_timeout_minutes?: number | null
-          show_draw_date?: boolean | null
         }
         Update: {
           id?: string
@@ -112,7 +110,6 @@ export type Database = {
           show_percentage?: boolean
           slug?: string | null
           reservation_timeout_minutes?: number | null
-          show_draw_date?: boolean | null
         }
       }
       profiles: {
