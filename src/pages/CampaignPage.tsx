@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Shield, Share2, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
+import { Shield, Share2, ChevronLeft, ChevronRight, X, ZoomIn, Calendar } from 'lucide-react';
 import { useParams, useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import QuotaGrid from '../components/QuotaGrid';
@@ -152,6 +152,8 @@ const CampaignPage = () => {
     drawMethod: location.state?.previewData?.draw_method || campaign?.draw_method || 'Loteria Federal',
     showPercentage: location.state?.previewData?.show_percentage || campaign?.show_percentage || false,
     soldTickets: location.state?.previewData?.sold_tickets || campaign?.sold_tickets || 0,
+    drawDate: location.state?.previewData?.draw_date || campaign?.draw_date || null,
+    showDrawDate: location.state?.previewData?.show_draw_date || campaign?.show_draw_date || false,
     organizer: {
       name: organizerName,
       verified: true
@@ -748,9 +750,10 @@ const CampaignPage = () => {
           {campaignData.title}
         </h1>
 
-        {/* Organizer Info */}
-        <div className="flex items-center justify-center mb-8">
-          <div className={`flex items-center space-x-3 px-6 py-3 rounded-lg shadow-md border transition-colors duration-300 ${getCardBackgroundClasses(campaignTheme)}`}>
+        {/* Organizer Info and Draw Date Cards */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+          {/* Organizer Card */}
+          <div className={`flex items-center space-x-3 px-6 py-3 rounded-lg shadow-md border transition-colors duration-300 ${getCardBackgroundClasses(campaignTheme)} flex-1 sm:flex-none`}>
             <div 
               className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
               style={{ backgroundColor: primaryColor || '#3B82F6' }}
@@ -803,6 +806,30 @@ const CampaignPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Draw Date Card - Only show if draw_date exists and show_draw_date is true */}
+          {campaignData.drawDate && campaignData.showDrawDate && (
+            <div className={`flex items-center space-x-3 px-6 py-3 rounded-lg shadow-md border transition-colors duration-300 ${getCardBackgroundClasses(campaignTheme)} flex-1 sm:flex-none`}>
+              <div 
+                className="w-12 h-12 rounded-full flex items-center justify-center text-white"
+                style={{ backgroundColor: primaryColor || '#3B82F6' }}
+              >
+                <Calendar className="h-6 w-6" />
+              </div>
+              <div>
+                <div className={`text-sm ${getTextClasses(campaignTheme).secondary}`}>Data do sorteio:</div>
+                <div className={`font-semibold ${getTextClasses(campaignTheme).primary}`}>
+                  {new Date(campaignData.drawDate).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {campaignData.promotions && campaignData.promotions.length > 0 && (
