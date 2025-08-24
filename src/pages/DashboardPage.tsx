@@ -372,6 +372,7 @@ const DashboardPage = () => {
                     </div>
                   </div>
 
+                  {/* Draft Campaign Warning */}
                   {campaign.status === 'draft' && (
                     <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                       <div className="flex items-start space-x-2">
