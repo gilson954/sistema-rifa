@@ -203,7 +203,7 @@ const CreateCampaignStep2Page = () => {
       if (!validationResult.success) {
         const newErrors: Record<string, string> = {};
         
-        validationResult.error.errors.forEach((error) => {
+        (validationResult.error.errors || []).forEach((error) => {
           const path = error.path.join('.');
           newErrors[path] = error.message;
         });
