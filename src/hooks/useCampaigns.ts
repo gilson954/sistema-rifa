@@ -117,6 +117,7 @@ export const useCampaigns = (status?: CampaignStatus) => {
 };
 
 export const useCampaign = (id: string) => {
+  const { user } = useAuth();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -126,7 +127,7 @@ export const useCampaign = (id: string) => {
       setLoading(true);
       setError(null);
 
-      const { data, error: apiError } = await CampaignAPI.getCampaignById(id);
+      const { data, error: apiError } = await CampaignAPI.getCampaignById(id, user?.id);
 
       if (apiError) {
         setError('Erro ao carregar campanha');
@@ -147,6 +148,7 @@ export const useCampaign = (id: string) => {
 };
 
 export const useCampaignBySlug = (slug: string) => {
+  const { user } = useAuth();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -156,7 +158,7 @@ export const useCampaignBySlug = (slug: string) => {
       setLoading(true);
       setError(null);
 
-      const { data, error: apiError } = await CampaignAPI.getCampaignBySlug(slug);
+      const { data, error: apiError } = await CampaignAPI.getCampaignBySlug(slug, user?.id);
 
       if (apiError) {
         setError('Erro ao carregar campanha');
@@ -177,6 +179,7 @@ export const useCampaignBySlug = (slug: string) => {
 };
 
 export const useCampaignByCustomDomain = (domain: string) => {
+  const { user } = useAuth();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -186,7 +189,7 @@ export const useCampaignByCustomDomain = (domain: string) => {
       setLoading(true);
       setError(null);
 
-      const { data, error: apiError } = await CampaignAPI.getCampaignByCustomDomain(domain);
+      const { data, error: apiError } = await CampaignAPI.getCampaignByCustomDomain(domain, user?.id);
 
       if (apiError) {
         setError('Erro ao carregar campanha por domínio personalizado');
@@ -206,6 +209,7 @@ export const useCampaignByCustomDomain = (domain: string) => {
   return { campaign, loading, error };
 };
 export const useCampaignWithRefetch = (id: string) => {
+  const { user } = useAuth();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -219,7 +223,7 @@ export const useCampaignWithRefetch = (id: string) => {
     setLoading(true);
     setError(null);
 
-    const { data, error: apiError } = await CampaignAPI.getCampaignById(id);
+    const { data, error: apiError } = await CampaignAPI.getCampaignById(id, user?.id);
 
     if (apiError) {
       setError('Erro ao carregar campanha');
