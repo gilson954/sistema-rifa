@@ -233,8 +233,7 @@ const CreateCampaignStep2Page = () => {
         reservation_timeout_minutes: formData.reservationTimeoutMinutes,
         draw_date: formData.showDrawDateOption === 'show-date' && formData.drawDate 
           ? formData.drawDate.toISOString() 
-          : null,
-        show_draw_date: formData.showDrawDateOption === 'show-date'
+          : null
       };
 
       const { data: updatedCampaign, error } = await CampaignAPI.updateCampaign(updateData);
