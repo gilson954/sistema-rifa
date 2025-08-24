@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Upload, X, Plus, Trash2, AlertTriangle, ChevronD
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaignWithRefetch } from '../hooks/useCampaigns';
 import { CampaignAPI } from '../lib/api/campaigns';
+import { updateCampaignSchema } from '../lib/validations/campaign';
 import { ImageUpload } from '../components/ImageUpload';
 import { useImageUpload } from '../hooks/useImageUpload';
 import RichTextEditor from '../components/RichTextEditor';
@@ -68,9 +69,6 @@ const CreateCampaignStep2Page = () => {
   // Loading and error states
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  // NEW: Campaign model validation error state
-  const [campaignModelError, setCampaignModelError] = useState<string>('');
 
   // Load existing campaign data when component mounts
   useEffect(() => {
@@ -108,15 +106,6 @@ const CreateCampaignStep2Page = () => {
     }
   }, [campaign, setExistingImages]);
 
-  // NEW: Validate campaign model when it changes or when total_tickets is available
-  useEffect(() => {
-    if (campaign?.total_tickets && formData.campaignModel === 'manual' && campaign.total_tickets > 10000) {
-      setCampaignModelError('O modelo manual não é permitido para campanhas com mais de 10.000 cotas.');
-    } else {
-      setCampaignModelError('');
-    }
-  }, [formData.campaignModel, campaign?.total_tickets]);
-
   const handleGoBack = () => {
     navigate(`/dashboard/create-campaign?id=${campaignId}`);
   };
@@ -132,15 +121,6 @@ const CreateCampaignStep2Page = () => {
       setFormData(prev => ({ ...prev, [name]: numValue }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
-      
-      // NEW: Handle campaign model validation
-      if (name === 'campaignModel') {
-        if (campaign?.total_tickets && value === 'manual' && campaign.total_tickets > 10000) {
-          setCampaignModelError('O modelo manual não é permitido para campanhas com mais de 10.000 cotas.');
-        } else {
-          setCampaignModelError('');
-        }
-      }
     }
   };
 
@@ -181,30 +161,10 @@ const CreateCampaignStep2Page = () => {
     setPrizes(newPrizes);
   };
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (formData.minTicketsPerPurchase > formData.maxTicketsPerPurchase) {
-      newErrors.minTicketsPerPurchase = 'Mínimo deve ser menor ou igual ao máximo';
-    }
-
-    if (formData.maxTicketsPerPurchase > (campaign?.total_tickets || 0)) {
-      newErrors.maxTicketsPerPurchase = 'Máximo não pode ser maior que o total de cotas';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // NEW: Check for campaign model validation error
-    if (campaignModelError) {
-      return; // Don't submit if there's a validation error
-    }
-    
-    if (!validateForm() || !campaignId) {
+
+    if (!campaignId) {
       return;
     }
 
@@ -236,6 +196,21 @@ const CreateCampaignStep2Page = () => {
           : null,
         show_draw_date: formData.showDrawDateOption === 'show-date'
       };
+
+      // Validate the data using the schema
+      const validationResult = updateCampaignSchema.safeParse(updateData);
+      
+      if (!validationResult.success) {
+        const newErrors: Record<string, string> = {};
+        
+        validationResult.error.errors.forEach((error) => {
+          const path = error.path.join('.');
+          newErrors[path] = error.message;
+        });
+        
+        setErrors(newErrors);
+        return;
+      }
 
       const { data: updatedCampaign, error } = await CampaignAPI.updateCampaign(updateData);
 
@@ -291,9 +266,6 @@ const CreateCampaignStep2Page = () => {
       </div>
     );
   }
-
-  // NEW: Check if form is valid (no validation errors)
-  const isFormValid = !campaignModelError && Object.keys(errors).length === 0;
 
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
@@ -666,14 +638,14 @@ const CreateCampaignStep2Page = () => {
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
               </div>
               
-              {/* NEW: Campaign Model Error Message */}
-              {campaignModelError && (
+              {/* Campaign Model Error Message */}
+              {errors.campaign_model && (
                 <div className="mt-2 flex items-center space-x-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg px-3 py-2">
                   <div className="w-5 h-5 bg-orange-500 rounded flex items-center justify-center flex-shrink-0">
                     <AlertTriangle className="h-3 w-3 text-white" />
                   </div>
                   <span className="text-orange-800 dark:text-orange-200 text-sm font-medium">
-                    {campaignModelError}
+                    {errors.campaign_model}
                   </span>
                 </div>
               )}
@@ -729,7 +701,7 @@ const CreateCampaignStep2Page = () => {
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={loading || !isFormValid}
+              disabled={loading}
               className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center space-x-2"
             >
               {loading ? (
