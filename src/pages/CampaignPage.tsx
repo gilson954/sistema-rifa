@@ -1220,6 +1220,7 @@ const CampaignPage = () => {
         primaryColor={primaryColor}
         campaignTheme={campaignTheme}
         reserving={reserving}
+        reservationTimeoutMinutes={campaign?.reservation_timeout_minutes || 15}
       />
 
       {/* Footer */}

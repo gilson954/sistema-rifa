@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, Mail, Phone, Shield, CheckCircle } from 'lucide-react';
+import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 
 interface Country {
@@ -20,6 +20,7 @@ interface ReservationModalProps {
   primaryColor?: string | null;
   campaignTheme: string;
   reserving?: boolean;
+  reservationTimeoutMinutes?: number;
 }
 
 export interface CustomerData {
@@ -40,7 +41,8 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   campaignTitle,
   primaryColor,
   campaignTheme,
-  reserving = false
+  reserving = false,
+  reservationTimeoutMinutes = 15
 }) => {
   const [formData, setFormData] = useState<CustomerData>({
     name: '',
@@ -59,6 +61,21 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 
   const [confirmPhoneNumber, setConfirmPhoneNumber] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Reset form when modal opens/closes
+  React.useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        name: '',
+        email: '',
+        phoneNumber: '',
+        countryCode: '+55',
+        acceptTerms: false
+      });
+      setConfirmPhoneNumber('');
+      setErrors({});
+    }
+  }, [isOpen]);
 
   // Function to get theme classes
   const getThemeClasses = (theme: string) => {
@@ -133,7 +150,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     if (!confirmPhoneNumber.trim()) {
       newErrors.confirmPhoneNumber = 'Confirmação do número é obrigatória';
     } else if (formData.phoneNumber !== confirmPhoneNumber) {
-      newErrors.confirmPhoneNumber = 'Os números de celular não coincidem';
+      newErrors.confirmPhoneNumber = 'O número de celular não confere. Por favor, digite o mesmo número nos dois campos.';
     }
 
     // Terms validation
@@ -236,6 +253,22 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
           </div>
         </div>
 
+        {/* Reservation Warning */}
+        <div className={`p-4 ${getThemeClasses(campaignTheme).cardBg} border ${getThemeClasses(campaignTheme).border} rounded-lg mb-4`}>
+          <div className="flex items-start space-x-3">
+            <Clock className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className={`text-sm font-medium ${getThemeClasses(campaignTheme).text} mb-1`}>
+                Tempo de Reserva
+              </p>
+              <p className={`text-sm ${getThemeClasses(campaignTheme).textSecondary}`}>
+                Suas cotas ficarão reservadas por <span className="font-bold text-orange-600">{reservationTimeoutMinutes} minutos</span>. 
+                Complete o pagamento via Pix para confirmar sua participação.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Name Field */}
@@ -266,7 +299,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
           {/* Email Field */}
           <div>
             <label className={`block text-sm font-medium ${getThemeClasses(campaignTheme).text} mb-2`}>
-              Email *
+              Email (opcional)
             </label>
             <div className="relative">
               <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${getThemeClasses(campaignTheme).textSecondary}`} />
@@ -280,7 +313,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 }`}
                 style={{ '--tw-ring-color': primaryColor || '#3B82F6' } as React.CSSProperties}
                 disabled={reserving}
-                required
               />
             </div>
             {errors.email && (
@@ -330,6 +362,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 
           {/* Terms Acceptance */}
           <div className="space-y-4">
+            {/* Terms Checkbox */}
             <div className="flex items-start space-x-3">
               <input
                 type="checkbox"
@@ -355,6 +388,22 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             {errors.acceptTerms && (
               <p className="text-red-500 text-sm">{errors.acceptTerms}</p>
             )}
+
+            {/* Important Notice */}
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              <div className="flex items-start space-x-2">
+                <AlertTriangle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm text-blue-800 dark:text-blue-200 font-medium mb-1">
+                    Importante
+                  </p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    Após confirmar a reserva, você terá {reservationTimeoutMinutes} minutos para efetuar o pagamento. 
+                    Caso contrário, suas cotas serão liberadas automaticamente.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Summary */}
@@ -382,14 +431,24 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             {reserving ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                <span>Reservando...</span>
+                <span>Processando reserva...</span>
               </>
             ) : (
               <>
                 <Shield className="h-5 w-5" />
-                <span>Reservar ({formatCurrency(totalValue)})</span>
+                <span>Concluir reserva</span>
               </>
             )}
+          </button>
+
+          {/* Cancel Button */}
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={reserving}
+            className={`w-full py-3 rounded-lg font-medium transition-colors duration-200 border ${getThemeClasses(campaignTheme).border} ${getThemeClasses(campaignTheme).text} hover:${getThemeClasses(campaignTheme).cardBg} disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            Cancelar
           </button>
         </form>
       </div>
