@@ -1,4 +1,4 @@
-import { z, ZodObject } from 'zod';
+import { z } from 'zod';
 
 // Schema para validação dos dados vindos do frontend
 export const createCampaignFrontendInputSchema = z.object({
@@ -120,7 +120,7 @@ export const createCampaignFrontendInputSchema = z.object({
 );
 
 // Schema para validação de criação de campanha
-export const createCampaignSchema: ZodObject<any> = z.object({
+export const createCampaignSchema = z.object({
   title: z
     .string()
     .min(3, 'O título deve ter pelo menos 3 caracteres')
