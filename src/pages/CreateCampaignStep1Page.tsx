@@ -185,6 +185,9 @@ const CreateCampaignStep1Page = () => {
       const ticketPrice = parseFloat(rawTicketPrice) / 100; // Convert cents to reais
       const ticketQuantity = parseInt(formData.ticketQuantity);
 
+      // Ensure max_tickets_per_purchase doesn't exceed total_tickets
+      const maxTicketsPerPurchase = Math.min(1000, ticketQuantity);
+
       const campaignData = {
         title: formData.title,
         ticket_price: ticketPrice,
@@ -193,7 +196,7 @@ const CreateCampaignStep1Page = () => {
         require_email: true,
         show_ranking: false,
         min_tickets_per_purchase: 1,
-        max_tickets_per_purchase: 1000,
+        max_tickets_per_purchase: maxTicketsPerPurchase,
         initial_filter: 'all' as 'all' | 'available',
         campaign_model: 'automatic' as 'manual' | 'automatic',
        prize_image_urls: []
