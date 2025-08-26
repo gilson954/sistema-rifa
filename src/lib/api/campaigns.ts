@@ -1,5 +1,5 @@
 import { supabase } from '../supabase';
-import { CreateCampaignInput, UpdateCampaignInput, createCampaignSchema, updateCampaignSchema } from '../validations/campaign';
+import { CreateCampaignInput, CreateCampaignFrontendInput, UpdateCampaignInput, createCampaignSchema, createCampaignFrontendInputSchema, updateCampaignSchema } from '../validations/campaign';
 import { Campaign, CampaignStatus } from '../../types/campaign';
 import { generateUniqueSlug } from '../../utils/slugGenerator';
 import { ZodError } from 'zod';
@@ -8,11 +8,11 @@ export class CampaignAPI {
   /**
    * Cria uma nova campanha
    */
-  static async createCampaign(data: CreateCampaignInput, userId: string): Promise<{ data: Campaign | null; error: any }> {
+  static async createCampaign(data: CreateCampaignFrontendInput, userId: string): Promise<{ data: Campaign | null; error: any }> {
     try {
-      // Validate input data against schema before processing
+      // Validate frontend input data against schema before processing
       try {
-        createCampaignSchema.parse(data);
+        createCampaignFrontendInputSchema.parse(data);
       } catch (validationError) {
         if (validationError instanceof ZodError) {
           const errorMessage = (validationError.errors || []).map(err => err.message).join(', ');
@@ -35,7 +35,8 @@ export class CampaignAPI {
       const now = new Date();
       const expiresAt = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
       
-      const campaignData = {
+      // Construct complete campaign data with defaults
+      const campaignData: CreateCampaignInput = {
         ...data,
         user_id: userId,
         slug,
@@ -43,8 +44,40 @@ export class CampaignAPI {
         status: 'draft' as CampaignStatus,
         start_date: now.toISOString(),
         end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 dias
-        expires_at: expiresAt.toISOString()
+        expires_at: expiresAt.toISOString(),
+        // Apply defaults for optional fields
+        payment_deadline_hours: data.payment_deadline_hours ?? 24,
+        require_email: data.require_email ?? true,
+        show_ranking: data.show_ranking ?? false,
+        min_tickets_per_purchase: data.min_tickets_per_purchase ?? 1,
+        max_tickets_per_purchase: data.max_tickets_per_purchase ?? 1000,
+        initial_filter: data.initial_filter ?? 'all',
+        campaign_model: data.campaign_model ?? 'automatic',
+        promotions: data.promotions ?? [],
+        prizes: data.prizes ?? [],
+        reservation_timeout_minutes: data.reservation_timeout_minutes ?? 15,
+        prize_image_urls: data.prize_image_urls ?? [],
+        show_draw_date: data.show_draw_date ?? false
       };
+
+      // Validate complete campaign data before database insertion
+      try {
+        createCampaignSchema.parse(campaignData);
+      } catch (validationError) {
+        if (validationError instanceof ZodError) {
+          const errorMessage = (validationError.errors || []).map(err => err.message).join(', ');
+          console.error('❌ [API VALIDATION] Complete campaign data validation failed:', errorMessage);
+          return { 
+            data: null, 
+            error: { 
+              message: errorMessage,
+              code: 'VALIDATION_ERROR',
+              details: validationError.errors || []
+            }
+          };
+        }
+        throw validationError;
+      }
 
       const { data: campaign, error } = await supabase
         .from('campaigns')
