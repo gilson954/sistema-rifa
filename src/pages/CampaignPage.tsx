@@ -48,8 +48,9 @@ const CampaignPage = () => {
     '127.0.0.1',
     'netlify.app',
     'stackblitz.io',
-    'stackblitz.com',
-    'webcontainer.io'
+    'stackblitz.com', 
+    'webcontainer.io',
+    'webcontainer-api.io'
   ];
   
   const isDevelopmentHost = developmentHosts.some(host => 
