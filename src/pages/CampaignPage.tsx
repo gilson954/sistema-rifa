@@ -43,13 +43,20 @@ const CampaignPage = () => {
   const { theme } = useTheme();
   
   // Check if this is a custom domain request
-  const isCustomDomain = window.location.hostname !== 'localhost' && 
-                         window.location.hostname !== '127.0.0.1' &&
-                         !window.location.hostname.includes('netlify.app') && 
-                         !window.location.hostname.includes('stackblitz.io') &&
-                         !window.location.hostname.includes('stackblitz.com') &&
-                         !window.location.hostname.includes('webcontainer.io') &&
-                         slug; // Only consider custom domain if we have a slug in the URL
+  const developmentHosts = [
+    'localhost',
+    '127.0.0.1',
+    'netlify.app',
+    'stackblitz.io',
+    'stackblitz.com',
+    'webcontainer.io'
+  ];
+  
+  const isDevelopmentHost = developmentHosts.some(host => 
+    window.location.hostname === host || window.location.hostname.includes(host)
+  );
+  
+  const isCustomDomain = !isDevelopmentHost && slug;
   
   // Use appropriate hook based on access method
   const { campaign: campaignBySlug, loading: loadingBySlug, error: errorBySlug } = useCampaignBySlug(slug || '');
