@@ -479,7 +479,7 @@ const CampaignPage = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${themeClasses.background}`}>
-      {/* Header - Redesigned according to specifications */}
+      {/* Header - Redesigned according to image specifications */}
       <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.cardBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -491,13 +491,6 @@ const CampaignPage = () => {
                 className="w-8 h-8 object-contain"
               />
               <span className={`text-xl font-bold ${themeClasses.text}`}>Rifaqui</span>
-            </div>
-            
-            {/* Central Title */}
-            <div className="hidden sm:block">
-              <h1 className={`text-lg font-semibold ${themeClasses.text}`}>
-                Detalhes da Campanha
-              </h1>
             </div>
             
             {/* "Ver Minhas Cotas" Button - Right aligned and highlighted */}
@@ -515,240 +508,85 @@ const CampaignPage = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Campaign Information Card - Full width at top */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6 mb-6`}>
-          <h1 className={`text-3xl md:text-4xl font-bold ${themeClasses.text} mb-4 text-center`}>
-            {campaign.title}
-          </h1>
+        {/* Campaign Title - Standalone, not in a card */}
+        <h1 className={`text-3xl md:text-4xl font-bold ${themeClasses.text} mb-6 text-center`}>
+          {campaign.title}
+        </h1>
 
-          {/* Campaign Description */}
-          {campaign.description && (
-            <div 
-              className={`${themeClasses.textSecondary} mb-6 prose prose-lg max-w-none text-center`}
-              dangerouslySetInnerHTML={{ __html: campaign.description }}
+        {/* 1. Seção de galeria de imagens - Full width card */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-6`}>
+          {/* Image Display */}
+          <div className="relative group">
+            <img
+              src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
+              alt={campaign.title}
+              className="w-full h-80 sm:h-96 object-cover"
             />
-          )}
-
-          {/* Draw Date */}
-          {campaign.show_draw_date && campaign.draw_date && (
-            <div className="flex items-center justify-center space-x-2 mb-6">
-              <Calendar className={`h-5 w-5 ${themeClasses.textSecondary}`} />
-              <span className={`text-lg ${themeClasses.text}`}>
-                Sorteio em: <strong>{formatDate(campaign.draw_date)}</strong>
-              </span>
-            </div>
-          )}
-
-          {/* Progress Bar */}
-          <div className="max-w-2xl mx-auto">
-            <div className="flex justify-between items-center mb-3">
-              <span className={`text-lg font-medium ${themeClasses.text}`}>Progresso da Campanha</span>
-              <span className={`text-lg font-bold ${themeClasses.text}`}>
-                {campaign.sold_tickets}/{campaign.total_tickets} cotas
-                {campaign.show_percentage && (
-                  <span className={`ml-2 text-sm ${themeClasses.textSecondary}`}>
-                    ({getProgressPercentage()}%)
-                  </span>
-                )}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
-              <div 
-                className="h-4 rounded-full transition-all duration-500"
-                style={{ 
-                  width: `${getProgressPercentage()}%`,
-                  backgroundColor: primaryColor 
-                }}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* 1. Image Gallery and Quota Selection - Two column layout with equal heights */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch mb-6">
-          {/* Left Column - Image Gallery */}
-          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden h-full flex flex-col`}>
-            {/* Image Display */}
-            <div className="relative group flex-1">
-              <img
-                src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
-                alt={campaign.title}
-                className="w-full h-80 sm:h-96 object-cover"
-              />
-              
-              {/* Navigation Arrows */}
-              {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
-                <>
-                  <button
-                    onClick={handlePreviousImage}
-                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75"
-                  >
-                    <ChevronLeft className="h-6 w-6" />
-                  </button>
-                  
-                  <button
-                    onClick={handleNextImage}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75"
-                  >
-                    <ChevronRight className="h-6 w-6" />
-                  </button>
-                </>
-              )}
-              
-              {/* Image Counter */}
-              {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
-                <div className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
-                  {currentImageIndex + 1} / {campaign.prize_image_urls.length}
-                </div>
-              )}
-
-              {/* Price Badge */}
-              <div className="absolute top-4 left-4 bg-white bg-opacity-95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">Participe por apenas</span>
-                  <span className="font-bold text-lg" style={{ color: primaryColor }}>
-                    {formatCurrency(campaign.ticket_price)}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Thumbnail Strip */}
+            
+            {/* Navigation Arrows */}
             {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
-              <div className="p-4 bg-gray-50 dark:bg-gray-800">
-                <div className="flex space-x-2 overflow-x-auto pb-2">
-                  {campaign.prize_image_urls.map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                        index === currentImageIndex
-                          ? 'border-purple-500 opacity-100'
-                          : 'border-gray-300 dark:border-gray-600 opacity-60 hover:opacity-80'
-                      }`}
-                    >
-                      <img
-                        src={image}
-                        alt={`Thumbnail ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
+              <>
+                <button
+                  onClick={handlePreviousImage}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </>
+            )}
+            
+            {/* Image Counter */}
+            {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
+              <div className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                {currentImageIndex + 1} / {campaign.prize_image_urls.length}
               </div>
             )}
-          </div>
 
-          {/* Right Column - Quota Selection */}
-          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6 h-full flex flex-col`}>
-            <h2 className={`text-2xl font-bold ${themeClasses.text} mb-6 text-center`}>
-              {campaign.campaign_model === 'manual' ? 'Selecione suas Cotas' : 'Escolha a Quantidade'}
-            </h2>
-
-            <div className="flex-1">
-              {campaign.campaign_model === 'manual' ? (
-                <div className="space-y-6">
-                  <QuotaGrid
-                    totalQuotas={campaign.total_tickets}
-                    selectedQuotas={selectedQuotas}
-                    onQuotaSelect={handleQuotaSelect}
-                    activeFilter={activeFilter}
-                    onFilterChange={setActiveFilter}
-                    mode="manual"
-                    tickets={tickets}
-                    currentUserId={user?.id}
-                    campaignTheme={campaignTheme}
-                    primaryColor={primaryColor}
-                  />
-
-                  {/* Manual Mode - Selection Summary */}
-                  {selectedQuotas.length > 0 && (
-                    <div className={`${themeClasses.background} rounded-xl p-6 border ${themeClasses.border}`}>
-                      <h3 className={`text-lg font-bold ${themeClasses.text} mb-4`}>
-                        Cotas Selecionadas
-                      </h3>
-                      
-                      <div className="mb-4">
-                        <div className={`text-sm ${themeClasses.textSecondary} mb-2`}>
-                          Números selecionados:
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedQuotas.sort((a, b) => a - b).map(quota => (
-                            <span
-                              key={quota}
-                              className="px-3 py-1 text-white rounded-lg text-sm font-medium"
-                              style={{ backgroundColor: primaryColor }}
-                            >
-                              {quota.toString().padStart(3, '0')}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Promotion Info */}
-                      {currentPromotionInfo && (
-                        <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                          <div className="text-center">
-                            <div className="text-sm font-medium text-green-800 dark:text-green-200 mb-1">
-                              🎉 Promoção Aplicada: {currentPromotionInfo.discountPercentage}% OFF
-                            </div>
-                            <div className="text-xs text-green-700 dark:text-green-300">
-                              Economia de {formatCurrency(currentPromotionInfo.savings)}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex justify-between items-center mb-6">
-                        <span className={`font-medium ${themeClasses.text}`}>
-                          {selectedQuotas.length} {selectedQuotas.length === 1 ? 'cota' : 'cotas'}
-                        </span>
-                        <div className="text-right">
-                          {currentPromotionInfo && (
-                            <div className={`text-sm ${themeClasses.textSecondary} line-through`}>
-                              {formatCurrency(currentPromotionInfo.originalTotal)}
-                            </div>
-                          )}
-                          <div 
-                            className={`text-2xl font-bold ${currentPromotionInfo ? 'text-green-600' : ''}`}
-                            style={!currentPromotionInfo ? { color: primaryColor } : {}}
-                          >
-                            {formatCurrency(getCurrentTotalValue())}
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={handleOpenReservationModal}
-                        disabled={selectedQuotas.length === 0}
-                        className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                        style={{ backgroundColor: primaryColor }}
-                      >
-                        Reservar Cotas Selecionadas
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <QuotaSelector
-                  ticketPrice={campaign.ticket_price}
-                  minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
-                  maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 1000}
-                  onQuantityChange={handleQuantityChange}
-                  initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
-                  mode="automatic"
-                  promotionInfo={currentPromotionInfo}
-                  primaryColor={primaryColor}
-                  campaignTheme={campaignTheme}
-                  onReserve={handleOpenReservationModal}
-                  reserving={reserving}
-                />
-              )}
+            {/* Price Badge */}
+            <div className="absolute top-4 left-4 bg-white bg-opacity-95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Participe por apenas</span>
+                <span className="font-bold text-lg" style={{ color: primaryColor }}>
+                  {formatCurrency(campaign.ticket_price)}
+                </span>
+              </div>
             </div>
           </div>
+
+          {/* Thumbnail Strip */}
+          {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
+            <div className="p-4 bg-gray-50 dark:bg-gray-800">
+              <div className="flex space-x-2 overflow-x-auto pb-2">
+                {campaign.prize_image_urls.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                      index === currentImageIndex
+                        ? 'border-purple-500 opacity-100'
+                        : 'border-gray-300 dark:border-gray-600 opacity-60 hover:opacity-80'
+                    }`}
+                  >
+                    <img
+                      src={image}
+                      alt={`Thumbnail ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
 
-        {/* 2. Organizer Card */}
+        {/* 2. Seção de Organizador - Full width card */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6 mb-6`}>
           <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
             Organizador
@@ -826,7 +664,7 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 3. Promotions Card */}
+        {/* 3. Seção de Promoções Disponíveis - Full width card */}
         {campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
           <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6 mb-6`}>
             <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
@@ -864,7 +702,7 @@ const CampaignPage = () => {
           </section>
         )}
 
-        {/* 4. Prizes Card */}
+        {/* 4. Seção de Prêmios - Full width card */}
         {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
           <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6 mb-6`}>
             <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
@@ -887,9 +725,96 @@ const CampaignPage = () => {
           </section>
         )}
 
-        {/* 5. Purchase/Selection Section - Only for campaigns without quota grid above */}
-        {campaign.campaign_model === 'automatic' && (
-          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6 mb-6`}>
+        {/* 5. Seção de compra/seleção de cota - Full width card */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6 mb-6`}>
+          <h2 className={`text-2xl font-bold ${themeClasses.text} mb-6 text-center`}>
+            {campaign.campaign_model === 'manual' ? 'Selecione suas Cotas' : 'Escolha a Quantidade'}
+          </h2>
+
+          {campaign.campaign_model === 'manual' ? (
+            <div className="space-y-6">
+              <QuotaGrid
+                totalQuotas={campaign.total_tickets}
+                selectedQuotas={selectedQuotas}
+                onQuotaSelect={handleQuotaSelect}
+                activeFilter={activeFilter}
+                onFilterChange={setActiveFilter}
+                mode="manual"
+                tickets={tickets}
+                currentUserId={user?.id}
+                campaignTheme={campaignTheme}
+                primaryColor={primaryColor}
+              />
+
+              {/* Manual Mode - Selection Summary */}
+              {selectedQuotas.length > 0 && (
+                <div className={`${themeClasses.background} rounded-xl p-6 border ${themeClasses.border}`}>
+                  <h3 className={`text-lg font-bold ${themeClasses.text} mb-4`}>
+                    Cotas Selecionadas
+                  </h3>
+                  
+                  <div className="mb-4">
+                    <div className={`text-sm ${themeClasses.textSecondary} mb-2`}>
+                      Números selecionados:
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedQuotas.sort((a, b) => a - b).map(quota => (
+                        <span
+                          key={quota}
+                          className="px-3 py-1 text-white rounded-lg text-sm font-medium"
+                          style={{ backgroundColor: primaryColor }}
+                        >
+                          {quota.toString().padStart(3, '0')}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Promotion Info */}
+                  {currentPromotionInfo && (
+                    <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="text-center">
+                        <div className="text-sm font-medium text-green-800 dark:text-green-200 mb-1">
+                          🎉 Promoção Aplicada: {currentPromotionInfo.discountPercentage}% OFF
+                        </div>
+                        <div className="text-xs text-green-700 dark:text-green-300">
+                          Economia de {formatCurrency(currentPromotionInfo.savings)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center mb-6">
+                    <span className={`font-medium ${themeClasses.text}`}>
+                      {selectedQuotas.length} {selectedQuotas.length === 1 ? 'cota' : 'cotas'}
+                    </span>
+                    <div className="text-right">
+                      {currentPromotionInfo && (
+                        <div className={`text-sm ${themeClasses.textSecondary} line-through`}>
+                          {formatCurrency(currentPromotionInfo.originalTotal)}
+                        </div>
+                      )}
+                      <div 
+                        className={`text-2xl font-bold ${currentPromotionInfo ? 'text-green-600' : ''}`}
+                        style={!currentPromotionInfo ? { color: primaryColor } : {}}
+                      >
+                        {formatCurrency(getCurrentTotalValue())}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleOpenReservationModal}
+                    disabled={selectedQuotas.length === 0}
+                    className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    Reservar Cotas Selecionadas
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
             <QuotaSelector
               ticketPrice={campaign.ticket_price}
               minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
@@ -903,15 +828,64 @@ const CampaignPage = () => {
               onReserve={handleOpenReservationModal}
               reserving={reserving}
             />
-          </section>
-        )}
+          )}
+        </section>
 
-        {/* 6. Payment Methods and Draw Method - Side by side layout */}
+        {/* 6. Descrição/Regulamento - Full width card */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6 mb-6`}>
+          <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
+            Descrição/Regulamento
+          </h3>
+          
+          {/* Campaign Description */}
+          {campaign.description && (
+            <div 
+              className={`${themeClasses.textSecondary} mb-6 prose prose-lg max-w-none text-center`}
+              dangerouslySetInnerHTML={{ __html: campaign.description }}
+            />
+          )}
+
+          {/* Draw Date */}
+          {campaign.show_draw_date && campaign.draw_date && (
+            <div className="flex items-center justify-center space-x-2 mb-6">
+              <Calendar className={`h-5 w-5 ${themeClasses.textSecondary}`} />
+              <span className={`text-lg ${themeClasses.text}`}>
+                Data de sorteio: <strong>{formatDate(campaign.draw_date)}</strong>
+              </span>
+            </div>
+          )}
+
+          {/* Progress Bar */}
+          <div className="max-w-2xl mx-auto">
+            <div className="flex justify-between items-center mb-3">
+              <span className={`text-lg font-medium ${themeClasses.text}`}>Barra de porcentagem de vendas</span>
+              <span className={`text-lg font-bold ${themeClasses.text}`}>
+                {campaign.sold_tickets}/{campaign.total_tickets} cotas
+                {campaign.show_percentage && (
+                  <span className={`ml-2 text-sm ${themeClasses.textSecondary}`}>
+                    ({getProgressPercentage()}%)
+                  </span>
+                )}
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+              <div 
+                className="h-4 rounded-full transition-all duration-500"
+                style={{ 
+                  width: `${getProgressPercentage()}%`,
+                  backgroundColor: primaryColor 
+                }}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* 7. Métodos de Pagamento e Método de Sorteio - Side by side layout */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Payment Methods Card - Left */}
           <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6`}>
             <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
-              Métodos de Pagamento
+              Seção de Métodos de Pagamento
             </h3>
             
             <div className="space-y-3">
@@ -937,7 +911,7 @@ const CampaignPage = () => {
           {/* Draw Method Card - Right */}
           <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6`}>
             <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
-              Método de Sorteio
+              Seção de Método de Sorteio
             </h3>
             
             <div className="flex items-center justify-center space-x-3">
