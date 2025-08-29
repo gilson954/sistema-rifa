@@ -950,7 +950,7 @@ const CampaignPage = () => {
           {/* Campaign Description */}
           {campaign.description && isValidDescription(campaign.description) ? (
             <div 
-              className={`${themeClasses.textSecondary} mb-6 prose prose-lg max-w-none text-center`}
+              className={`${themeClasses.textSecondary} mb-6 prose prose-lg max-w-none ql-editor`}
               dangerouslySetInnerHTML={{ __html: campaign.description }}
             />
           ) : (
