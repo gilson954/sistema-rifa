@@ -103,7 +103,11 @@ const CampaignPage = () => {
 
   // Image gallery state
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
+  const [fullscreenImageIndex, setFullscreenImageIndex] = useState<number | null>(null);
+  
+  // Touch/swipe state for mobile navigation
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
   // Load organizer profile
   useEffect(() => {
@@ -311,14 +315,86 @@ const CampaignPage = () => {
   };
 
   // Handle fullscreen image view
-  const handleImageClick = (imageUrl: string) => {
-    setFullscreenImage(imageUrl);
+  const handleImageClick = (imageIndex: number) => {
+    setFullscreenImageIndex(imageIndex);
   };
 
   const handleCloseFullscreen = () => {
-    setFullscreenImage(null);
+    setFullscreenImageIndex(null);
+    setTouchStartX(null);
+    setTouchEndX(null);
   };
 
+  // Fullscreen navigation functions
+  const goToPreviousFullscreenImage = () => {
+    if (fullscreenImageIndex === null || !campaign?.prize_image_urls) return;
+    
+    const totalImages = campaign.prize_image_urls.length;
+    if (totalImages <= 1) return;
+    
+    setFullscreenImageIndex(prev => 
+      prev === 0 ? totalImages - 1 : (prev || 0) - 1
+    );
+  };
+
+  const goToNextFullscreenImage = () => {
+    if (fullscreenImageIndex === null || !campaign?.prize_image_urls) return;
+    
+    const totalImages = campaign.prize_image_urls.length;
+    if (totalImages <= 1) return;
+    
+    setFullscreenImageIndex(prev => 
+      prev === totalImages - 1 ? 0 : (prev || 0) + 1
+    );
+  };
+
+  // Keyboard navigation for fullscreen
+  useEffect(() => {
+    if (fullscreenImageIndex === null) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToPreviousFullscreenImage();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goToNextFullscreenImage();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        handleCloseFullscreen();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [fullscreenImageIndex]);
+
+  // Touch/swipe handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      goToNextFullscreenImage();
+    } else if (isRightSwipe) {
+      goToPreviousFullscreenImage();
+    }
+
+    // Reset touch state
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
   // Get theme classes based on campaign theme
   const getThemeClasses = (campaignTheme: string) => {
     switch (campaignTheme) {
@@ -531,7 +607,7 @@ const CampaignPage = () => {
               src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
               alt={campaign.title}
               className="w-full h-80 sm:h-96 object-cover"
-              onClick={() => handleImageClick(campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1')}
+              onClick={() => handleImageClick(currentImageIndex)}
               style={{ cursor: 'pointer' }}
             />
             
@@ -585,7 +661,7 @@ const CampaignPage = () => {
                         ? 'border-purple-500 opacity-100'
                         : 'border-gray-300 dark:border-gray-600 opacity-60 hover:opacity-80'
                     }`}
-                    onDoubleClick={() => handleImageClick(image)}
+                    onDoubleClick={() => handleImageClick(index)}
                   >
                     <img
                       src={image}
@@ -987,18 +1063,60 @@ const CampaignPage = () => {
       </main>
 
       {/* Fullscreen Image Modal */}
-      {fullscreenImage && (
+      {fullscreenImageIndex !== null && campaign?.prize_image_urls && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
           onClick={handleCloseFullscreen}
         >
-          <div className="relative max-w-full max-h-full">
+          <div 
+            className="relative max-w-full max-h-full"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <img
-              src={fullscreenImage}
+              src={campaign.prize_image_urls[fullscreenImageIndex]}
               alt={campaign.title}
               className="max-w-full max-h-full object-contain"
               onClick={(e) => e.stopPropagation()}
             />
+            
+            {/* Navigation Buttons - Only show if multiple images */}
+            {campaign.prize_image_urls.length > 1 && (
+              <>
+                {/* Previous Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToPreviousFullscreenImage();
+                  }}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
+                  aria-label="Imagem anterior"
+                >
+                  <ChevronLeft className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
+                </button>
+
+                {/* Next Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToNextFullscreenImage();
+                  }}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
+                  aria-label="Próxima imagem"
+                >
+                  <ChevronRight className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
+                </button>
+              </>
+            )}
+
+            {/* Image Counter */}
+            {campaign.prize_image_urls.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm font-medium">
+                {fullscreenImageIndex + 1} / {campaign.prize_image_urls.length}
+              </div>
+            )}
+            
             <button
               onClick={handleCloseFullscreen}
               className="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-colors duration-200 flex items-center justify-center"
