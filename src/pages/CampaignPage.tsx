@@ -47,6 +47,19 @@ const CampaignPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme } = useTheme();
+
+  // Função para verificar se a descrição contém conteúdo válido
+  const isValidDescription = (description: string): boolean => {
+    if (!description || typeof description !== 'string') return false;
+    
+    // Remove HTML tags e espaços para verificar se há conteúdo real
+    const textContent = description
+      .replace(/<[^>]*>/g, '') // Remove todas as tags HTML
+      .replace(/&nbsp;/g, ' ') // Substitui &nbsp; por espaços
+      .trim();
+    
+    return textContent.length > 0;
+  };
   
   // Check if this is a custom domain request
   const developmentHosts = [
@@ -75,6 +88,14 @@ const CampaignPage = () => {
   const campaign = isCustomDomain ? campaignByDomain : campaignBySlug;
   const loading = isCustomDomain ? loadingByDomain : loadingBySlug;
   const error = isCustomDomain ? errorByDomain : errorBySlug;
+
+  // Debug: Log campaign description (remover após teste)
+  useEffect(() => {
+    if (campaign?.description) {
+      console.log('📝 Descrição da campanha:', campaign.description);
+      console.log('📝 Descrição é válida:', isValidDescription(campaign.description));
+    }
+  }, [campaign?.description]);
 
   // Organizer profile state
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
@@ -927,11 +948,15 @@ const CampaignPage = () => {
           </h3>
           
           {/* Campaign Description */}
-          {campaign.description && (
+          {campaign.description && isValidDescription(campaign.description) ? (
             <div 
               className={`${themeClasses.textSecondary} mb-6 prose prose-lg max-w-none text-center`}
               dangerouslySetInnerHTML={{ __html: campaign.description }}
             />
+          ) : (
+            <div className={`${themeClasses.textSecondary} mb-6 text-center italic`}>
+              <p>Nenhuma descrição fornecida para esta campanha.</p>
+            </div>
           )}
 
           {/* Draw Date */}

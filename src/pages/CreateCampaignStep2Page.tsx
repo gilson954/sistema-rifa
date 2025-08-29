@@ -145,7 +145,29 @@ const CreateCampaignStep2Page = () => {
   };
 
   const handleDescriptionChange = (value: string) => {
-    setFormData(prev => ({ ...prev, description: value }));
+    // Normaliza o conteúdo do editor - remove HTML vazio
+    const normalizedValue = normalizeEditorContent(value);
+    setFormData(prev => ({ ...prev, description: normalizedValue }));
+  };
+
+  // Função para normalizar conteúdo do editor de texto rico
+  const normalizeEditorContent = (content: string): string => {
+    if (!content) return '';
+    
+    // Remove tags HTML vazias comuns do ReactQuill
+    const cleanContent = content
+      .replace(/<p><br><\/p>/g, '') // Remove parágrafos vazios
+      .replace(/<p><\/p>/g, '') // Remove parágrafos vazios
+      .replace(/<br>/g, '') // Remove quebras de linha isoladas
+      .replace(/^\s*<p>\s*<\/p>\s*$/g, '') // Remove parágrafo vazio no início/fim
+      .trim();
+    
+    // Se após limpeza só restaram tags vazias ou espaços, retorna string vazia
+    if (cleanContent === '' || cleanContent === '<p></p>' || /^<p>\s*<\/p>$/.test(cleanContent)) {
+      return '';
+    }
+    
+    return cleanContent;
   };
 
   const handleDrawDateOptionChange = (option: 'show-date' | 'no-date') => {
