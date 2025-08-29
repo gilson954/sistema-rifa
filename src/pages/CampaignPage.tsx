@@ -103,6 +103,7 @@ const CampaignPage = () => {
 
   // Image gallery state
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
 
   // Load organizer profile
   useEffect(() => {
@@ -307,6 +308,15 @@ const CampaignPage = () => {
         prev === campaign.prize_image_urls!.length - 1 ? 0 : prev + 1
       );
     }
+  };
+
+  // Handle fullscreen image view
+  const handleImageClick = (imageUrl: string) => {
+    setFullscreenImage(imageUrl);
+  };
+
+  const handleCloseFullscreen = () => {
+    setFullscreenImage(null);
   };
 
   // Get theme classes based on campaign theme
@@ -521,6 +531,8 @@ const CampaignPage = () => {
               src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
               alt={campaign.title}
               className="w-full h-80 sm:h-96 object-cover"
+              onClick={() => handleImageClick(campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1')}
+              style={{ cursor: 'pointer' }}
             />
             
             {/* Navigation Arrows */}
@@ -573,6 +585,7 @@ const CampaignPage = () => {
                         ? 'border-purple-500 opacity-100'
                         : 'border-gray-300 dark:border-gray-600 opacity-60 hover:opacity-80'
                     }`}
+                    onDoubleClick={() => handleImageClick(image)}
                   >
                     <img
                       src={image}
@@ -855,29 +868,25 @@ const CampaignPage = () => {
             </div>
           )}
 
-          {/* Progress Bar */}
-          <div className="max-w-2xl mx-auto">
-            <div className="flex justify-between items-center mb-3">
-              <span className={`text-lg font-medium ${themeClasses.text}`}>Barra de porcentagem de vendas</span>
-              <span className={`text-lg font-bold ${themeClasses.text}`}>
-                {campaign.sold_tickets}/{campaign.total_tickets} cotas
-                {campaign.show_percentage && (
-                  <span className={`ml-2 text-sm ${themeClasses.textSecondary}`}>
-                    ({getProgressPercentage()}%)
-                  </span>
-                )}
-              </span>
+          {/* Progress Bar - Only show if show_percentage is enabled */}
+          {campaign.show_percentage && (
+            <div className="max-w-2xl mx-auto">
+              <div className="flex justify-center items-center mb-3">
+                <span className={`text-lg font-bold ${themeClasses.text}`}>
+                  {getProgressPercentage()}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                <div 
+                  className="h-4 rounded-full transition-all duration-500"
+                  style={{ 
+                    width: `${getProgressPercentage()}%`,
+                    backgroundColor: primaryColor 
+                  }}
+                />
+              </div>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
-              <div 
-                className="h-4 rounded-full transition-all duration-500"
-                style={{ 
-                  width: `${getProgressPercentage()}%`,
-                  backgroundColor: primaryColor 
-                }}
-              />
-            </div>
-          </div>
+          )}
         </section>
 
         {/* 7. Métodos de Pagamento e Método de Sorteio - Side by side layout */}
@@ -976,6 +985,32 @@ const CampaignPage = () => {
           These sections are only appropriate for the campaign organizer's dashboard view.
         */}
       </main>
+
+      {/* Fullscreen Image Modal */}
+      {fullscreenImage && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
+          onClick={handleCloseFullscreen}
+        >
+          <div className="relative max-w-full max-h-full">
+            <img
+              src={fullscreenImage}
+              alt={campaign.title}
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <button
+              onClick={handleCloseFullscreen}
+              className="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-colors duration-200 flex items-center justify-center"
+              aria-label="Fechar imagem em tela cheia"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Reservation Modal */}
       <ReservationModal
