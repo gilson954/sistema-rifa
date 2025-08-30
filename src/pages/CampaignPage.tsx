@@ -20,7 +20,6 @@ import QuotaSelector from '../components/QuotaSelector';
 import ReservationModal, { CustomerData } from '../components/ReservationModal';
 import { Promotion } from '../types/promotion';
 import { formatCurrency } from '../utils/currency';
-import { calculateTotalWithPromotions } from '../utils/currency';
 import { socialMediaConfig, shareSectionConfig } from '../components/SocialMediaIcons';
 import { supabase } from '../lib/supabase';
 
@@ -160,34 +159,22 @@ const CampaignPage = () => {
   }, [campaign?.user_id]);
 
   // Get applicable promotion for a given quantity
-  const getBestPromotionForDisplay = useCallback((quotaCount: number): PromotionInfo | null => {
+  const getApplicablePromotion = useCallback((quotaCount: number): PromotionInfo | null => {
     if (!campaign?.promotions || !Array.isArray(campaign.promotions) || campaign.promotions.length === 0) {
       return null;
     }
 
-    // Find the best promotion that applies to this quantity
-    const applicablePromotions = campaign.promotions.filter(
-      (promo: Promotion) => promo.ticketQuantity <= quotaCount
+    // Find promotion that matches the exact quantity
+    const applicablePromotion = campaign.promotions.find(
+      (promo: Promotion) => promo.ticketQuantity === quotaCount
     );
 
-    if (applicablePromotions.length === 0) {
+    if (!applicablePromotion) {
       return null;
     }
 
-    // Get the promotion with the highest ticket quantity (best deal)
-    const applicablePromotion = applicablePromotions.reduce((best, current) => 
-      current.ticketQuantity > best.ticketQuantity ? current : best
-    );
-
     const originalTotal = quotaCount * campaign.ticket_price;
-    
-    // Calculate total using the new block promotion logic
-    const { total: promotionalTotal } = calculateTotalWithPromotions(
-      quotaCount,
-      campaign.ticket_price,
-      campaign.promotions
-    );
-    
+    const promotionalTotal = applicablePromotion.discountedTotalValue;
     const savings = originalTotal - promotionalTotal;
     const discountPercentage = Math.round((savings / originalTotal) * 100);
 
@@ -272,11 +259,8 @@ const CampaignPage = () => {
       
       if (result) {
         // Calculate total value (considering promotions)
-        const { total: totalValue } = calculateTotalWithPromotions(
-          quotasToReserve.length,
-          campaign.ticket_price,
-          campaign.promotions || []
-        );
+        const promotionInfo = getApplicablePromotion(quotasToReserve.length);
+        const totalValue = promotionInfo ? promotionInfo.promotionalTotal : quotasToReserve.length * campaign.ticket_price;
 
         // Set reservation data
         setReservationCustomerData(customerData);
@@ -489,23 +473,15 @@ const CampaignPage = () => {
 
   // Get current promotion info for selected/quantity
   const currentPromotionInfo = campaign?.campaign_model === 'manual' 
-    ? getBestPromotionForDisplay(selectedQuotas.length)
-    : getBestPromotionForDisplay(quantity);
+    ? getApplicablePromotion(selectedQuotas.length)
+    : getApplicablePromotion(quantity);
 
   // Calculate current total value
   const getCurrentTotalValue = () => {
     const currentQuantity = campaign?.campaign_model === 'manual' ? selectedQuotas.length : quantity;
-    
-    if (!campaign) return 0;
-    
-    // Use the new block promotion calculation
-    const { total } = calculateTotalWithPromotions(
-      currentQuantity,
-      campaign.ticket_price,
-      campaign.promotions || []
-    );
-    
-    return total;
+    return currentPromotionInfo 
+      ? currentPromotionInfo.promotionalTotal 
+      : currentQuantity * (campaign?.ticket_price || 0);
   };
 
   // Get configured payment methods
