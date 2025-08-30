@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { calculateTotalWithPromotions } from '../utils/currency';
+import { calculateTotalWithPromotions } from '../utils/currency';
 
 interface PromotionInfo {
   promotion: any;
@@ -18,6 +19,7 @@ interface QuotaSelectorProps {
   initialQuantity?: number;
   mode: 'manual' | 'automatic';
   promotionInfo?: PromotionInfo | null;
+  promotions?: any[];
   primaryColor?: string | null;
   campaignTheme: string;
   onReserve?: () => void;
@@ -32,6 +34,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   initialQuantity = 1,
   mode,
   promotionInfo,
+  promotions = [],
   primaryColor,
   campaignTheme,
   onReserve,
@@ -124,12 +127,13 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   };
 
   const calculateTotal = () => {
-    // Se há promoção aplicável, usa o valor promocional
-    if (promotionInfo) {
-      return (promotionInfo.promotionalTotal || 0).toFixed(2).replace('.', ',');
-    }
-    // Caso contrário, usa o cálculo normal
-    return (quantity * ticketPrice).toFixed(2).replace('.', ',');
+    // Usa o novo cálculo de promoções em blocos
+    const { total } = calculateTotalWithPromotions(
+      quantity,
+      ticketPrice,
+      promotions || []
+    );
+    return total.toFixed(2).replace('.', ',');
   };
 
   const formatCurrency = (value: number) => {

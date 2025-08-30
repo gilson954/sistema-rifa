@@ -311,7 +311,7 @@ const CampaignPage = () => {
     } finally {
       setShowReservationModal(false);
     }
-  }, [campaign, user, selectedQuotas, quantity, getAvailableTickets, reserveTickets, getApplicablePromotion, navigate]);
+  }, [campaign, user, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate]);
 
   // Handle opening reservation modal
   const handleOpenReservationModal = useCallback(() => {
@@ -957,6 +957,7 @@ const CampaignPage = () => {
               initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
               mode="automatic"
               promotionInfo={currentPromotionInfo}
+              promotions={campaign.promotions || []}
               primaryColor={primaryColor}
               campaignTheme={campaignTheme}
               onReserve={handleOpenReservationModal}
