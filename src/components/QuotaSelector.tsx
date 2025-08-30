@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Minus, Plus } from 'lucide-react';
 import { calculateTotalWithPromotions } from '../utils/currency';
 
 interface PromotionInfo {
