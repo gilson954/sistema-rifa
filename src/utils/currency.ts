@@ -26,6 +26,16 @@ export const formatInputCurrency = (value: string): string => {
   // Converte para centavos
   const cents = parseInt(numericValue, 10);
 
+  // Converte centavos para reais
+  const reais = cents / 100;
+  
+  // Formata como moeda brasileira sem o símbolo R$
+  return reais.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
 /**
  * Calcula o valor total com promoções aplicadas em blocos
  * Aplica promoções em ordem decrescente e cobra preço normal para cotas excedentes
@@ -104,15 +114,4 @@ export const calculateTotalWithPromotions = (
     appliedPromotions,
     breakdown
   };
-};
-  
-  // Converte centavos para reais
-  const reais = cents / 100;
-  
-  // Formata como moeda brasileira sem o símbolo R$
-  return reais.toLocaleString('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-};
 };
