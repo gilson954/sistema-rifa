@@ -115,3 +115,4 @@ export const calculateTotalWithPromotions = (
     maximumFractionDigits: 2
   });
 };
+};
