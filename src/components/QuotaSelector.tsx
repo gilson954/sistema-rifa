@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Minus, Plus } from 'lucide-react';
 import { calculateTotalWithPromotions } from '../utils/currency';
 
 interface PromotionInfo {
@@ -146,30 +147,28 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   }
 
   return (
-    <div 
-      className={`quota-selector rounded-2xl shadow-xl p-6 sm:p-8 border transition-colors duration-300 ${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).border}`}
-    >
-      <h2 className={`text-xl font-bold ${getThemeClasses(campaignTheme).text} mb-6 text-center`}>
+    <div className={`quota-selector rounded-xl shadow-md p-4 sm:p-5 border transition-colors duration-300 ${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).border}`}>
+      <h2 className={`text-lg font-bold ${getThemeClasses(campaignTheme).text} mb-4 text-center`}>
         <span className={getThemeClasses(campaignTheme).text}>SELECIONE A QUANTIDADE DE COTAS</span>
       </h2>
 
       {/* Indicador de Promoção Ativa no Seletor */}
       {promotionInfo && (
-        <div className={`mb-6 ${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).border} border rounded-lg p-4`}>
+        <div className={`mb-4 ${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).border} border rounded-lg p-3`}>
           <div className="text-center">
-            <div className={`text-sm font-medium ${getThemeClasses(campaignTheme).text} mb-1`}>
+            <div className={`text-xs font-medium ${getThemeClasses(campaignTheme).text} mb-1`}>
               🎉 Promoção Aplicada: {promotionInfo.discountPercentage}% OFF
             </div>
           </div>
         </div>
       )}
       {/* Increment Buttons */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-4 sm:grid-cols-4 gap-2 sm:gap-2.5 mb-4">
         {incrementButtons.map((button, index) => (
           <button
             key={index}
             onClick={() => handleIncrement(button.value)}
-            className="text-white py-3 px-4 rounded-lg font-medium hover:brightness-90 transition-all duration-200"
+            className="text-white py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg font-medium text-xs sm:text-sm hover:brightness-90 transition-all duration-200"
             style={{ backgroundColor: primaryColor || '#3B82F6' }}
           >
             {button.label}
@@ -178,12 +177,12 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       </div>
 
       {/* Quantity Input */}
-      <div className="flex items-center justify-center space-x-4 mb-6">
+      <div className="flex items-center justify-center space-x-3 mb-4">
         <button
           onClick={() => handleIncrement(-1)}
-          className={`w-10 h-10 ${getThemeClasses(campaignTheme).cardBg} rounded-lg flex items-center justify-center transition-colors duration-200 hover:opacity-80`}
+          className={`w-8 h-8 ${getThemeClasses(campaignTheme).cardBg} rounded-lg flex items-center justify-center transition-colors duration-200 hover:opacity-80 border ${getThemeClasses(campaignTheme).border}`}
         >
-          <Minus className={`h-4 w-4 ${getThemeClasses(campaignTheme).textSecondary}`} />
+          <Minus className={`h-3 w-3 ${getThemeClasses(campaignTheme).textSecondary}`} />
         </button>
         
         <input
@@ -192,21 +191,21 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           onChange={handleQuantityChange}
           min={minTicketsPerPurchase}
           max={maxTicketsPerPurchase}
-          className={`w-20 text-center py-2 ${getThemeClasses(campaignTheme).cardBg} border ${getThemeClasses(campaignTheme).border} rounded-lg ${getThemeClasses(campaignTheme).text} focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-200`}
+          className={`w-16 text-center py-1.5 text-sm ${getThemeClasses(campaignTheme).cardBg} border ${getThemeClasses(campaignTheme).border} rounded-lg ${getThemeClasses(campaignTheme).text} focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-200`}
           style={{ '--tw-ring-color': primaryColor || '#3B82F6' } as React.CSSProperties}
         />
         
         <button
           onClick={() => handleIncrement(1)}
-          className={`w-10 h-10 ${getThemeClasses(campaignTheme).cardBg} rounded-lg flex items-center justify-center transition-colors duration-200 hover:opacity-80`}
+          className={`w-8 h-8 ${getThemeClasses(campaignTheme).cardBg} rounded-lg flex items-center justify-center transition-colors duration-200 hover:opacity-80 border ${getThemeClasses(campaignTheme).border}`}
         >
-          <Plus className={`h-4 w-4 ${getThemeClasses(campaignTheme).textSecondary}`} />
+          <Plus className={`h-3 w-3 ${getThemeClasses(campaignTheme).textSecondary}`} />
         </button>
       </div>
 
       {/* Error Message */}
       {errorMessage && (
-        <div className="text-center mb-4">
+        <div className="text-center mb-3">
           <p className="text-red-500 text-sm font-medium">
             {errorMessage}
           </p>
@@ -214,18 +213,18 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       )}
 
       {/* Total Value */}
-      <div className="text-center mb-6">
+      <div className="text-center mb-4">
         {/* Exibição do preço original riscado se houver promoção */}
         {promotionInfo && (
-          <div className={`text-sm ${getThemeClasses(campaignTheme).textSecondary} mb-1`}>
+          <div className={`text-xs ${getThemeClasses(campaignTheme).textSecondary} mb-1`}>
             <span className="line-through">
               {formatCurrency(promotionInfo.originalTotal)}
             </span>
           </div>
         )}
-        <div className={`text-sm ${getThemeClasses(campaignTheme).textSecondary} mb-1`}>Valor final</div>
+        <div className={`text-xs ${getThemeClasses(campaignTheme).textSecondary} mb-1`}>Valor final</div>
         <div 
-          className={`text-2xl font-bold ${promotionInfo ? '' : getThemeClasses(campaignTheme).text}`}
+          className={`text-xl font-bold ${promotionInfo ? '' : getThemeClasses(campaignTheme).text}`}
           style={promotionInfo ? { color: "#10B981" } : {}}
         >
           R$ {calculateTotal()}
@@ -236,7 +235,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       <button 
         onClick={onReserve}
         disabled={reserving}
-        className={`w-full py-4 rounded-lg font-bold text-lg transition-colors duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
+        className={`w-full py-3 rounded-lg font-bold text-base transition-colors duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
         promotionInfo 
           ? 'text-white hover:brightness-90' 
           : 'text-white hover:brightness-90'

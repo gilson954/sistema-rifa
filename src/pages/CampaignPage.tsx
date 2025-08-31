@@ -638,20 +638,20 @@ const CampaignPage = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
         {/* Campaign Title - Standalone, not in a card */}
-        <h1 className={`text-3xl md:text-4xl font-bold ${themeClasses.text} mb-6 text-center`}>
+        <h1 className={`text-2xl md:text-3xl font-bold ${themeClasses.text} mb-4 text-center`}>
           {campaign.title}
         </h1>
 
         {/* 1. Seção de galeria de imagens - Full width card */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-6`}>
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4`}>
           {/* Image Display */}
           <div className="relative group">
             <img
               src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
               alt={campaign.title}
-              className="w-full h-80 sm:h-96 object-cover"
+              className="w-full h-64 sm:h-80 object-cover"
               onClick={() => handleImageClick(currentImageIndex)}
               style={{ cursor: 'pointer' }}
             />
@@ -683,10 +683,10 @@ const CampaignPage = () => {
             )}
 
             {/* Price Badge */}
-            <div className="absolute top-4 left-4 bg-white bg-opacity-95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
+            <div className="absolute top-4 left-4 bg-white bg-opacity-95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-600">Participe por apenas</span>
-                <span className="font-bold text-lg" style={{ color: primaryColor }}>
+                <span className="font-bold text-base" style={{ color: primaryColor }}>
                   {formatCurrency(campaign.ticket_price)}
                 </span>
               </div>
@@ -695,7 +695,7 @@ const CampaignPage = () => {
 
           {/* Thumbnail Strip */}
           {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
-            <div className="p-4 bg-gray-50 dark:bg-gray-800">
+            <div className="p-3 bg-gray-50 dark:bg-gray-800">
               <div className="flex space-x-2 overflow-x-auto pb-2">
                 {campaign.prize_image_urls.map((image, index) => (
                   <button
@@ -721,7 +721,7 @@ const CampaignPage = () => {
         </section>
 
         {/* 2. Seção de Organizador - Full width card */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6 mb-6`}>
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
           <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
             Organizador
           </h3>
@@ -731,25 +731,25 @@ const CampaignPage = () => {
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
             </div>
           ) : organizerProfile ? (
-            <div className="max-w-md mx-auto">
-              <div className="flex items-center space-x-4 mb-4">
+            <div className="max-w-sm mx-auto">
+              <div className="flex items-center space-x-3 mb-3">
                 {organizerProfile.avatar_url ? (
                   <img
                     src={organizerProfile.avatar_url}
                     alt={organizerProfile.name}
-                    className="w-16 h-16 rounded-full object-cover border-2"
+                    className="w-12 h-12 rounded-full object-cover border-2"
                     style={{ borderColor: primaryColor }}
                   />
                 ) : (
                   <div 
-                    className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl"
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
                     style={{ backgroundColor: primaryColor }}
                   >
                     {organizerProfile.name.charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div className="text-center flex-1">
-                  <h4 className={`text-lg font-semibold ${themeClasses.text}`}>
+                  <h4 className={`text-base font-semibold ${themeClasses.text}`}>
                     {organizerProfile.name}
                   </h4>
                   <p className={`text-sm ${themeClasses.textSecondary}`}>
@@ -761,10 +761,10 @@ const CampaignPage = () => {
               {/* Organizer Social Media */}
               {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
                 <div className="text-center">
-                  <p className={`text-sm font-medium ${themeClasses.text} mb-3`}>
+                  <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>
                     Redes Sociais
                   </p>
-                  <div className="flex justify-center flex-wrap gap-2">
+                  <div className="flex justify-center flex-wrap gap-1.5">
                     {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
                       if (!url || typeof url !== 'string') return null;
                       
@@ -776,11 +776,11 @@ const CampaignPage = () => {
                         <button
                           key={platform}
                           onClick={() => handleOrganizerSocialClick(platform, url)}
-                          className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform duration-200"
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform duration-200"
                           style={{ backgroundColor: config.color }}
                           title={`${config.name} do organizador`}
                         >
-                          <IconComponent size={20} />
+                          <IconComponent size={16} />
                         </button>
                       );
                     })}
@@ -800,12 +800,12 @@ const CampaignPage = () => {
 
         {/* 3. Seção de Promoções Disponíveis - Full width card */}
         {campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
-          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6 mb-6`}>
-            <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
+            <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center`}>
               🎁 Promoções Disponíveis
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {campaign.promotions.map((promo: Promotion) => {
                 const originalValue = promo.ticketQuantity * campaign.ticket_price;
                 const discountPercentage = Math.round((promo.fixedDiscountAmount / originalValue) * 100);
@@ -813,19 +813,19 @@ const CampaignPage = () => {
                 return (
                   <div
                     key={promo.id}
-                    className={`border ${themeClasses.border} rounded-xl p-4 hover:shadow-md transition-all duration-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20`}
+                    className={`border ${themeClasses.border} rounded-lg p-3 hover:shadow-md transition-all duration-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20`}
                   >
                     <div className="text-center">
-                      <div className={`font-bold text-lg ${themeClasses.text} mb-2`}>
+                      <div className={`font-bold text-base ${themeClasses.text} mb-1.5`}>
                         {promo.ticketQuantity} cotas
                       </div>
-                      <div className="text-sm text-green-600 dark:text-green-400 font-medium mb-2">
+                      <div className="text-xs text-green-600 dark:text-green-400 font-medium mb-1.5">
                         {discountPercentage}% de desconto
                       </div>
-                      <div className={`text-sm ${themeClasses.textSecondary} line-through mb-1`}>
+                      <div className={`text-xs ${themeClasses.textSecondary} line-through mb-1`}>
                         {formatCurrency(originalValue)}
                       </div>
-                      <div className="text-xl font-bold text-green-600 dark:text-green-400">
+                      <div className="text-lg font-bold text-green-600 dark:text-green-400">
                         {formatCurrency(promo.discountedTotalValue)}
                       </div>
                     </div>
@@ -838,21 +838,21 @@ const CampaignPage = () => {
 
         {/* 4. Seção de Prêmios - Full width card */}
         {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
-          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6 mb-6`}>
-            <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
+            <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center`}>
               🏆 Prêmios
             </h3>
             
-            <div className="max-w-2xl mx-auto space-y-3">
+            <div className="max-w-xl mx-auto space-y-2">
               {campaign.prizes.map((prize: any, index: number) => (
-                <div key={prize.id} className="flex items-center justify-center space-x-3">
+                <div key={prize.id} className="flex items-center justify-center space-x-2">
                   <div 
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs"
                     style={{ backgroundColor: primaryColor }}
                   >
                     {index + 1}
                   </div>
-                  <span className={`${themeClasses.text} font-medium text-lg`}>{prize.name}</span>
+                  <span className={`${themeClasses.text} font-medium text-base`}>{prize.name}</span>
                 </div>
               ))}
             </div>
@@ -860,13 +860,13 @@ const CampaignPage = () => {
         )}
 
         {/* 5. Seção de compra/seleção de cota - Full width card */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6 mb-6`}>
-          <h2 className={`text-2xl font-bold ${themeClasses.text} mb-6 text-center`}>
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
+          <h2 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
             {campaign.campaign_model === 'manual' ? 'Selecione suas Cotas' : 'Escolha a Quantidade'}
           </h2>
 
           {campaign.campaign_model === 'manual' ? (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <QuotaGrid
                 totalQuotas={campaign.total_tickets}
                 selectedQuotas={selectedQuotas}
@@ -882,20 +882,20 @@ const CampaignPage = () => {
 
               {/* Manual Mode - Selection Summary */}
               {selectedQuotas.length > 0 && (
-                <div className={`${themeClasses.background} rounded-xl p-6 border ${themeClasses.border}`}>
-                  <h3 className={`text-lg font-bold ${themeClasses.text} mb-4`}>
+                <div className={`${themeClasses.background} rounded-xl p-4 border ${themeClasses.border}`}>
+                  <h3 className={`text-base font-bold ${themeClasses.text} mb-3`}>
                     Cotas Selecionadas
                   </h3>
                   
-                  <div className="mb-4">
+                  <div className="mb-3">
                     <div className={`text-sm ${themeClasses.textSecondary} mb-2`}>
                       Números selecionados:
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {selectedQuotas.sort((a, b) => a - b).map(quota => (
                         <span
                           key={quota}
-                          className="px-3 py-1 text-white rounded-lg text-sm font-medium"
+                          className="px-2 py-1 text-white rounded text-xs font-medium"
                           style={{ backgroundColor: primaryColor }}
                         >
                           {quota.toString().padStart(3, '0')}
@@ -906,9 +906,9 @@ const CampaignPage = () => {
 
                   {/* Promotion Info */}
                   {currentPromotionInfo && (
-                    <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <div className="mb-3 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                       <div className="text-center">
-                        <div className="text-sm font-medium text-green-800 dark:text-green-200 mb-1">
+                        <div className="text-xs font-medium text-green-800 dark:text-green-200 mb-1">
                           🎉 Promoção Aplicada: {currentPromotionInfo.discountPercentage}% OFF
                         </div>
                         <div className="text-xs text-green-700 dark:text-green-300">
@@ -924,12 +924,12 @@ const CampaignPage = () => {
                     </span>
                     <div className="text-right">
                       {currentPromotionInfo && (
-                        <div className={`text-sm ${themeClasses.textSecondary} line-through`}>
+                        <div className={`text-xs ${themeClasses.textSecondary} line-through`}>
                           {formatCurrency(currentPromotionInfo.originalTotal)}
                         </div>
                       )}
                       <div 
-                        className={`text-2xl font-bold ${currentPromotionInfo ? 'text-green-600' : ''}`}
+                        className={`text-xl font-bold ${currentPromotionInfo ? 'text-green-600' : ''}`}
                         style={!currentPromotionInfo ? { color: primaryColor } : {}}
                       >
                         {formatCurrency(getCurrentTotalValue())}
@@ -940,7 +940,7 @@ const CampaignPage = () => {
                   <button
                     onClick={handleOpenReservationModal}
                     disabled={selectedQuotas.length === 0}
-                    className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ backgroundColor: primaryColor }}
                   >
                     Reservar Cotas Selecionadas
@@ -967,28 +967,28 @@ const CampaignPage = () => {
         </section>
 
         {/* 6. Descrição/Regulamento - Full width card */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6 mb-6`}>
-          <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
+          <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center`}>
             Descrição/Regulamento
           </h3>
           
           {/* Campaign Description */}
           {campaign.description && isValidDescription(campaign.description) ? (
             <div 
-              className={`${themeClasses.textSecondary} mb-6 prose prose-lg max-w-none ql-editor`}
+              className={`${themeClasses.textSecondary} mb-4 prose prose-base max-w-none ql-editor`}
               dangerouslySetInnerHTML={{ __html: campaign.description }}
             />
           ) : (
-            <div className={`${themeClasses.textSecondary} mb-6 text-center italic`}>
+            <div className={`${themeClasses.textSecondary} mb-4 text-center italic`}>
               <p>Nenhuma descrição fornecida para esta campanha.</p>
             </div>
           )}
 
           {/* Draw Date */}
           {campaign.show_draw_date && campaign.draw_date && (
-            <div className="flex items-center justify-center space-x-2 mb-6">
+            <div className="flex items-center justify-center space-x-2 mb-4">
               <Calendar className={`h-5 w-5 ${themeClasses.textSecondary}`} />
-              <span className={`text-lg ${themeClasses.text}`}>
+              <span className={`text-base ${themeClasses.text}`}>
                 Data de sorteio: <strong>{formatDate(campaign.draw_date)}</strong>
               </span>
             </div>
@@ -996,15 +996,15 @@ const CampaignPage = () => {
 
           {/* Progress Bar - Only show if show_percentage is enabled */}
           {campaign.show_percentage && (
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-xl mx-auto">
               <div className="flex justify-center items-center mb-3">
-                <span className={`text-lg font-bold ${themeClasses.text}`}>
+                <span className={`text-base font-bold ${themeClasses.text}`}>
                   {getProgressPercentage()}%
                 </span>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                 <div 
-                  className="h-4 rounded-full transition-all duration-500"
+                  className="h-3 rounded-full transition-all duration-500"
                   style={{ 
                     width: `${getProgressPercentage()}%`,
                     backgroundColor: primaryColor 
@@ -1016,26 +1016,26 @@ const CampaignPage = () => {
         </section>
 
         {/* 7. Métodos de Pagamento e Método de Sorteio - Side by side layout */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
           {/* Payment Methods Card - Left */}
-          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6`}>
-            <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
+          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
               Seção de Métodos de Pagamento
             </h3>
             
-            <div className="space-y-3">
+            <div className="space-y-2">
               {getConfiguredPaymentMethods().map((method, index) => (
                 <div
                   key={index}
-                  className={`flex items-center space-x-3 p-3 rounded-lg border ${themeClasses.border}`}
+                  className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
                 >
                   <div 
-                    className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
                     style={{ backgroundColor: method.color }}
                   >
                     {method.icon}
                   </div>
-                  <span className={`font-medium ${themeClasses.text}`}>
+                  <span className={`font-medium text-sm ${themeClasses.text}`}>
                     {method.name}
                   </span>
                 </div>
@@ -1044,23 +1044,23 @@ const CampaignPage = () => {
           </div>
 
           {/* Draw Method Card - Right */}
-          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6`}>
-            <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
+          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
               Seção de Método de Sorteio
             </h3>
             
-            <div className="flex items-center justify-center space-x-3">
+            <div className="flex items-center justify-center space-x-2">
               <div 
-                className="w-12 h-12 rounded-lg flex items-center justify-center text-white"
+                className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
                 style={{ backgroundColor: primaryColor }}
               >
-                <Trophy className="h-6 w-6" />
+                <Trophy className="h-5 w-5" />
               </div>
               <div className="text-center">
-                <p className={`font-medium ${themeClasses.text}`}>
+                <p className={`font-medium text-sm ${themeClasses.text}`}>
                   {campaign.draw_method}
                 </p>
-                <p className={`text-sm ${themeClasses.textSecondary}`}>
+                <p className={`text-xs ${themeClasses.textSecondary}`}>
                   Sorteio transparente e confiável
                 </p>
               </div>
@@ -1069,31 +1069,31 @@ const CampaignPage = () => {
         </section>
 
         {/* Share Campaign Section - Full width at bottom */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-6`}>
-          <h3 className={`text-xl font-bold ${themeClasses.text} mb-6 text-center`}>
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+          <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
             Compartilhar Campanha
           </h3>
           
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto">
             {Object.entries(shareSectionConfig).map(([platform, config]) => {
               const IconComponent = config.icon;
               return (
                 <button
                   key={platform}
                   onClick={() => handleShare(platform)}
-                  className={`flex flex-col items-center space-y-2 p-4 rounded-xl border ${themeClasses.border} hover:shadow-lg transition-all duration-200 group`}
+                  className={`flex flex-col items-center space-y-1.5 p-3 rounded-lg border ${themeClasses.border} hover:shadow-lg transition-all duration-200 group`}
                   style={{ 
                     backgroundColor: themeClasses.cardBg === 'bg-white' ? '#ffffff' : '#1f2937',
                     borderColor: config.color + '20'
                   }}
                 >
                   <div 
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-200"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-200"
                     style={{ backgroundColor: config.color }}
                   >
-                    <IconComponent size={24} />
+                    <IconComponent size={20} />
                   </div>
-                  <span className={`text-sm font-medium ${themeClasses.text}`}>
+                  <span className={`text-xs font-medium ${themeClasses.text}`}>
                     {config.name}
                   </span>
                 </button>
