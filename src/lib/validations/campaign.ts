@@ -6,7 +6,7 @@ export const promotionSchema = z.object({
   discount_percentage: z.number().min(0).max(100, 'Desconto deve estar entre 0% e 100%'),
   original_value: z.number().min(0, 'Valor original deve ser positivo'),
   discounted_value: z.number().min(0, 'Valor com desconto deve ser positivo')
-}).optional();
+});
 
 // Schema para validação de prêmios
 export const prizeSchema = z.object({
@@ -15,7 +15,7 @@ export const prizeSchema = z.object({
   description: z.string().optional(),
   image_url: z.string().url('URL da imagem inválida').optional(),
   position: z.number().int().min(1, 'Posição deve ser pelo menos 1').optional()
-}).optional();
+});
 
 // Schema para validação de criação de campanha
 export const createCampaignSchema = z.object({
