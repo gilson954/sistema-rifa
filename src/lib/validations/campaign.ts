@@ -2,19 +2,14 @@ import { z } from 'zod';
 
 // Schema para validação de promoções
 export const promotionSchema = z.object({
-  quantity: z.number().int().min(1, 'Quantidade deve ser pelo menos 1'),
-  discount_percentage: z.number().min(0).max(100, 'Desconto deve estar entre 0% e 100%'),
-  original_value: z.number().min(0, 'Valor original deve ser positivo'),
-  discounted_value: z.number().min(0, 'Valor com desconto deve ser positivo')
+  ticketQuantity: z.number().int().min(1, 'Quantidade deve ser pelo menos 1'),
+  discountedTotalValue: z.number().min(0, 'Valor com desconto deve ser positivo'),
+  fixedDiscountAmount: z.number().min(0, 'Valor do desconto deve ser positivo')
 });
 
 // Schema para validação de prêmios
 export const prizeSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().min(1, 'Nome do prêmio é obrigatório'),
-  description: z.string().optional(),
-  image_url: z.string().url('URL da imagem inválida').optional(),
-  position: z.number().int().min(1, 'Posição deve ser pelo menos 1').optional()
+  name: z.string().min(1, 'Nome do prêmio é obrigatório')
 });
 
 // Schema para validação de criação de campanha
