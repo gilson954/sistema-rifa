@@ -133,7 +133,7 @@ const MyTicketsPage = () => {
               <img 
                 src="/logo criado pelo Chatgpt.png" 
                 alt="Rifaqui Logo" 
-                className="w-8 h-8 object-contain"
+                className="w-10 h-10 object-contain"
               />
               <span className="text-xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
             </div>

@@ -99,7 +99,7 @@ const RegisterPage = () => {
               <img 
                 src="/logo criado pelo Chatgpt.png" 
                 alt="Rifaqui Logo" 
-                className="w-16 h-16 object-contain"
+                className="w-20 h-20 object-contain"
               />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">

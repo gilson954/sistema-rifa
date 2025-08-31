@@ -12,7 +12,7 @@ const Footer = () => {
               <img 
                 src="/logo criado pelo Chatgpt.png" 
                 alt="Rifaqui Logo" 
-                className="w-11 h-11 object-contain"
+                className="w-14 h-14 object-contain"
               />
               <span className="ml-2 text-2xl font-bold">Rifaqui</span>
             </div>

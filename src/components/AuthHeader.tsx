@@ -53,7 +53,7 @@ const AuthHeader: React.FC<AuthHeaderProps> = ({ backTo = 'home' }) => {
               <img 
                 src="/logo criado pelo Chatgpt.png" 
                 alt="Rifaqui Logo" 
-                className="w-11 h-11 object-contain"
+                className="w-14 h-14 object-contain"
               />
               <span className="ml-2 text-2xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
             </button>
