@@ -130,6 +130,10 @@ const CreateCampaignStep2Page = () => {
     } else if (type === 'number') {
       const numValue = parseInt(value) || 0;
       setFormData(prev => ({ ...prev, [name]: numValue }));
+    } else if (name === 'reservationTimeoutMinutes') {
+      // Convert string value to integer for reservation timeout
+      const numValue = parseInt(value) || 15; // Default to 15 if parsing fails
+      setFormData(prev => ({ ...prev, [name]: numValue }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
       
