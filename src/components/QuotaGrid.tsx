@@ -112,12 +112,12 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
 
   // Calculate padding length for quota numbers (e.g., 100 quotas = 2 digits, 1000 quotas = 3 digits)
   const getPadLength = () => {
-    return totalQuotas.toString().length;
+    return (totalQuotas - 1).toString().length;
   };
 
   // Filtrar cotas com base no filtro ativo
   const getFilteredQuotas = () => {
-    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index + 1);
+    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index);
     
     switch (activeFilter) {
       case 'available':
