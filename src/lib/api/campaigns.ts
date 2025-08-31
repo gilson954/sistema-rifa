@@ -66,11 +66,13 @@ export class CampaignAPI {
     try {
       // Validate input data against schema before processing
       try {
+        console.log('🔧 [API DEBUG] Data being validated:', JSON.stringify(data, null, 2));
         updateCampaignSchema.parse(data);
       } catch (validationError) {
         if (validationError instanceof ZodError) {
-          const errorMessage = (validationError.errors || []).map(err => err.message).join(', ') || 'Erro de validação nos dados da campanha';
+          const errorMessage = (validationError.errors || []).map(err => `${err.path.join('.')}: ${err.message}`).join(', ') || 'Erro de validação nos dados da campanha - nenhum erro específico reportado pelo Zod';
           console.error('❌ [API VALIDATION] Campaign update validation failed:', errorMessage);
+          console.error('❌ [API VALIDATION] Full validation errors:', validationError.errors);
           return { 
             data: null, 
             error: { 
