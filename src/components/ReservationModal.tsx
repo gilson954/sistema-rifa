@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
+import { formatReservationTime } from '../utils/timeFormatters';
 
 interface Country {
   code: string;
@@ -262,7 +263,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 Tempo de Reserva
               </p>
               <p className={`text-sm ${getThemeClasses(campaignTheme).textSecondary}`}>
-                Suas cotas ficarão reservadas por <span className="font-bold text-orange-600">{reservationTimeoutMinutes} minutos</span>. 
+                Suas cotas ficarão reservadas por <span className="font-bold text-orange-600">{formatReservationTime(reservationTimeoutMinutes)}</span>. 
                 Complete o pagamento via Pix para confirmar sua participação.
               </p>
             </div>
@@ -398,7 +399,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                     Importante
                   </p>
                   <p className="text-xs text-blue-700 dark:text-blue-300">
-                    Após confirmar a reserva, você terá {reservationTimeoutMinutes} minutos para efetuar o pagamento. 
+                    Após confirmar a reserva, você terá {formatReservationTime(reservationTimeoutMinutes)} para efetuar o pagamento. 
                     Caso contrário, suas cotas serão liberadas automaticamente.
                   </p>
                 </div>
