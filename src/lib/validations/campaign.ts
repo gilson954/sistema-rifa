@@ -163,13 +163,15 @@ export const updateCampaignSchema = createCampaignSchema.partial().extend({
     message: 'A quantidade máxima por compra não pode ser maior que o total de cotas',
     path: ['max_tickets_per_purchase']
   }
-).refine(
-  (data) => !(data.total_tickets && data.campaign_model && data.total_tickets > 10000 && data.campaign_model === 'manual'),
-  {
-    message: 'O modelo manual não é permitido para campanhas com mais de 10.000 cotas',
-    path: ['campaign_model']
+).superRefine((data, ctx) => {
+  if (data.total_tickets && data.campaign_model && data.total_tickets > 10000 && data.campaign_model === 'manual') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'O modelo manual não é permitido para campanhas com mais de 10.000 cotas',
+      path: ['campaign_model']
+    });
   }
-);
+});
 
 // Schema para validação do formulário (frontend)
 export const campaignFormSchema = z.object({
