@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 
-const Header = () => {
+export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
@@ -202,6 +202,4 @@ const Header = () => {
       </div>
     </header>
   );
-};
-
-export default Header;
+}
