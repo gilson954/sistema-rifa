@@ -62,7 +62,7 @@ const Header = () => {
               aria-label="Ir para página inicial"
             >
               <img 
-                src="/32132123.png" 
+                src="/logo criado pelo Chatgpt.png" 
                 alt="Rifaqui Logo" 
                 className="w-11 h-11 object-contain"
               />

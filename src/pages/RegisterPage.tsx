@@ -97,7 +97,7 @@ const RegisterPage = () => {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
               <img 
-                src="/32132123.png" 
+                src="/logo criado pelo Chatgpt.png" 
                 alt="Rifaqui Logo" 
                 className="w-16 h-16 object-contain"
               />

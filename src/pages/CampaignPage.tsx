@@ -621,7 +621,7 @@ const CampaignPage = () => {
             {/* Logo - Left aligned */}
             <div className="flex items-center space-x-2">
               <img 
-                src="/32132123.png" 
+                src="/logo criado pelo Chatgpt.png" 
                 alt="Rifaqui Logo" 
                 className="w-8 h-8 object-contain"
               />

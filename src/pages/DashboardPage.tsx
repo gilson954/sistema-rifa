@@ -417,7 +417,7 @@ const DashboardPage = () => {
               <div className="flex items-start space-x-3">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                   <img 
-                    src="/32132123.png" 
+                    src="/logo criado pelo Chatgpt.png" 
                     alt="Rifaqui" 
                     className="w-4 h-4 sm:w-6 sm:h-6 object-contain"
                   />
