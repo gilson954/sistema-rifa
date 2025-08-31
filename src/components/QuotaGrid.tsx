@@ -117,7 +117,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
 
   // Filtrar cotas com base no filtro ativo
   const getFilteredQuotas = () => {
-    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index);
+    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index + 1);
     
     switch (activeFilter) {
       case 'available':
