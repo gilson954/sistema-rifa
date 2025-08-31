@@ -259,6 +259,10 @@ const CreateCampaignStep2Page = () => {
         show_draw_date: formData.showDrawDateOption === 'show-date'
       };
 
+      // DEBUG: Log reservation timeout value being sent to API
+      console.log('🔧 [STEP2 DEBUG] Sending reservation_timeout_minutes to API:', formData.reservationTimeoutMinutes);
+      console.log('🔧 [STEP2 DEBUG] Full updateData:', updateData);
+
       const { data: updatedCampaign, error } = await CampaignAPI.updateCampaign(updateData);
 
       if (error) {

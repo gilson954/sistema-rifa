@@ -91,6 +91,10 @@ export class CampaignAPI {
         updateData.slug = newSlug;
       }
       
+      // DEBUG: Log reservation timeout value received by API
+      console.log('🔧 [API DEBUG] Received reservation_timeout_minutes:', updateData.reservation_timeout_minutes);
+      console.log('🔧 [API DEBUG] Full updateData received:', updateData);
+      
       console.log('🔧 [API DEBUG] Updating campaign with data:', updateData);
       
       const { data: campaign, error } = await supabase

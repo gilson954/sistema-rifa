@@ -134,6 +134,10 @@ const CampaignPage = () => {
   // Load organizer profile
   useEffect(() => {
     if (campaign?.user_id) {
+      // DEBUG: Log campaign reservation timeout value
+      console.log('🔧 [CAMPAIGN DEBUG] Campaign reservation_timeout_minutes:', campaign?.reservation_timeout_minutes);
+      console.log('🔧 [CAMPAIGN DEBUG] Full campaign object:', campaign);
+      
       const loadOrganizerProfile = async () => {
         setLoadingOrganizer(true);
         try {
