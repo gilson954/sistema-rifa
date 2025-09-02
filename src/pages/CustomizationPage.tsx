@@ -129,7 +129,7 @@ const CustomizationPage = () => {
       // Criar nome único para o arquivo
       const fileExt = logoFile.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = fileName;
+      const filePath = `${user.id}/${fileName}`;
 
       // Upload para Supabase Storage
       const { error: uploadError } = await supabase.storage
@@ -187,7 +187,7 @@ const CustomizationPage = () => {
       // Extrair caminho do arquivo da URL
       const urlParts = currentLogoUrl.split('/');
       const fileName = urlParts[urlParts.length - 1];
-      const filePath = fileName;
+      const filePath = `${user.id}/${fileName}`;
 
       // Remover arquivo do Storage
       const { error: deleteError } = await supabase.storage
