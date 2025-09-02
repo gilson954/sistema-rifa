@@ -981,12 +981,18 @@ const CustomizationPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <div 
+              className="cursor-pointer hover:bg-gray-50 transition-colors duration-200 rounded-lg p-4"
+              onClick={() => logoInputRef.current?.click()}
+            >
                 Novo domínio
-              </h2>
+              <p className="text-sm text-gray-500 mb-4">Clique aqui para selecionar sua logo</p>
               <button
-                onClick={handleCloseDomainModal}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm transition-colors duration-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  logoInputRef.current?.click();
+                }}
               >
                 <X className="h-5 w-5 text-gray-400" />
               </button>
