@@ -300,7 +300,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
           {/* Email Field */}
           <div>
             <label className={`block text-sm font-medium ${getThemeClasses(campaignTheme).text} mb-2`}>
-              Email (opcional)
+              Email (obrigatório) *
             </label>
             <div className="relative">
               <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${getThemeClasses(campaignTheme).textSecondary}`} />
@@ -314,6 +314,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 }`}
                 style={{ '--tw-ring-color': primaryColor || '#3B82F6' } as React.CSSProperties}
                 disabled={reserving}
+                required
               />
             </div>
             {errors.email && (
@@ -338,27 +339,17 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 
           {/* Confirm Phone Number Field */}
           <div>
-            <label className={`block text-sm font-medium ${getThemeClasses(campaignTheme).text} mb-2`}>
-              Repita o número de celular *
-            </label>
-            <div className="relative">
-              <Phone className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${getThemeClasses(campaignTheme).textSecondary}`} />
-              <input
-                type="tel"
-                value={confirmPhoneNumber}
-                onChange={(e) => setConfirmPhoneNumber(e.target.value)}
-                placeholder="Confirme seu número"
-                className={`w-full pl-10 pr-4 py-3 border rounded-lg ${getThemeClasses(campaignTheme).background} ${getThemeClasses(campaignTheme).text} placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-200 ${
-                  errors.confirmPhoneNumber ? 'border-red-500' : getThemeClasses(campaignTheme).border
-                }`}
-                style={{ '--tw-ring-color': primaryColor || '#3B82F6' } as React.CSSProperties}
-                disabled={reserving}
-                required
-              />
-            </div>
-            {errors.confirmPhoneNumber && (
-              <p className="text-red-500 text-sm mt-1">{errors.confirmPhoneNumber}</p>
-            )}
+            <CountryPhoneSelect
+              selectedCountry={selectedCountry}
+              onCountryChange={(country) => {
+                setSelectedCountry(country);
+                // Note: We don't update formData.countryCode here since it should match the first field
+              }}
+              phoneNumber={confirmPhoneNumber}
+              onPhoneChange={setConfirmPhoneNumber}
+              placeholder="Confirme seu número"
+              error={errors.confirmPhoneNumber}
+            />
           </div>
 
           {/* Terms Acceptance */}
