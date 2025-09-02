@@ -1015,13 +1015,7 @@ const CampaignPage = () => {
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                 <div 
-              {organizerProfile?.logo_url ? (
-                <img
-                  src={organizerProfile.logo_url}
-                  alt={`Logo de ${organizerProfile.name}`}
-                  className="w-16 h-16 object-contain bg-white rounded-lg border border-gray-200"
-                />
-              ) : organizerProfile?.avatar_url ? (
+                  className="h-3 rounded-full transition-all duration-300"
                   style={{ 
                     width: `${getProgressPercentage()}%`,
                     backgroundColor: primaryColor 
