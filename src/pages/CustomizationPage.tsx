@@ -824,17 +824,22 @@ const CustomizationPage = () => {
               {/* Upload Area */}
               {!logoPreviewUrl && (
                 <div 
-                  className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center transition-colors duration-200 cursor-not-allowed opacity-50"
+                  onClick={() => logoInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center transition-colors duration-200 cursor-pointer hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20"
                 >
                   <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center mx-auto mb-4">
                     <Upload className="h-8 w-8 text-gray-400" />
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    Upload de logo temporariamente desabilitado
+                    Clique aqui para selecionar sua logo
                   </p>
                   <button 
-                    disabled={true}
-                    className="bg-gray-400 cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 mx-auto w-fit opacity-50"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      logoInputRef.current?.click();
+                    }}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 mx-auto w-fit transition-colors duration-200"
                   >
                     <span>Adicionar</span>
                     <Upload className="h-4 w-4" />

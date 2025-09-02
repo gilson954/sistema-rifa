@@ -143,7 +143,7 @@ const CampaignPage = () => {
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('id, name, email, avatar_url, social_media_links, payment_integrations_config, primary_color, theme')
+            .select('id, name, email, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme')
             .eq('id', campaign.user_id)
             .single();
           
@@ -737,7 +737,14 @@ const CampaignPage = () => {
           ) : organizerProfile ? (
             <div className="max-w-sm mx-auto">
               <div className="flex items-center space-x-3 mb-3">
-                {organizerProfile.avatar_url ? (
+                {organizerProfile.logo_url ? (
+                  <img
+                    src={organizerProfile.logo_url}
+                    alt={organizerProfile.name}
+                    className="w-12 h-12 rounded object-contain bg-white dark:bg-gray-800 border-2 p-1"
+                    style={{ borderColor: primaryColor }}
+                  />
+                ) : organizerProfile.avatar_url ? (
                   <img
                     src={organizerProfile.avatar_url}
                     alt={organizerProfile.name}
