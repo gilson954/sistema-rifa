@@ -116,7 +116,7 @@ export const useImageUpload = (): UseImageUploadReturn => {
     try {
       for (let i = 0; i < validImages.length; i++) {
         const image = validImages[i];
-        
+      const filePath = `logos/${user.id}/${fileName}`;
         // Update image state to show uploading
         setImages(prev => prev.map(img => 
           img.id === image.id ? { ...img, uploading: true } : img
