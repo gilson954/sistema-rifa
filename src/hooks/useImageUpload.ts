@@ -116,7 +116,6 @@ export const useImageUpload = (): UseImageUploadReturn => {
     try {
       for (let i = 0; i < validImages.length; i++) {
         const image = validImages[i];
-      const filePath = `logos/${user.id}/${fileName}`;
         // Update image state to show uploading
         setImages(prev => prev.map(img => 
           img.id === image.id ? { ...img, uploading: true } : img
@@ -125,11 +124,12 @@ export const useImageUpload = (): UseImageUploadReturn => {
         // Generate unique filename
         const fileExt = image.file.name.split('.').pop();
         const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+        const filePath = `${userId}/${fileName}`;
 
         // Upload to Supabase Storage
         const { data, error } = await supabase.storage
           .from('prize-images')
-          .upload(fileName, image.file, {
+          .upload(filePath, image.file, {
             cacheControl: '3600',
             upsert: false
           });
@@ -141,7 +141,7 @@ export const useImageUpload = (): UseImageUploadReturn => {
         // Get public URL
         const { data: { publicUrl } } = supabase.storage
           .from('prize-images')
-          .getPublicUrl(fileName);
+          .getPublicUrl(filePath);
 
         uploadedUrls.push(publicUrl);
 
