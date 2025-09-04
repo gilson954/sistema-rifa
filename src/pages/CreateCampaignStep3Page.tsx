@@ -24,21 +24,6 @@ const CreateCampaignStep3Page = () => {
   const [copied, setCopied] = useState(false);
   const [stripe, setStripe] = useState<any>(null);
 
-  // Initialize Stripe
-  React.useEffect(() => {
-    if (window.Stripe && import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY) {
-      const stripeInstance = window.Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-      setStripe(stripeInstance);
-    }
-  }, []);
-  const [paymentStatusMessage, setPaymentStatusMessage] = useState('');
-  const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
-  const [pixCopyPasteCode, setPixCopyPasteCode] = useState<string | null>(null);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [processing, setProcessing] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [stripe, setStripe] = useState<any>(null);
-
   // Extrai o ID da campanha da URL
   const campaignId = new URLSearchParams(location.search).get('id');
   
