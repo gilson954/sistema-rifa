@@ -16,6 +16,13 @@ const CreateCampaignStep3Page = () => {
   const location = useLocation();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('pix');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [stripe, setStripe] = useState(null);
+  const [processing, setProcessing] = useState(false);
+  const [paymentStatusMessage, setPaymentStatusMessage] = useState('');
+  const [qrCodeImage, setQrCodeImage] = useState(null);
+  const [pixCopyPasteCode, setPixCopyPasteCode] = useState(null);
+  const [copied, setCopied] = useState(false);
+  
   // Extrai o ID da campanha da URL
   const campaignId = new URLSearchParams(location.search).get('id');
   
@@ -478,6 +485,7 @@ const CreateCampaignStep3Page = () => {
                   <span>Confirmar Pagamento</span>
                 </>
               )}
+            </button>
           </div>
 
           {/* Right Column - Campaign Summary */}
