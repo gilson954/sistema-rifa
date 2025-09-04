@@ -12,7 +12,8 @@ import {
   Edit,
   Trash2,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
@@ -256,7 +257,7 @@ const DashboardPage = () => {
                     }`}
                   >
                     {/* Expiration Alert for Draft Campaigns */}
-                    {campaign.status === 'draft' && campaign.expires_at && (
+                    {campaign.status === 'draft' && campaign.expires_at && !campaign.is_paid && (
                       <div className="mb-3">
                         {(() => {
                           const timeRemaining = getTimeRemaining(campaign.expires_at);
@@ -283,6 +284,18 @@ const DashboardPage = () => {
                         })()}
                       </div>
                     )}
+
+                    {/* Payment Success Alert for Paid Draft Campaigns */}
+                    {campaign.status === 'draft' && campaign.is_paid && (
+                      <div className="mb-3">
+                        <div className="flex items-center space-x-2 p-2 rounded-lg text-sm bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                          <CheckCircle className="h-4 w-4" />
+                          <span>
+                            Taxa paga - Campanha será ativada em breve
+                          </span>
+                        </div>
+                      </div>
+                    )}
                     
                     <div className="flex items-start space-x-4">
                       {/* Campaign Image */}
@@ -301,9 +314,14 @@ const DashboardPage = () => {
                             {campaign.title}
                           </h4>
                           <div className="flex items-center space-x-2 flex-shrink-0">
-                            {campaign.status === 'draft' && (
+                            {campaign.status === 'draft' && !campaign.is_paid && (
                               <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
                                 Pendente
+                              </span>
+                            )}
+                            {campaign.status === 'draft' && campaign.is_paid && (
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                Processando
                               </span>
                             )}
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>

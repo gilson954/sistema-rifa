@@ -42,6 +42,7 @@ export type Database = {
           show_percentage: boolean
           slug: string | null
           reservation_timeout_minutes: number | null
+          is_paid: boolean
         }
         Insert: {
           id?: string
@@ -76,6 +77,7 @@ export type Database = {
           show_percentage?: boolean
           slug?: string | null
           reservation_timeout_minutes?: number | null
+          is_paid?: boolean
         }
         Update: {
           id?: string
@@ -110,6 +112,7 @@ export type Database = {
           show_percentage?: boolean
           slug?: string | null
           reservation_timeout_minutes?: number | null
+          is_paid?: boolean
         }
       }
       profiles: {
@@ -213,6 +216,53 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+      payments: {
+        Row: {
+          id: string
+          campaign_id: string
+          stripe_payment_intent_id: string
+          payment_method: 'pix' | 'card'
+          amount: number
+          currency: string
+          status: 'pending' | 'succeeded' | 'failed' | 'canceled'
+          qr_code_data: string | null
+          qr_code_image_url: string | null
+          client_secret: string | null
+          metadata: any | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          campaign_id: string
+          stripe_payment_intent_id: string
+          payment_method: 'pix' | 'card'
+          amount: number
+          currency?: string
+          status?: 'pending' | 'succeeded' | 'failed' | 'canceled'
+          qr_code_data?: string | null
+          qr_code_image_url?: string | null
+          client_secret?: string | null
+          metadata?: any | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          campaign_id?: string
+          stripe_payment_intent_id?: string
+          payment_method?: 'pix' | 'card'
+          amount?: number
+          currency?: string
+          status?: 'pending' | 'succeeded' | 'failed' | 'canceled'
+          qr_code_data?: string | null
+          qr_code_image_url?: string | null
+          client_secret?: string | null
+          metadata?: any | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
           id?: string
           domain_name: string
           campaign_id?: string | null
