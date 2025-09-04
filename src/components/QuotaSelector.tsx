@@ -24,6 +24,7 @@ interface QuotaSelectorProps {
   onReserve?: () => void;
   reserving?: boolean;
   disabled?: boolean;
+  disabled?: boolean;
 }
 
 const QuotaSelector: React.FC<QuotaSelectorProps> = ({
@@ -39,6 +40,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   campaignTheme,
   onReserve,
   reserving = false,
+  disabled = false
   disabled = false
 }) => {
   const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));

@@ -10,14 +10,6 @@ declare global {
     Stripe: any;
   }
 }
-import { PaymentsAPI } from '../lib/api/payments';
-
-// Declare Stripe global variable
-declare global {
-  interface Window {
-    Stripe: any;
-  }
-}
 
 const CreateCampaignStep3Page = () => {
   const navigate = useNavigate();
@@ -31,6 +23,14 @@ const CreateCampaignStep3Page = () => {
   const [processing, setProcessing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [stripe, setStripe] = useState<any>(null);
+
+  // Initialize Stripe
+  React.useEffect(() => {
+    if (window.Stripe && import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY) {
+      const stripeInstance = window.Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+      setStripe(stripeInstance);
+    }
+  }, []);
   const [paymentStatusMessage, setPaymentStatusMessage] = useState('');
   const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
   const [pixCopyPasteCode, setPixCopyPasteCode] = useState<string | null>(null);
@@ -44,14 +44,6 @@ const CreateCampaignStep3Page = () => {
   
   // Fetch campaign data using the hook
   const { campaign, loading: isLoading } = useCampaign(campaignId || '');
-
-  // Initialize Stripe
-  React.useEffect(() => {
-    if (window.Stripe && import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY) {
-      const stripeInstance = window.Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-      setStripe(stripeInstance);
-    }
-  }, []);
 
   // Initialize Stripe
   React.useEffect(() => {
@@ -186,7 +178,7 @@ const CreateCampaignStep3Page = () => {
       } catch (error) {
         console.error('Failed to copy PIX code:', error);
       }
-    }
+    if (!campaignId || !campaign) {
       alert('Erro: Campanha não encontrada');
       return;
     }
@@ -200,79 +192,43 @@ const CreateCampaignStep3Page = () => {
         : 'Preparando pagamento...'
     );
 
-    try {
-      // Create Stripe checkout
-      const { data: checkoutData, error } = await PaymentsAPI.createStripeCheckout({
-        campaign_id: campaignId,
-        amount: totalTax,
-        payment_method_type: selectedPaymentMethod as 'pix' | 'card'
-      });
-
-      if (error || !checkoutData?.success) {
-        throw new Error(error?.message || checkoutData?.error || 'Erro ao criar checkout');
-      }
-
-      if (selectedPaymentMethod === 'pix') {
-        // Handle PIX payment
-        setQrCodeImage(checkoutData.qr_code_image_url || null);
-        setPixCopyPasteCode(checkoutData.qr_code_data || null);
-        setPaymentStatusMessage('Aguardando pagamento PIX...');
-        
-        // Start polling for payment status (in production, use webhooks)
-        startPaymentStatusPolling(checkoutData.payment_id);
-        
-      } else if (selectedPaymentMethod === 'card') {
-        // Handle card payment
-        if (!stripe || !checkoutData.client_secret) {
-          throw new Error('Stripe não inicializado ou client_secret não encontrado');
+    // Simulate Stripe checkout creation
+    setTimeout(async () => {
+      try {
+        if (selectedPaymentMethod === 'pix') {
+          // Simulate PIX QR Code generation
+          setQrCodeImage('https://via.placeholder.com/200x200/000000/FFFFFF?text=QR+CODE');
+          setPixCopyPasteCode(`00020126580014br.gov.bcb.pix0136${campaignId}5204000053039865802BR5925RIFAQUI PAGAMENTOS LTDA6009SAO PAULO62070503***6304ABCD`);
+          setPaymentStatusMessage('Aguardando pagamento PIX...');
+          
+          // Simulate payment confirmation after 10 seconds
+          setTimeout(() => {
+            setPaymentStatusMessage('Pagamento confirmado!');
+            setTimeout(() => {
+              navigate('/dashboard');
+            }, 2000);
+          }, 10000);
+          
+        } else {
+          // Simulate card payment processing
+          setPaymentStatusMessage('Processando pagamento...');
+          
+          // Simulate successful card payment
+          setTimeout(() => {
+            setPaymentStatusMessage('Pagamento confirmado!');
+            setTimeout(() => {
+              navigate('/dashboard');
+            }, 2000);
+          }, 3000);
         }
-
-        setPaymentStatusMessage('Processando pagamento...');
-        
-        // Confirm card payment with Stripe
-        const { error: stripeError } = await stripe.confirmCardPayment(checkoutData.client_secret, {
-          payment_method: {
-            card: {
-              // In production, you would collect card details from user
-              // For demo purposes, we'll use test card
-              number: '4242424242424242',
-              exp_month: 12,
-              exp_year: 2025,
-              cvc: '123'
-            }
-          }
-        });
-
-        if (stripeError) {
-          throw new Error(stripeError.message || 'Erro no pagamento');
-        }
-
-        setPaymentStatusMessage('Pagamento confirmado!');
-        
-        // Redirect to dashboard after successful payment
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
+      } catch (error) {
+        console.error('Error processing payment:', error);
+        setPaymentStatusMessage('Falha no pagamento');
+        alert('Erro ao processar pagamento. Tente novamente.');
+      } finally {
+        setProcessing(false);
       }
-
-    } catch (error) {
-      console.error('Error processing payment:', error);
-      setPaymentStatusMessage('Falha no pagamento');
-      alert(error.message || 'Erro ao processar pagamento. Tente novamente.');
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  const startPaymentStatusPolling = (paymentId: string) => {
-    // In production, you would poll the payment status or use real-time subscriptions
-    // For demo, we'll simulate payment confirmation after 10 seconds
-    setTimeout(() => {
-      setPaymentStatusMessage('Pagamento confirmado!');
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
-    }, 10000);
+    }, 1500);
   };
 
   const handleCopyPixCode = async () => {
@@ -361,7 +317,7 @@ const CreateCampaignStep3Page = () => {
                   : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200'
               }`}>
                 <div className="flex items-center space-x-2">
-                  {processing && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {processing && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>}
                   <span className="font-medium">{paymentStatusMessage}</span>
                 </div>
               </div>
@@ -377,11 +333,7 @@ const CreateCampaignStep3Page = () => {
                 {/* QR Code */}
                 <div className="text-center mb-6">
                   <div className="w-48 h-48 mx-auto bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
-                    {qrCodeImage ? (
-                      <img src={qrCodeImage} alt="QR Code PIX" className="w-full h-full object-contain" />
-                    ) : (
-                      <QrCode className="h-24 w-24 text-gray-400" />
-                    )}
+                    <img src={qrCodeImage} alt="QR Code PIX" className="w-full h-full object-contain rounded-lg" />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Escaneie o QR Code com o app do seu banco
@@ -622,7 +574,7 @@ const CreateCampaignStep3Page = () => {
                 <span>Pagar</span>
               {processing ? (
                 <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                   <span>Processando...</span>
                 </>
               ) : (

@@ -9,7 +9,8 @@ import {
   ChevronRight,
   Eye,
   Gift,
-  ExternalLink
+  ExternalLink,
+  AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';

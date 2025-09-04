@@ -216,6 +216,28 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          id?: string
+          domain_name: string
+          campaign_id?: string | null
+          user_id: string
+          is_verified?: boolean | null
+          ssl_status?: string | null
+          dns_instructions?: any | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          domain_name?: string
+          campaign_id?: string | null
+          user_id?: string
+          is_verified?: boolean | null
+          ssl_status?: string | null
+          dns_instructions?: any | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
       payments: {
         Row: {
           id: string
@@ -261,28 +283,6 @@ export type Database = {
           metadata?: any | null
           created_at?: string
           updated_at?: string
-        }
-      }
-          id?: string
-          domain_name: string
-          campaign_id?: string | null
-          user_id: string
-          is_verified?: boolean | null
-          ssl_status?: string | null
-          dns_instructions?: any | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          domain_name?: string
-          campaign_id?: string | null
-          user_id?: string
-          is_verified?: boolean | null
-          ssl_status?: string | null
-          dns_instructions?: any | null
-          created_at?: string | null
-          updated_at?: string | null
         }
       }
     }
