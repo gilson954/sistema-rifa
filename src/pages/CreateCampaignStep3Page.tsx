@@ -467,8 +467,17 @@ const CreateCampaignStep3Page = () => {
               disabled={processing}
               className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white py-4 rounded-lg font-semibold text-lg transition-colors duration-200 shadow-md flex items-center justify-center space-x-2"
             >
+              {processing ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Processando...</span>
+                </>
+              ) : (
+                <>
+                  <CreditCard className="h-5 w-5" />
+                  <span>Confirmar Pagamento</span>
+                </>
               )}
-            </button>
           </div>
 
           {/* Right Column - Campaign Summary */}
