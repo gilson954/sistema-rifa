@@ -16,14 +16,6 @@ const CreateCampaignStep3Page = () => {
   const location = useLocation();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('pix');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [paymentStatusMessage, setPaymentStatusMessage] = useState('');
-  const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
-  const [pixCopyPasteCode, setPixCopyPasteCode] = useState<string | null>(null);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [processing, setProcessing] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [stripe, setStripe] = useState<any>(null);
-
   // Extrai o ID da campanha da URL
   const campaignId = new URLSearchParams(location.search).get('id');
   
@@ -475,13 +467,6 @@ const CreateCampaignStep3Page = () => {
               disabled={processing}
               className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white py-4 rounded-lg font-semibold text-lg transition-colors duration-200 shadow-md flex items-center justify-center space-x-2"
             >
-              {processing ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Processando...</span>
-                </>
-              ) : (
-                <span>Pagar</span>
               )}
             </button>
           </div>
