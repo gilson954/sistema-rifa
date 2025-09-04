@@ -90,6 +90,9 @@ const CampaignPage = () => {
   const loading = isCustomDomain ? loadingByDomain : loadingBySlug;
   const error = isCustomDomain ? errorByDomain : errorBySlug;
 
+  // Check if campaign is available for purchases (paid and active)
+  const isCampaignAvailable = campaign?.status === 'active' && campaign?.is_paid !== false;
+
   // Debug: Log campaign description (remover após teste)
   useEffect(() => {
     if (campaign?.description) {
@@ -878,10 +881,27 @@ const CampaignPage = () => {
 
           {campaign.campaign_model === 'manual' ? (
             <div className="space-y-4">
+              {/* Campaign Unavailable Alert */}
+              {!isCampaignAvailable && (
+                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-center space-x-3">
+                    <AlertTriangle className="h-6 w-6 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
+                        Campanha Indisponível
+                      </h4>
+                      <p className="text-sm text-orange-700 dark:text-orange-300">
+                        Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <QuotaGrid
                 totalQuotas={campaign.total_tickets}
                 selectedQuotas={selectedQuotas}
-                onQuotaSelect={handleQuotaSelect}
+                onQuotaSelect={isCampaignAvailable ? handleQuotaSelect : undefined}
                 activeFilter={activeFilter}
                 onFilterChange={setActiveFilter}
                 mode="manual"
@@ -954,12 +974,30 @@ const CampaignPage = () => {
                     className="w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ backgroundColor: primaryColor }}
                   >
-                    Reservar Cotas Selecionadas
+                    {isCampaignAvailable ? 'Reservar Cotas Selecionadas' : 'Campanha Indisponível'}
                   </button>
                 </div>
               )}
             </div>
           ) : (
+            <>
+              {/* Campaign Unavailable Alert for Automatic Mode */}
+              {!isCampaignAvailable && (
+                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-center space-x-3">
+                    <AlertTriangle className="h-6 w-6 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
+                        Campanha Indisponível
+                      </h4>
+                      <p className="text-sm text-orange-700 dark:text-orange-300">
+                        Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
             <QuotaSelector
               ticketPrice={campaign.ticket_price}
               minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
@@ -971,9 +1009,11 @@ const CampaignPage = () => {
               promotions={campaign.promotions || []}
               primaryColor={primaryColor}
               campaignTheme={campaignTheme}
-              onReserve={handleOpenReservationModal}
+              onReserve={isCampaignAvailable ? handleOpenReservationModal : undefined}
               reserving={reserving}
+              disabled={!isCampaignAvailable}
             />
+            </>
           )}
         </section>
 

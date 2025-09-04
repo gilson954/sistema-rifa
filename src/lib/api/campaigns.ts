@@ -41,6 +41,7 @@ export class CampaignAPI {
         slug,
         sold_tickets: 0,
         status: 'draft' as CampaignStatus,
+        is_paid: false,
         start_date: now.toISOString(),
         end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 dias
         expires_at: expiresAt.toISOString()

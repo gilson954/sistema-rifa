@@ -1,5 +1,36 @@
 import { supabase } from '../supabase';
 
+export interface StripePayment {
+  id: string;
+  campaign_id: string;
+  stripe_payment_intent_id: string;
+  payment_method: 'pix' | 'card';
+  amount: number;
+  currency: string;
+  status: 'pending' | 'succeeded' | 'failed' | 'canceled';
+  qr_code_data?: string;
+  qr_code_image_url?: string;
+  client_secret?: string;
+  metadata?: any;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateStripePaymentRequest {
+  campaign_id: string;
+  amount: number;
+  payment_method_type: 'pix' | 'card';
+}
+
+export interface StripeCheckoutResponse {
+  success: boolean;
+  client_secret?: string;
+  qr_code_data?: string;
+  qr_code_image_url?: string;
+  payment_id: string;
+  error?: string;
+}
+
 export interface PaymentIntegrationConfig {
   mercado_pago?: {
     client_id: string;
@@ -56,6 +87,56 @@ export interface PaymentResponse {
 }
 
 export class PaymentsAPI {
+  /**
+   * Create Stripe checkout for publication fee
+   */
+  static async createStripeCheckout(
+    request: CreateStripePaymentRequest
+  ): Promise<{ data: StripeCheckoutResponse | null; error: any }> {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/stripe-checkout`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Checkout creation failed');
+      }
+
+      return { data: result, error: null };
+    } catch (error) {
+      console.error('Error creating Stripe checkout:', error);
+      return { data: null, error };
+    }
+  }
+
+  /**
+   * Get payment status by campaign ID
+   */
+  static async getPaymentByCampaign(campaignId: string): Promise<{ data: StripePayment | null; error: any }> {
+    try {
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('campaign_id', campaignId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Error fetching payment:', error);
+      return { data: null, error };
+    }
+  }
+
   /**
    * Get user's payment integration configuration
    */
