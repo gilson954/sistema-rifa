@@ -163,6 +163,10 @@ const CreateCampaignStep3Page = () => {
       } catch (error) {
         console.error('Failed to copy PIX code:', error);
       }
+    }
+  };
+
+  const handlePaymentSimulation = async () => {
     if (!campaignId || !campaign) {
       alert('Erro: Campanha não encontrada');
       return;
@@ -214,18 +218,6 @@ const CreateCampaignStep3Page = () => {
         setProcessing(false);
       }
     }, 1500);
-  };
-
-  const handleCopyPixCode = async () => {
-    if (pixCopyPasteCode) {
-      try {
-        await navigator.clipboard.writeText(pixCopyPasteCode);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (error) {
-        console.error('Failed to copy PIX code:', error);
-      }
-    }
   };
 
   const handlePreviousImage = () => {
@@ -352,140 +344,75 @@ const CreateCampaignStep3Page = () => {
               </div>
             )}
 
-            {/* Payment Status Message */}
-            {paymentStatusMessage && (
-              <div className={`p-4 rounded-lg border ${
-                paymentStatusMessage.includes('confirmado') 
-                  ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
-                  : paymentStatusMessage.includes('Falha') 
-                  ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
-                  : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200'
-              }`}>
-                <div className="flex items-center space-x-2">
-                  {processing && <Loader2 className="h-4 w-4 animate-spin" />}
-                  <span className="font-medium">{paymentStatusMessage}</span>
-                </div>
-              </div>
-            )}
-
-            {/* PIX Payment Display */}
-            {selectedPaymentMethod === 'pix' && qrCodeImage && (
-              <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">
-                  Pagamento PIX
-                </h3>
-                
-                {/* QR Code */}
-                <div className="text-center mb-6">
-                  <div className="w-48 h-48 mx-auto bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
-                    {qrCodeImage ? (
-                      <img src={qrCodeImage} alt="QR Code PIX" className="w-full h-full object-contain" />
-                    ) : (
-                      <QrCode className="h-24 w-24 text-gray-400" />
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Escaneie o QR Code com o app do seu banco
-                  </p>
-                </div>
-
-                {/* PIX Copy and Paste */}
-                {pixCopyPasteCode && (
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Código PIX (Copia e Cola)
-                      </span>
-                      <button
-                        onClick={handleCopyPixCode}
-                        className="flex items-center space-x-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors duration-200"
-                      >
-                        {copied ? (
-                          <CheckCircle className="h-4 w-4" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                        <span className="text-sm">{copied ? 'Copiado!' : 'Copiar'}</span>
-                      </button>
-                    </div>
-                    <div className="bg-white dark:bg-gray-700 rounded p-3 font-mono text-xs break-all text-gray-900 dark:text-white">
-                      {pixCopyPasteCode}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Payment Method Selection */}
             {!qrCodeImage && (
               <div>
-              <div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                Forma de pagamento
-              </h3>
-              
-              <div className="space-y-3">
-                {/* PIX Option */}
-                <div
-                  onClick={() => setSelectedPaymentMethod('pix')}
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                    selectedPaymentMethod === 'pix'
-                      ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">₽</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900 dark:text-white">Pix</div>
-                      <div className="text-sm text-green-600 dark:text-green-400">Sem taxa</div>
-                    </div>
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                  Forma de pagamento
+                </h3>
+                
+                <div className="space-y-3">
+                  {/* PIX Option */}
+                  <div
+                    onClick={() => setSelectedPaymentMethod('pix')}
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
                       selectedPaymentMethod === 'pix'
-                        ? 'border-green-500 bg-green-500'
-                        : 'border-gray-300 dark:border-gray-600'
-                    }`}>
-                      {selectedPaymentMethod === 'pix' && (
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Credit Card Option */}
-                <div
-                  onClick={() => setSelectedPaymentMethod('card')}
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                    selectedPaymentMethod === 'card'
-                      ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center">
-                      <CreditCard className="h-4 w-4 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900 dark:text-white">Cartão de crédito</div>
-                      <div className="text-sm text-red-600 dark:text-red-400">
-                        Taxa cartão (3,99% + R$ 0,39)
+                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">₽</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900 dark:text-white">Pix</div>
+                        <div className="text-sm text-green-600 dark:text-green-400">Sem taxa</div>
+                      </div>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedPaymentMethod === 'pix'
+                          ? 'border-green-500 bg-green-500'
+                          : 'border-gray-300 dark:border-gray-600'
+                      }`}>
+                        {selectedPaymentMethod === 'pix' && (
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        )}
                       </div>
                     </div>
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                  </div>
+
+                  {/* Credit Card Option */}
+                  <div
+                    onClick={() => setSelectedPaymentMethod('card')}
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
                       selectedPaymentMethod === 'card'
-                        ? 'border-purple-500 bg-purple-500'
-                        : 'border-gray-300 dark:border-gray-600'
-                    }`}>
-                      {selectedPaymentMethod === 'card' && (
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      )}
+                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center">
+                        <CreditCard className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900 dark:text-white">Cartão de crédito</div>
+                        <div className="text-sm text-red-600 dark:text-red-400">
+                          Taxa cartão (3,99% + R$ 0,39)
+                        </div>
+                      </div>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedPaymentMethod === 'card'
+                          ? 'border-purple-500 bg-purple-500'
+                          : 'border-gray-300 dark:border-gray-600'
+                      }`}>
+                        {selectedPaymentMethod === 'card' && (
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
             )}
 
             {/* Payment Summary */}
@@ -533,7 +460,6 @@ const CreateCampaignStep3Page = () => {
                 </div>
               </div>
             </div>
-            )}
 
             {/* Tax Information */}
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 transition-colors duration-300">
@@ -548,18 +474,10 @@ const CreateCampaignStep3Page = () => {
               onClick={handlePayment}
               disabled={processing}
               className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white py-4 rounded-lg font-semibold text-lg transition-colors duration-200 shadow-md flex items-center justify-center space-x-2"
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white py-4 rounded-lg font-semibold text-lg transition-colors duration-200 shadow-md flex items-center justify-center space-x-2"
             >
               {processing ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Processando...</span>
-                </>
-              ) : (
-                <span>Pagar</span>
-              {processing ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                   <span>Processando...</span>
                 </>
               ) : (
