@@ -297,8 +297,8 @@ export class CampaignAPI {
   /**
    * Retorna a taxa de publicação fixa do produto Rifaqui
    */
-  static getPublicationTax(): number {
-    const rifaquiProduct = STRIPE_PRODUCTS.find(p => p.name === 'Rifaqui');
-    return rifaquiProduct?.price || 7.00;
+  static getPublicationTax(estimatedRevenue: number): StripeProduct | undefined {
+    // Returns the StripeProduct object for the publication fee based on estimated revenue
+    return getPublicationProductByRevenue(estimatedRevenue);
   }
 }

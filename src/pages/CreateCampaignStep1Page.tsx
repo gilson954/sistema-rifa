@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
 import PublicationFeesModal from '../components/PublicationFeesModal';
 import { STRIPE_PRODUCTS } from '../stripe-config';
-
+import { CampaignAPI } from '../lib/api/campaigns';
 const CreateCampaignStep1Page = () => {
   const navigate = useNavigate();
   const { createCampaign } = useCampaigns();
@@ -61,12 +61,6 @@ const CreateCampaignStep1Page = () => {
     { value: 10000000, label: '10.000.000 cotas' }
   ];
 
-  // Calculate publication tax based on estimated revenue
-  const getPublicationTax = (): number => {
-    const rifaquiProduct = STRIPE_PRODUCTS.find(p => p.name === 'Rifaqui');
-    return rifaquiProduct?.price || 7.00;
-  };
-
   // Update calculations when price or quantity changes
   const updateCalculations = (price: string, quantity: string) => {
     // Convert raw price (in cents) to reais for calculations
@@ -74,7 +68,7 @@ const CreateCampaignStep1Page = () => {
     const ticketQuantity = parseInt(quantity) || 0;
     const revenue = ticketPrice * ticketQuantity;
     const tax = getPublicationTax();
-    
+
     setEstimatedRevenue(revenue);
     setPublicationTax(tax);
   };
@@ -325,7 +319,7 @@ const CreateCampaignStep1Page = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-gray-700 dark:text-gray-300">Taxa da campanha:</span>
                       <span className="font-medium text-red-600 dark:text-red-400">
-                        R$ {publicationTax.toFixed(2).replace('.', ',')}
+                        {formatCurrencyForDisplay(publicationTax)}
                       </span>
                     </div>
                   </div>

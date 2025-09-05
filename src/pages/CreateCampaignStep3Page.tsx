@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Edit, Eye, CreditCard, TrendingUp, AlertCircle, ChevronLeft, ChevronRight, Copy, CheckCircle, QrCode, Loader2, Crown } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useCampaign } from '../hooks/useCampaigns';
+import { useCampaign, useCampaignWithRefetch } from '../hooks/useCampaigns';
 import { StripeAPI } from '../lib/api/stripe';
 import { STRIPE_PRODUCTS } from '../stripe-config';
 
@@ -25,7 +25,7 @@ const CreateCampaignStep3Page = () => {
   const [copied, setCopied] = useState(false);
   
   // Extrai o ID da campanha da URL
-  const campaignId = new URLSearchParams(location.search).get('id');
+  const campaignId = new URLSearchParams(location.search).get('id') || '';
   
   // Fetch campaign data using the hook
   const { campaign, loading: isLoading } = useCampaign(campaignId || '');
@@ -39,12 +39,12 @@ const CreateCampaignStep3Page = () => {
   }, []);
 
   // Mock data - em produção, estes dados viriam do contexto ou props
-  const campaignData = {
-    title: campaign?.title || 'Setup Gamer',
-    totalTickets: campaign?.total_tickets || 100,
-    ticketPrice: campaign?.ticket_price || 1.00,
-    images: campaign?.prize_image_urls || ['https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1']
-  };
+  const campaignTitle = campaign?.title || 'Sua Campanha';
+  const totalTickets = campaign?.total_tickets || 0;
+  const ticketPrice = campaign?.ticket_price || 0;
+  const prizeImages = campaign?.prize_image_urls && campaign.prize_image_urls.length > 0 
+    ? campaign.prize_image_urls 
+    : ['https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'];
 
   const handleGoBack = () => {
     navigate(`/dashboard/create-campaign/step-2?id=${campaignId}`);
@@ -75,16 +75,20 @@ const CreateCampaignStep3Page = () => {
     setProcessing(true);
     setPaymentStatusMessage('Redirecionando para pagamento...');
 
-    try {
-      // Use the Rifaqui product for publication fee
-      const rifaquiProduct = STRIPE_PRODUCTS.find(p => p.name === 'Rifaqui');
-      if (!rifaquiProduct) {
-        throw new Error('Produto Rifaqui não encontrado');
-      }
+    // Calculate estimated revenue to get the correct publication product
+    const estimatedRevenue = totalTickets * ticketPrice;
+    const publicationProduct = STRIPE_PRODUCTS.find(p => p.mode === 'payment' && estimatedRevenue >= (p.minRevenue || 0) && estimatedRevenue <= (p.maxRevenue || Infinity));
 
+    if (!publicationProduct) {
+      alert('Erro: Não foi possível determinar a taxa de publicação para esta campanha.');
+      setProcessing(false);
+      return;
+    }
+
+    try {
       // Create Stripe checkout session
       const { data: checkoutData, error } = await StripeAPI.createCheckoutSession({
-        priceId: rifaquiProduct.priceId,
+        priceId: publicationProduct.priceId,
         campaignId: campaignId,
         successUrl: `${window.location.origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${window.location.origin}/payment-cancelled`
@@ -203,8 +207,8 @@ const CreateCampaignStep3Page = () => {
   const currentImage = campaignData.images[currentImageIndex];
 
   // Cálculos dinâmicos
-  const estimatedRevenue = campaignData.totalTickets * campaignData.ticketPrice;
-  const publicationTax = 7.00; // Fixed Rifaqui product price
+  const estimatedRevenue = totalTickets * ticketPrice;
+  const publicationTaxProduct = STRIPE_PRODUCTS.find(p => p.mode === 'payment' && estimatedRevenue >= (p.minRevenue || 0) && estimatedRevenue <= (p.maxRevenue || Infinity));
 
   if (isLoading) {
     return <div className="flex items-center justify-center py-12">
@@ -355,7 +359,7 @@ const CreateCampaignStep3Page = () => {
                     <span className="text-gray-700 dark:text-gray-300">Taxa de publicação</span>
                   </div>
                   <span className="font-medium text-red-600 dark:text-red-400">
-                    R$ 7,00
+                    {publicationTaxProduct ? formatPrice(publicationTaxProduct.price) : 'R$ 0,00'}
                   </span>
                 </div>
 
@@ -363,7 +367,7 @@ const CreateCampaignStep3Page = () => {
                   <div className="flex items-center justify-between text-lg font-semibold">
                     <span className="text-gray-900 dark:text-white">Total a pagar</span>
                     <span className="text-gray-900 dark:text-white">
-                      R$ 7,00
+                      {publicationTaxProduct ? formatPrice(publicationTaxProduct.price) : 'R$ 0,00'}
                     </span>
                   </div>
                 </div>
@@ -401,7 +405,7 @@ const CreateCampaignStep3Page = () => {
           {/* Right Column - Campaign Summary */}
           <div className="space-y-6">
             {/* Campaign Image with Edit/Preview buttons */}
-            <div className="relative group">
+            <div className="relative group rounded-lg overflow-hidden">
               {/* Image Gallery */}
               <img
                 src={currentImage}
@@ -409,7 +413,7 @@ const CreateCampaignStep3Page = () => {
                 className="w-full h-64 object-cover rounded-lg transition-opacity duration-300"
               />
               
-              {/* Navigation Arrows (only show if multiple images) */}
+              {/* Navigation Arrows (only show if multiple prizeImages) */}
               {campaignData.images.length > 1 && (
                 <>
                   <button
@@ -429,7 +433,7 @@ const CreateCampaignStep3Page = () => {
               )}
               
               {/* Image Counter */}
-              {campaignData.images.length > 1 && (
+              {prizeImages.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
                   {currentImageIndex + 1} / {campaignData.images.length}
                 </div>
@@ -437,8 +441,8 @@ const CreateCampaignStep3Page = () => {
               
               {/* Thumbnail Strip */}
               {campaignData.images.length > 1 && (
-                <div className="flex space-x-2 mt-4 overflow-x-auto pb-2">
-                  {campaignData.images.map((image, index) => (
+                <div className="flex space-x-2 mt-4 overflow-x-auto pb-2 px-2">
+                  {prizeImages.map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
@@ -480,19 +484,20 @@ const CreateCampaignStep3Page = () => {
             <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                 {campaignData.title}
+                {campaignTitle}
               </h3>
               
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-2">
                   <div className="w-4 h-4 bg-purple-600 rounded"></div>
                   <span className="text-gray-600 dark:text-gray-400">
-                    {campaignData.totalTickets} cotas
+                    {totalTickets} cotas
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-4 h-4 bg-green-600 rounded"></div>
                   <span className="text-gray-600 dark:text-gray-400">
-                    R$ {campaignData.ticketPrice.toFixed(2).replace('.', ',')} por cota
+                    {formatPrice(ticketPrice)} por cota
                   </span>
                 </div>
               </div>
@@ -504,7 +509,7 @@ const CreateCampaignStep3Page = () => {
                     <div className="text-sm opacity-90">ARRECADAÇÃO ESTIMADA</div>
                     <div className="text-2xl font-bold">
                       R$ {estimatedRevenue.toFixed(2).replace('.', ',')}
-                    </div>
+                    </div> 
                   </div>
                   <TrendingUp className="h-8 w-8 opacity-80" />
                 </div>

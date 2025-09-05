@@ -1,3 +1,4 @@
+```typescript
 import React from 'react';
 import { X } from 'lucide-react';
 import { STRIPE_PRODUCTS, formatPrice } from '../stripe-config';
@@ -8,7 +9,9 @@ interface PublicationFeesModalProps {
 }
 
 const PublicationFeesModal: React.FC<PublicationFeesModalProps> = ({ isOpen, onClose }) => {
-  const rifaquiProduct = STRIPE_PRODUCTS.find(p => p.name === 'Rifaqui');
+  // Filter for only publication fee products and sort them by minRevenue
+  const publicationFeeTiers = STRIPE_PRODUCTS.filter(p => p.mode === 'payment' && p.minRevenue !== undefined)
+    .sort((a, b) => a.minRevenue! - b.minRevenue!);
 
   if (!isOpen) return null;
 
@@ -31,29 +34,44 @@ const PublicationFeesModal: React.FC<PublicationFeesModalProps> = ({ isOpen, onC
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[60vh]">
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            A taxa de publicação é um valor fixo para ativar sua campanha na plataforma.
+            A taxa de publicação é um valor cobrado para ativar sua campanha na plataforma, variando de acordo com a arrecadação estimada.
           </p>
 
-          {/* Product Information */}
-          {rifaquiProduct && (
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-700/50 rounded-lg p-6 mb-6">
-              <div className="text-center">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  {rifaquiProduct.name}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  {rifaquiProduct.description}
-                </p>
-                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                  {formatPrice(rifaquiProduct.price, rifaquiProduct.currency)}
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Fee Table */}
+          <div className="bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-200 dark:bg-gray-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Arrecadação Estimada
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Taxa de Publicação
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {publicationFeeTiers.map((tier, index) => (
+                  <tr key={tier.id} className={index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                      {tier.maxRevenue === Infinity ? (
+                        `Acima de ${formatPrice(tier.minRevenue! - 0.01)}`
+                      ) : (
+                        `${formatPrice(tier.minRevenue!)} a ${formatPrice(tier.maxRevenue!)}`
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-green-600 dark:text-green-400">
+                      {formatPrice(tier.price)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              <strong>Importante:</strong> A taxa de publicação é cobrada uma única vez e permite que sua campanha seja publicada na plataforma. Este é um valor fixo independente do tamanho da sua campanha.
+              <strong>Importante:</strong> A taxa de publicação é cobrada uma única vez e permite que sua campanha seja publicada na plataforma. O valor da taxa é determinado pela sua arrecadação estimada.
             </p>
           </div>
         </div>
@@ -63,3 +81,4 @@ const PublicationFeesModal: React.FC<PublicationFeesModalProps> = ({ isOpen, onC
 };
 
 export default PublicationFeesModal;
+```
