@@ -1,4 +1,3 @@
-```typescript
 import React from 'react';
 import { X } from 'lucide-react';
 import { STRIPE_PRODUCTS, formatPrice } from '../stripe-config';
@@ -55,9 +54,9 @@ const PublicationFeesModal: React.FC<PublicationFeesModalProps> = ({ isOpen, onC
                   <tr key={tier.id} className={index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       {tier.maxRevenue === Infinity ? (
-                        \`Acima de ${formatPrice(tier.minRevenue! - 0.01)}`
+                        `Acima de ${formatPrice(tier.minRevenue! - 0.01)}`
                       ) : (
-                        \`${formatPrice(tier.minRevenue!)} a ${formatPrice(tier.maxRevenue!)}`
+                        `${formatPrice(tier.minRevenue!)} a ${formatPrice(tier.maxRevenue!)}`
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-green-600 dark:text-green-400">
@@ -81,4 +80,3 @@ const PublicationFeesModal: React.FC<PublicationFeesModalProps> = ({ isOpen, onC
 };
 
 export default PublicationFeesModal;
-```
