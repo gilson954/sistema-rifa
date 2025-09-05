@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Edit, Eye, CreditCard, TrendingUp, AlertCircle, ChevronLeft, ChevronRight, Copy, CheckCircle, QrCode, Loader2 } from 'lucide-react';
+import { ArrowLeft, Edit, Eye, CreditCard, TrendingUp, AlertCircle, ChevronLeft, ChevronRight, Copy, CheckCircle, QrCode, Loader2, Crown } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaign } from '../hooks/useCampaigns';
 import { StripeAPI } from '../lib/api/stripe';
