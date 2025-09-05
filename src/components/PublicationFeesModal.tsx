@@ -1,3 +1,4 @@
+```typescript
 import React from 'react';
 import { X } from 'lucide-react';
 import { STRIPE_PRODUCTS, formatPrice } from '../stripe-config';
@@ -80,3 +81,4 @@ const PublicationFeesModal: React.FC<PublicationFeesModalProps> = ({ isOpen, onC
 };
 
 export default PublicationFeesModal;
+```
