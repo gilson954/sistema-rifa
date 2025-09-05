@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { ArrowLeft, Edit, Eye, CreditCard, TrendingUp, AlertCircle, ChevronLeft, ChevronRight, Copy, CheckCircle, QrCode, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaign } from '../hooks/useCampaigns';
-import { PaymentsAPI } from '../lib/api/payments';
+import { StripeAPI } from '../lib/api/stripe';
+import { STRIPE_PRODUCTS } from '../stripe-config';
 
 // Declare Stripe global variable
 declare global {
@@ -72,73 +73,41 @@ const CreateCampaignStep3Page = () => {
     if (processing) return;
 
     setProcessing(true);
-    setPaymentStatusMessage(
-      selectedPaymentMethod === 'pix' 
-        ? 'Gerando QR Code PIX...' 
-        : 'Preparando pagamento...'
-    );
+    setPaymentStatusMessage('Redirecionando para pagamento...');
 
     try {
-      // Create Stripe checkout
-      const { data: checkoutData, error } = await PaymentsAPI.createStripeCheckout({
-        campaign_id: campaignId,
-        amount: totalTax,
-        payment_method_type: selectedPaymentMethod as 'pix' | 'card'
+      // Use the Rifaqui product for publication fee
+      const rifaquiProduct = STRIPE_PRODUCTS.find(p => p.name === 'Rifaqui');
+      if (!rifaquiProduct) {
+        throw new Error('Produto Rifaqui não encontrado');
+      }
+
+      // Create Stripe checkout session
+      const { data: checkoutData, error } = await StripeAPI.createCheckoutSession({
+        priceId: rifaquiProduct.priceId,
+        campaignId: campaignId,
+        successUrl: `${window.location.origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/payment-cancelled`
       });
 
       if (error || !checkoutData?.success) {
         throw new Error(error?.message || checkoutData?.error || 'Erro ao criar checkout');
       }
 
-      if (selectedPaymentMethod === 'pix') {
-        // Handle PIX payment
-        setQrCodeImage(checkoutData.qr_code_image_url || null);
-        setPixCopyPasteCode(checkoutData.qr_code_data || null);
-        setPaymentStatusMessage('Aguardando pagamento PIX...');
-        
-        // Start polling for payment status (in production, use webhooks)
-        startPaymentStatusPolling(checkoutData.payment_id);
-        
-      } else if (selectedPaymentMethod === 'card') {
-        // Handle card payment
-        if (!stripe || !checkoutData.client_secret) {
-          throw new Error('Stripe não inicializado ou client_secret não encontrado');
-        }
-
-        setPaymentStatusMessage('Processando pagamento...');
-        
-        // Confirm card payment with Stripe
-        const { error: stripeError } = await stripe.confirmCardPayment(checkoutData.client_secret, {
-          payment_method: {
-            card: {
-              // In production, you would collect card details from user
-              // For demo purposes, we'll use test card
-              number: '4242424242424242',
-              exp_month: 12,
-              exp_year: 2025,
-              cvc: '123'
-            }
-          }
-        });
-
-        if (stripeError) {
-          throw new Error(stripeError.message || 'Erro no pagamento');
-        }
-
-        setPaymentStatusMessage('Pagamento confirmado!');
-        
-        // Redirect to dashboard after successful payment
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
+      // Redirect to Stripe checkout
+      if (checkoutData.checkout_url) {
+        window.location.href = checkoutData.checkout_url;
+      } else {
+        throw new Error('URL de checkout não encontrada');
       }
 
     } catch (error) {
       console.error('Error processing payment:', error);
       setPaymentStatusMessage('Falha no pagamento');
       alert(error.message || 'Erro ao processar pagamento. Tente novamente.');
-    } finally {
       setProcessing(false);
+    } finally {
+      // Don't set processing to false here since we're redirecting
     }
   };
 
@@ -235,9 +204,7 @@ const CreateCampaignStep3Page = () => {
 
   // Cálculos dinâmicos
   const estimatedRevenue = campaignData.totalTickets * campaignData.ticketPrice;
-  const publicationTax = 7.00; // Taxa base para arrecadação até R$ 100
-  const cardTax = selectedPaymentMethod === 'card' ? estimatedRevenue * 0.0399 + 0.39 : 0;
-  const totalTax = publicationTax + cardTax;
+  const publicationTax = 7.00; // Fixed Rifaqui product price
 
   if (isLoading) {
     return <div className="flex items-center justify-center py-12">
@@ -344,75 +311,30 @@ const CreateCampaignStep3Page = () => {
             )}
 
             {/* Payment Method Selection */}
-            {!qrCodeImage && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                  Forma de pagamento
-                </h3>
-                
-                <div className="space-y-3">
-                  {/* PIX Option */}
-                  <div
-                    onClick={() => setSelectedPaymentMethod('pix')}
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                      selectedPaymentMethod === 'pix'
-                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">₽</span>
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900 dark:text-white">Pix</div>
-                        <div className="text-sm text-green-600 dark:text-green-400">Sem taxa</div>
-                      </div>
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        selectedPaymentMethod === 'pix'
-                          ? 'border-green-500 bg-green-500'
-                          : 'border-gray-300 dark:border-gray-600'
-                      }`}>
-                        {selectedPaymentMethod === 'pix' && (
-                          <div className="w-2 h-2 bg-white rounded-full"></div>
-                        )}
-                      </div>
-                    </div>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                Taxa de Publicação
+              </h3>
+              
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-700/50 rounded-lg p-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+                    <Crown className="h-6 w-6 text-white" />
                   </div>
-
-                  {/* Credit Card Option */}
-                  <div
-                    onClick={() => setSelectedPaymentMethod('card')}
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                      selectedPaymentMethod === 'card'
-                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center">
-                        <CreditCard className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900 dark:text-white">Cartão de crédito</div>
-                        <div className="text-sm text-red-600 dark:text-red-400">
-                          Taxa cartão (3,99% + R$ 0,39)
-                        </div>
-                      </div>
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        selectedPaymentMethod === 'card'
-                          ? 'border-purple-500 bg-purple-500'
-                          : 'border-gray-300 dark:border-gray-600'
-                      }`}>
-                        {selectedPaymentMethod === 'card' && (
-                          <div className="w-2 h-2 bg-white rounded-full"></div>
-                        )}
-                      </div>
-                    </div>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Rifaqui
+                    </h4>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm">
+                      Taxa de publicação para ativar sua campanha
+                    </p>
+                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-2">
+                      R$ 7,00
+                    </p>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Payment Summary */}
             <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300">
@@ -433,27 +355,15 @@ const CreateCampaignStep3Page = () => {
                     <span className="text-gray-700 dark:text-gray-300">Taxa de publicação</span>
                   </div>
                   <span className="font-medium text-red-600 dark:text-red-400">
-                    R$ {publicationTax.toFixed(2).replace('.', ',')}
+                    R$ 7,00
                   </span>
                 </div>
-
-                {selectedPaymentMethod === 'card' && (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <CreditCard className="h-4 w-4 text-red-600 dark:text-red-400" />
-                      <span className="text-gray-700 dark:text-gray-300">Taxa do cartão</span>
-                    </div>
-                    <span className="font-medium text-red-600 dark:text-red-400">
-                      R$ {cardTax.toFixed(2).replace('.', ',')}
-                    </span>
-                  </div>
-                )}
 
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                   <div className="flex items-center justify-between text-lg font-semibold">
                     <span className="text-gray-900 dark:text-white">Total a pagar</span>
                     <span className="text-gray-900 dark:text-white">
-                      R$ {totalTax.toFixed(2).replace('.', ',')}
+                      R$ 7,00
                     </span>
                   </div>
                 </div>
@@ -472,17 +382,17 @@ const CreateCampaignStep3Page = () => {
             <button
               onClick={handlePayment}
               disabled={processing}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white py-4 rounded-lg font-semibold text-lg transition-colors duration-200 shadow-md flex items-center justify-center space-x-2"
+              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white py-4 rounded-lg font-semibold text-lg transition-colors duration-200 shadow-md flex items-center justify-center space-x-2"
             >
               {processing ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Processando...</span>
+                  <span>Redirecionando...</span>
                 </>
               ) : (
                 <>
                   <CreditCard className="h-5 w-5" />
-                  <span>Confirmar Pagamento</span>
+                  <span>Pagar Taxa de Publicação</span>
                 </>
               )}
             </button>

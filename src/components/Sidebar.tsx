@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import SubscriptionStatus from './SubscriptionStatus';
 
 interface SidebarProps {
   onClose?: () => void;
@@ -185,6 +186,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                 {displayEmail}
               </p>
             </div>
+          </div>
+          
+          {/* Subscription Status */}
+          <div className="mt-4">
+            <SubscriptionStatus showDetails={false} />
           </div>
         </div>
 

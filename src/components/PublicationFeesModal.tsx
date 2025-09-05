@@ -1,5 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import { STRIPE_PRODUCTS, formatPrice } from '../stripe-config';
 
 interface PublicationFeesModalProps {
   isOpen: boolean;
@@ -7,38 +8,7 @@ interface PublicationFeesModalProps {
 }
 
 const PublicationFeesModal: React.FC<PublicationFeesModalProps> = ({ isOpen, onClose }) => {
-  const feeRanges = [
-    { min: 0, max: 100, fee: 7.00 },
-    { min: 100.01, max: 200, fee: 17.00 },
-    { min: 200.01, max: 400, fee: 27.00 },
-    { min: 400.01, max: 701, fee: 37.00 },
-    { min: 701.01, max: 1000, fee: 57.00 },
-    { min: 1000.01, max: 2000, fee: 67.00 },
-    { min: 2000.01, max: 4000, fee: 77.00 },
-    { min: 4000.01, max: 7000, fee: 127.00 },
-    { min: 7100.01, max: 10000, fee: 197.00 },
-    { min: 10000.01, max: 20000, fee: 247.00 },
-    { min: 20000.01, max: 30000, fee: 497.00 },
-    { min: 30000.01, max: 50000, fee: 997.00 },
-    { min: 50000.01, max: 70000, fee: 1297.00 },
-    { min: 70000.01, max: 100000, fee: 1997.00 },
-    { min: 100000.01, max: 150000, fee: 2997.00 },
-    { min: 150000.01, max: Infinity, fee: 3997.00 }
-  ];
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
-  const formatRange = (min: number, max: number) => {
-    if (max === Infinity) {
-      return `Acima de ${formatCurrency(min)}`;
-    }
-    return `${formatCurrency(min)} a ${formatCurrency(max)}`;
-  };
+  const rifaquiProduct = STRIPE_PRODUCTS.find(p => p.name === 'Rifaqui');
 
   if (!isOpen) return null;
 
@@ -61,37 +31,29 @@ const PublicationFeesModal: React.FC<PublicationFeesModalProps> = ({ isOpen, onC
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[60vh]">
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            As taxas de publicação são calculadas com base na arrecadação estimada da sua campanha.
+            A taxa de publicação é um valor fixo para ativar sua campanha na plataforma.
           </p>
 
-          {/* Fees Table */}
-          <div className="bg-gray-900 dark:bg-gray-800 rounded-lg overflow-hidden">
-            <div className="grid grid-cols-2 bg-gray-800 dark:bg-gray-700">
-              <div className="px-4 py-3 text-green-400 font-semibold text-center border-r border-gray-600">
-                ARRECADAÇÃO ESTIMADA
-              </div>
-              <div className="px-4 py-3 text-orange-400 font-semibold text-center">
-                TAXA DE PUBLICAÇÃO
-              </div>
-            </div>
-            
-            <div className="divide-y divide-gray-700">
-              {feeRanges.map((range, index) => (
-                <div key={index} className="grid grid-cols-2">
-                  <div className="px-4 py-3 text-green-300 text-sm border-r border-gray-700">
-                    {formatRange(range.min, range.max)}
-                  </div>
-                  <div className="px-4 py-3 text-orange-300 text-sm text-center">
-                    {formatCurrency(range.fee)}
-                  </div>
+          {/* Product Information */}
+          {rifaquiProduct && (
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-700/50 rounded-lg p-6 mb-6">
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  {rifaquiProduct.name}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  {rifaquiProduct.description}
+                </p>
+                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                  {formatPrice(rifaquiProduct.price, rifaquiProduct.currency)}
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              <strong>Importante:</strong> A taxa de publicação é cobrada uma única vez e permite que sua campanha seja publicada na plataforma. O valor é calculado automaticamente com base na arrecadação estimada (quantidade de cotas × valor por cota).
+              <strong>Importante:</strong> A taxa de publicação é cobrada uma única vez e permite que sua campanha seja publicada na plataforma. Este é um valor fixo independente do tamanho da sua campanha.
             </p>
           </div>
         </div>

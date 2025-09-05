@@ -3,6 +3,7 @@ import { CreateCampaignInput, UpdateCampaignInput, createCampaignSchema, updateC
 import { Campaign, CampaignStatus } from '../../types/campaign';
 import { generateUniqueSlug } from '../../utils/slugGenerator';
 import { ZodError } from 'zod';
+import { STRIPE_PRODUCTS } from '../../stripe-config';
 
 export class CampaignAPI {
   /**
@@ -294,27 +295,10 @@ export class CampaignAPI {
   }
 
   /**
-   * Calcula a taxa de publicação baseada na arrecadação estimada
+   * Retorna a taxa de publicação fixa do produto Rifaqui
    */
-  static calculatePublicationTax(totalTickets: number, ticketPrice: number): number {
-    const revenue = totalTickets * ticketPrice;
-    
-    if (revenue <= 100) return 7.00;
-    if (revenue <= 200) return 17.00;
-    if (revenue <= 400) return 27.00;
-    if (revenue <= 701) return 37.00;
-    if (revenue <= 1000) return 47.00;
-    if (revenue <= 2000) return 67.00;
-    if (revenue <= 4000) return 77.00;
-    if (revenue <= 7100) return 127.00;
-    if (revenue <= 10000) return 197.00;
-    if (revenue <= 20000) return 247.00;
-    if (revenue <= 30000) return 497.00;
-    if (revenue <= 50000) return 997.00;
-    if (revenue <= 70000) return 1497.00;
-    if (revenue <= 100000) return 1997.00;
-    if (revenue <= 150000) return 2997.00;
-    
-    return 3997.00;
+  static getPublicationTax(): number {
+    const rifaquiProduct = STRIPE_PRODUCTS.find(p => p.name === 'Rifaqui');
+    return rifaquiProduct?.price || 7.00;
   }
 }

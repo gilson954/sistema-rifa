@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
 import { useAuth } from '../context/AuthContext';
+import SubscriptionStatus from '../components/SubscriptionStatus';
 
 /**
  * Utility function to calculate time remaining until expiration
@@ -191,6 +192,9 @@ const DashboardPage = () => {
             </div>
           </div>
         )}
+
+        {/* Subscription Status Card */}
+        <SubscriptionStatus className="shadow-sm" />
 
         {/* Revenue Card */}
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 shadow-sm transition-colors duration-300">

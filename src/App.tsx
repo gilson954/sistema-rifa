@@ -27,6 +27,8 @@ import SocialMediaPage from './pages/SocialMediaPage';
 import TutorialsPage from './pages/TutorialsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import MyTicketsPage from './pages/MyTicketsPage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import PaymentCancelledPage from './pages/PaymentCancelledPage';
 import MultiStepFormContainer from './components/MultiStepFormContainer';
 import { MultiStepFormProvider } from './context/MultiStepFormContext';
 import { initialFormData } from './lib/validations/formSteps';
@@ -50,6 +52,10 @@ function App() {
           
           {/* Página de Confirmação de Pagamento */}
           <Route path="/payment-confirmation" element={<PaymentConfirmationPage />} />
+          
+          {/* Páginas de Resultado de Pagamento Stripe */}
+          <Route path="/payment-success" element={<PaymentSuccessPage />} />
+          <Route path="/payment-cancelled" element={<PaymentCancelledPage />} />
           
           {/* Página Minhas Cotas */}
           <Route path="/my-tickets" element={<MyTicketsPage />} />

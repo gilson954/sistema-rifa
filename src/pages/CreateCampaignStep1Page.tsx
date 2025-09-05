@@ -3,6 +3,7 @@ import { ArrowRight, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
 import PublicationFeesModal from '../components/PublicationFeesModal';
+import { STRIPE_PRODUCTS } from '../stripe-config';
 
 const CreateCampaignStep1Page = () => {
   const navigate = useNavigate();
@@ -61,23 +62,9 @@ const CreateCampaignStep1Page = () => {
   ];
 
   // Calculate publication tax based on estimated revenue
-  const calculatePublicationTax = (revenue: number): number => {
-    if (revenue <= 100) return 7.00;
-    if (revenue <= 200) return 17.00;
-    if (revenue <= 400) return 27.00;
-    if (revenue <= 701) return 37.00;
-    if (revenue <= 1000) return 57.00;
-    if (revenue <= 2000) return 67.00;
-    if (revenue <= 4000) return 77.00;
-    if (revenue <= 7000) return 127.00;
-    if (revenue <= 10000) return 197.00;
-    if (revenue <= 20000) return 247.00;
-    if (revenue <= 30000) return 497.00;
-    if (revenue <= 50000) return 997.00;
-    if (revenue <= 70000) return 1297.00;
-    if (revenue <= 100000) return 1997.00;
-    if (revenue <= 150000) return 2997.00;
-    return 3997.00;
+  const getPublicationTax = (): number => {
+    const rifaquiProduct = STRIPE_PRODUCTS.find(p => p.name === 'Rifaqui');
+    return rifaquiProduct?.price || 7.00;
   };
 
   // Update calculations when price or quantity changes
@@ -86,7 +73,7 @@ const CreateCampaignStep1Page = () => {
     const ticketPrice = parseFloat(price) / 100 || 0;
     const ticketQuantity = parseInt(quantity) || 0;
     const revenue = ticketPrice * ticketQuantity;
-    const tax = calculatePublicationTax(revenue);
+    const tax = getPublicationTax();
     
     setEstimatedRevenue(revenue);
     setPublicationTax(tax);

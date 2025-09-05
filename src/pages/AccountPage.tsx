@@ -3,6 +3,8 @@ import { Pencil, Upload, Link, Trash2, X, ArrowRight, ChevronDown, AlertTriangle
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import CountryPhoneSelect from '../components/CountryPhoneSelect';
+import SubscriptionStatus from '../components/SubscriptionStatus';
+import { useStripe } from '../hooks/useStripe';
 
 interface Country {
   code: string;
@@ -13,6 +15,7 @@ interface Country {
 
 const AccountPage = () => {
   const { user, signOut } = useAuth();
+  const { orders, getCompletedOrders } = useStripe();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -307,6 +310,48 @@ const AccountPage = () => {
 
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+      {/* Subscription Status */}
+      <div className="mb-8">
+        <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">
+          Status da Conta
+        </h2>
+        <SubscriptionStatus />
+      </div>
+
+      {/* Purchase History */}
+      {getCompletedOrders().length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">
+            Histórico de Compras
+          </h2>
+          <div className="space-y-3">
+            {getCompletedOrders().slice(0, 5).map((order) => (
+              <div
+                key={order.id}
+                className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 flex items-center justify-between"
+              >
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">
+                    Rifaqui - Taxa de Publicação
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    {new Date(order.created_at).toLocaleDateString('pt-BR')}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-medium text-gray-900 dark:text-white">
+                    R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}
+                  </div>
+                  <div className="text-sm text-green-600 dark:text-green-400">
+                    Pago
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Main Data Section */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
