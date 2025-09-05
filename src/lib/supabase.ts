@@ -255,6 +255,47 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+      stripe_orders: {
+        Row: {
+          id: string
+          user_id: string
+          stripe_session_id: string
+          stripe_customer_id: string
+          status: string
+          amount_total: number
+          currency: string
+          payment_status: string
+          metadata: any | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          stripe_session_id: string
+          stripe_customer_id: string
+          status: string
+          amount_total: number
+          currency?: string
+          payment_status: string
+          metadata?: any | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          stripe_session_id?: string
+          stripe_customer_id?: string
+          status?: string
+          amount_total?: number
+          currency?: string
+          payment_status?: string
+          metadata?: any | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
           id?: string
           campaign_id: string
           stripe_payment_intent_id: string
