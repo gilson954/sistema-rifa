@@ -58,6 +58,7 @@ const PublicationFeesModal: React.FC<PublicationFeesModalProps> = ({ isOpen, onC
                         \`Acima de ${formatPrice(tier.minRevenue! - 0.01)}`
                       ) : (
                         \`${formatPrice(tier.minRevenue!)} a ${formatPrice(tier.maxRevenue!)}`
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-green-600 dark:text-green-400">
                       {formatPrice(tier.price)}
