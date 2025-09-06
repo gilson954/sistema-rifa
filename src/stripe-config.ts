@@ -1,4 +1,3 @@
-```typescript
 export interface StripeProduct {
   id: string;
   priceId: string;
@@ -223,4 +222,3 @@ export const formatPrice = (price: number, currency: string = 'BRL'): string => 
     currency: currency.toUpperCase(),
   }).format(price);
 };
-```
