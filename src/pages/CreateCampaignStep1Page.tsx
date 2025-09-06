@@ -67,7 +67,7 @@ const CreateCampaignStep1Page = () => {
     const ticketPrice = parseFloat(price) / 100 || 0;
     const ticketQuantity = parseInt(quantity) || 0;
     const revenue = ticketPrice * ticketQuantity;
-    const tax = getPublicationTax();
+    const tax = CampaignAPI.getPublicationTax(revenue)?.price || 0;
 
     setEstimatedRevenue(revenue);
     setPublicationTax(tax);
