@@ -194,17 +194,17 @@ const CreateCampaignStep3Page = () => {
 
   const handlePreviousImage = () => {
     setCurrentImageIndex(prev => 
-      prev === 0 ? campaignData.images.length - 1 : prev - 1
+      prev === 0 ? prizeImages.length - 1 : prev - 1
     );
   };
 
   const handleNextImage = () => {
     setCurrentImageIndex(prev => 
-      prev === campaignData.images.length - 1 ? 0 : prev + 1
+      prev === prizeImages.length - 1 ? 0 : prev + 1
     );
   };
 
-  const currentImage = campaignData.images[currentImageIndex];
+  const currentImage = prizeImages[currentImageIndex];
 
   // Cálculos dinâmicos
   const estimatedRevenue = totalTickets * ticketPrice;
@@ -408,13 +408,13 @@ const CreateCampaignStep3Page = () => {
             <div className="relative group rounded-lg overflow-hidden">
               {/* Image Gallery */}
               <img
-                src={currentImage}
-                alt={campaignData.title}
+                src={prizeImages[currentImageIndex]}
+                alt={campaignTitle}
                 className="w-full h-64 object-cover rounded-lg transition-opacity duration-300"
               />
               
               {/* Navigation Arrows (only show if multiple prizeImages) */}
-              {campaignData.images.length > 1 && (
+              {prizeImages.length > 1 && (
                 <>
                   <button
                     onClick={handlePreviousImage}
@@ -435,12 +435,12 @@ const CreateCampaignStep3Page = () => {
               {/* Image Counter */}
               {prizeImages.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
-                  {currentImageIndex + 1} / {campaignData.images.length}
+                  {currentImageIndex + 1} / {prizeImages.length}
                 </div>
               )}
               
               {/* Thumbnail Strip */}
-              {campaignData.images.length > 1 && (
+              {prizeImages.length > 1 && (
                 <div className="flex space-x-2 mt-4 overflow-x-auto pb-2 px-2">
                   {prizeImages.map((image, index) => (
                     <button
@@ -483,7 +483,6 @@ const CreateCampaignStep3Page = () => {
             {/* Campaign Details */}
             <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                {campaignData.title}
                 {campaignTitle}
               </h3>
               
