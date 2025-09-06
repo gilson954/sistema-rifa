@@ -3,7 +3,7 @@ import { ArrowLeft, Edit, Eye, CreditCard, TrendingUp, AlertCircle, ChevronLeft,
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaign, useCampaignWithRefetch } from '../hooks/useCampaigns';
 import { StripeAPI } from '../lib/api/stripe';
-import { STRIPE_PRODUCTS } from '../stripe-config';
+import { STRIPE_PRODUCTS, formatPrice } from '../stripe-config';
 
 // Declare Stripe global variable
 declare global {
