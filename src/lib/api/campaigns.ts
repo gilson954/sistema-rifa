@@ -3,7 +3,7 @@ import { CreateCampaignInput, UpdateCampaignInput, createCampaignSchema, updateC
 import { Campaign, CampaignStatus } from '../../types/campaign';
 import { generateUniqueSlug } from '../../utils/slugGenerator';
 import { ZodError } from 'zod';
-import { STRIPE_PRODUCTS } from '../../stripe-config';
+import { STRIPE_PRODUCTS, getPublicationProductByRevenue } from '../../stripe-config';
 
 export class CampaignAPI {
   /**
