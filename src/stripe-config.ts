@@ -12,7 +12,7 @@ export interface StripeProduct {
 
 export const STRIPE_PRODUCTS: StripeProduct[] = [
   {
-    id: 'prod_Rifaqui_7',
+    id: 'prod_Sz9FzGB0dkzBSU',
     priceId: 'price_1S3AwiPYLlPdMwZvznZO3bEZ',
     name: 'Rifaqui - Taxa de Publicação (R$ 0-100)',
     description: 'Taxa de publicação para ativar sua campanha na plataforma Rifaqui',
