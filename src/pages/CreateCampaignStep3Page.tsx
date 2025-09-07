@@ -90,7 +90,7 @@ const CreateCampaignStep3Page = () => {
       const { data: checkoutData, error } = await StripeAPI.createCheckoutSession({
         priceId: publicationProduct.priceId,
         campaignId: campaignId,
-        successUrl: `${window.location.origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        successUrl: `${window.location.origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&campaign_id=${campaignId}`,
         cancelUrl: `${window.location.origin}/payment-cancelled`
       });
 
