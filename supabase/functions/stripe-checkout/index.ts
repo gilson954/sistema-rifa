@@ -326,10 +326,9 @@ Deno.serve(async (req: Request) => {
 
     // In production, you would call Stripe API to create checkout session here
     // For now, we'll simulate the response
-    const mockCheckoutSessionId = `cs_mock_${Date.now()}`
     const mockCheckoutSession = {
-      id: mockCheckoutSessionId,
-      url: (successUrl || `${req.headers.get('origin')}/payment-success?session_id={CHECKOUT_SESSION_ID}`).replace('{CHECKOUT_SESSION_ID}', mockCheckoutSessionId)
+      id: `cs_mock_${Date.now()}`,
+      url: successUrl || `${req.headers.get('origin')}/payment-success?session_id=cs_mock_${Date.now()}`
     }
 
     // Save checkout session record to database if campaignId is provided
