@@ -20,6 +20,7 @@ import { useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
 import { useAuth } from '../context/AuthContext';
 import SubscriptionStatus from '../components/SubscriptionStatus';
+import { supabase } from '../lib/supabase';
 
 /**
  * Utility function to calculate time remaining until expiration
@@ -52,6 +53,7 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const { campaigns, loading: campaignsLoading, deleteCampaign } = useCampaigns();
   const { user } = useAuth();
+  const [refreshingCampaigns, setRefreshingCampaigns] = useState(false);
 
   // Check if payment is configured on component mount and when user changes
   useEffect(() => {
@@ -86,6 +88,48 @@ const DashboardPage = () => {
 
     checkPaymentConfiguration();
   }, [user]);
+
+  // Set up real-time subscription for campaign updates
+  useEffect(() => {
+    if (!user) return;
+
+    console.log('🔄 Setting up real-time subscription for campaigns...');
+
+    const channel = supabase
+      .channel(`campaigns_${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'campaigns',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('📡 Campaign update detected:', payload);
+          // Refresh campaigns list when any campaign is updated
+          refreshCampaigns();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('🔌 Unsubscribing from campaign updates');
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  const refreshCampaigns = async () => {
+    setRefreshingCampaigns(true);
+    try {
+      // Force refresh campaigns by calling the API directly
+      window.location.reload(); // Simple but effective way to refresh all data
+    } catch (error) {
+      console.error('Error refreshing campaigns:', error);
+    } finally {
+      setRefreshingCampaigns(false);
+    }
+  };
 
   const handleConfigurePayment = () => {
     navigate('/dashboard/integrations');
@@ -295,8 +339,17 @@ const DashboardPage = () => {
                         <div className="flex items-center space-x-2 p-2 rounded-lg text-sm bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
                           <CheckCircle className="h-4 w-4" />
                           <span>
-                            Taxa paga - Campanha será ativada em breve
+                            Taxa paga - {campaign.status === 'active' ? 'Campanha ativa!' : 'Ativando campanha...'}
                           </span>
+                          {campaign.status !== 'active' && (
+                            <button
+                              onClick={refreshCampaigns}
+                              disabled={refreshingCampaigns}
+                              className="ml-2 text-xs bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded"
+                            >
+                              {refreshingCampaigns ? 'Atualizando...' : 'Atualizar'}
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}
