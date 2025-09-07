@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import Stripe from 'npm:stripe@^14.0.0'
 
 // Import Stripe products configuration
 const STRIPE_PRODUCTS = [
@@ -224,6 +225,25 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    // Initialize Stripe with secret key
+    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY')
+    if (!stripeSecretKey) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Stripe secret key not configured'
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: '2024-06-20',
+    })
+
     // Initialize Supabase client with service role key for admin operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -324,12 +344,20 @@ Deno.serve(async (req: Request) => {
 
     console.log('💳 Creating Checkout Session with data:', checkoutSessionData)
 
-    // In production, you would call Stripe API to create checkout session here
-    // For now, we'll simulate the response
-    const mockCheckoutSession = {
-      id: `cs_mock_${Date.now()}`,
-      url: `https://checkout.stripe.com/pay/cs_mock_${Date.now()}#mock_checkout_url`
-    }
+    // Create real Stripe checkout session
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [{
+        price: priceId,
+        quantity: 1,
+      }],
+      success_url: checkoutSessionData.success_url,
+      cancel_url: checkoutSessionData.cancel_url,
+      metadata: checkoutSessionData.metadata,
+      payment_method_types: ['card'],
+      billing_address_collection: 'required',
+      customer_creation: 'always',
+    })
 
     // Save checkout session record to database if campaignId is provided
     if (campaignId) {
@@ -346,8 +374,8 @@ Deno.serve(async (req: Request) => {
           .from('stripe_orders')
           .insert({
             user_id: campaign.user_id, // Use the campaign owner's user_id
-            stripe_session_id: mockCheckoutSession.id,
-            stripe_customer_id: 'cus_mock_customer',
+            stripe_session_id: session.id,
+            stripe_customer_id: session.customer as string || 'pending',
             status: 'open',
             amount_total: Math.round(product.price * 100), // Convert to cents
             currency: 'brl',
@@ -361,11 +389,12 @@ Deno.serve(async (req: Request) => {
         }
       }
     }
+
     // Prepare response
     const response: CheckoutResponse = {
       success: true,
-      checkout_url: mockCheckoutSession.url,
-      session_id: mockCheckoutSession.id
+      checkout_url: session.url!,
+      session_id: session.id
     }
 
     return new Response(
