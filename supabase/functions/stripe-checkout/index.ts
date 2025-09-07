@@ -352,6 +352,7 @@ Deno.serve(async (req: Request) => {
 
     // Save checkout session record to database if campaignId is provided
     if (campaignId) {
+    }
     // Prepare response
     const response: CheckoutResponse = {
       success: true,
