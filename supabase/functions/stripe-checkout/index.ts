@@ -328,7 +328,7 @@ Deno.serve(async (req: Request) => {
     // For now, we'll simulate the response
     const mockCheckoutSession = {
       id: `cs_mock_${Date.now()}`,
-      url: successUrl || `${req.headers.get('origin')}/payment-success?session_id=cs_mock_${Date.now()}`
+      url: `https://checkout.stripe.com/pay/cs_mock_${Date.now()}#mock_checkout_url`
     }
 
     // Save checkout session record to database if campaignId is provided
