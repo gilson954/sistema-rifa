@@ -303,25 +303,6 @@ Deno.serve(async (req: Request) => {
           }
         )
       }
-
-      // Save checkout session record to database
-      const { error: orderError } = await supabase
-        .from('stripe_orders')
-        .insert({
-          user_id: campaign.user_id, // Use the campaign owner's user_id
-          stripe_session_id: mockCheckoutSession.id,
-          stripe_customer_id: 'cus_mock_customer',
-          status: 'open',
-          amount_total: Math.round(product.price * 100), // Convert to cents
-          currency: 'brl',
-          payment_status: 'unpaid',
-          metadata: checkoutSessionData.metadata
-        })
-
-      if (orderError) {
-        console.error('❌ Error saving order record:', orderError)
-        // Continue anyway, as the checkout session was created
-      }
     }
 
     // Create Stripe Checkout Session (mock implementation)
@@ -352,6 +333,33 @@ Deno.serve(async (req: Request) => {
 
     // Save checkout session record to database if campaignId is provided
     if (campaignId) {
+      // Get campaign data that was already fetched above
+      const { data: campaign } = await supabase
+        .from('campaigns')
+        .select('user_id')
+        .eq('id', campaignId)
+        .single()
+
+      if (campaign) {
+        // Save checkout session record to database
+        const { error: orderError } = await supabase
+          .from('stripe_orders')
+          .insert({
+            user_id: campaign.user_id, // Use the campaign owner's user_id
+            stripe_session_id: mockCheckoutSession.id,
+            stripe_customer_id: 'cus_mock_customer',
+            status: 'open',
+            amount_total: Math.round(product.price * 100), // Convert to cents
+            currency: 'brl',
+            payment_status: 'unpaid',
+            metadata: checkoutSessionData.metadata
+          })
+
+        if (orderError) {
+          console.error('❌ Error saving order record:', orderError)
+          // Continue anyway, as the checkout session was created
+        }
+      }
     }
     // Prepare response
     const response: CheckoutResponse = {
