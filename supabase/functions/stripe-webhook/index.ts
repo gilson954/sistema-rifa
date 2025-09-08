@@ -97,7 +97,7 @@ Deno.serve(async (req: Request) => {
     try {
       if (webhookSecret && signature) {
         // Verify webhook signature (recommended for production)
-        event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
+        event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret)
         console.log('✅ Webhook signature verified')
       } else {
         // Parse directly without verification (for testing only)
