@@ -149,7 +149,7 @@ const CampaignPage = () => {
             .from('profiles')
             .select('id, name, email, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme')
             .eq('id', campaign.user_id)
-            .single();
+            .maybeSingle();
           
           if (error) {
             console.error('Error loading organizer profile:', error);
