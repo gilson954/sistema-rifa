@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Eye, 
-  EyeOff, 
   Plus, 
   Share2,
   Play,
@@ -47,7 +45,6 @@ const getTimeRemaining = (expiresAt: string) => {
 };
 
 const DashboardPage = () => {
-  const [showRevenue, setShowRevenue] = useState(false);
   const [displayPaymentSetupCard, setDisplayPaymentSetupCard] = useState(true);
   const navigate = useNavigate();
   const { campaigns, loading: campaignsLoading } = useCampaigns();
@@ -121,7 +118,6 @@ const DashboardPage = () => {
   const refreshCampaigns = async () => {
     setRefreshingCampaigns(true);
     try {
-      // Force refresh campaigns by calling the API directly
       window.location.reload(); // Simple but effective way to refresh all data
     } catch (error) {
       console.error('Error refreshing campaigns:', error);
@@ -147,13 +143,10 @@ const DashboardPage = () => {
   };
 
   const handleViewCampaign = (campaignId: string) => {
-    // Busca a campanha para obter o slug
     const campaign = campaigns.find(c => c.id === campaignId);
     if (campaign?.slug) {
-      // Abre em nova aba para visualizar como usuário final
       window.open(`/c/${campaign.slug}`, '_blank');
     } else {
-      // Fallback para ID se não houver slug
       window.open(`/c/${campaignId}`, '_blank');
     }
   };
@@ -207,7 +200,7 @@ const DashboardPage = () => {
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 sm:p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300 min-h-[calc(100vh-200px)]">
       <div className="space-y-6">
-        {/* Payment Setup Card - Only show if payment is not configured */}
+        {/* Payment Setup Card */}
         {displayPaymentSetupCard && (
           <div className="bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/50 dark:to-blue-900/50 border border-purple-200 dark:border-purple-700/50 rounded-lg p-4 shadow-sm transition-colors duration-300">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -236,6 +229,7 @@ const DashboardPage = () => {
 
         {/* Subscription Status Card */}
         <SubscriptionStatus className="shadow-sm" />
+
         {/* Create Campaign Button */}
         <div className="flex justify-center">
           <button 
@@ -269,13 +263,13 @@ const DashboardPage = () => {
                         : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
                     }`}
                   >
-                    {/* Expiration Alert for Draft Campaigns */}
+                    {/* Expiration Alert */}
                     {campaign.status === 'draft' && campaign.expires_at && !campaign.is_paid && (
                       <div className="mb-3">
                         {(() => {
                           const timeRemaining = getTimeRemaining(campaign.expires_at);
                           const isUrgent = !timeRemaining.expired && campaign.expires_at && 
-                            new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000; // Less than 24 hours
+                            new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000;
                           
                           return (
                             <div className={`flex items-center space-x-2 p-2 rounded-lg text-sm ${
@@ -298,7 +292,7 @@ const DashboardPage = () => {
                       </div>
                     )}
 
-                    {/* Payment Success Alert for Paid Draft Campaigns */}
+                    {/* Payment Success Alert */}
                     {campaign.status === 'draft' && campaign.is_paid && (
                       <div className="mb-3">
                         <div className="flex items-center space-x-2 p-2 rounded-lg text-sm bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
@@ -407,7 +401,6 @@ const DashboardPage = () => {
                             Visualizar
                           </button>
                           
-                          {/* Publish Button - Only show for draft campaigns that are not paid */}
                           {campaign.status === 'draft' && !campaign.is_paid && (
                             <button
                               onClick={() => handlePublishCampaign(campaign.id)}
@@ -433,5 +426,30 @@ const DashboardPage = () => {
           </div>
         )}
 
+        {/* Video Tutorial Section */}
+        <div className="w-full max-w-2xl mx-auto">
+          <div className="text-center mb-6">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-300">
+              Aprenda a criar uma rifa
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors duration-300">
+              Assista ao tutorial abaixo para aprender a criar sua primeira campanha
+            </p>
+          </div>
+          <div className="aspect-video rounded-lg overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
+            <iframe
+              className="w-full h-full"
+              src="https://www.youtube.com/embed/2XH7ZJ3HwJ0"
+              title="Tutorial de Criação de Rifas"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default DashboardPage;
