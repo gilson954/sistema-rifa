@@ -659,7 +659,7 @@ const CampaignPage = () => {
             <img
               src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
               alt={campaign.title}
-              className="w-full h-[200px] sm:h-[500px] object-cover"
+              className="w-full h-[400px] sm:h-[500px] object-cover"
               onClick={() => handleImageClick(currentImageIndex)}
               style={{ cursor: 'pointer' }}
             />
