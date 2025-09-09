@@ -982,7 +982,7 @@ const CampaignPage = () => {
             </div>
           ) : (
             <>
-              {/* Campaign Unavailable Alert for Automatic Mode */}
+              {/* Campaign Unavailable Alert */}
               {!isCampaignAvailable && (
                 <div className="bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-800 rounded-lg p-4 mb-4">
                   <div className="flex items-center space-x-3">
