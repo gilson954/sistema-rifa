@@ -426,30 +426,4 @@ const DashboardPage = () => {
           </div>
         )}
 
-        {/* Video Tutorial Section */}
-        <div className="w-full max-w-2xl mx-auto">
-          <div className="text-center mb-6">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-300">
-              Aprenda a criar uma rifa
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors duration-300">
-              Assista ao tutorial abaixo para aprender a criar sua primeira campanha
-            </p>
-          </div>
-          <div className="aspect-video rounded-lg overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
-            <iframe
-              className="w-full h-full"
-              src="https://www.youtube.com/embed/2XH7ZJ3HwJ0"
-              title="Tutorial de Criação de Rifas"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export default DashboardPage;
