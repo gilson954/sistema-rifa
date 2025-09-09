@@ -236,38 +236,6 @@ const DashboardPage = () => {
 
         {/* Subscription Status Card */}
         <SubscriptionStatus className="shadow-sm" />
-
-        {/* Revenue Card */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 shadow-sm transition-colors duration-300">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-start sm:items-center space-x-4 flex-1 min-w-0">
-              <div className="text-3xl sm:text-4xl font-bold text-purple-600 dark:text-purple-400 flex-shrink-0">$</div>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white transition-colors duration-300">
-                  Total arrecadado
-                </h3>
-                <div className="flex items-center space-x-2">
-                  {showRevenue ? (
-                    <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white transition-colors duration-300">
-                      R$ 0,00
-                    </span>
-                  ) : (
-                    <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white transition-colors duration-300">
-                      ★★★★★★★★
-                    </span>
-                  )}
-                  <button
-                    onClick={() => setShowRevenue(!showRevenue)}
-                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors duration-200"
-                  >
-                    {showRevenue ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Create Campaign Button */}
         <div className="flex justify-center">
           <button 
