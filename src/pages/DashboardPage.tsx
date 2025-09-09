@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
+  Eye, 
+  EyeOff, 
   Plus, 
   Share2,
   Play,
@@ -45,6 +47,7 @@ const getTimeRemaining = (expiresAt: string) => {
 };
 
 const DashboardPage = () => {
+  const [showRevenue, setShowRevenue] = useState(false);
   const [displayPaymentSetupCard, setDisplayPaymentSetupCard] = useState(true);
   const navigate = useNavigate();
   const { campaigns, loading: campaignsLoading } = useCampaigns();
@@ -118,6 +121,7 @@ const DashboardPage = () => {
   const refreshCampaigns = async () => {
     setRefreshingCampaigns(true);
     try {
+      // Force refresh campaigns by calling the API directly
       window.location.reload(); // Simple but effective way to refresh all data
     } catch (error) {
       console.error('Error refreshing campaigns:', error);
@@ -143,10 +147,13 @@ const DashboardPage = () => {
   };
 
   const handleViewCampaign = (campaignId: string) => {
+    // Busca a campanha para obter o slug
     const campaign = campaigns.find(c => c.id === campaignId);
     if (campaign?.slug) {
+      // Abre em nova aba para visualizar como usuário final
       window.open(`/c/${campaign.slug}`, '_blank');
     } else {
+      // Fallback para ID se não houver slug
       window.open(`/c/${campaignId}`, '_blank');
     }
   };
@@ -200,7 +207,7 @@ const DashboardPage = () => {
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 sm:p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300 min-h-[calc(100vh-200px)]">
       <div className="space-y-6">
-        {/* Payment Setup Card */}
+        {/* Payment Setup Card - Only show if payment is not configured */}
         {displayPaymentSetupCard && (
           <div className="bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/50 dark:to-blue-900/50 border border-purple-200 dark:border-purple-700/50 rounded-lg p-4 shadow-sm transition-colors duration-300">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -229,7 +236,6 @@ const DashboardPage = () => {
 
         {/* Subscription Status Card */}
         <SubscriptionStatus className="shadow-sm" />
-
         {/* Create Campaign Button */}
         <div className="flex justify-center">
           <button 
@@ -263,13 +269,13 @@ const DashboardPage = () => {
                         : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
                     }`}
                   >
-                    {/* Expiration Alert */}
+                    {/* Expiration Alert for Draft Campaigns */}
                     {campaign.status === 'draft' && campaign.expires_at && !campaign.is_paid && (
                       <div className="mb-3">
                         {(() => {
                           const timeRemaining = getTimeRemaining(campaign.expires_at);
                           const isUrgent = !timeRemaining.expired && campaign.expires_at && 
-                            new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000;
+                            new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000; // Less than 24 hours
                           
                           return (
                             <div className={`flex items-center space-x-2 p-2 rounded-lg text-sm ${
@@ -292,7 +298,7 @@ const DashboardPage = () => {
                       </div>
                     )}
 
-                    {/* Payment Success Alert */}
+                    {/* Payment Success Alert for Paid Draft Campaigns */}
                     {campaign.status === 'draft' && campaign.is_paid && (
                       <div className="mb-3">
                         <div className="flex items-center space-x-2 p-2 rounded-lg text-sm bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
@@ -401,6 +407,7 @@ const DashboardPage = () => {
                             Visualizar
                           </button>
                           
+                          {/* Publish Button - Only show for draft campaigns that are not paid */}
                           {campaign.status === 'draft' && !campaign.is_paid && (
                             <button
                               onClick={() => handlePublishCampaign(campaign.id)}
@@ -432,19 +439,55 @@ const DashboardPage = () => {
             <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-300">
               Aprenda a criar uma rifa
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors duration-300">
-              Assista ao tutorial abaixo para aprender a criar sua primeira campanha
+            <p className="text-gray-600 dark:text-gray-400 transition-colors duration-300 text-sm sm:text-base">
+              Criamos um vídeo explicando todos os passos para você criar sua campanha
             </p>
           </div>
-          <div className="aspect-video rounded-lg overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
-            <iframe
-              className="w-full h-full"
-              src="https://www.youtube.com/embed/2XH7ZJ3HwJ0"
-              title="Tutorial de Criação de Rifas"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+          
+          <div className="relative bg-gray-900 rounded-lg overflow-hidden shadow-lg group cursor-pointer">
+            {/* Video Thumbnail */}
+            <div className="aspect-video bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center relative">
+              <div className="absolute inset-0 bg-black/20"></div>
+              
+              {/* Play Button */}
+              <div className="relative z-10 w-16 h-16 sm:w-20 sm:h-20 bg-white/90 rounded-full flex items-center justify-center group-hover:bg-white transition-colors duration-200">
+                <Play className="h-6 w-6 sm:h-8 sm:w-8 text-gray-900 ml-1" fill="currentColor" />
+              </div>
+              
+              {/* Video Title Overlay */}
+              <div className="absolute bottom-4 left-4 right-4 z-10">
+                <h3 className="text-white font-semibold text-sm sm:text-lg mb-1">Como criar uma rifa online</h3>
+                <p className="text-white/80 text-xs sm:text-sm">Rifaqui • 5:32</p>
+              </div>
+              
+              {/* YouTube-style elements */}
+              <div className="absolute top-4 right-4 z-10">
+                <div className="bg-black/60 text-white text-xs px-2 py-1 rounded">
+                  HD
+                </div>
+              </div>
+            </div>
+            
+            {/* Video Info */}
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 transition-colors duration-300">
+              <div className="flex items-start space-x-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <img 
+                    src="/logo criado pelo Chatgpt.png" 
+                    alt="Rifaqui" 
+                    className="w-4 h-4 sm:w-6 sm:h-6 object-contain"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-gray-900 dark:text-white transition-colors duration-300 text-sm sm:text-base">
+                    Tutorial completo: Como criar sua primeira rifa
+                  </h4>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1 transition-colors duration-300">
+                    Rifaqui • 12.5K visualizações • há 2 dias
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
