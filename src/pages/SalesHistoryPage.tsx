@@ -349,10 +349,10 @@ const SalesHistoryPage = () => {
                 <span className="text-sm font-medium text-purple-800 dark:text-purple-200">Visitas</span>
               </div>
               <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                N/A
+                {metrics.website_visits || 'N/A'}
               </div>
               <div className="text-sm text-purple-700 dark:text-purple-300">
-                Site público
+                Campanha pública
               </div>
             </div>
 
@@ -384,6 +384,7 @@ const SalesHistoryPage = () => {
               </div>
             </div>
 
+            {/* Total Sales */}
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
               <div className="flex items-center space-x-2 mb-2">
                 <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -397,6 +398,7 @@ const SalesHistoryPage = () => {
               </div>
             </div>
 
+            {/* Total Reservations */}
             <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
               <div className="flex items-center space-x-2 mb-2">
                 <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
@@ -410,6 +412,7 @@ const SalesHistoryPage = () => {
               </div>
             </div>
 
+            {/* Reserved Unpaid */}
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
               <div className="flex items-center space-x-2 mb-2">
                 <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
@@ -507,10 +510,10 @@ const SalesHistoryPage = () => {
           <div className="text-center py-12">
             <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Use a busca para encontrar transações
+              Não há histórico de vendas
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              Digite um termo de busca acima para visualizar as transações desta campanha.
+              Faça uma venda ou reserva para começar a contabilizar as transações :D
             </p>
           </div>
         ) : (
