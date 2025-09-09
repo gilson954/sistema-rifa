@@ -690,23 +690,15 @@ const CampaignPage = () => {
               </div>
             )}
 
-           {/* Price Badge */}
-<div className="absolute top-2 left-2 sm:top-4 sm:left-4 
-                bg-white bg-opacity-95 backdrop-blur-sm 
-                px-2 py-1 sm:px-3 sm:py-1.5 
-                rounded-full shadow-lg">
-  <div className="flex items-center space-x-1 sm:space-x-2">
-    <span className="text-xs sm:text-sm text-gray-600">
-      Participe por apenas
-    </span>
-    <span 
-      className="font-bold text-sm sm:text-base md:text-lg" 
-      style={{ color: primaryColor }}
-    >
-      {formatCurrency(campaign.ticket_price)}
-    </span>
-  </div>
-</div>
+            {/* Price Badge */}
+            <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white bg-opacity-95 backdrop-blur-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-lg">
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <span className="text-xs sm:text-sm text-gray-600">Participe por apenas</span>
+                <span className="font-bold text-sm sm:text-base md:text-lg"style={{ color: primaryColor }}>
+                  {formatCurrency(campaign.ticket_price)}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Thumbnail Strip */}
