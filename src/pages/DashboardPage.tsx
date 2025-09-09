@@ -4,7 +4,6 @@ import {
   EyeOff, 
   Plus, 
   Share2,
-  Play,
   Calendar,
   Users,
   DollarSign,
