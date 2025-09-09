@@ -142,6 +142,10 @@ const DashboardPage = () => {
     navigate(`/dashboard/create-campaign/step-2?id=${campaignId}`);
   };
 
+  const handlePublishCampaign = (campaignId: string) => {
+    navigate(`/dashboard/create-campaign/step-3?id=${campaignId}`);
+  };
+
   const handleViewCampaign = (campaignId: string) => {
     // Busca a campanha para obter o slug
     const campaign = campaigns.find(c => c.id === campaignId);
@@ -427,23 +431,30 @@ const DashboardPage = () => {
                         </div>
                         
                         {/* Action Buttons */}
-                        <div className="flex items-center space-x-2 mt-3">
+                        <div className="flex flex-wrap gap-2 mt-3">
                           <button
                             onClick={() => handleViewCampaign(campaign.id)}
-                            className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
-                            title="Visualizar campanha"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
                           >
-                            <Eye className="h-4 w-4" />
+                            Visualizar
                           </button>
+                          
+                          {/* Publish Button - Only show for draft campaigns that are not paid */}
+                          {campaign.status === 'draft' && !campaign.is_paid && (
+                            <button
+                              onClick={() => handlePublishCampaign(campaign.id)}
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
+                            >
+                              Publicar
+                            </button>
+                          )}
                           
                           <button
                             onClick={() => handleEditCampaign(campaign.id)}
-                            className="p-2 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
-                            title="Editar campanha"
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
                           >
-                            <Edit className="h-4 w-4" />
+                            Editar
                           </button>
-                          
                         </div>
                       </div>
                     </div>
