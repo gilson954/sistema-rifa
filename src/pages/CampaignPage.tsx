@@ -984,14 +984,14 @@ const CampaignPage = () => {
             <>
               {/* Campaign Unavailable Alert for Automatic Mode */}
               {!isCampaignAvailable && (
-                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
+                <div className="bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-800 rounded-lg p-4 mb-4">
                   <div className="flex items-center space-x-3">
-                    <AlertTriangle className="h-6 w-6 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+                    <AlertTriangle className="h-6 w-6 text-orange-700 dark:text-orange-400 flex-shrink-0" />
                     <div>
-                      <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
+                      <h4 className="font-semibold text-orange-900 dark:text-orange-200 mb-1">
                         Campanha Indisponível
                       </h4>
-                      <p className="text-sm text-orange-700 dark:text-orange-300">
+                      <p className="text-sm text-orange-800 dark:text-orange-300">
                         Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
                       </p>
                     </div>
