@@ -1,9 +1,11 @@
 import React from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import Layout from './components/Layout';
 import DashboardLayout from './components/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
+import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -34,18 +36,13 @@ import { initialFormData } from './lib/validations/formSteps';
 
 function App() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-          Rifaqui SaaS
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Sistema funcionando corretamente 🚀
-        </p>
-      </div>
-    </div>
-  );
-}
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Rotas Públicas */}
+          <Route path="/" element={<Layout />}>
+            <Route index element={<HomePage />} />
+          </Route>
 
           {/* Rotas de Autenticação */}
           <Route path="/login" element={<LoginPage />} />
