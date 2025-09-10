@@ -14,7 +14,6 @@ export interface Transaction {
 export interface SalesMetrics {
   unique_paid_participants: number;
   unique_reserved_unpaid_participants: number;
-  unique_reserved_unpaid_participants: number;
   total_sales_quantity: number;
   total_sales_value: number;
   total_reservations_quantity: number;
