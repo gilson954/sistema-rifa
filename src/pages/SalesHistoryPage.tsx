@@ -33,6 +33,7 @@ interface Transaction {
 interface SalesMetrics {
   unique_paid_participants: number;
   unique_reserved_unpaid_participants: number;
+  unique_reserved_unpaid_participants: number;
   total_sales_quantity: number;
   total_sales_value: number;
   total_reservations_quantity: number;
@@ -340,33 +341,22 @@ const SalesHistoryPage = () => {
             Relatório Resumido
           </h2>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {/* Website Visits */}
+            <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
               <div className="flex items-center space-x-2 mb-2">
-                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-                <span className="text-sm font-medium text-green-800 dark:text-green-200">Vendas</span>
+                <BarChart3 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <span className="text-sm font-medium text-purple-800 dark:text-purple-200">Visitas</span>
               </div>
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {metrics.total_sales_quantity}
+              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                {metrics.website_visits || 'N/A'}
               </div>
-              <div className="text-sm text-green-700 dark:text-green-300">
-                {formatCurrency(metrics.total_sales_value)}
+              <div className="text-sm text-purple-700 dark:text-purple-300">
+                Campanha pública
               </div>
             </div>
 
-            <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
-              <div className="flex items-center space-x-2 mb-2">
-                <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                <span className="text-sm font-medium text-orange-800 dark:text-orange-200">Reservas</span>
-              </div>
-              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                {metrics.total_reservations_quantity}
-              </div>
-              <div className="text-sm text-orange-700 dark:text-orange-300">
-                {formatCurrency(metrics.total_reservations_value)}
-              </div>
-            </div>
-
+            {/* Unique Paid Participants */}
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <div className="flex items-center space-x-2 mb-2">
                 <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -380,6 +370,49 @@ const SalesHistoryPage = () => {
               </div>
             </div>
 
+            {/* Unique Reserved Unpaid Participants */}
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">Participantes</span>
+              </div>
+              <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                {metrics.unique_reserved_unpaid_participants}
+              </div>
+              <div className="text-sm text-yellow-700 dark:text-yellow-300">
+                Únicos (reservaram sem pagar)
+              </div>
+            </div>
+
+            {/* Total Sales */}
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <span className="text-sm font-medium text-green-800 dark:text-green-200">Vendas</span>
+              </div>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                {metrics.total_sales_quantity}
+              </div>
+              <div className="text-sm text-green-700 dark:text-green-300">
+                {formatCurrency(metrics.total_sales_value)}
+              </div>
+            </div>
+
+            {/* Total Reservations */}
+            <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                <span className="text-sm font-medium text-orange-800 dark:text-orange-200">Reservas</span>
+              </div>
+              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                {metrics.total_reservations_quantity}
+              </div>
+              <div className="text-sm text-orange-700 dark:text-orange-300">
+                {formatCurrency(metrics.total_reservations_value)}
+              </div>
+            </div>
+
+            {/* Reserved Unpaid */}
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
               <div className="flex items-center space-x-2 mb-2">
                 <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
@@ -477,10 +510,10 @@ const SalesHistoryPage = () => {
           <div className="text-center py-12">
             <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Nenhuma transação encontrada
+              Não há histórico de vendas
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              Não há transações para os filtros selecionados.
+              Faça uma venda ou reserva para começar a contabilizar as transações :D
             </p>
           </div>
         ) : (
