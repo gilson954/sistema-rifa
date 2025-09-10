@@ -1,21 +1,21 @@
 import { supabase } from '../supabase';
 import { STRIPE_PRODUCTS, getProductByPriceId } from '../../stripe-config';
 
-export interface StripeCheckoutRequest {
+interface StripeCheckoutRequest {
   priceId: string;
   campaignId?: string;
   successUrl?: string;
   cancelUrl?: string;
 }
 
-export interface StripeCheckoutResponse {
+interface StripeCheckoutResponse {
   success: boolean;
   checkout_url?: string;
   session_id?: string;
   error?: string;
 }
 
-export interface StripeCustomer {
+interface StripeCustomer {
   id: string;
   user_id: string;
   stripe_customer_id: string;

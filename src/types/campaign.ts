@@ -37,7 +37,7 @@ export interface Campaign {
 
 export type CampaignStatus = 'draft' | 'active' | 'completed' | 'cancelled';
 
-export interface CreateCampaignData {
+interface CreateCampaignData {
   title: string;
   slug?: string;
   description?: string;
@@ -65,7 +65,7 @@ export interface CreateCampaignData {
   is_paid?: boolean;
 }
 
-export interface UpdateCampaignData extends Partial<CreateCampaignData> {
+interface UpdateCampaignData extends Partial<CreateCampaignData> {
   id: string;
   slug?: string;
   prize_image_urls?: string[];
@@ -77,7 +77,7 @@ export interface UpdateCampaignData extends Partial<CreateCampaignData> {
   is_paid?: boolean;
 }
 
-export interface CampaignFormData {
+interface CampaignFormData {
   title: string;
   ticketQuantity: number;
   ticketPrice: string;

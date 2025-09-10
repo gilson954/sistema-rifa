@@ -9,7 +9,7 @@ export const formatCurrency = (value: number): string => {
   }).format(value);
 };
 
-export const parseCurrency = (value: string): number => {
+const parseCurrency = (value: string): number => {
   // Remove "R$", pontos de milhar e substitui vírgula por ponto para parse
   const cleanedValue = value.replace(/[R$\s.]/g, '').replace(',', '.');
   return parseFloat(cleanedValue || '0');
