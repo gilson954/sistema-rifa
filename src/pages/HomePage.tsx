@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useRouteHistory } from '../hooks/useRouteHistory';
 import Hero from '../components/Hero';
+import HowItWorks from '../components/HowItWorks';
+// import Features from '../components/Features';  // removido temporariamente
 import FAQ from '../components/FAQ';
 import Footer from '../components/Footer';
 
@@ -43,6 +45,8 @@ const HomePage = () => {
   return (
     <>
       <Hero />
+      <HowItWorks />
+      {/* <Features /> removido */}
       <FAQ />
       <Footer />
     </>
