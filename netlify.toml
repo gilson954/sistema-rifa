@@ -30,7 +30,8 @@
 [[headers]]
   for = "*.js"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "text/javascript" # Adicione esta linha
+    Cache-Control = "public, max-age=31536000
 
 [[headers]]
   for = "*.css"
