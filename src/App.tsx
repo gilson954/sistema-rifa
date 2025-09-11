@@ -31,55 +31,55 @@ import SalesHistoryPage from './pages/SalesHistoryPage';
 import MultiStepFormContainer from './components/MultiStepFormContainer';
 import { MultiStepFormProvider } from './context/MultiStepFormContext';
 import { initialFormData } from './lib/validations/formSteps';
+import HomePage from './pages/HomePage';
 
 function App() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-          Rifaqui SaaS
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Sistema funcionando corretamente 🚀
-        </p>
-      </div>
-    </div>
-  );
-}
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Página inicial */}
+          <Route path="/" element={<HomePage />} />
 
           {/* Rotas de Autenticação */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          
+
           {/* Página Pública de Campanha */}
           <Route path="/c/:slug" element={<CampaignPage />} />
-          
+
           {/* Página de Confirmação de Pagamento */}
           <Route path="/payment-confirmation" element={<PaymentConfirmationPage />} />
-          
+
           {/* Páginas de Resultado de Pagamento Stripe */}
           <Route path="/payment-success" element={<PaymentSuccessPage />} />
           <Route path="/payment-cancelled" element={<PaymentCancelledPage />} />
-          
+
           {/* Página Minhas Cotas */}
           <Route path="/my-tickets" element={<MyTicketsPage />} />
-          
+
           {/* Rota de Login Administrativo */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
 
           {/* Admin Dashboard Protegido */}
-          <Route path="/admin/dashboard" element={
-            <AdminProtectedRoute>
-              <AdminDashboardPage />
-            </AdminProtectedRoute>
-          } />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AdminProtectedRoute>
+                <AdminDashboardPage />
+              </AdminProtectedRoute>
+            }
+          />
 
           {/* Dashboard Protegido */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }>
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<DashboardPage />} />
             <Route path="create-campaign" element={<CreateCampaignStep1Page />} />
             <Route path="create-campaign/step-2" element={<CreateCampaignStep2Page />} />
