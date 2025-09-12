@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
@@ -255,6 +255,36 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          id?: string
+          campaign_id: string
+          stripe_payment_intent_id: string
+          payment_method: 'pix' | 'card'
+          amount: number
+          currency?: string
+          status?: 'pending' | 'succeeded' | 'failed' | 'canceled'
+          qr_code_data?: string | null
+          qr_code_image_url?: string | null
+          client_secret?: string | null
+          metadata?: any | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          campaign_id?: string
+          stripe_payment_intent_id?: string
+          payment_method?: 'pix' | 'card'
+          amount?: number
+          currency?: string
+          status?: 'pending' | 'succeeded' | 'failed' | 'canceled'
+          qr_code_data?: string | null
+          qr_code_image_url?: string | null
+          client_secret?: string | null
+          metadata?: any | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
       stripe_orders: {
         Row: {
           id: string
@@ -291,36 +321,6 @@ export type Database = {
           amount_total?: number
           currency?: string
           payment_status?: string
-          metadata?: any | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
-          id?: string
-          campaign_id: string
-          stripe_payment_intent_id: string
-          payment_method: 'pix' | 'card'
-          amount: number
-          currency?: string
-          status?: 'pending' | 'succeeded' | 'failed' | 'canceled'
-          qr_code_data?: string | null
-          qr_code_image_url?: string | null
-          client_secret?: string | null
-          metadata?: any | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          campaign_id?: string
-          stripe_payment_intent_id?: string
-          payment_method?: 'pix' | 'card'
-          amount?: number
-          currency?: string
-          status?: 'pending' | 'succeeded' | 'failed' | 'canceled'
-          qr_code_data?: string | null
-          qr_code_image_url?: string | null
-          client_secret?: string | null
           metadata?: any | null
           created_at?: string
           updated_at?: string
