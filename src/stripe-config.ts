@@ -57,7 +57,7 @@ export const STRIPE_PRODUCTS: StripeProduct[] = [
   },
   {
     id: 'prod_Rifaqui_47',
-    priceId: 'price_PLACEHOLDER_47', // Placeholder for missing Price ID
+    priceId: 'price_1S44eoPYLlPdMwZv0ur6buAk',
     name: 'Rifaqui - Taxa de Publicação (R$ 701-1.000)',
     description: 'Taxa de publicação para ativar sua campanha na plataforma Rifaqui',
     price: 47.00,
