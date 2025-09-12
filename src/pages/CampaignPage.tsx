@@ -149,7 +149,7 @@ const CampaignPage = () => {
             .from('profiles')
             .select('id, name, email, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme')
             .eq('id', campaign.user_id)
-            .maybeSingle();
+            .single();
           
           if (error) {
             console.error('Error loading organizer profile:', error);
@@ -659,7 +659,7 @@ const CampaignPage = () => {
             <img
               src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
               alt={campaign.title}
-              className="w-full h-[300px] sm:h-[600px] object-cover"
+              className="w-full h-64 sm:h-80 object-cover"
               onClick={() => handleImageClick(currentImageIndex)}
               style={{ cursor: 'pointer' }}
             />
@@ -691,10 +691,10 @@ const CampaignPage = () => {
             )}
 
             {/* Price Badge */}
-            <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white bg-opacity-95 backdrop-blur-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-lg">
-              <div className="flex items-center space-x-1 sm:space-x-2">
-                <span className="text-xs sm:text-sm text-gray-600">Participe por apenas</span>
-                <span className="font-bold text-sm sm:text-base md:text-lg"style={{ color: primaryColor }}>
+            <div className="absolute top-4 left-4 bg-white bg-opacity-95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Participe por apenas</span>
+                <span className="font-bold text-base" style={{ color: primaryColor }}>
                   {formatCurrency(campaign.ticket_price)}
                 </span>
               </div>
@@ -982,11 +982,11 @@ const CampaignPage = () => {
             </div>
           ) : (
             <>
-              {/* Campaign Unavailable Alert */}
+              {/* Campaign Unavailable Alert for Automatic Mode */}
               {!isCampaignAvailable && (
-                <div className="bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-800 rounded-lg p-4">
+                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
                   <div className="flex items-center space-x-3">
-                    <AlertTriangle className="h-6 w-6 text-orange-700 dark:text-orange-400 flex-shrink-0" />
+                    <AlertTriangle className="h-6 w-6 text-orange-600 dark:text-orange-400 flex-shrink-0" />
                     <div>
                       <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
                         Campanha Indisponível
