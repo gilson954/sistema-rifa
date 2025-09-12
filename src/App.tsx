@@ -34,18 +34,22 @@ import { initialFormData } from './lib/validations/formSteps';
 
 function App() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-          Rifaqui SaaS
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Sistema funcionando corretamente 🚀
-        </p>
-      </div>
-    </div>
-  );
-}
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Rotas Públicas */}
+          <Route path="/" element={
+            <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center">
+              <div className="text-center">
+                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                  Rifaqui SaaS
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Sistema funcionando corretamente
+                </p>
+              </div>
+            </div>
+          } />
 
           {/* Rotas de Autenticação */}
           <Route path="/login" element={<LoginPage />} />
