@@ -29,7 +29,6 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import MyTicketsPage from './pages/MyTicketsPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import PaymentCancelledPage from './pages/PaymentCancelledPage';
-import SalesHistoryPage from './pages/SalesHistoryPage';
 import MultiStepFormContainer from './components/MultiStepFormContainer';
 import { MultiStepFormProvider } from './context/MultiStepFormContext';
 import { initialFormData } from './lib/validations/formSteps';
@@ -91,7 +90,6 @@ function App() {
             <Route path="customize" element={<CustomizationPage />} />
             <Route path="account" element={<AccountPage />} />
             <Route path="tutorials" element={<TutorialsPage />} />
-            <Route path="campaigns/:campaignId/sales-history" element={<SalesHistoryPage />} />
           </Route>
         </Routes>
       </Router>

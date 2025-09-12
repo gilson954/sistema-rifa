@@ -10,7 +10,7 @@ export interface UploadedImage {
   error?: string;
 }
 
-interface UseImageUploadReturn {
+export interface UseImageUploadReturn {
   images: UploadedImage[];
   uploading: boolean;
   uploadProgress: number;

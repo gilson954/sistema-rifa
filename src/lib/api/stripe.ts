@@ -65,11 +65,6 @@ export class StripeAPI {
         throw new Error('Product not found');
       }
 
-      console.log('🛒 Creating Stripe checkout session:', {
-        priceId: request.priceId,
-        campaignId: request.campaignId,
-        productName: product.name
-      });
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const response = await fetch(`${supabaseUrl}/functions/v1/stripe-checkout`, {
         method: 'POST',
@@ -87,11 +82,6 @@ export class StripeAPI {
 
       const result = await response.json();
 
-      console.log('📨 Stripe checkout response:', {
-        success: result.success,
-        hasCheckoutUrl: !!result.checkout_url,
-        sessionId: result.session_id
-      });
       if (!response.ok) {
         throw new Error(result.error || 'Checkout creation failed');
       }

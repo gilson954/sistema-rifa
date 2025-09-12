@@ -219,8 +219,6 @@ export const useCampaignWithRefetch = (id: string) => {
     setLoading(true);
     setError(null);
 
-    console.log('🔄 Fetching campaign data for ID:', id);
-
     const { data, error: apiError } = await CampaignAPI.getCampaignById(id);
 
     if (apiError) {
@@ -228,12 +226,6 @@ export const useCampaignWithRefetch = (id: string) => {
       console.error('Error fetching campaign:', apiError);
     } else {
       setCampaign(data);
-      console.log('✅ Campaign data fetched:', {
-        id: data?.id,
-        title: data?.title,
-        status: data?.status,
-        is_paid: data?.is_paid
-      });
     }
 
     setLoading(false);

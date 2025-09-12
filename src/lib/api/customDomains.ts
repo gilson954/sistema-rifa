@@ -12,12 +12,12 @@ export interface CustomDomain {
   updated_at: string;
 }
 
-interface CreateCustomDomainInput {
+export interface CreateCustomDomainInput {
   domain_name: string;
   campaign_id?: string;
 }
 
-interface UpdateCustomDomainInput {
+export interface UpdateCustomDomainInput {
   id: string;
   campaign_id?: string;
   is_verified?: boolean;

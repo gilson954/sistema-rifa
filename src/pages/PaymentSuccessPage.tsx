@@ -4,7 +4,6 @@ import { CheckCircle, ArrowRight, Home, Receipt, Loader2 } from 'lucide-react';
 import { StripeAPI } from '../lib/api/stripe';
 import { getProductByPriceId, formatPrice } from '../stripe-config';
 import { useAuth } from '../context/AuthContext';
-import { useCampaignWithRefetch } from '../hooks/useCampaigns';
 
 const PaymentSuccessPage = () => {
   const navigate = useNavigate();
@@ -13,13 +12,8 @@ const PaymentSuccessPage = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [campaignRefreshed, setCampaignRefreshed] = useState(false);
 
   const sessionId = searchParams.get('session_id');
-  const campaignId = searchParams.get('campaign_id');
-  
-  // Add campaign refetch hook
-  const { campaign, refetch: refetchCampaign } = useCampaignWithRefetch(campaignId || '');
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -37,13 +31,6 @@ const PaymentSuccessPage = () => {
           console.error('Error fetching order:', fetchError);
         } else {
           setOrder(data);
-          
-          // If we have a campaign ID and haven't refreshed yet, refetch campaign data
-          if (campaignId && !campaignRefreshed) {
-            console.log('🔄 Refreshing campaign data after payment success...');
-            await refetchCampaign();
-            setCampaignRefreshed(true);
-          }
         }
       } catch (error) {
         console.error('Error fetching order details:', error);
@@ -54,7 +41,7 @@ const PaymentSuccessPage = () => {
     };
 
     fetchOrderDetails();
-  }, [sessionId, campaignId, refetchCampaign, campaignRefreshed]);
+  }, [sessionId]);
 
   const handleGoToDashboard = () => {
     navigate('/dashboard');
@@ -174,10 +161,7 @@ const PaymentSuccessPage = () => {
             Próximos Passos
           </h4>
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            {campaign?.is_paid && campaign?.status === 'active' 
-              ? 'Sua campanha foi ativada com sucesso! Você já pode começar a receber participantes.'
-              : 'Sua campanha será ativada automaticamente em alguns instantes. Você receberá uma confirmação por email.'
-            }
+            Sua campanha será ativada automaticamente e você receberá uma confirmação por email.
           </p>
         </div>
 
