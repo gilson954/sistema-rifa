@@ -1,6 +1,6 @@
 import { supabase } from '../supabase';
 
-interface StripePayment {
+export interface StripePayment {
   id: string;
   campaign_id: string;
   stripe_payment_intent_id: string;
@@ -16,13 +16,13 @@ interface StripePayment {
   updated_at: string;
 }
 
-interface CreateStripePaymentRequest {
+export interface CreateStripePaymentRequest {
   campaign_id: string;
   amount: number;
   payment_method_type: 'pix' | 'card';
 }
 
-interface StripeCheckoutResponse {
+export interface StripeCheckoutResponse {
   success: boolean;
   client_secret?: string;
   qr_code_data?: string;
@@ -68,7 +68,7 @@ export interface PaymentIntegrationConfig {
   // paggue?: { ... };
 }
 
-interface CreatePaymentRequest {
+export interface CreatePaymentRequest {
   campaign_id: string;
   quota_numbers: number[];
   user_id: string;
@@ -77,7 +77,7 @@ interface CreatePaymentRequest {
   total_amount: number;
 }
 
-interface PaymentResponse {
+export interface PaymentResponse {
   payment_id: string;
   status: 'pending' | 'approved' | 'rejected';
   payment_url?: string;
