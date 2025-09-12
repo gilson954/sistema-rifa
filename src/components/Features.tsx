@@ -22,7 +22,7 @@ const Features = () => {
   const features = [
     {
       icon: Users,
-      title: 'Afiliados',
+      title: 'Afiliadoooooos',
       description: 'Adicione afiliados para ajudar a vender suas rifas e aumentar seu alcance com facilidade.'
     },
     {
