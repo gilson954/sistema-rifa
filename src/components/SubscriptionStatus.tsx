@@ -27,12 +27,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   const product = activeSubscription ? getSubscriptionProduct(activeSubscription) : null;
 
   if (!activeSubscription) {
-    return (
-      <div className={`flex items-center space-x-2 ${className}`}>
-        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-        <span className="text-sm text-gray-600 dark:text-gray-400">Plano Gratuito</span>
-      </div>
-    );
+    return null;
   }
 
   const getStatusIcon = (status: string) => {

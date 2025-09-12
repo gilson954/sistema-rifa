@@ -4,13 +4,11 @@ import {
   EyeOff, 
   Plus, 
   Share2,
-  Play,
   Calendar,
   Users,
   DollarSign,
   MoreVertical,
   Edit,
-  Trash2,
   Clock,
   AlertTriangle,
   CheckCircle
@@ -20,6 +18,7 @@ import { useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
 import { useAuth } from '../context/AuthContext';
 import SubscriptionStatus from '../components/SubscriptionStatus';
+import { supabase } from '../lib/supabase';
 
 /**
  * Utility function to calculate time remaining until expiration
@@ -50,8 +49,9 @@ const DashboardPage = () => {
   const [showRevenue, setShowRevenue] = useState(false);
   const [displayPaymentSetupCard, setDisplayPaymentSetupCard] = useState(true);
   const navigate = useNavigate();
-  const { campaigns, loading: campaignsLoading, deleteCampaign } = useCampaigns();
+  const { campaigns, loading: campaignsLoading } = useCampaigns();
   const { user } = useAuth();
+  const [refreshingCampaigns, setRefreshingCampaigns] = useState(false);
 
   // Check if payment is configured on component mount and when user changes
   useEffect(() => {
@@ -87,6 +87,48 @@ const DashboardPage = () => {
     checkPaymentConfiguration();
   }, [user]);
 
+  // Set up real-time subscription for campaign updates
+  useEffect(() => {
+    if (!user) return;
+
+    console.log('🔄 Setting up real-time subscription for campaigns...');
+
+    const channel = supabase
+      .channel(`campaigns_${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'campaigns',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('📡 Campaign update detected:', payload);
+          // Refresh campaigns list when any campaign is updated
+          refreshCampaigns();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('🔌 Unsubscribing from campaign updates');
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  const refreshCampaigns = async () => {
+    setRefreshingCampaigns(true);
+    try {
+      // Force refresh campaigns by calling the API directly
+      window.location.reload(); // Simple but effective way to refresh all data
+    } catch (error) {
+      console.error('Error refreshing campaigns:', error);
+    } finally {
+      setRefreshingCampaigns(false);
+    }
+  };
+
   const handleConfigurePayment = () => {
     navigate('/dashboard/integrations');
   };
@@ -99,15 +141,12 @@ const DashboardPage = () => {
     navigate(`/dashboard/create-campaign/step-2?id=${campaignId}`);
   };
 
-  const handleDeleteCampaign = async (campaignId: string, campaignTitle: string) => {
-    if (window.confirm(`Tem certeza que deseja excluir a campanha "${campaignTitle}"?`)) {
-      try {
-        await deleteCampaign(campaignId);
-      } catch (error) {
-        console.error('Error deleting campaign:', error);
-        alert('Erro ao excluir campanha. Tente novamente.');
-      }
-    }
+  const handlePublishCampaign = (campaignId: string) => {
+    navigate(`/dashboard/create-campaign/step-3?id=${campaignId}`);
+  };
+
+  const handleViewSalesHistory = (campaignId: string) => {
+    navigate(`/dashboard/campaigns/${campaignId}/sales-history`);
   };
 
   const handleViewCampaign = (campaignId: string) => {
@@ -120,6 +159,11 @@ const DashboardPage = () => {
       // Fallback para ID se não houver slug
       window.open(`/c/${campaignId}`, '_blank');
     }
+  };
+
+  const calculateProgressPercentage = (soldTickets: number, totalTickets: number): number => {
+    if (totalTickets === 0) return 0;
+    return Math.round((soldTickets / totalTickets) * 100);
   };
 
   const formatCurrency = (value: number) => {
@@ -195,38 +239,6 @@ const DashboardPage = () => {
 
         {/* Subscription Status Card */}
         <SubscriptionStatus className="shadow-sm" />
-
-        {/* Revenue Card */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 shadow-sm transition-colors duration-300">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-start sm:items-center space-x-4 flex-1 min-w-0">
-              <div className="text-3xl sm:text-4xl font-bold text-purple-600 dark:text-purple-400 flex-shrink-0">$</div>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white transition-colors duration-300">
-                  Total arrecadado
-                </h3>
-                <div className="flex items-center space-x-2">
-                  {showRevenue ? (
-                    <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white transition-colors duration-300">
-                      R$ 0,00
-                    </span>
-                  ) : (
-                    <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white transition-colors duration-300">
-                      ★★★★★★★★
-                    </span>
-                  )}
-                  <button
-                    onClick={() => setShowRevenue(!showRevenue)}
-                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors duration-200"
-                  >
-                    {showRevenue ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Create Campaign Button */}
         <div className="flex justify-center">
           <button 
@@ -295,19 +307,28 @@ const DashboardPage = () => {
                         <div className="flex items-center space-x-2 p-2 rounded-lg text-sm bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
                           <CheckCircle className="h-4 w-4" />
                           <span>
-                            Taxa paga - Campanha será ativada em breve
+                            Taxa paga - {campaign.status === 'active' ? 'Campanha ativa!' : 'Ativando campanha...'}
                           </span>
+                          {campaign.status !== 'active' && (
+                            <button
+                              onClick={refreshCampaigns}
+                              disabled={refreshingCampaigns}
+                              className="ml-2 text-xs bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded"
+                            >
+                              {refreshingCampaigns ? 'Atualizando...' : 'Atualizar'}
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}
                     
-                    <div className="flex items-start space-x-4">
+                    <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-4">
                       {/* Campaign Image */}
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 order-first sm:order-none w-full sm:w-auto">
                         <img
                           src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1'}
                           alt={campaign.title}
-                          className="w-20 h-20 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                          className="w-full h-32 sm:w-20 sm:h-20 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
                         />
                       </div>
 
@@ -331,6 +352,22 @@ const DashboardPage = () => {
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
                               {getStatusText(campaign.status)}
                             </span>
+                          </div>
+                        </div>
+                        
+                        {/* Progress Bar */}
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Progresso</span>
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                              {calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div 
+                              className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%` }}
+                            ></div>
                           </div>
                         </div>
                         
@@ -365,29 +402,36 @@ const DashboardPage = () => {
                         </div>
                         
                         {/* Action Buttons */}
-                        <div className="flex items-center space-x-2 mt-3">
+                        <div className="flex flex-wrap gap-2 mt-3">
                           <button
                             onClick={() => handleViewCampaign(campaign.id)}
-                            className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
-                            title="Visualizar campanha"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
                           >
-                            <Eye className="h-4 w-4" />
+                            Visualizar
                           </button>
+                          
+                          <button
+                            onClick={() => handleViewSalesHistory(campaign.id)}
+                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
+                          >
+                            Vendas
+                          </button>
+                          
+                          {/* Publish Button - Only show for draft campaigns that are not paid */}
+                          {campaign.status === 'draft' && !campaign.is_paid && (
+                            <button
+                              onClick={() => handlePublishCampaign(campaign.id)}
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
+                            >
+                              Publicar
+                            </button>
+                          )}
                           
                           <button
                             onClick={() => handleEditCampaign(campaign.id)}
-                            className="p-2 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
-                            title="Editar campanha"
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
                           >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          
-                          <button
-                            onClick={() => handleDeleteCampaign(campaign.id, campaign.title)}
-                            className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
-                            title="Excluir campanha"
-                          >
-                            <Trash2 className="h-4 w-4" />
+                            Editar
                           </button>
                         </div>
                       </div>
@@ -398,64 +442,6 @@ const DashboardPage = () => {
             )}
           </div>
         )}
-
-        {/* Video Tutorial Section */}
-        <div className="w-full max-w-2xl mx-auto">
-          <div className="text-center mb-6">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-300">
-              Aprenda a criar uma rifa
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 transition-colors duration-300 text-sm sm:text-base">
-              Criamos um vídeo explicando todos os passos para você criar sua campanha
-            </p>
-          </div>
-          
-          <div className="relative bg-gray-900 rounded-lg overflow-hidden shadow-lg group cursor-pointer">
-            {/* Video Thumbnail */}
-            <div className="aspect-video bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center relative">
-              <div className="absolute inset-0 bg-black/20"></div>
-              
-              {/* Play Button */}
-              <div className="relative z-10 w-16 h-16 sm:w-20 sm:h-20 bg-white/90 rounded-full flex items-center justify-center group-hover:bg-white transition-colors duration-200">
-                <Play className="h-6 w-6 sm:h-8 sm:w-8 text-gray-900 ml-1" fill="currentColor" />
-              </div>
-              
-              {/* Video Title Overlay */}
-              <div className="absolute bottom-4 left-4 right-4 z-10">
-                <h3 className="text-white font-semibold text-sm sm:text-lg mb-1">Como criar uma rifa online</h3>
-                <p className="text-white/80 text-xs sm:text-sm">Rifaqui • 5:32</p>
-              </div>
-              
-              {/* YouTube-style elements */}
-              <div className="absolute top-4 right-4 z-10">
-                <div className="bg-black/60 text-white text-xs px-2 py-1 rounded">
-                  HD
-                </div>
-              </div>
-            </div>
-            
-            {/* Video Info */}
-            <div className="p-4 bg-gray-50 dark:bg-gray-800 transition-colors duration-300">
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <img 
-                    src="/logo criado pelo Chatgpt.png" 
-                    alt="Rifaqui" 
-                    className="w-4 h-4 sm:w-6 sm:h-6 object-contain"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-gray-900 dark:text-white transition-colors duration-300 text-sm sm:text-base">
-                    Tutorial completo: Como criar sua primeira rifa
-                  </h4>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1 transition-colors duration-300">
-                    Rifaqui • 12.5K visualizações • há 2 dias
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

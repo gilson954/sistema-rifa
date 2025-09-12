@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
  * Gera um slug base a partir de uma string (título da campanha)
  * Remove acentos, caracteres especiais e converte para formato URL-friendly
  */
-export function generateBaseSlug(text: string): string {
+function generateBaseSlug(text: string): string {
   if (!text || typeof text !== 'string') {
     return '';
   }
@@ -40,7 +40,7 @@ export function generateBaseSlug(text: string): string {
 /**
  * Verifica se um slug já existe no banco de dados
  */
-export async function slugExists(slug: string, excludeCampaignId?: string): Promise<boolean> {
+async function slugExists(slug: string, excludeCampaignId?: string): Promise<boolean> {
   try {
     let query = supabase
       .from('campaigns')
@@ -113,7 +113,7 @@ export async function generateUniqueSlug(
 /**
  * Valida se um slug tem formato válido
  */
-export function isValidSlug(slug: string): boolean {
+function isValidSlug(slug: string): boolean {
   if (!slug || typeof slug !== 'string') {
     return false;
   }
@@ -145,7 +145,7 @@ export function isValidSlug(slug: string): boolean {
 /**
  * Sanitiza um slug fornecido pelo usuário
  */
-export function sanitizeSlug(slug: string): string {
+function sanitizeSlug(slug: string): string {
   if (!slug || typeof slug !== 'string') {
     return '';
   }

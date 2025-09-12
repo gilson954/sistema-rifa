@@ -444,7 +444,7 @@ const CustomizationPage = () => {
                 Selecione um tema para deixar sua rifa ainda mais elegante
               </p>
 
-              <div className="flex space-x-4 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                 {/* Light Theme */}
                 <div
                   onClick={() => setSelectedTheme('claro')}
