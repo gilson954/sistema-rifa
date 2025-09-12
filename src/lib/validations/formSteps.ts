@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // Schema para a Etapa 1 - Dados Básicos
-export const step1Schema = z.object({
+const step1Schema = z.object({
   nome: z
     .string()
     .min(3, 'Nome deve ter pelo menos 3 caracteres')
@@ -18,7 +18,7 @@ export const step1Schema = z.object({
 });
 
 // Schema para a Etapa 2 - Endereço e Preferências
-export const step2Schema = z.object({
+const step2Schema = z.object({
   endereco: z
     .string()
     .min(10, 'Endereço deve ter pelo menos 10 caracteres')
@@ -44,7 +44,7 @@ export const step2Schema = z.object({
 });
 
 // Schema para a Etapa 3 - Confirmação e Termos
-export const step3Schema = z.object({
+const step3Schema = z.object({
   aceitarTermos: z
     .boolean()
     .refine(val => val === true, 'Você deve aceitar os termos de uso'),
@@ -58,7 +58,7 @@ export const step3Schema = z.object({
 });
 
 // Schema completo do formulário (para validação final)
-export const fullFormSchema = z.object({
+const fullFormSchema = z.object({
   step1: step1Schema,
   step2: step2Schema,
   step3: step3Schema,
