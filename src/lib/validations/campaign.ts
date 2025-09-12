@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
 // Schema para validação de promoções
-export const promotionSchema = z.object({
+const promotionSchema = z.object({
   ticketQuantity: z.number().int().min(1, 'Quantidade deve ser pelo menos 1'),
   discountedTotalValue: z.number().min(0, 'Valor com desconto deve ser positivo'),
   fixedDiscountAmount: z.number().min(0, 'Valor do desconto deve ser positivo')
 });
 
 // Schema para validação de prêmios
-export const prizeSchema = z.object({
+const prizeSchema = z.object({
   name: z.string().min(1, 'Nome do prêmio é obrigatório')
 });
 
@@ -169,7 +169,7 @@ export const updateCampaignSchema = createCampaignSchema.partial().extend({
 });
 
 // Schema para validação do formulário (frontend)
-export const campaignFormSchema = z.object({
+const campaignFormSchema = z.object({
   title: z
     .string()
     .min(3, 'O título deve ter pelo menos 3 caracteres')
@@ -237,4 +237,4 @@ export const campaignFormSchema = z.object({
 
 export type CreateCampaignInput = z.infer<typeof createCampaignSchema>;
 export type UpdateCampaignInput = z.infer<typeof updateCampaignSchema>;
-export type CampaignFormInput = z.infer<typeof campaignFormSchema>;
+type CampaignFormInput = z.infer<typeof campaignFormSchema>;
