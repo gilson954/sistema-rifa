@@ -1,6 +1,6 @@
 import { supabase } from '../supabase';
 
-export interface Ticket {
+interface Ticket {
   id: string;
   campaign_id: string;
   quota_number: number;
