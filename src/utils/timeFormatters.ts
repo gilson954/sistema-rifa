@@ -50,7 +50,7 @@ export const formatReservationTime = (minutes: number): string => {
  * - 60 -> "1h"
  * - 1440 -> "1d"
  */
-export const formatReservationTimeShort = (minutes: number): string => {
+const formatReservationTimeShort = (minutes: number): string => {
   if (minutes < 60) {
     return `${minutes}min`;
   }
