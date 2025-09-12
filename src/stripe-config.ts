@@ -1,4 +1,4 @@
-interface StripeProduct {
+export interface StripeProduct {
   id: string;
   priceId: string;
   name: string;
@@ -189,7 +189,7 @@ export const STRIPE_PRODUCTS: StripeProduct[] = [
   }
 ];
 
-const getProductById = (id: string): StripeProduct | undefined => {
+export const getProductById = (id: string): StripeProduct | undefined => {
   return STRIPE_PRODUCTS.find(product => product.id === id);
 };
 
