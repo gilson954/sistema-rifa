@@ -145,10 +145,6 @@ const DashboardPage = () => {
     navigate(`/dashboard/create-campaign/step-3?id=${campaignId}`);
   };
 
-  const handleViewSalesHistory = (campaignId: string) => {
-    navigate(`/dashboard/campaigns/${campaignId}/sales-history`);
-  };
-
   const handleViewCampaign = (campaignId: string) => {
     // Busca a campanha para obter o slug
     const campaign = campaigns.find(c => c.id === campaignId);
@@ -408,13 +404,6 @@ const DashboardPage = () => {
                             className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
                           >
                             Visualizar
-                          </button>
-                          
-                          <button
-                            onClick={() => handleViewSalesHistory(campaign.id)}
-                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
-                          >
-                            Vendas
                           </button>
                           
                           {/* Publish Button - Only show for draft campaigns that are not paid */}
