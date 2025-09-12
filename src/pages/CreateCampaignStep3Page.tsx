@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Edit, Eye, CreditCard, TrendingUp, AlertCircle, ChevronLeft, ChevronRight, Copy, CheckCircle, QrCode, Loader2, Crown, Clock } from 'lucide-react';
+import { ArrowLeft, Edit, Eye, CreditCard, TrendingUp, AlertCircle, ChevronLeft, ChevronRight, Copy, CheckCircle, QrCode, Loader2, Crown } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaign, useCampaignWithRefetch } from '../hooks/useCampaigns';
 import { StripeAPI } from '../lib/api/stripe';
@@ -11,31 +11,6 @@ declare global {
     Stripe: any;
   }
 }
-
-/**
- * Utility function to calculate time remaining until expiration
- */
-const getTimeRemaining = (expiresAt: string) => {
-  const now = new Date().getTime();
-  const expiration = new Date(expiresAt).getTime();
-  const difference = expiration - now;
-
-  if (difference <= 0) {
-    return { expired: true, text: 'Expirado' };
-  }
-
-  const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-
-  if (days > 0) {
-    return { expired: false, text: `${days}d ${hours}h ${minutes}m` };
-  } else if (hours > 0) {
-    return { expired: false, text: `${hours}h ${minutes}m` };
-  } else {
-    return { expired: false, text: `${minutes}m` };
-  }
-};
 
 const CreateCampaignStep3Page = () => {
   const navigate = useNavigate();
@@ -261,34 +236,11 @@ const CreateCampaignStep3Page = () => {
               </div>
             </div>
             
-            {/* Payment Deadline Notice - Only show for draft campaigns that are not paid */}
-            {campaign?.status === 'draft' && campaign.expires_at && !campaign.is_paid && (
-              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
-                {(() => {
-                  const timeRemaining = getTimeRemaining(campaign.expires_at);
-                  const isUrgent = !timeRemaining.expired && campaign.expires_at && 
-                    new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000; // Less than 24 hours
-                  
-                  return (
-                    <div className={`flex items-center space-x-2 p-2 rounded-lg text-sm ${
-                      timeRemaining.expired
-                        ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
-                        : isUrgent
-                        ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300'
-                        : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
-                    }`}>
-                      <Clock className="h-4 w-4" />
-                      <span>
-                        {timeRemaining.expired 
-                          ? 'Campanha expirada - Faça o pagamento para reativar'
-                          : `Faça o pagamento em até ${timeRemaining.text} ou ela vai expirar`
-                        }
-                      </span>
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
+            {/* Payment Deadline Notice */}
+            <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">Pague em até 3 dias</span>
+            </div>
           </div>
         </div>
       </div>
@@ -362,6 +314,32 @@ const CreateCampaignStep3Page = () => {
               </div>
             )}
 
+            {/* Payment Method Selection */}
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                Taxa de Publicação
+              </h3>
+              
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-700/50 rounded-lg p-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+                    <Crown className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Rifaqui
+                    </h4>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm">
+                      Taxa de publicação para ativar sua campanha
+                    </p>
+                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-2">
+                      R$ 7,00
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Payment Summary */}
             <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300">
               <div className="space-y-4">
@@ -371,7 +349,7 @@ const CreateCampaignStep3Page = () => {
                     <span className="text-gray-700 dark:text-gray-300">Arrecadação estimada</span>
                   </div>
                   <span className="font-medium text-gray-900 dark:text-white">
-                    {formatPrice(estimatedRevenue)}
+                    R$ {estimatedRevenue.toFixed(2).replace('.', ',')}
                   </span>
                 </div>
 
@@ -404,31 +382,24 @@ const CreateCampaignStep3Page = () => {
               </p>
             </div>
 
-            {/* Payment Button or Active Message */}
-            {campaign?.status === 'active' ? (
-              <div className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg flex items-center justify-center space-x-2 shadow-md">
-                <CheckCircle className="h-5 w-5" />
-                <span>✅ Campanha Ativa</span>
-              </div>
-            ) : (
-              <button
-                onClick={handlePayment}
-                disabled={processing}
-                className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white py-4 rounded-lg font-semibold text-lg transition-colors duration-200 shadow-md flex items-center justify-center space-x-2"
-              >
-                {processing ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>Redirecionando...</span>
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="h-5 w-5" />
-                    <span>Pagar Taxa de Publicação</span>
-                  </>
-                )}
-              </button>
-            )}
+            {/* Payment Button */}
+            <button
+              onClick={handlePayment}
+              disabled={processing}
+              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white py-4 rounded-lg font-semibold text-lg transition-colors duration-200 shadow-md flex items-center justify-center space-x-2"
+            >
+              {processing ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Redirecionando...</span>
+                </>
+              ) : (
+                <>
+                  <CreditCard className="h-5 w-5" />
+                  <span>Pagar Taxa de Publicação</span>
+                </>
+              )}
+            </button>
           </div>
 
           {/* Right Column - Campaign Summary */}
@@ -519,7 +490,7 @@ const CreateCampaignStep3Page = () => {
                 <div className="flex items-center space-x-2">
                   <div className="w-4 h-4 bg-purple-600 rounded"></div>
                   <span className="text-gray-600 dark:text-gray-400">
-                    {totalTickets.toLocaleString('pt-BR')} cotas
+                    {totalTickets} cotas
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -536,7 +507,7 @@ const CreateCampaignStep3Page = () => {
                   <div>
                     <div className="text-sm opacity-90">ARRECADAÇÃO ESTIMADA</div>
                     <div className="text-2xl font-bold">
-                      {formatPrice(estimatedRevenue)}
+                      R$ {estimatedRevenue.toFixed(2).replace('.', ',')}
                     </div> 
                   </div>
                   <TrendingUp className="h-8 w-8 opacity-80" />
@@ -548,8 +519,8 @@ const CreateCampaignStep3Page = () => {
       </div>
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-6 mt-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-8 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-8">
             <a
               href="#"

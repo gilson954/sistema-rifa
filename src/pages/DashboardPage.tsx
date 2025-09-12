@@ -10,6 +10,7 @@ import {
   DollarSign,
   MoreVertical,
   Edit,
+  Trash2,
   Clock,
   AlertTriangle,
   CheckCircle
@@ -50,7 +51,7 @@ const DashboardPage = () => {
   const [showRevenue, setShowRevenue] = useState(false);
   const [displayPaymentSetupCard, setDisplayPaymentSetupCard] = useState(true);
   const navigate = useNavigate();
-  const { campaigns, loading: campaignsLoading } = useCampaigns();
+  const { campaigns, loading: campaignsLoading, deleteCampaign } = useCampaigns();
   const { user } = useAuth();
   const [refreshingCampaigns, setRefreshingCampaigns] = useState(false);
 
@@ -142,8 +143,15 @@ const DashboardPage = () => {
     navigate(`/dashboard/create-campaign/step-2?id=${campaignId}`);
   };
 
-  const handlePublishCampaign = (campaignId: string) => {
-    navigate(`/dashboard/create-campaign/step-3?id=${campaignId}`);
+  const handleDeleteCampaign = async (campaignId: string, campaignTitle: string) => {
+    if (window.confirm(`Tem certeza que deseja excluir a campanha "${campaignTitle}"?`)) {
+      try {
+        await deleteCampaign(campaignId);
+      } catch (error) {
+        console.error('Error deleting campaign:', error);
+        alert('Erro ao excluir campanha. Tente novamente.');
+      }
+    }
   };
 
   const handleViewCampaign = (campaignId: string) => {
@@ -156,11 +164,6 @@ const DashboardPage = () => {
       // Fallback para ID se não houver slug
       window.open(`/c/${campaignId}`, '_blank');
     }
-  };
-
-  const calculateProgressPercentage = (soldTickets: number, totalTickets: number): number => {
-    if (totalTickets === 0) return 0;
-    return Math.round((soldTickets / totalTickets) * 100);
   };
 
   const formatCurrency = (value: number) => {
@@ -351,13 +354,13 @@ const DashboardPage = () => {
                       </div>
                     )}
                     
-                    <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-4">
+                    <div className="flex items-start space-x-4">
                       {/* Campaign Image */}
-                      <div className="flex-shrink-0 order-first sm:order-none w-full sm:w-auto">
+                      <div className="flex-shrink-0">
                         <img
                           src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1'}
                           alt={campaign.title}
-                          className="w-full h-32 sm:w-20 sm:h-20 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                          className="w-20 h-20 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
                         />
                       </div>
 
@@ -381,22 +384,6 @@ const DashboardPage = () => {
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
                               {getStatusText(campaign.status)}
                             </span>
-                          </div>
-                        </div>
-                        
-                        {/* Progress Bar */}
-                        <div className="mb-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">Progresso</span>
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">
-                              {calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div 
-                              className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%` }}
-                            ></div>
                           </div>
                         </div>
                         
@@ -431,29 +418,29 @@ const DashboardPage = () => {
                         </div>
                         
                         {/* Action Buttons */}
-                        <div className="flex flex-wrap gap-2 mt-3">
+                        <div className="flex items-center space-x-2 mt-3">
                           <button
                             onClick={() => handleViewCampaign(campaign.id)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
+                            className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                            title="Visualizar campanha"
                           >
-                            Visualizar
+                            <Eye className="h-4 w-4" />
                           </button>
-                          
-                          {/* Publish Button - Only show for draft campaigns that are not paid */}
-                          {campaign.status === 'draft' && !campaign.is_paid && (
-                            <button
-                              onClick={() => handlePublishCampaign(campaign.id)}
-                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
-                            >
-                              Publicar
-                            </button>
-                          )}
                           
                           <button
                             onClick={() => handleEditCampaign(campaign.id)}
-                            className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
+                            className="p-2 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                            title="Editar campanha"
                           >
-                            Editar
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          
+                          <button
+                            onClick={() => handleDeleteCampaign(campaign.id, campaign.title)}
+                            className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                            title="Excluir campanha"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </div>
