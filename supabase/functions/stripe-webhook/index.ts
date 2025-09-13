@@ -70,6 +70,11 @@ Deno.serve(async (req: Request) => {
     }
 
     const paymentIntent = webhookEvent.data.object
+
+    // Adicione estas duas linhas para depuração:
+    console.log('Payment Intent Object:', JSON.stringify(paymentIntent, null, 2));
+    console.log('Payment Intent Metadata:', paymentIntent.metadata);
+
     const campaignId = paymentIntent.metadata.campaign_id
 
     if (!campaignId) {
