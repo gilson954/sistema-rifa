@@ -629,7 +629,7 @@ const PaymentIntegrationsPage = () => {
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
           <div className="flex items-center space-x-4">
             <img 
-              src="https://paggue.io/wp-content/uploads/2023/03/logo-paggue-horizontal.png" 
+              src="paggue.png" 
               alt="Paggue Logo" 
               className="w-12 h-12 object-contain"
             />
