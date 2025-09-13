@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import Stripe from 'npm:stripe@^14.0.0' // Certifique-se de que esta linha está presente
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,23 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-interface StripeWebhookEvent {
-  id: string
-  type: string
-  data: {
-    object: {
-      id: string
-      status: string
-      amount: number
-      currency: string
-      metadata: {
-        campaign_id: string
-        campaign_title?: string
-        type?: string
-      }
-    }
-  }
-}
+// A interface StripeWebhookEvent não é mais estritamente necessária aqui,
+// pois vamos lidar com diferentes tipos de objetos de evento.
 
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight requests
@@ -41,7 +27,26 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // Initialize Supabase client
+    // Initialize Stripe with secret key
+    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY')
+    if (!stripeSecretKey) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Stripe secret key not configured'
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: '2024-06-20',
+    })
+
+    // Initialize Supabase client with service role key for admin operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     
@@ -53,32 +58,76 @@ Deno.serve(async (req: Request) => {
     })
 
     // Parse webhook payload
-    const webhookEvent: StripeWebhookEvent = await req.json()
+    const webhookEvent = await req.json() // Usamos 'any' aqui para flexibilidade
     
     console.log('🔔 Stripe webhook received:', webhookEvent.type, webhookEvent.id)
 
-    // Only process payment intent events
-    if (!webhookEvent.type.startsWith('payment_intent.')) {
-      console.log('ℹ️ Ignoring non-payment_intent webhook event:', webhookEvent.type)
+    let paymentIntent: Stripe.PaymentIntent | null = null;
+    let campaignId: string | undefined;
+    let campaignTitle: string | undefined;
+    let paymentMethod: string | undefined;
+
+    // Lógica para lidar com diferentes tipos de eventos
+    if (webhookEvent.type === 'checkout.session.completed') {
+      const session = webhookEvent.data.object as Stripe.Checkout.Session;
+      console.log('Processing checkout.session.completed event for session:', session.id);
+
+      // O payment_intent pode ser o ID ou o objeto completo, dependendo da criação da sessão
+      if (session.payment_intent) {
+        // Se for apenas o ID, precisamos buscar o Payment Intent completo
+        paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent as string);
+        console.log('Fetched Payment Intent from session:', paymentIntent.id);
+      } else {
+        console.warn('Checkout session completed but no payment_intent found.');
+        return new Response(
+          JSON.stringify({ message: 'Checkout session completed but no payment_intent found' }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      // Extrair metadados e método de pagamento da sessão ou do Payment Intent
+      campaignId = session.metadata?.campaign_id;
+      campaignTitle = session.metadata?.campaign_title;
+      paymentMethod = session.payment_method_types?.[0]; 
+      
+    } else if (webhookEvent.type.startsWith('payment_intent.')) {
+      // Se o evento já é um payment_intent, o objeto já é o Payment Intent
+      paymentIntent = webhookEvent.data.object as Stripe.PaymentIntent;
+      console.log('Processing payment_intent event:', paymentIntent.id);
+      // Extrair metadados e método de pagamento diretamente do Payment Intent
+      campaignId = paymentIntent.metadata?.campaign_id;
+      campaignTitle = paymentIntent.metadata?.campaign_title;
+      paymentMethod = paymentIntent.payment_method_types?.[0];
+
+    } else {
+      console.log('ℹ️ Ignoring webhook event type:', webhookEvent.type);
       return new Response(
         JSON.stringify({ message: 'Webhook received but not processed' }),
-        { 
-          status: 200, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const paymentIntent = webhookEvent.data.object
+    // A partir daqui, 'paymentIntent' deve estar preenchido se o evento for relevante
+    if (!paymentIntent) {
+      console.error('❌ No Payment Intent object could be retrieved or identified.');
+      return new Response(
+        JSON.stringify({ error: 'No Payment Intent object' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    // Adicione estas duas linhas para depuração:
+    // Adicione estas duas linhas para depuração (já estavam, mas reforcei a importância):
     console.log('Payment Intent Object:', JSON.stringify(paymentIntent, null, 2));
     console.log('Payment Intent Metadata:', paymentIntent.metadata);
 
-    const campaignId = paymentIntent.metadata.campaign_id
+    // Reafirmar campaignId e campaignTitle a partir dos metadados do paymentIntent
+    // Isso garante que estamos usando os dados do Payment Intent final
+    campaignId = paymentIntent.metadata?.campaign_id;
+    campaignTitle = paymentIntent.metadata?.campaign_title;
+    paymentMethod = paymentIntent.payment_method_types?.[0];
+
 
     if (!campaignId) {
-      console.error('❌ No campaign_id found in payment intent metadata')
+      console.error('❌ No campaign_id found in payment intent metadata');
       return new Response(
         JSON.stringify({ error: 'No campaign_id in metadata' }),
         { 
@@ -105,7 +154,8 @@ Deno.serve(async (req: Request) => {
     }
 
     // Process based on payment status
-    if (webhookEvent.type === 'payment_intent.succeeded') {
+    // Agora usamos paymentIntent.status diretamente, pois já o temos
+    if (paymentIntent.status === 'succeeded') { 
       console.log('✅ Payment succeeded, activating campaign...')
       
       // Update campaign: set as paid, active, and remove expiration
@@ -138,9 +188,9 @@ Deno.serve(async (req: Request) => {
       await supabase.rpc('log_cleanup_operation', {
         p_operation_type: 'publication_fee_paid',
         p_campaign_id: campaignId,
-        p_campaign_title: paymentIntent.metadata.campaign_title,
+        p_campaign_title: campaignTitle, // Usar o campaignTitle extraído
         p_status: 'success',
-        p_message: `Publication fee paid via ${paymentIntent.metadata.payment_method || 'stripe'}`,
+        p_message: `Publication fee paid via ${paymentMethod || 'stripe'}`, // Usar o paymentMethod extraído
         p_details: {
           stripe_payment_intent_id: paymentIntent.id,
           amount: paymentIntent.amount / 100,
@@ -148,16 +198,16 @@ Deno.serve(async (req: Request) => {
         }
       })
 
-    } else if (webhookEvent.type === 'payment_intent.payment_failed' || webhookEvent.type === 'payment_intent.canceled') {
+    } else if (paymentIntent.status === 'canceled' || paymentIntent.status === 'requires_payment_method') { // Lidar com outros status de falha/cancelamento
       console.log('❌ Payment failed or canceled')
       
       // Log failed payment
       await supabase.rpc('log_cleanup_operation', {
         p_operation_type: 'publication_fee_failed',
         p_campaign_id: campaignId,
-        p_campaign_title: paymentIntent.metadata.campaign_title,
+        p_campaign_title: campaignTitle, // Usar o campaignTitle extraído
         p_status: 'warning',
-        p_message: `Publication fee payment failed: ${webhookEvent.type}`,
+        p_message: `Publication fee payment failed: ${paymentIntent.status}`,
         p_details: {
           stripe_payment_intent_id: paymentIntent.id,
           amount: paymentIntent.amount / 100,
