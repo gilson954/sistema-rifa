@@ -104,7 +104,7 @@ const STRIPE_PRODUCTS = [
   },
   {
     id: 'prod_Rifaqui_247',
-    priceId: 'price_1S3sHBPYLlPdMwZvmdYwtV9r',
+    priceId: 'price_1S3sHBPYLlPdMwZvrFuyetkG',
     name: 'Rifaqui - Taxa de Publicação (R$ 10.000-20.000)',
     description: 'Taxa de publicação para ativar sua campanha na plataforma Rifaqui',
     price: 247.00,
@@ -325,38 +325,27 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Create Stripe Checkout Session (mock implementation)
-    const checkoutSessionData = {
-      mode: 'payment',
-      line_items: [{
-        price: priceId,
-        quantity: 1,
-      }],
-      currency: 'brl',
-      success_url: successUrl || `${req.headers.get('origin')}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl || `${req.headers.get('origin')}/payment-cancelled`,
-      metadata: {
-        campaign_id: campaignId || '',
-        type: 'publication_fee',
-        price_id: priceId
-      }
-    }
-
-    console.log('💳 Creating Checkout Session with data:', checkoutSessionData)
-
-    // Create real Stripe checkout session
+    // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: [{
         price: priceId,
         quantity: 1,
       }],
-      success_url: checkoutSessionData.success_url,
-      cancel_url: checkoutSessionData.cancel_url,
-      metadata: checkoutSessionData.metadata,
+      success_url: successUrl || `${req.headers.get('origin')}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: cancelUrl || `${req.headers.get('origin')}/payment-cancelled`,
+      // Remova ou comente a linha abaixo se ela estiver causando conflito
+      // metadata: checkoutSessionData.metadata, 
       payment_method_types: ['card'],
       billing_address_collection: 'required',
       customer_creation: 'always',
+      payment_intent_data: { // Adicione este bloco
+        metadata: { // Passe os metadados para o Payment Intent
+          campaign_id: campaignId || '',
+          type: 'publication_fee',
+          price_id: priceId
+        },
+      },
     })
 
     // Save checkout session record to database if campaignId is provided
@@ -380,7 +369,11 @@ Deno.serve(async (req: Request) => {
             amount_total: Math.round(product.price * 100), // Convert to cents
             currency: 'brl',
             payment_status: 'unpaid',
-            metadata: checkoutSessionData.metadata
+            metadata: { // Use os metadados que você quer salvar no stripe_orders
+              campaign_id: campaignId || '',
+              type: 'publication_fee',
+              price_id: priceId
+            }
           })
 
         if (orderError) {
