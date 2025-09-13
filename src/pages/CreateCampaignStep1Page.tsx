@@ -305,26 +305,6 @@ const CreateCampaignStep1Page = () => {
               {errors.ticketPrice && (
                 <p className="text-red-500 text-sm mt-1">{errors.ticketPrice}</p>
               )}
-              
-              {/* Real-time Tax Display */}
-              {rawTicketPrice && formData.ticketQuantity && (
-                <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <div className="text-sm space-y-1">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-700 dark:text-gray-300">Arrecadação estimada:</span>
-                      <span className="font-medium text-green-600 dark:text-green-400">
-                        R$ {estimatedRevenue.toFixed(2).replace('.', ',')}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-700 dark:text-gray-300">Taxa da campanha:</span>
-                      <span className="font-medium text-red-600 dark:text-red-400">
-                        {formatCurrencyForDisplay(publicationTax)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
