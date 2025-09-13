@@ -54,7 +54,7 @@ const LoginPage = () => {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
               <img 
-                src="/logo criado pelo Chatgpt.png" 
+                src="/logo-chatgpt.png" 
                 alt="Rifaqui Logo" 
                 className="w-20 h-20 object-contain"
               />
