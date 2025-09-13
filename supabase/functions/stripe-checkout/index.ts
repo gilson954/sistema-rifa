@@ -104,7 +104,7 @@ const STRIPE_PRODUCTS = [
   },
   {
     id: 'prod_Rifaqui_247',
-    priceId: 'price_1S3sHBPYLlPdMwZvrFuyetkG',
+    priceId: 'price_1S3sHBPYLlPdMwZvmdYwtV9r', // CORRIGIDO: ID correto para R$ 247,00
     name: 'Rifaqui - Taxa de Publicação (R$ 10.000-20.000)',
     description: 'Taxa de publicação para ativar sua campanha na plataforma Rifaqui',
     price: 247.00,
@@ -159,7 +159,7 @@ const STRIPE_PRODUCTS = [
   },
   {
     id: 'prod_Rifaqui_2997',
-    priceId: 'price_1S3sI4PYLlPdMwZvhhe0gN2N',
+    priceId: 'price_1S3sHwPYLlPdMwZvsqMRRhEs', // CORRIGIDO: ID correto para R$ 2.997,00
     name: 'Rifaqui - Taxa de Publicação (R$ 100.000-150.000)',
     description: 'Taxa de publicação para ativar sua campanha na plataforma Rifaqui',
     price: 2997.00,
@@ -170,7 +170,7 @@ const STRIPE_PRODUCTS = [
   },
   {
     id: 'prod_Rifaqui_3997',
-    priceId: 'price_1S3sI4PYLlPdMwZvhhe0gN2N',
+    priceId: 'price_1S3sI4PYLlPdMwZvhhe0gN2N', // ID correto para R$ 3.997,00 (antes estava duplicado)
     name: 'Rifaqui - Taxa de Publicação (Acima de R$ 150.000)',
     description: 'Taxa de publicação para ativar sua campanha na plataforma Rifaqui',
     price: 3997.00,
