@@ -51,7 +51,7 @@ const AuthHeader: React.FC<AuthHeaderProps> = ({ backTo = 'home' }) => {
               aria-label="Ir para página inicial"
             >
               <img 
-                src="/logo criado pelo Chatgpt.png" 
+                src="/logo-chatgpt.png" 
                 alt="Rifaqui Logo" 
                 className="w-14 h-14 object-contain"
               />
