@@ -164,7 +164,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         <div className="p-6 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center">
             <img 
-              src="/logo criado pelo Chatgpt.png" 
+              src="/logo-chatgpt.png" 
               alt="Rifaqui Logo" 
               className="w-8 h-8 object-contain"
             />
