@@ -16,7 +16,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   className = "",
   error
 }) => {
-  // Configuração das ferramentas do editor + atalhos de teclado
+  // Configuração das ferramentas do editor
   const modules = useMemo(() => ({
     toolbar: [
       [{ 'header': [1, 2, 3, false] }],
@@ -28,18 +28,6 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       [{ 'color': [] }, { 'background': [] }],
       ['clean']
     ],
-    keyboard: {
-      bindings: {
-        // Força Enter a inserir nova linha
-        enter: {
-          key: 13,
-          handler: function (range, context) {
-            this.quill.insertText(range.index, '\n');
-            this.quill.setSelection(range.index + 1, 0);
-          }
-        }
-      }
-    }
   }), []);
 
   const formats = [
