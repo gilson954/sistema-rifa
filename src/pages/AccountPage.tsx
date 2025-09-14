@@ -3,7 +3,6 @@ import { Pencil, Upload, Link, Trash2, X, ArrowRight, ChevronDown, AlertTriangle
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import CountryPhoneSelect from '../components/CountryPhoneSelect';
-import SubscriptionStatus from '../components/SubscriptionStatus';
 import { useStripe } from '../hooks/useStripe';
 
 interface Country {
@@ -39,7 +38,7 @@ const AccountPage = () => {
   const [phoneNumberInput, setPhoneNumberInput] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Fetch user profile data when component mounts or user changes
+  // Fetch user profile data
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (user) {
@@ -61,7 +60,6 @@ const AccountPage = () => {
             }));
             setProfileImageUrl(profile.avatar_url);
           } else {
-            // Profile doesn't exist, use default values
             setUserData(prev => ({
               ...prev,
               name: '',
@@ -78,19 +76,6 @@ const AccountPage = () => {
 
     fetchUserProfile();
   }, [user]);
-
-  // Format CPF function
-  const formatCPF = (value: string) => {
-    // Remove all non-numeric characters
-    const numbers = value.replace(/\D/g, '');
-    
-    // Apply CPF mask: 000.000.000-00
-    return numbers
-      .slice(0, 11)
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})/, '$1-$2');
-  };
 
   // Validate form data
   const validateForm = () => {
@@ -133,40 +118,8 @@ const AccountPage = () => {
     setShowEditModal(true);
   };
 
-  const handleAddPhoto = () => {
-    setShowPhotoModal(true);
-  };
-
-  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        alert('Por favor, selecione apenas arquivos de imagem.');
-        return;
-      }
-      
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('A imagem deve ter no máximo 5MB.');
-        return;
-      }
-      
-      setSelectedImage(file);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleSaveData = async () => {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     if (user) {
       try {
@@ -182,7 +135,6 @@ const AccountPage = () => {
           console.error('Error updating profile:', error);
           alert('Erro ao salvar dados. Tente novamente.');
         } else {
-          console.log('Profile updated successfully');
           setShowEditModal(false);
         }
       } catch (error) {
@@ -192,71 +144,7 @@ const AccountPage = () => {
     }
   };
 
-  const handleUploadPhoto = () => {
-    if (!selectedImage) {
-      alert('Por favor, selecione uma imagem primeiro.');
-      return;
-    }
-    
-    uploadProfileImage();
-  };
-
-  const uploadProfileImage = async () => {
-    if (!selectedImage || !user) return;
-
-    setUploading(true);
-    try {
-      // Create a unique filename
-      const fileExt = selectedImage.name.split('.').pop();
-      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
-
-      // Upload file to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, selectedImage, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      // Update user profile with avatar URL
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', user.id);
-
-      if (updateError) {
-        throw updateError;
-      }
-
-      // Update local state
-      setProfileImageUrl(publicUrl);
-      
-      // Reset modal state
-      setSelectedImage(null);
-      setImagePreview(null);
-      setShowPhotoModal(false);
-      
-      alert('Foto de perfil atualizada com sucesso!');
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      alert('Erro ao fazer upload da imagem. Tente novamente.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleSendResetLink = () => {
-    // Handle sending password reset link
     console.log('Sending password reset link');
   };
 
@@ -285,7 +173,6 @@ const AccountPage = () => {
         throw new Error(result.message || 'Erro ao excluir conta');
       }
 
-      // Account deleted successfully, sign out and redirect
       alert('Conta excluída com sucesso');
       await signOut();
       window.location.href = '/login';
@@ -310,15 +197,7 @@ const AccountPage = () => {
 
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
-      {/* Subscription Status */}
-      <div className="mb-8">
-        <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">
-          Status da Conta
-        </h2>
-        <SubscriptionStatus />
-      </div>
-
-      {/* Purchase History */}
+      {/* Histórico de Compras */}
       {getCompletedOrders().length > 0 && (
         <div className="mb-8">
           <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">
@@ -352,7 +231,7 @@ const AccountPage = () => {
         </div>
       )}
 
-      {/* Main Data Section */}
+      {/* Dados principais */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-medium text-gray-900 dark:text-white">
@@ -377,7 +256,6 @@ const AccountPage = () => {
           </div>
         </div>
       </div>
-
 
       {/* Reset Password Section */}
       <div className="mb-8">
