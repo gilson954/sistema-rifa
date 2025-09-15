@@ -10,7 +10,7 @@ const Footer = () => {
           <div className="md:col-span-1">
             <div className="flex items-center mb-4">
               <img 
-                src="/logo criado pelo Chatgpt.png" 
+                src="/logo-chatgpt.png" 
                 alt="Rifaqui Logo" 
                 className="w-14 h-14 object-contain"
               />
