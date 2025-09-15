@@ -1072,7 +1072,7 @@ const CampaignPage = () => {
           {/* Payment Methods Card - Left */}
           <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
             <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
-                Métodos de Pagamento
+              Seção de Métodos de Pagamento
             </h3>
             
             <div className="space-y-2">
