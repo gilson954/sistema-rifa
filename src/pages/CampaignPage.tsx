@@ -1076,21 +1076,40 @@ const CampaignPage = () => {
     Seção de Métodos de Pagamento
   </h3>
 
-  <div className="flex flex-col items-center justify-center">
+  <div className="grid grid-cols-1 gap-4">
     {getConfiguredPaymentMethods().map((method, index) => (
-      <div
-        key={index}
-        className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 dark:border-gray-700 w-full"
-      >
-        <div
-          className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg mb-2"
-          style={{ backgroundColor: method.color }}
-        >
-          {method.icon}
-        </div>
-        <span className={`font-medium text-sm ${themeClasses.text}`}>
-          {method.name}
-        </span>
+      <div key={index} className="flex items-center justify-center">
+        {method.name.toLowerCase() === 'pix' ? (
+          // Layout especial para PIX: ícone centralizado (mantendo tamanho)
+          <div className={`w-full max-w-2xl border ${themeClasses.border} rounded-lg p-6`}>
+            <div className="flex flex-col items-center justify-center">
+              <div
+                className="w-12 h-12 rounded-lg flex items-center justify-center text-white text-lg mb-3"
+                style={{ backgroundColor: method.color }}
+                aria-hidden="true"
+              >
+                {method.icon}
+              </div>
+              <div className={`font-medium text-sm ${themeClasses.text} text-center`}>
+                {method.name}
+              </div>
+            </div>
+          </div>
+        ) : (
+          // Layout padrão para os demais métodos (ícone à esquerda, texto à direita)
+          <div className={`flex items-center space-x-3 p-3 rounded-lg border ${themeClasses.border} w-full max-w-2xl`}>
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg"
+              style={{ backgroundColor: method.color }}
+              aria-hidden="true"
+            >
+              {method.icon}
+            </div>
+            <div className={`font-medium text-sm ${themeClasses.text}`}>
+              {method.name}
+            </div>
+          </div>
+        )}
       </div>
     ))}
   </div>
