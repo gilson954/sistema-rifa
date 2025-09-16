@@ -1070,30 +1070,32 @@ const CampaignPage = () => {
         {/* 7. Métodos de Pagamento e Método de Sorteio - Side by side layout */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
           {/* Payment Methods Card - Left */}
-          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
-            <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
-              Seção de Métodos de Pagamento
-            </h3>
-            
-            <div className="space-y-2">
-              {getConfiguredPaymentMethods().map((method, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
-                >
-                  <div 
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                    style={{ backgroundColor: method.color }}
-                  >
-                    {method.icon}
-                  </div>
-                  <span className={`font-medium text-sm ${themeClasses.text}`}>
-                    {method.name}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+{/* Payment Methods Card - Left */}
+<div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+  <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
+    Seção de Métodos de Pagamento
+  </h3>
+
+  <div className="flex flex-col items-center justify-center">
+    {getConfiguredPaymentMethods().map((method, index) => (
+      <div
+        key={index}
+        className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 dark:border-gray-700 w-full"
+      >
+        <div
+          className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg mb-2"
+          style={{ backgroundColor: method.color }}
+        >
+          {method.icon}
+        </div>
+        <span className={`font-medium text-sm ${themeClasses.text}`}>
+          {method.name}
+        </span>
+      </div>
+    ))}
+  </div>
+</div>
+
 
           {/* Draw Method Card - Right */}
           <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
