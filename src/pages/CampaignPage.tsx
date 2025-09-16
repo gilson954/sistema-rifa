@@ -1070,51 +1070,30 @@ const CampaignPage = () => {
         {/* 7. Métodos de Pagamento e Método de Sorteio - Side by side layout */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
           {/* Payment Methods Card - Left */}
-{/* Payment Methods Card - Left */}
-<div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
-  <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
-    Seção de Métodos de Pagamento
-  </h3>
-
-  <div className="grid grid-cols-1 gap-4">
-    {getConfiguredPaymentMethods().map((method, index) => (
-      <div key={index} className="flex items-center justify-center">
-        {method.name.toLowerCase() === 'pix' ? (
-          // Layout especial para PIX: ícone centralizado (mantendo tamanho)
-          <div className={`w-full max-w-2xl border ${themeClasses.border} rounded-lg p-6`}>
-            <div className="flex flex-col items-center justify-center">
-              <div
-                className="w-12 h-12 rounded-lg flex items-center justify-center text-white text-lg mb-3"
-                style={{ backgroundColor: method.color }}
-                aria-hidden="true"
-              >
-                {method.icon}
-              </div>
-              <div className={`font-medium text-sm ${themeClasses.text} text-center`}>
-                {method.name}
-              </div>
+          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
+              Seção de Métodos de Pagamento
+            </h3>
+            
+            <div className="space-y-2">
+              {getConfiguredPaymentMethods().map((method, index) => (
+                <div
+                  key={index}
+                  className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
+                >
+                  <div 
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                    style={{ backgroundColor: method.color }}
+                  >
+                    {method.icon}
+                  </div>
+                  <span className={`font-medium text-sm ${themeClasses.text}`}>
+                    {method.name}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
-        ) : (
-          // Layout padrão para os demais métodos (ícone à esquerda, texto à direita)
-          <div className={`flex items-center space-x-3 p-3 rounded-lg border ${themeClasses.border} w-full max-w-2xl`}>
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg"
-              style={{ backgroundColor: method.color }}
-              aria-hidden="true"
-            >
-              {method.icon}
-            </div>
-            <div className={`font-medium text-sm ${themeClasses.text}`}>
-              {method.name}
-            </div>
-          </div>
-        )}
-      </div>
-    ))}
-  </div>
-</div>
-
 
           {/* Draw Method Card - Right */}
           <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
