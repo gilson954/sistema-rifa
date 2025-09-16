@@ -1072,7 +1072,7 @@ const CampaignPage = () => {
             {/* Payment Methods Card - Left */}
             <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
               <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
-                Seção de Métodos de Pagamento
+                Métodos de Pagamento
               </h3>
               
               <div className="space-y-2">
@@ -1098,7 +1098,7 @@ const CampaignPage = () => {
             {/* Draw Method Card - Right */}
             <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
               <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
-                Seção de Método de Sorteio
+                Método de Sorteio
               </h3>
               
               <div className="flex items-center justify-center space-x-2">
