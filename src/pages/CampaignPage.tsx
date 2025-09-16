@@ -1082,7 +1082,7 @@ const CampaignPage = () => {
                   className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
                 >
                   <div 
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm"
                     style={{ backgroundColor: method.color }}
                   >
                     {method.icon}
