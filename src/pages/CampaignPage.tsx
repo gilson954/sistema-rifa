@@ -739,7 +739,7 @@ const CampaignPage = () => {
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
             </div>
           ) : organizerProfile ? (
-            <div className="w-full">
+            <div className="max-w-sm mx-auto">
               <div className="flex items-center space-x-3 mb-3">
                 {organizerProfile.logo_url ? (
                   <img
@@ -858,7 +858,7 @@ const CampaignPage = () => {
               🏆 Prêmios
             </h3>
             
-            <div className="w-full space-y-1">
+            <div className="max-w-xl mx-auto space-y-1">
               {campaign.prizes.map((prize: any, index: number) => (
                 <div key={prize.id} className="flex items-center justify-center space-x-1.5">
                   <div 
@@ -1048,7 +1048,7 @@ const CampaignPage = () => {
 
           {/* Progress Bar - Only show if show_percentage is enabled */}
           {campaign.show_percentage && (
-            <div className="w-full">
+            <div className="max-w-xl mx-auto">
               <div className="flex justify-center items-center mb-3">
                 <span className={`text-base font-bold ${themeClasses.text}`}>
                   {getProgressPercentage()}%
@@ -1126,7 +1126,7 @@ const CampaignPage = () => {
             Compartilhar Campanha
           </h3>
           
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto">
             {Object.entries(shareSectionConfig).map(([platform, config]) => {
               const IconComponent = config.icon;
               return (
