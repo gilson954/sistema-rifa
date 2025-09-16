@@ -652,14 +652,13 @@ const CampaignPage = () => {
           {campaign.title}
         </h1>
 
-        {/* 1. Seção de galeria de imagens - Full width card */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4`}>
-          {/* Image Display */}
-          <div className="relative group">
+        {/* 1. Seção de galeria de imagens - card com largura limitada */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}>
+          <div className="relative group w-full">
             <img
               src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
               alt={campaign.title}
-              className="w-full h-[300px] sm:h-[600px] object-cover"
+              className="w-full h-[300px] sm:h-[600px] object-cover rounded-t-xl"
               onClick={() => handleImageClick(currentImageIndex)}
               style={{ cursor: 'pointer' }}
             />
@@ -694,7 +693,7 @@ const CampaignPage = () => {
             <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white bg-opacity-95 backdrop-blur-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-lg">
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <span className="text-xs sm:text-sm text-gray-600">Participe por apenas</span>
-                <span className="font-bold text-sm sm:text-base md:text-lg"style={{ color: primaryColor }}>
+                <span className="font-bold text-sm sm:text-base md:text-lg" style={{ color: primaryColor }}>
                   {formatCurrency(campaign.ticket_price)}
                 </span>
               </div>
@@ -728,8 +727,8 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 2. Seção de Organizador - Full width card */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
+        {/* 2. Seção de Organizador - card com largura limitada */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
             Organizador
           </h3>
@@ -739,8 +738,8 @@ const CampaignPage = () => {
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
             </div>
           ) : organizerProfile ? (
-            <div className="max-w-sm mx-auto">
-              <div className="flex items-center space-x-3 mb-3">
+            <div className="w-full">
+              <div className="flex items-center space-x-3 mb-3 justify-center">
                 {organizerProfile.logo_url ? (
                   <img
                     src={organizerProfile.logo_url}
@@ -813,9 +812,9 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 3. Seção de Promoções Disponíveis - Full width card */}
+        {/* 3. Seção de Promoções Disponíveis - card com largura limitada */}
         {campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
-          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4`}>
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
             <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
               🎁 Promoções Disponíveis
             </h3>
@@ -851,14 +850,14 @@ const CampaignPage = () => {
           </section>
         )}
 
-        {/* 4. Seção de Prêmios - Full width card */}
+        {/* 4. Seção de Prêmios - card com largura limitada */}
         {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
-          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4`}>
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
             <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
               🏆 Prêmios
             </h3>
             
-            <div className="max-w-xl mx-auto space-y-1">
+            <div className="w-full space-y-1">
               {campaign.prizes.map((prize: any, index: number) => (
                 <div key={prize.id} className="flex items-center justify-center space-x-1.5">
                   <div 
@@ -874,8 +873,8 @@ const CampaignPage = () => {
           </section>
         )}
 
-        {/* 5. Seção de compra/seleção de cota - Full width card */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
+        {/* 5. Seção de compra/seleção de cota - card com largura limitada */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           <h2 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
             {campaign.campaign_model === 'manual' ? 'Selecione suas Cotas' : 'Escolha a Quantidade'}
           </h2>
@@ -1018,8 +1017,8 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 6. Descrição/Regulamento - Full width card */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
+        {/* 6. Descrição/Regulamento - card com largura limitada */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center`}>
             Descrição/Regulamento
           </h3>
@@ -1048,7 +1047,7 @@ const CampaignPage = () => {
 
           {/* Progress Bar - Only show if show_percentage is enabled */}
           {campaign.show_percentage && (
-            <div className="max-w-xl mx-auto">
+            <div className="max-w-3xl mx-auto">
               <div className="flex justify-center items-center mb-3">
                 <span className={`text-base font-bold ${themeClasses.text}`}>
                   {getProgressPercentage()}%
@@ -1067,66 +1066,68 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 7. Métodos de Pagamento e Método de Sorteio - Side by side layout */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-          {/* Payment Methods Card - Left */}
-          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
-            <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
-              Seção de Métodos de Pagamento
-            </h3>
-            
-            <div className="space-y-2">
-              {getConfiguredPaymentMethods().map((method, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
-                >
-                  <div 
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                    style={{ backgroundColor: method.color }}
+        {/* 7. Métodos de Pagamento e Método de Sorteio - centralizados e com largura limitada */}
+        <section className="mb-4">
+          <div className="max-w-3xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Payment Methods Card - Left */}
+            <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+              <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
+                Seção de Métodos de Pagamento
+              </h3>
+              
+              <div className="space-y-2">
+                {getConfiguredPaymentMethods().map((method, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
                   >
-                    {method.icon}
+                    <div 
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                      style={{ backgroundColor: method.color }}
+                    >
+                      {method.icon}
+                    </div>
+                    <span className={`font-medium text-sm ${themeClasses.text}`}>
+                      {method.name}
+                    </span>
                   </div>
-                  <span className={`font-medium text-sm ${themeClasses.text}`}>
-                    {method.name}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Draw Method Card - Right */}
-          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
-            <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
-              Seção de Método de Sorteio
-            </h3>
-            
-            <div className="flex items-center justify-center space-x-2">
-              <div 
-                className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
-                style={{ backgroundColor: primaryColor }}
-              >
-                <Trophy className="h-5 w-5" />
+                ))}
               </div>
-              <div className="text-center">
-                <p className={`font-medium text-sm ${themeClasses.text}`}>
-                  {campaign.draw_method}
-                </p>
-                <p className={`text-xs ${themeClasses.textSecondary}`}>
-                  Sorteio transparente e confiável
-                </p>
+            </div>
+
+            {/* Draw Method Card - Right */}
+            <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+              <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
+                Seção de Método de Sorteio
+              </h3>
+              
+              <div className="flex items-center justify-center space-x-2">
+                <div 
+                  className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  <Trophy className="h-5 w-5" />
+                </div>
+                <div className="text-center">
+                  <p className={`font-medium text-sm ${themeClasses.text}`}>
+                    {campaign.draw_method}
+                  </p>
+                  <p className={`text-xs ${themeClasses.textSecondary}`}>
+                    Sorteio transparente e confiável
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Share Campaign Section - Full width at bottom */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+        {/* Share Campaign Section - centralizado e com largura limitada */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-6`}>
           <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
             Compartilhar Campanha
           </h3>
           
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {Object.entries(shareSectionConfig).map(([platform, config]) => {
               const IconComponent = config.icon;
               return (
