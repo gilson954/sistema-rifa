@@ -1076,19 +1076,19 @@ const CampaignPage = () => {
     Seção de Métodos de Pagamento
   </h3>
 
-  <div className="flex flex-col items-center space-y-2">
+  <div className="flex flex-col items-center justify-center space-y-3">
     {getConfiguredPaymentMethods().map((method, index) => (
       <div
         key={index}
-        className={`flex flex-col items-center justify-center p-3 rounded-lg border ${themeClasses.border} w-full max-w-[200px]`}
+        className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 dark:border-gray-700 w-full"
       >
         <div
-          className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg mb-2"
+          className="w-14 h-14 rounded-lg flex items-center justify-center text-white font-bold text-xl mb-2"
           style={{ backgroundColor: method.color }}
         >
           {method.icon}
         </div>
-        <span className={`font-medium text-sm ${themeClasses.text} text-center`}>
+        <span className={`font-medium text-sm ${themeClasses.text}`}>
           {method.name}
         </span>
       </div>
