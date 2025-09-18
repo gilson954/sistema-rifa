@@ -9,21 +9,18 @@ const PaymentIntegrationsPage = () => {
   const { user } = useAuth();
 
   // Modal states
-  const [showMercadoPagoModal, setShowMercadoPagoModal] = useState(false);
   const [showFluxsisModal, setShowFluxsisModal] = useState(false);
   const [showPay2mModal, setShowPay2mModal] = useState(false);
   const [showPaggueModal, setShowPaggueModal] = useState(false);
   const [showEfiBankModal, setShowEfiBankModal] = useState(false);
 
   // Configuration states
-  const [mercadoPagoConfig, setMercadoPagoConfig] = useState({ client_id: '', client_secret: '', webhook_url: '' });
   const [fluxsisConfig, setFluxsisConfig] = useState({ api_key: '', secret_key: '', webhook_url: '' });
   const [pay2mConfig, setPay2mConfig] = useState({ api_key: '', secret_key: '', webhook_url: '' });
   const [paggueConfig, setPaggueConfig] = useState({ api_key: '', secret_key: '', webhook_url: '' });
   const [efiBankConfig, setEfiBankConfig] = useState({ client_id: '', client_secret: '', webhook_url: '' });
 
   // Status states
-  const [isMercadoPagoConfigured, setIsMercadoPagoConfigured] = useState(false);
   const [isFluxsisConfigured, setIsFluxsisConfigured] = useState(false);
   const [isPay2mConfigured, setIsPay2mConfigured] = useState(false);
   const [isPaggueConfigured, setIsPaggueConfigured] = useState(false);
@@ -47,16 +44,6 @@ const PaymentIntegrationsPage = () => {
         }
 
         if (data) {
-          // Mercado Pago
-          if (data.mercado_pago) {
-            setMercadoPagoConfig({
-              client_id: data.mercado_pago.client_id || '',
-              client_secret: data.mercado_pago.client_secret || '',
-              webhook_url: data.mercado_pago.webhook_url || ''
-            });
-            setIsMercadoPagoConfigured(!!(data.mercado_pago.client_id || data.mercado_pago.access_token));
-          }
-
           // Fluxsis
           if (data.fluxsis) {
             setFluxsisConfig({
@@ -109,83 +96,6 @@ const PaymentIntegrationsPage = () => {
     navigate('/dashboard');
   };
 
-  // Mercado Pago handlers
-  const handleMercadoPagoConfig = () => {
-    setShowMercadoPagoModal(true);
-  };
-
-  const handleSaveMercadoPagoConfig = async () => {
-    if (!user || !mercadoPagoConfig.client_id.trim() || !mercadoPagoConfig.client_secret.trim()) {
-      alert('Por favor, preencha todos os campos obrigatórios');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { data: currentConfig } = await PaymentsAPI.getPaymentConfig(user.id);
-      const updatedConfig: PaymentIntegrationConfig = {
-        ...currentConfig,
-        mercado_pago: {
-          client_id: mercadoPagoConfig.client_id,
-          client_secret: mercadoPagoConfig.client_secret,
-          webhook_url: mercadoPagoConfig.webhook_url,
-          configured_at: new Date().toISOString()
-        }
-      };
-
-      const { error } = await PaymentsAPI.updatePaymentConfig(user.id, updatedConfig);
-      
-      if (error) {
-        console.error('Error saving Mercado Pago config:', error);
-        alert('Erro ao salvar configuração. Tente novamente.');
-      } else {
-        setIsMercadoPagoConfigured(true);
-        setShowMercadoPagoModal(false);
-        alert('Configuração do Mercado Pago salva com sucesso!');
-        
-        // Update localStorage to reflect payment is now configured
-        localStorage.setItem('isPaymentConfigured', 'true');
-      }
-    } catch (error) {
-      console.error('Error saving Mercado Pago config:', error);
-      alert('Erro ao salvar configuração. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteMercadoPagoConfig = async () => {
-    if (!user) return;
-
-    if (!window.confirm('Tem certeza que deseja remover a configuração do Mercado Pago?')) {
-      return;
-    }
-
-    setDeleting(true);
-    try {
-      const { data: currentConfig } = await PaymentsAPI.getPaymentConfig(user.id);
-      const updatedConfig: PaymentIntegrationConfig = { ...currentConfig };
-      delete updatedConfig.mercado_pago;
-
-      const { error } = await PaymentsAPI.updatePaymentConfig(user.id, updatedConfig);
-      
-      if (error) {
-        console.error('Error deleting Mercado Pago config:', error);
-        alert('Erro ao remover configuração. Tente novamente.');
-      } else {
-        setIsMercadoPagoConfigured(false);
-        setMercadoPagoConfig({ client_id: '', client_secret: '', webhook_url: '' });
-        setShowMercadoPagoModal(false);
-        alert('Configuração do Mercado Pago removida com sucesso!');
-      }
-    } catch (error) {
-      console.error('Error deleting Mercado Pago config:', error);
-      alert('Erro ao remover configuração. Tente novamente.');
-    } finally {
-      setDeleting(false);
-    }
-  };
-
   // Fluxsis handlers
   const handleFluxsisConfig = () => {
     setShowFluxsisModal(true);
@@ -219,8 +129,6 @@ const PaymentIntegrationsPage = () => {
         setIsFluxsisConfigured(true);
         setShowFluxsisModal(false);
         alert('Configuração do Fluxsis salva com sucesso!');
-        
-        // Update localStorage to reflect payment is now configured
         localStorage.setItem('isPaymentConfigured', 'true');
       }
     } catch (error) {
@@ -233,10 +141,7 @@ const PaymentIntegrationsPage = () => {
 
   const handleDeleteFluxsisConfig = async () => {
     if (!user) return;
-
-    if (!window.confirm('Tem certeza que deseja remover a configuração do Fluxsis?')) {
-      return;
-    }
+    if (!window.confirm('Tem certeza que deseja remover a configuração do Fluxsis?')) return;
 
     setDeleting(true);
     try {
@@ -296,8 +201,6 @@ const PaymentIntegrationsPage = () => {
         setIsPay2mConfigured(true);
         setShowPay2mModal(false);
         alert('Configuração do Pay2m salva com sucesso!');
-        
-        // Update localStorage to reflect payment is now configured
         localStorage.setItem('isPaymentConfigured', 'true');
       }
     } catch (error) {
@@ -310,10 +213,7 @@ const PaymentIntegrationsPage = () => {
 
   const handleDeletePay2mConfig = async () => {
     if (!user) return;
-
-    if (!window.confirm('Tem certeza que deseja remover a configuração do Pay2m?')) {
-      return;
-    }
+    if (!window.confirm('Tem certeza que deseja remover a configuração do Pay2m?')) return;
 
     setDeleting(true);
     try {
@@ -373,8 +273,6 @@ const PaymentIntegrationsPage = () => {
         setIsPaggueConfigured(true);
         setShowPaggueModal(false);
         alert('Configuração do Paggue salva com sucesso!');
-        
-        // Update localStorage to reflect payment is now configured
         localStorage.setItem('isPaymentConfigured', 'true');
       }
     } catch (error) {
@@ -387,10 +285,7 @@ const PaymentIntegrationsPage = () => {
 
   const handleDeletePaggueConfig = async () => {
     if (!user) return;
-
-    if (!window.confirm('Tem certeza que deseja remover a configuração do Paggue?')) {
-      return;
-    }
+    if (!window.confirm('Tem certeza que deseja remover a configuração do Paggue?')) return;
 
     setDeleting(true);
     try {
@@ -450,8 +345,6 @@ const PaymentIntegrationsPage = () => {
         setIsEfiBankConfigured(true);
         setShowEfiBankModal(false);
         alert('Configuração do Efi Bank salva com sucesso!');
-        
-        // Update localStorage to reflect payment is now configured
         localStorage.setItem('isPaymentConfigured', 'true');
       }
     } catch (error) {
@@ -464,10 +357,7 @@ const PaymentIntegrationsPage = () => {
 
   const handleDeleteEfiBankConfig = async () => {
     if (!user) return;
-
-    if (!window.confirm('Tem certeza que deseja remover a configuração do Efi Bank?')) {
-      return;
-    }
+    if (!window.confirm('Tem certeza que deseja remover a configuração do Efi Bank?')) return;
 
     setDeleting(true);
     try {
@@ -511,698 +401,15 @@ const PaymentIntegrationsPage = () => {
 
       {/* Payment Methods Grid */}
       <div className="p-6 space-y-4">
-        {/* Mercado Pago */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
-          <div className="flex items-center space-x-4">
-            <img 
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Mercado_Pago_logo.png/800px-Mercado_Pago_logo.png" 
-              alt="Mercado Pago Logo" 
-              className="w-12 h-12 object-contain"
-            />
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                Mercado Pago
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Pagamentos automáticos via PIX e cartão
-              </p>
-              <div className="flex items-center space-x-2 mt-2">
-                {isMercadoPagoConfigured ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-600 dark:text-green-400">Conectado</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Não conectado</span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={handleMercadoPagoConfig}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-          >
-            Configurar
-          </button>
-        </div>
-
         {/* Fluxsis */}
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
           <div className="flex items-center space-x-4">
-            <img 
-              src="/fluxsis22.png" 
-              alt="Fluxsis Logo" 
-              className="w-12 h-12 object-contain"
-            />
+            <img src="/fluxsis22.png" alt="Fluxsis Logo" className="w-12 h-12 object-contain" />
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                Fluxsis
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Pagamentos automáticos via PIX e cartão
-              </p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Fluxsis</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Pagamentos automáticos via PIX e cartão</p>
               <div className="flex items-center space-x-2 mt-2">
                 {isFluxsisConfigured ? (
                   <>
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-600 dark:text-green-400">Conectado</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Não conectado</span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={handleFluxsisConfig}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-          >
-            Configurar
-          </button>
-        </div>
-
-        {/* Pay2m */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
-          <div className="flex items-center space-x-4">
-            <img 
-              src="/pay2m2.png" 
-              alt="Pay2m Logo" 
-              className="w-12 h-12 object-contain"
-            />
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                Pay2m
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Soluções de pagamento digital
-              </p>
-              <div className="flex items-center space-x-2 mt-2">
-                {isPay2mConfigured ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-600 dark:text-green-400">Conectado</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Não conectado</span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={handlePay2mConfig}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-          >
-            Configurar
-          </button>
-        </div>
-
-        {/* Paggue */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
-          <div className="flex items-center space-x-4">
-            <img 
-              src="/paggue2.png" 
-              alt="Paggue Logo" 
-              className="w-12 h-12 object-contain"
-            />
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                Paggue
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Plataforma de pagamentos online
-              </p>
-              <div className="flex items-center space-x-2 mt-2">
-                {isPaggueConfigured ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-600 dark:text-green-400">Conectado</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Não conectado</span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={handlePaggueConfig}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-          >
-            Configurar
-          </button>
-        </div>
-
-        {/* Efi Bank */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
-          <div className="flex items-center space-x-4">
-            <img 
-              src="/efi2.png" 
-              alt="Efi Bank Logo" 
-              className="w-12 h-12 object-contain"
-            />
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                Efi Bank
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Banco digital com soluções de pagamento
-              </p>
-              <div className="flex items-center space-x-2 mt-2">
-                {isEfiBankConfigured ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-600 dark:text-green-400">Conectado</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Não conectado</span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={handleEfiBankConfig}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-          >
-            Configurar
-          </button>
-        </div>
-      </div>
-
-      {/* Mercado Pago Modal */}
-      {showMercadoPagoModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Configurar Mercado Pago
-              </h2>
-              <button
-                onClick={() => setShowMercadoPagoModal(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
-              >
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            </div>
-            
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              Configure sua integração com o Mercado Pago para receber pagamentos automáticos
-            </p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Client ID *
-                </label>
-                <input
-                  type="text"
-                  value={mercadoPagoConfig.client_id}
-                  onChange={(e) => setMercadoPagoConfig({ ...mercadoPagoConfig, client_id: e.target.value })}
-                  placeholder="Seu Client ID do Mercado Pago"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Client Secret *
-                </label>
-                <input
-                  type="password"
-                  value={mercadoPagoConfig.client_secret}
-                  onChange={(e) => setMercadoPagoConfig({ ...mercadoPagoConfig, client_secret: e.target.value })}
-                  placeholder="Seu Client Secret do Mercado Pago"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Webhook URL
-                </label>
-                <input
-                  type="url"
-                  value={mercadoPagoConfig.webhook_url}
-                  onChange={(e) => setMercadoPagoConfig({ ...mercadoPagoConfig, webhook_url: e.target.value })}
-                  placeholder="https://seusite.com/webhook/mercadopago"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-            </div>
-
-            <div className="flex space-x-3 mt-6">
-              {isMercadoPagoConfigured && (
-                <button
-                  onClick={handleDeleteMercadoPagoConfig}
-                  disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
-                >
-                  {deleting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    <>
-                      <Trash2 className="h-4 w-4" />
-                      <span>Excluir</span>
-                    </>
-                  )}
-                </button>
-              )}
-              
-              <button
-                onClick={handleSaveMercadoPagoConfig}
-                disabled={loading || deleting}
-                className={`bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 ${
-                  isMercadoPagoConfigured ? 'flex-1' : 'w-full'
-                }`}
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <span>Salvar</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Fluxsis Modal */}
-      {showFluxsisModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Configurar Fluxsis
-              </h2>
-              <button
-                onClick={() => setShowFluxsisModal(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
-              >
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            </div>
-            
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              Configure sua integração com o Fluxsis para receber pagamentos automáticos
-            </p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  API Key *
-                </label>
-                <input
-                  type="text"
-                  value={fluxsisConfig.api_key}
-                  onChange={(e) => setFluxsisConfig({ ...fluxsisConfig, api_key: e.target.value })}
-                  placeholder="Sua API Key do Fluxsis"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Secret Key *
-                </label>
-                <input
-                  type="password"
-                  value={fluxsisConfig.secret_key}
-                  onChange={(e) => setFluxsisConfig({ ...fluxsisConfig, secret_key: e.target.value })}
-                  placeholder="Sua Secret Key do Fluxsis"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Webhook URL
-                </label>
-                <input
-                  type="url"
-                  value={fluxsisConfig.webhook_url}
-                  onChange={(e) => setFluxsisConfig({ ...fluxsisConfig, webhook_url: e.target.value })}
-                  placeholder="https://seusite.com/webhook/fluxsis"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-            </div>
-
-            <div className="flex space-x-3 mt-6">
-              {isFluxsisConfigured && (
-                <button
-                  onClick={handleDeleteFluxsisConfig}
-                  disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
-                >
-                  {deleting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    <>
-                      <Trash2 className="h-4 w-4" />
-                      <span>Excluir</span>
-                    </>
-                  )}
-                </button>
-              )}
-              
-              <button
-                onClick={handleSaveFluxsisConfig}
-                disabled={loading || deleting}
-                className={`bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 ${
-                  isFluxsisConfigured ? 'flex-1' : 'w-full'
-                }`}
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <span>Salvar</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Pay2m Modal */}
-      {showPay2mModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Configurar Pay2m
-              </h2>
-              <button
-                onClick={() => setShowPay2mModal(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
-              >
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            </div>
-            
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              Configure sua integração com o Pay2m para receber pagamentos automáticos
-            </p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  API Key *
-                </label>
-                <input
-                  type="text"
-                  value={pay2mConfig.api_key}
-                  onChange={(e) => setPay2mConfig({ ...pay2mConfig, api_key: e.target.value })}
-                  placeholder="Sua API Key do Pay2m"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Secret Key *
-                </label>
-                <input
-                  type="password"
-                  value={pay2mConfig.secret_key}
-                  onChange={(e) => setPay2mConfig({ ...pay2mConfig, secret_key: e.target.value })}
-                  placeholder="Sua Secret Key do Pay2m"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Webhook URL
-                </label>
-                <input
-                  type="url"
-                  value={pay2mConfig.webhook_url}
-                  onChange={(e) => setPay2mConfig({ ...pay2mConfig, webhook_url: e.target.value })}
-                  placeholder="https://seusite.com/webhook/pay2m"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-            </div>
-
-            <div className="flex space-x-3 mt-6">
-              {isPay2mConfigured && (
-                <button
-                  onClick={handleDeletePay2mConfig}
-                  disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
-                >
-                  {deleting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    <>
-                      <Trash2 className="h-4 w-4" />
-                      <span>Excluir</span>
-                    </>
-                  )}
-                </button>
-              )}
-              
-              <button
-                onClick={handleSavePay2mConfig}
-                disabled={loading || deleting}
-                className={`bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 ${
-                  isPay2mConfigured ? 'flex-1' : 'w-full'
-                }`}
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <span>Salvar</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Paggue Modal */}
-      {showPaggueModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Configurar Paggue
-              </h2>
-              <button
-                onClick={() => setShowPaggueModal(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
-              >
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            </div>
-            
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              Configure sua integração com o Paggue para receber pagamentos automáticos
-            </p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  API Key *
-                </label>
-                <input
-                  type="text"
-                  value={paggueConfig.api_key}
-                  onChange={(e) => setPaggueConfig({ ...paggueConfig, api_key: e.target.value })}
-                  placeholder="Sua API Key do Paggue"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Secret Key *
-                </label>
-                <input
-                  type="password"
-                  value={paggueConfig.secret_key}
-                  onChange={(e) => setPaggueConfig({ ...paggueConfig, secret_key: e.target.value })}
-                  placeholder="Sua Secret Key do Paggue"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Webhook URL
-                </label>
-                <input
-                  type="url"
-                  value={paggueConfig.webhook_url}
-                  onChange={(e) => setPaggueConfig({ ...paggueConfig, webhook_url: e.target.value })}
-                  placeholder="https://seusite.com/webhook/paggue"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-            </div>
-
-            <div className="flex space-x-3 mt-6">
-              {isPaggueConfigured && (
-                <button
-                  onClick={handleDeletePaggueConfig}
-                  disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
-                >
-                  {deleting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    <>
-                      <Trash2 className="h-4 w-4" />
-                      <span>Excluir</span>
-                    </>
-                  )}
-                </button>
-              )}
-              
-              <button
-                onClick={handleSavePaggueConfig}
-                disabled={loading || deleting}
-                className={`bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 ${
-                  isPaggueConfigured ? 'flex-1' : 'w-full'
-                }`}
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <span>Salvar</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Efi Bank Modal */}
-      {showEfiBankModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Configurar Efi Bank
-              </h2>
-              <button
-                onClick={() => setShowEfiBankModal(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
-              >
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            </div>
-            
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              Configure sua integração com o Efi Bank para receber pagamentos automáticos
-            </p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Client ID *
-                </label>
-                <input
-                  type="text"
-                  value={efiBankConfig.client_id}
-                  onChange={(e) => setEfiBankConfig({ ...efiBankConfig, client_id: e.target.value })}
-                  placeholder="Seu Client ID do Efi Bank"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Client Secret *
-                </label>
-                <input
-                  type="password"
-                  value={efiBankConfig.client_secret}
-                  onChange={(e) => setEfiBankConfig({ ...efiBankConfig, client_secret: e.target.value })}
-                  placeholder="Seu Client Secret do Efi Bank"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Webhook URL
-                </label>
-                <input
-                  type="url"
-                  value={efiBankConfig.webhook_url}
-                  onChange={(e) => setEfiBankConfig({ ...efiBankConfig, webhook_url: e.target.value })}
-                  placeholder="https://seusite.com/webhook/efibank"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-            </div>
-
-            <div className="flex space-x-3 mt-6">
-              {isEfiBankConfigured && (
-                <button
-                  onClick={handleDeleteEfiBankConfig}
-                  disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
-                >
-                  {deleting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    <>
-                      <Trash2 className="h-4 w-4" />
-                      <span>Excluir</span>
-                    </>
-                  )}
-                </button>
-              )}
-              
-              <button
-                onClick={handleSaveEfiBankConfig}
-                disabled={loading || deleting}
-                className={`bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 ${
-                  isEfiBankConfigured ? 'flex-1' : 'w-full'
-                }`}
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <span>Salvar</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default PaymentIntegrationsPage;
+                    <span className="text-sm text-green-600 dark:text-green-400
