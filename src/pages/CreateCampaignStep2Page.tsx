@@ -149,29 +149,24 @@ const CreateCampaignStep2Page = () => {
   };
 
   const handleDescriptionChange = (value: string) => {
-    // Normaliza o conteúdo do editor - remove HTML vazio
-    const normalizedValue = normalizeEditorContent(value);
-    setFormData(prev => ({ ...prev, description: normalizedValue }));
+    // Store the raw value from the editor without aggressive normalization
+    setFormData(prev => ({ ...prev, description: value }));
   };
 
-  // Função para normalizar conteúdo do editor de texto rico
-  const normalizeEditorContent = (content: string): string => {
-    if (!content) return '';
+  // Simple function to check if editor content is effectively empty
+  const isEditorContentEmpty = (content: string): boolean => {
+    if (!content) return true;
     
-    // Remove tags HTML vazias comuns do ReactQuill
+    // Remove common empty HTML tags and whitespace
     const cleanContent = content
-      .replace(/<p><br><\/p>/g, '') // Remove parágrafos vazios
-      .replace(/<p><\/p>/g, '') // Remove parágrafos vazios
-      .replace(/<br>/g, '') // Remove quebras de linha isoladas
-      .replace(/^\s*<p>\s*<\/p>\s*$/g, '') // Remove parágrafo vazio no início/fim
+      .replace(/<p><br><\/p>/g, '')
+      .replace(/<p><\/p>/g, '')
+      .replace(/<br\s*\/?>/g, '')
+      .replace(/&nbsp;/g, '')
+      .replace(/<[^>]*>/g, '') // Remove all HTML tags
       .trim();
     
-    // Se após limpeza só restaram tags vazias ou espaços, retorna string vazia
-    if (cleanContent === '' || cleanContent === '<p></p>' || /^<p>\s*<\/p>$/.test(cleanContent)) {
-      return '';
-    }
-    
-    return cleanContent;
+    return cleanContent === '';
   };
 
   const handleDrawDateOptionChange = (option: 'show-date' | 'no-date') => {
@@ -243,9 +238,14 @@ const CreateCampaignStep2Page = () => {
         imageUrls = await uploadImages(campaign?.user_id || '');
       }
 
+      // Normalize description for database storage
+      const normalizedDescription = isEditorContentEmpty(formData.description) 
+        ? null 
+        : formData.description;
+
       const updateData = {
         id: campaignId,
-        description: formData.description,
+        description: normalizedDescription,
         prize_image_urls: imageUrls.length > 0 ? imageUrls : campaign?.prize_image_urls || [],
         require_email: formData.requireEmail,
         show_ranking: formData.showRanking,
