@@ -1,68 +1,62 @@
-// PaymentIntegrationsPage_removed_mercado.tsx
 import React, { useState, useEffect } from 'react';
-import {
-  CheckCircle,
-  AlertCircle,
-  Trash2,
-  X,
-  ArrowRight
-} from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { ArrowLeft, Plus, X, ArrowRight, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { PaymentsAPI, PaymentIntegrationConfig } from '../lib/api/payments';
 
-const PaymentIntegrationsPage: React.FC = () => {
-  // Estados de carregamento / feedback
+const PaymentIntegrationsPage = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Modal states
+  const [showMercadoPagoModal, setShowMercadoPagoModal] = useState(false);
+  const [showFluxsisModal, setShowFluxsisModal] = useState(false);
+  const [showPay2mModal, setShowPay2mModal] = useState(false);
+  const [showPaggueModal, setShowPaggueModal] = useState(false);
+  const [showEfiBankModal, setShowEfiBankModal] = useState(false);
+
+  // Configuration states
+  const [mercadoPagoConfig, setMercadoPagoConfig] = useState({ client_id: '', client_secret: '', webhook_url: '' });
+  const [fluxsisConfig, setFluxsisConfig] = useState({ api_key: '', secret_key: '', webhook_url: '' });
+  const [pay2mConfig, setPay2mConfig] = useState({ api_key: '', secret_key: '', webhook_url: '' });
+  const [paggueConfig, setPaggueConfig] = useState({ api_key: '', secret_key: '', webhook_url: '' });
+  const [efiBankConfig, setEfiBankConfig] = useState({ client_id: '', client_secret: '', webhook_url: '' });
+
+  // Status states
+  const [isMercadoPagoConfigured, setIsMercadoPagoConfigured] = useState(false);
+  const [isFluxsisConfigured, setIsFluxsisConfigured] = useState(false);
+  const [isPay2mConfigured, setIsPay2mConfigured] = useState(false);
+  const [isPaggueConfigured, setIsPaggueConfigured] = useState(false);
+  const [isEfiBankConfigured, setIsEfiBankConfigured] = useState(false);
+
+  // Loading states
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Fluxsis
-  const [showFluxsisModal, setShowFluxsisModal] = useState(false);
-  const [fluxsisConfig, setFluxsisConfig] = useState({
-    api_key: '',
-    secret_key: '',
-    webhook_url: ''
-  });
-  const [isFluxsisConfigured, setIsFluxsisConfigured] = useState(false);
-
-  // Pay2m
-  const [showPay2mModal, setShowPay2mModal] = useState(false);
-  const [pay2mConfig, setPay2mConfig] = useState({
-    api_key: '',
-    secret_key: '',
-    webhook_url: ''
-  });
-  const [isPay2mConfigured, setIsPay2mConfigured] = useState(false);
-
-  // Paggue
-  const [showPaggueModal, setShowPaggueModal] = useState(false);
-  const [paggueConfig, setPaggueConfig] = useState({
-    api_key: '',
-    secret_key: '',
-    webhook_url: ''
-  });
-  const [isPaggueConfigured, setIsPaggueConfigured] = useState(false);
-
-  // Efi Bank
-  const [showEfiBankModal, setShowEfiBankModal] = useState(false);
-  const [efiBankConfig, setEfiBankConfig] = useState({
-    client_id: '',
-    client_secret: '',
-    webhook_url: ''
-  });
-  const [isEfiBankConfigured, setIsEfiBankConfigured] = useState(false);
-
-  // Carrega configurações de pagamentos quando o componente monta
+  // Load payment configurations when component mounts
   useEffect(() => {
     const loadPaymentConfig = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('payment_integrations')
-          .select('*')
-          .maybeSingle();
+      if (!user) return;
 
+      try {
+        const { data, error } = await PaymentsAPI.getPaymentConfig(user.id);
+        
         if (error) {
-          console.error('Error loading payment integrations config:', error);
-        } else if (data) {
+          console.error('Error loading payment config:', error);
+          return;
+        }
+
+        if (data) {
+          // Mercado Pago
+          if (data.mercado_pago) {
+            setMercadoPagoConfig({
+              client_id: data.mercado_pago.client_id || '',
+              client_secret: data.mercado_pago.client_secret || '',
+              webhook_url: data.mercado_pago.webhook_url || ''
+            });
+            setIsMercadoPagoConfigured(!!(data.mercado_pago.client_id || data.mercado_pago.access_token));
+          }
+
           // Fluxsis
           if (data.fluxsis) {
             setFluxsisConfig({
@@ -70,7 +64,7 @@ const PaymentIntegrationsPage: React.FC = () => {
               secret_key: data.fluxsis.secret_key || '',
               webhook_url: data.fluxsis.webhook_url || ''
             });
-            setIsFluxsisConfigured(true);
+            setIsFluxsisConfigured(!!data.fluxsis.api_key);
           }
 
           // Pay2m
@@ -80,7 +74,7 @@ const PaymentIntegrationsPage: React.FC = () => {
               secret_key: data.pay2m.secret_key || '',
               webhook_url: data.pay2m.webhook_url || ''
             });
-            setIsPay2mConfigured(true);
+            setIsPay2mConfigured(!!data.pay2m.api_key);
           }
 
           // Paggue
@@ -90,7 +84,7 @@ const PaymentIntegrationsPage: React.FC = () => {
               secret_key: data.paggue.secret_key || '',
               webhook_url: data.paggue.webhook_url || ''
             });
-            setIsPaggueConfigured(true);
+            setIsPaggueConfigured(!!data.paggue.api_key);
           }
 
           // Efi Bank
@@ -100,18 +94,97 @@ const PaymentIntegrationsPage: React.FC = () => {
               client_secret: data.efi_bank.client_secret || '',
               webhook_url: data.efi_bank.webhook_url || ''
             });
-            setIsEfiBankConfigured(true);
+            setIsEfiBankConfigured(!!data.efi_bank.client_id);
           }
         }
       } catch (error) {
-        console.error('Error loading payment integrations config:', error);
-      } finally {
-        setLoading(false);
+        console.error('Error loading payment configurations:', error);
       }
     };
 
     loadPaymentConfig();
-  }, []);
+  }, [user]);
+
+  const handleGoBack = () => {
+    navigate('/dashboard');
+  };
+
+  // Mercado Pago handlers
+  const handleMercadoPagoConfig = () => {
+    setShowMercadoPagoModal(true);
+  };
+
+  const handleSaveMercadoPagoConfig = async () => {
+    if (!user || !mercadoPagoConfig.client_id.trim() || !mercadoPagoConfig.client_secret.trim()) {
+      alert('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: currentConfig } = await PaymentsAPI.getPaymentConfig(user.id);
+      const updatedConfig: PaymentIntegrationConfig = {
+        ...currentConfig,
+        mercado_pago: {
+          client_id: mercadoPagoConfig.client_id,
+          client_secret: mercadoPagoConfig.client_secret,
+          webhook_url: mercadoPagoConfig.webhook_url,
+          configured_at: new Date().toISOString()
+        }
+      };
+
+      const { error } = await PaymentsAPI.updatePaymentConfig(user.id, updatedConfig);
+      
+      if (error) {
+        console.error('Error saving Mercado Pago config:', error);
+        alert('Erro ao salvar configuração. Tente novamente.');
+      } else {
+        setIsMercadoPagoConfigured(true);
+        setShowMercadoPagoModal(false);
+        alert('Configuração do Mercado Pago salva com sucesso!');
+        
+        // Update localStorage to reflect payment is now configured
+        localStorage.setItem('isPaymentConfigured', 'true');
+      }
+    } catch (error) {
+      console.error('Error saving Mercado Pago config:', error);
+      alert('Erro ao salvar configuração. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteMercadoPagoConfig = async () => {
+    if (!user) return;
+
+    if (!window.confirm('Tem certeza que deseja remover a configuração do Mercado Pago?')) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const { data: currentConfig } = await PaymentsAPI.getPaymentConfig(user.id);
+      const updatedConfig: PaymentIntegrationConfig = { ...currentConfig };
+      delete updatedConfig.mercado_pago;
+
+      const { error } = await PaymentsAPI.updatePaymentConfig(user.id, updatedConfig);
+      
+      if (error) {
+        console.error('Error deleting Mercado Pago config:', error);
+        alert('Erro ao remover configuração. Tente novamente.');
+      } else {
+        setIsMercadoPagoConfigured(false);
+        setMercadoPagoConfig({ client_id: '', client_secret: '', webhook_url: '' });
+        setShowMercadoPagoModal(false);
+        alert('Configuração do Mercado Pago removida com sucesso!');
+      }
+    } catch (error) {
+      console.error('Error deleting Mercado Pago config:', error);
+      alert('Erro ao remover configuração. Tente novamente.');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // Fluxsis handlers
   const handleFluxsisConfig = () => {
@@ -119,54 +192,72 @@ const PaymentIntegrationsPage: React.FC = () => {
   };
 
   const handleSaveFluxsisConfig = async () => {
+    if (!user || !fluxsisConfig.api_key.trim() || !fluxsisConfig.secret_key.trim()) {
+      alert('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
     setLoading(true);
     try {
-      // Salva no banco (exemplo)
-      const { error } = await supabase
-        .from('payment_integrations')
-        .upsert({
-          id: 1,
-          fluxsis: fluxsisConfig
-        });
+      const { data: currentConfig } = await PaymentsAPI.getPaymentConfig(user.id);
+      const updatedConfig: PaymentIntegrationConfig = {
+        ...currentConfig,
+        fluxsis: {
+          api_key: fluxsisConfig.api_key,
+          secret_key: fluxsisConfig.secret_key,
+          webhook_url: fluxsisConfig.webhook_url,
+          configured_at: new Date().toISOString()
+        }
+      };
 
-      if (error) throw error;
-      setIsFluxsisConfigured(true);
-      setShowFluxsisModal(false);
-    } catch (err) {
-      console.error('Erro ao salvar Fluxsis config:', err);
-      alert('Erro ao salvar configuração do Fluxsis.');
+      const { error } = await PaymentsAPI.updatePaymentConfig(user.id, updatedConfig);
+      
+      if (error) {
+        console.error('Error saving Fluxsis config:', error);
+        alert('Erro ao salvar configuração. Tente novamente.');
+      } else {
+        setIsFluxsisConfigured(true);
+        setShowFluxsisModal(false);
+        alert('Configuração do Fluxsis salva com sucesso!');
+        
+        // Update localStorage to reflect payment is now configured
+        localStorage.setItem('isPaymentConfigured', 'true');
+      }
+    } catch (error) {
+      console.error('Error saving Fluxsis config:', error);
+      alert('Erro ao salvar configuração. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteFluxsisConfig = async () => {
+    if (!user) return;
+
+    if (!window.confirm('Tem certeza que deseja remover a configuração do Fluxsis?')) {
+      return;
+    }
+
     setDeleting(true);
     try {
-      // Fetch existing
-      const { data: existing, error: fetchError } = await supabase
-        .from('payment_integrations')
-        .select('*')
-        .maybeSingle();
-      if (fetchError) throw fetchError;
+      const { data: currentConfig } = await PaymentsAPI.getPaymentConfig(user.id);
+      const updatedConfig: PaymentIntegrationConfig = { ...currentConfig };
+      delete updatedConfig.fluxsis;
 
-      const updated = {
-        ...existing,
-        fluxsis: null
-      };
-
-      const { error } = await supabase
-        .from('payment_integrations')
-        .upsert(updated);
-
-      if (error) throw error;
-
-      setIsFluxsisConfigured(false);
-      setFluxsisConfig({ api_key: '', secret_key: '', webhook_url: '' });
-      setShowFluxsisModal(false);
-    } catch (err) {
-      console.error('Erro ao deletar Fluxsis config:', err);
-      alert('Erro ao excluir configuração do Fluxsis.');
+      const { error } = await PaymentsAPI.updatePaymentConfig(user.id, updatedConfig);
+      
+      if (error) {
+        console.error('Error deleting Fluxsis config:', error);
+        alert('Erro ao remover configuração. Tente novamente.');
+      } else {
+        setIsFluxsisConfigured(false);
+        setFluxsisConfig({ api_key: '', secret_key: '', webhook_url: '' });
+        setShowFluxsisModal(false);
+        alert('Configuração do Fluxsis removida com sucesso!');
+      }
+    } catch (error) {
+      console.error('Error deleting Fluxsis config:', error);
+      alert('Erro ao remover configuração. Tente novamente.');
     } finally {
       setDeleting(false);
     }
@@ -178,52 +269,72 @@ const PaymentIntegrationsPage: React.FC = () => {
   };
 
   const handleSavePay2mConfig = async () => {
+    if (!user || !pay2mConfig.api_key.trim() || !pay2mConfig.secret_key.trim()) {
+      alert('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('payment_integrations')
-        .upsert({
-          id: 1,
-          pay2m: pay2mConfig
-        });
+      const { data: currentConfig } = await PaymentsAPI.getPaymentConfig(user.id);
+      const updatedConfig: PaymentIntegrationConfig = {
+        ...currentConfig,
+        pay2m: {
+          api_key: pay2mConfig.api_key,
+          secret_key: pay2mConfig.secret_key,
+          webhook_url: pay2mConfig.webhook_url,
+          configured_at: new Date().toISOString()
+        }
+      };
 
-      if (error) throw error;
-      setIsPay2mConfigured(true);
-      setShowPay2mModal(false);
-    } catch (err) {
-      console.error('Erro ao salvar Pay2m config:', err);
-      alert('Erro ao salvar configuração do Pay2m.');
+      const { error } = await PaymentsAPI.updatePaymentConfig(user.id, updatedConfig);
+      
+      if (error) {
+        console.error('Error saving Pay2m config:', error);
+        alert('Erro ao salvar configuração. Tente novamente.');
+      } else {
+        setIsPay2mConfigured(true);
+        setShowPay2mModal(false);
+        alert('Configuração do Pay2m salva com sucesso!');
+        
+        // Update localStorage to reflect payment is now configured
+        localStorage.setItem('isPaymentConfigured', 'true');
+      }
+    } catch (error) {
+      console.error('Error saving Pay2m config:', error);
+      alert('Erro ao salvar configuração. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeletePay2mConfig = async () => {
+    if (!user) return;
+
+    if (!window.confirm('Tem certeza que deseja remover a configuração do Pay2m?')) {
+      return;
+    }
+
     setDeleting(true);
     try {
-      const { data: existing, error: fetchError } = await supabase
-        .from('payment_integrations')
-        .select('*')
-        .maybeSingle();
-      if (fetchError) throw fetchError;
+      const { data: currentConfig } = await PaymentsAPI.getPaymentConfig(user.id);
+      const updatedConfig: PaymentIntegrationConfig = { ...currentConfig };
+      delete updatedConfig.pay2m;
 
-      const updated = {
-        ...existing,
-        pay2m: null
-      };
-
-      const { error } = await supabase
-        .from('payment_integrations')
-        .upsert(updated);
-
-      if (error) throw error;
-
-      setIsPay2mConfigured(false);
-      setPay2mConfig({ api_key: '', secret_key: '', webhook_url: '' });
-      setShowPay2mModal(false);
-    } catch (err) {
-      console.error('Erro ao deletar Pay2m config:', err);
-      alert('Erro ao excluir configuração do Pay2m.');
+      const { error } = await PaymentsAPI.updatePaymentConfig(user.id, updatedConfig);
+      
+      if (error) {
+        console.error('Error deleting Pay2m config:', error);
+        alert('Erro ao remover configuração. Tente novamente.');
+      } else {
+        setIsPay2mConfigured(false);
+        setPay2mConfig({ api_key: '', secret_key: '', webhook_url: '' });
+        setShowPay2mModal(false);
+        alert('Configuração do Pay2m removida com sucesso!');
+      }
+    } catch (error) {
+      console.error('Error deleting Pay2m config:', error);
+      alert('Erro ao remover configuração. Tente novamente.');
     } finally {
       setDeleting(false);
     }
@@ -235,52 +346,72 @@ const PaymentIntegrationsPage: React.FC = () => {
   };
 
   const handleSavePaggueConfig = async () => {
+    if (!user || !paggueConfig.api_key.trim() || !paggueConfig.secret_key.trim()) {
+      alert('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('payment_integrations')
-        .upsert({
-          id: 1,
-          paggue: paggueConfig
-        });
+      const { data: currentConfig } = await PaymentsAPI.getPaymentConfig(user.id);
+      const updatedConfig: PaymentIntegrationConfig = {
+        ...currentConfig,
+        paggue: {
+          api_key: paggueConfig.api_key,
+          secret_key: paggueConfig.secret_key,
+          webhook_url: paggueConfig.webhook_url,
+          configured_at: new Date().toISOString()
+        }
+      };
 
-      if (error) throw error;
-      setIsPaggueConfigured(true);
-      setShowPaggueModal(false);
-    } catch (err) {
-      console.error('Erro ao salvar Paggue config:', err);
-      alert('Erro ao salvar configuração do Paggue.');
+      const { error } = await PaymentsAPI.updatePaymentConfig(user.id, updatedConfig);
+      
+      if (error) {
+        console.error('Error saving Paggue config:', error);
+        alert('Erro ao salvar configuração. Tente novamente.');
+      } else {
+        setIsPaggueConfigured(true);
+        setShowPaggueModal(false);
+        alert('Configuração do Paggue salva com sucesso!');
+        
+        // Update localStorage to reflect payment is now configured
+        localStorage.setItem('isPaymentConfigured', 'true');
+      }
+    } catch (error) {
+      console.error('Error saving Paggue config:', error);
+      alert('Erro ao salvar configuração. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeletePaggueConfig = async () => {
+    if (!user) return;
+
+    if (!window.confirm('Tem certeza que deseja remover a configuração do Paggue?')) {
+      return;
+    }
+
     setDeleting(true);
     try {
-      const { data: existing, error: fetchError } = await supabase
-        .from('payment_integrations')
-        .select('*')
-        .maybeSingle();
-      if (fetchError) throw fetchError;
+      const { data: currentConfig } = await PaymentsAPI.getPaymentConfig(user.id);
+      const updatedConfig: PaymentIntegrationConfig = { ...currentConfig };
+      delete updatedConfig.paggue;
 
-      const updated = {
-        ...existing,
-        paggue: null
-      };
-
-      const { error } = await supabase
-        .from('payment_integrations')
-        .upsert(updated);
-
-      if (error) throw error;
-
-      setIsPaggueConfigured(false);
-      setPaggueConfig({ api_key: '', secret_key: '', webhook_url: '' });
-      setShowPaggueModal(false);
-    } catch (err) {
-      console.error('Erro ao deletar Paggue config:', err);
-      alert('Erro ao excluir configuração do Paggue.');
+      const { error } = await PaymentsAPI.updatePaymentConfig(user.id, updatedConfig);
+      
+      if (error) {
+        console.error('Error deleting Paggue config:', error);
+        alert('Erro ao remover configuração. Tente novamente.');
+      } else {
+        setIsPaggueConfigured(false);
+        setPaggueConfig({ api_key: '', secret_key: '', webhook_url: '' });
+        setShowPaggueModal(false);
+        alert('Configuração do Paggue removida com sucesso!');
+      }
+    } catch (error) {
+      console.error('Error deleting Paggue config:', error);
+      alert('Erro ao remover configuração. Tente novamente.');
     } finally {
       setDeleting(false);
     }
@@ -292,68 +423,137 @@ const PaymentIntegrationsPage: React.FC = () => {
   };
 
   const handleSaveEfiBankConfig = async () => {
+    if (!user || !efiBankConfig.client_id.trim() || !efiBankConfig.client_secret.trim()) {
+      alert('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('payment_integrations')
-        .upsert({
-          id: 1,
-          efi_bank: efiBankConfig
-        });
+      const { data: currentConfig } = await PaymentsAPI.getPaymentConfig(user.id);
+      const updatedConfig: PaymentIntegrationConfig = {
+        ...currentConfig,
+        efi_bank: {
+          client_id: efiBankConfig.client_id,
+          client_secret: efiBankConfig.client_secret,
+          webhook_url: efiBankConfig.webhook_url,
+          configured_at: new Date().toISOString()
+        }
+      };
 
-      if (error) throw error;
-      setIsEfiBankConfigured(true);
-      setShowEfiBankModal(false);
-    } catch (err) {
-      console.error('Erro ao salvar Efi Bank config:', err);
-      alert('Erro ao salvar configuração do Efi Bank.');
+      const { error } = await PaymentsAPI.updatePaymentConfig(user.id, updatedConfig);
+      
+      if (error) {
+        console.error('Error saving Efi Bank config:', error);
+        alert('Erro ao salvar configuração. Tente novamente.');
+      } else {
+        setIsEfiBankConfigured(true);
+        setShowEfiBankModal(false);
+        alert('Configuração do Efi Bank salva com sucesso!');
+        
+        // Update localStorage to reflect payment is now configured
+        localStorage.setItem('isPaymentConfigured', 'true');
+      }
+    } catch (error) {
+      console.error('Error saving Efi Bank config:', error);
+      alert('Erro ao salvar configuração. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteEfiBankConfig = async () => {
+    if (!user) return;
+
+    if (!window.confirm('Tem certeza que deseja remover a configuração do Efi Bank?')) {
+      return;
+    }
+
     setDeleting(true);
     try {
-      const { data: existing, error: fetchError } = await supabase
-        .from('payment_integrations')
-        .select('*')
-        .maybeSingle();
-      if (fetchError) throw fetchError;
+      const { data: currentConfig } = await PaymentsAPI.getPaymentConfig(user.id);
+      const updatedConfig: PaymentIntegrationConfig = { ...currentConfig };
+      delete updatedConfig.efi_bank;
 
-      const updated = {
-        ...existing,
-        efi_bank: null
-      };
-
-      const { error } = await supabase
-        .from('payment_integrations')
-        .upsert(updated);
-
-      if (error) throw error;
-
-      setIsEfiBankConfigured(false);
-      setEfiBankConfig({ client_id: '', client_secret: '', webhook_url: '' });
-      setShowEfiBankModal(false);
-    } catch (err) {
-      console.error('Erro ao deletar Efi Bank config:', err);
-      alert('Erro ao excluir configuração do Efi Bank.');
+      const { error } = await PaymentsAPI.updatePaymentConfig(user.id, updatedConfig);
+      
+      if (error) {
+        console.error('Error deleting Efi Bank config:', error);
+        alert('Erro ao remover configuração. Tente novamente.');
+      } else {
+        setIsEfiBankConfigured(false);
+        setEfiBankConfig({ client_id: '', client_secret: '', webhook_url: '' });
+        setShowEfiBankModal(false);
+        alert('Configuração do Efi Bank removida com sucesso!');
+      }
+    } catch (error) {
+      console.error('Error deleting Efi Bank config:', error);
+      alert('Erro ao remover configuração. Tente novamente.');
     } finally {
       setDeleting(false);
     }
   };
 
-  // Render
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-semibold mb-4">Métodos de pagamentos</h1>
+    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+      {/* Header */}
+      <div className="flex items-center space-x-4 p-6 border-b border-gray-200 dark:border-gray-800">
+        <button
+          onClick={handleGoBack}
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
+        >
+          <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+        </button>
+        <h1 className="text-xl font-medium text-gray-900 dark:text-white">
+          Métodos de pagamentos
+        </h1>
+      </div>
 
-      <div className="grid gap-4">
+      {/* Payment Methods Grid */}
+      <div className="p-6 space-y-4">
+        {/* Mercado Pago */}
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
+          <div className="flex items-center space-x-4">
+            <img 
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Mercado_Pago_logo.png/800px-Mercado_Pago_logo.png" 
+              alt="Mercado Pago Logo" 
+              className="w-12 h-12 object-contain"
+            />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                Mercado Pago
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Pagamentos automáticos via PIX e cartão
+              </p>
+              <div className="flex items-center space-x-2 mt-2">
+                {isMercadoPagoConfigured ? (
+                  <>
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-green-600 dark:text-green-400">Conectado</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm text-gray-500 dark:text-gray-400">Não conectado</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={handleMercadoPagoConfig}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+          >
+            Configurar
+          </button>
+        </div>
+
         {/* Fluxsis */}
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
           <div className="flex items-center space-x-4">
             <img 
-              src="https://fluxsis.com.br/wp-content/uploads/2023/09/logo-fluxsis-horizontal-preto.png" 
+              src="/fluxsis22.png" 
               alt="Fluxsis Logo" 
               className="w-12 h-12 object-contain"
             />
@@ -391,7 +591,7 @@ const PaymentIntegrationsPage: React.FC = () => {
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
           <div className="flex items-center space-x-4">
             <img 
-              src="https://pay2m.com.br/wp-content/uploads/2023/03/logo-pay2m-horizontal.png" 
+              src="/pay2m2.png" 
               alt="Pay2m Logo" 
               className="w-12 h-12 object-contain"
             />
@@ -429,7 +629,7 @@ const PaymentIntegrationsPage: React.FC = () => {
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
           <div className="flex items-center space-x-4">
             <img 
-              src="https://paggue.io/wp-content/uploads/2023/03/logo-paggue-horizontal.png" 
+              src="/paggue2.png" 
               alt="Paggue Logo" 
               className="w-12 h-12 object-contain"
             />
@@ -467,7 +667,7 @@ const PaymentIntegrationsPage: React.FC = () => {
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
           <div className="flex items-center space-x-4">
             <img 
-              src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Efi-bank-logo.png" 
+              src="/efi2.png" 
               alt="Efi Bank Logo" 
               className="w-12 h-12 object-contain"
             />
@@ -501,6 +701,106 @@ const PaymentIntegrationsPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Mercado Pago Modal */}
+      {showMercadoPagoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Configurar Mercado Pago
+              </h2>
+              <button
+                onClick={() => setShowMercadoPagoModal(false)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
+              >
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            </div>
+            
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              Configure sua integração com o Mercado Pago para receber pagamentos automáticos
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Client ID *
+                </label>
+                <input
+                  type="text"
+                  value={mercadoPagoConfig.client_id}
+                  onChange={(e) => setMercadoPagoConfig({ ...mercadoPagoConfig, client_id: e.target.value })}
+                  placeholder="Seu Client ID do Mercado Pago"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Client Secret *
+                </label>
+                <input
+                  type="password"
+                  value={mercadoPagoConfig.client_secret}
+                  onChange={(e) => setMercadoPagoConfig({ ...mercadoPagoConfig, client_secret: e.target.value })}
+                  placeholder="Seu Client Secret do Mercado Pago"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Webhook URL
+                </label>
+                <input
+                  type="url"
+                  value={mercadoPagoConfig.webhook_url}
+                  onChange={(e) => setMercadoPagoConfig({ ...mercadoPagoConfig, webhook_url: e.target.value })}
+                  placeholder="https://seusite.com/webhook/mercadopago"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                />
+              </div>
+            </div>
+
+            <div className="flex space-x-3 mt-6">
+              {isMercadoPagoConfigured && (
+                <button
+                  onClick={handleDeleteMercadoPagoConfig}
+                  disabled={deleting || loading}
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+                >
+                  {deleting ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4" />
+                      <span>Excluir</span>
+                    </>
+                  )}
+                </button>
+              )}
+              
+              <button
+                onClick={handleSaveMercadoPagoConfig}
+                disabled={loading || deleting}
+                className={`bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 ${
+                  isMercadoPagoConfigured ? 'flex-1' : 'w-full'
+                }`}
+              >
+                {loading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <>
+                    <span>Salvar</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Fluxsis Modal */}
       {showFluxsisModal && (
@@ -905,4 +1205,4 @@ const PaymentIntegrationsPage: React.FC = () => {
   );
 };
 
-export default PaymentIntegrationsPage_removed_mercado;
+export default PaymentIntegrationsPage;
