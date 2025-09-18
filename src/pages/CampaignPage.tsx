@@ -1,16 +1,16 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Share2, 
-  Calendar, 
-  Users, 
-  Trophy, 
-  ChevronLeft, 
-  ChevronRight,
-  Eye,
-  Gift,
-  ExternalLink,
-  AlertTriangle
+import {
+Share2,
+Calendar,
+Users,
+Trophy,
+ChevronLeft,
+ChevronRight,
+Eye,
+Gift,
+ExternalLink,
+AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
