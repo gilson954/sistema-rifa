@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Share2, 
   Calendar, 
@@ -12,6 +11,7 @@ import {
   ExternalLink,
   AlertTriangle
 } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useCampaignBySlug, useCampaignByCustomDomain } from '../hooks/useCampaigns';
@@ -38,6 +38,7 @@ interface OrganizerProfile {
   name: string;
   email: string;
   avatar_url?: string;
+  logo_url?: string;
   social_media_links?: any;
   payment_integrations_config?: any;
   primary_color?: string;
@@ -727,7 +728,7 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 2. Seção de Organizador - card com largura limitada */}
+        {/* 2. Seção de Organizador - card com layout melhorado e logo maior */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
             Organizador
@@ -738,47 +739,43 @@ const CampaignPage = () => {
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
             </div>
           ) : organizerProfile ? (
-            <div className="w-full">
-              <div className="flex items-center space-x-3 mb-3 justify-center">
-                {organizerProfile.logo_url ? (
-                  <img
-                    src={organizerProfile.logo_url}
-                    alt={organizerProfile.name}
-                    className="w-12 h-12 rounded object-contain bg-white dark:bg-gray-800 border-2 p-1"
-                    style={{ borderColor: primaryColor }}
-                  />
-                ) : organizerProfile.avatar_url ? (
-                  <img
-                    src={organizerProfile.avatar_url}
-                    alt={organizerProfile.name}
-                    className="w-12 h-12 rounded-full object-cover border-2"
-                    style={{ borderColor: primaryColor }}
-                  />
-                ) : (
-                  <div 
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    {organizerProfile.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="text-center flex-1">
-                  <h4 className={`text-base font-semibold ${themeClasses.text}`}>
-                    {organizerProfile.name}
-                  </h4>
-                  <p className={`text-sm ${themeClasses.textSecondary}`}>
-                    Organizador da campanha
-                  </p>
+            <div className="flex flex-col items-center text-center">
+              {/* Logo / Avatar - aumentados e centralizados */}
+              {organizerProfile.logo_url ? (
+                <img
+                  src={organizerProfile.logo_url}
+                  alt={organizerProfile.name}
+                  className="w-20 h-20 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
+                  style={{ borderColor: primaryColor }}
+                />
+              ) : organizerProfile.avatar_url ? (
+                <img
+                  src={organizerProfile.avatar_url}
+                  alt={organizerProfile.name}
+                  className="w-20 h-20 rounded-full object-cover border-4 shadow-md"
+                  style={{ borderColor: primaryColor }}
+                />
+              ) : (
+                <div 
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-md"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {organizerProfile.name ? organizerProfile.name.charAt(0).toUpperCase() : 'O'}
                 </div>
-              </div>
+              )}
+
+              <h4 className={`mt-4 text-lg font-semibold ${themeClasses.text}`}>
+                {organizerProfile.name}
+              </h4>
+              <p className={`text-sm ${themeClasses.textSecondary}`}>
+                Organizador da campanha
+              </p>
 
               {/* Organizer Social Media */}
               {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
-                <div className="text-center">
-                  <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>
-                    Redes Sociais
-                  </p>
-                  <div className="flex justify-center flex-wrap gap-1.5">
+                <div className="mt-4">
+                  <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>Redes Sociais</p>
+                  <div className="flex justify-center flex-wrap gap-2">
                     {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
                       if (!url || typeof url !== 'string') return null;
                       
@@ -790,11 +787,11 @@ const CampaignPage = () => {
                         <button
                           key={platform}
                           onClick={() => handleOrganizerSocialClick(platform, url)}
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform duration-200"
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform duration-200"
                           style={{ backgroundColor: config.color }}
                           title={`${config.name} do organizador`}
                         >
-                          <IconComponent size={16} />
+                          <IconComponent size={18} />
                         </button>
                       );
                     })}
