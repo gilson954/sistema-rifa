@@ -1,16 +1,17 @@
-// src/pages/CampaignPage.tsx
 import React, { useState, useCallback, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Share2,
-  Calendar,
-  Users,
-  Trophy,
-  ChevronLeft,
+import { 
+  Share2, 
+  Calendar, 
+  Users, 
+  Trophy, 
+  ChevronLeft, 
   ChevronRight,
   Eye,
+  Gift,
+  ExternalLink,
   AlertTriangle
 } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useCampaignBySlug, useCampaignByCustomDomain } from '../hooks/useCampaigns';
@@ -34,52 +35,79 @@ interface PromotionInfo {
 
 interface OrganizerProfile {
   id: string;
-  name?: string;
-  full_name?: string;
-  email?: string;
+  name: string;
+  email: string;
   avatar_url?: string;
   logo_url?: string;
-  social_media_links?: Record<string, string | null>;
+  social_media_links?: any;
   payment_integrations_config?: any;
   primary_color?: string;
   theme?: string;
 }
 
-const CampaignPage: React.FC = () => {
+const CampaignPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme } = useTheme();
 
-  // determine if custom domain (same logic as in your app)
+  // Função para verificar se a descrição contém conteúdo válido
+  const isValidDescription = (description: string): boolean => {
+    if (!description || typeof description !== 'string') return false;
+    
+    // Remove HTML tags e espaços para verificar se há conteúdo real
+    const textContent = description
+      .replace(/<[^>]*>/g, '') // Remove todas as tags HTML
+      .replace(/&nbsp;/g, ' ') // Substitui &nbsp; por espaços
+      .trim();
+    
+    return textContent.length > 0;
+  };
+  
+  // Check if this is a custom domain request
   const developmentHosts = [
     'localhost',
     '127.0.0.1',
     'netlify.app',
     'stackblitz.io',
-    'stackblitz.com',
+    'stackblitz.com', 
     'webcontainer.io',
     'webcontainer-api.io'
   ];
-  const isDevelopmentHost = developmentHosts.some(host =>
-    typeof window !== 'undefined' && (window.location.hostname === host || window.location.hostname.includes(host))
+  
+  const isDevelopmentHost = developmentHosts.some(host => 
+    window.location.hostname === host || window.location.hostname.includes(host)
   );
+  
   const isCustomDomain = !isDevelopmentHost && slug;
-
-  // Campaign loading (choose hook by slug vs domain)
+  
+  // Use appropriate hook based on access method
   const { campaign: campaignBySlug, loading: loadingBySlug, error: errorBySlug } = useCampaignBySlug(slug || '');
   const { campaign: campaignByDomain, loading: loadingByDomain, error: errorByDomain } = useCampaignByCustomDomain(
-    isCustomDomain ? (typeof window !== 'undefined' ? window.location.hostname : '') : ''
+    isCustomDomain ? window.location.hostname : ''
   );
+  
+  // Select the appropriate campaign data
   const campaign = isCustomDomain ? campaignByDomain : campaignBySlug;
-  const loadingCampaign = isCustomDomain ? loadingByDomain : loadingBySlug;
-  const errorCampaign = isCustomDomain ? errorByDomain : errorBySlug;
+  const loading = isCustomDomain ? loadingByDomain : loadingBySlug;
+  const error = isCustomDomain ? errorByDomain : errorBySlug;
 
-  // Organizer profile state (Bolt: always fetch by campaign.user_id)
+  // Check if campaign is available for purchases (paid and active)
+  const isCampaignAvailable = campaign?.status === 'active' && campaign?.is_paid !== false;
+
+  // Debug: Log campaign description (remover após teste)
+  useEffect(() => {
+    if (campaign?.description) {
+      console.log('📝 Descrição da campanha:', campaign.description);
+      console.log('📝 Descrição é válida:', isValidDescription(campaign.description));
+    }
+  }, [campaign?.description]);
+
+  // Organizer profile state
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
 
-  // Tickets hook
+  // Tickets management
   const {
     tickets,
     loading: ticketsLoading,
@@ -89,92 +117,331 @@ const CampaignPage: React.FC = () => {
     reserving
   } = useTickets(campaign?.id || '');
 
-  // UI state
+  // Local state for manual selection
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
-  const [quantity, setQuantity] = useState<number>(1);
+  const [quantity, setQuantity] = useState(1);
   const [activeFilter, setActiveFilter] = useState<'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers'>('all');
+  
+  // Modal states
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
   const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
-  const [reservationTotalValue, setReservationTotalValue] = useState<number>(0);
+  const [reservationTotalValue, setReservationTotalValue] = useState(0);
 
-  // Gallery & fullscreen
+  // Image gallery state
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [fullscreenImageIndex, setFullscreenImageIndex] = useState<number | null>(null);
+  
+  // Touch/swipe state for mobile navigation
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
-  // --- Fetch organizer profile using campaign.user_id (Bolt plan) ---
+  // Load organizer profile
   useEffect(() => {
-    if (!campaign?.user_id) return;
-
-    const loadOrganizerProfile = async () => {
-      setLoadingOrganizer(true);
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, name, full_name, email, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme')
-          .eq('id', campaign.user_id)
-          .maybeSingle();
-
-        if (error) {
+    if (campaign?.user_id) {
+      // DEBUG: Log campaign reservation timeout value
+      console.log('🔧 [CAMPAIGN DEBUG] Campaign reservation_timeout_minutes:', campaign?.reservation_timeout_minutes);
+      console.log('🔧 [CAMPAIGN DEBUG] Full campaign object:', campaign);
+      
+      const loadOrganizerProfile = async () => {
+        setLoadingOrganizer(true);
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('id, name, email, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme')
+            .eq('id', campaign.user_id)
+            .maybeSingle();
+          
+          if (error) {
+            console.error('Error loading organizer profile:', error);
+          } else {
+            setOrganizerProfile(data);
+          }
+        } catch (error) {
           console.error('Error loading organizer profile:', error);
-          setOrganizerProfile(null);
-        } else {
-          setOrganizerProfile(data as OrganizerProfile | null);
+        } finally {
+          setLoadingOrganizer(false);
         }
-      } catch (err) {
-        console.error('Error loading organizer profile:', err);
-        setOrganizerProfile(null);
-      } finally {
-        setLoadingOrganizer(false);
+      };
+      
+      loadOrganizerProfile();
+    }
+  }, [campaign?.user_id]);
+
+  // Get applicable promotion for a given quantity
+  const getBestPromotionForDisplay = useCallback((quotaCount: number): PromotionInfo | null => {
+    if (!campaign?.promotions || !Array.isArray(campaign.promotions) || campaign.promotions.length === 0) {
+      return null;
+    }
+
+    // Find the best promotion that applies to this quantity
+    const applicablePromotions = campaign.promotions.filter(
+      (promo: Promotion) => promo.ticketQuantity <= quotaCount
+    );
+
+    if (applicablePromotions.length === 0) {
+      return null;
+    }
+
+    // Get the promotion with the highest ticket quantity (best deal)
+    const applicablePromotion = applicablePromotions.reduce((best, current) => 
+      current.ticketQuantity > best.ticketQuantity ? current : best
+    );
+
+    const originalTotal = quotaCount * campaign.ticket_price;
+    
+    // Calculate total using the new block promotion logic
+    const { total: promotionalTotal } = calculateTotalWithPromotions(
+      quotaCount,
+      campaign.ticket_price,
+      campaign.promotions
+    );
+    
+    const savings = originalTotal - promotionalTotal;
+    const discountPercentage = Math.round((savings / originalTotal) * 100);
+
+    return {
+      promotion: applicablePromotion,
+      originalTotal,
+      promotionalTotal,
+      savings,
+      discountPercentage
+    };
+  }, [campaign?.promotions, campaign?.ticket_price]);
+
+  // Handle manual quota selection
+  const handleQuotaSelect = useCallback((quotaNumber: number) => {
+    if (!campaign || campaign.campaign_model !== 'manual') return;
+
+    // Check if quota is available
+    const availableTickets = getAvailableTickets();
+    const isAvailable = availableTickets.some(ticket => ticket.quota_number === quotaNumber);
+    
+    if (!isAvailable) return;
+
+    setSelectedQuotas(prev => {
+      if (prev.includes(quotaNumber)) {
+        // Remove if already selected
+        return prev.filter(q => q !== quotaNumber);
+      } else {
+        // Add if not selected and within limits
+        const newSelection = [...prev, quotaNumber];
+        if (newSelection.length <= (campaign.max_tickets_per_purchase || 1000)) {
+          return newSelection;
+        }
+        return prev; // Don't add if exceeds limit
+      }
+    });
+  }, [campaign, getAvailableTickets]);
+
+  // Handle automatic quantity change
+  const handleQuantityChange = useCallback((newQuantity: number) => {
+    setQuantity(newQuantity);
+  }, []);
+
+  // Handle reservation submission
+  const handleReservationSubmit = useCallback(async (customerData: CustomerData) => {
+    if (!campaign || !user) {
+      alert('Você precisa estar logado para reservar cotas');
+      return;
+    }
+
+    try {
+      let quotasToReserve: number[] = [];
+
+      if (campaign.campaign_model === 'manual') {
+        // Manual mode: use selected quotas
+        if (selectedQuotas.length === 0) {
+          alert('Selecione pelo menos uma cota para reservar');
+          return;
+        }
+        quotasToReserve = selectedQuotas;
+      } else {
+        // Automatic mode: generate random quotas
+        if (quantity <= 0) {
+          alert('Selecione uma quantidade válida de cotas');
+          return;
+        }
+
+        const availableTickets = getAvailableTickets();
+        const availableQuotaNumbers = availableTickets.map(ticket => ticket.quota_number);
+
+        if (availableQuotaNumbers.length < quantity) {
+          alert(`Apenas ${availableQuotaNumbers.length} cotas disponíveis`);
+          return;
+        }
+
+        // Randomly select quotas from available ones
+        const shuffled = [...availableQuotaNumbers].sort(() => 0.5 - Math.random());
+        quotasToReserve = shuffled.slice(0, quantity);
+      }
+
+      // Reserve the quotas
+      const result = await reserveTickets(quotasToReserve);
+      
+      if (result) {
+        // Calculate total value (considering promotions)
+        const { total: totalValue } = calculateTotalWithPromotions(
+          quotasToReserve.length,
+          campaign.ticket_price,
+          campaign.promotions || []
+        );
+
+        // Set reservation data
+        setReservationCustomerData(customerData);
+        setReservationQuotas(quotasToReserve);
+        setReservationTotalValue(totalValue);
+
+        // Clear selections
+        setSelectedQuotas([]);
+        setQuantity(Math.max(1, campaign.min_tickets_per_purchase || 1));
+
+        // Navigate to payment confirmation
+        navigate('/payment-confirmation', {
+          state: {
+            reservationData: {
+              reservationId: `RES-${Date.now()}`,
+              customerName: customerData.name,
+              customerEmail: customerData.email,
+              customerPhone: `${customerData.countryCode} ${customerData.phoneNumber}`,
+              quotaCount: quotasToReserve.length,
+              totalValue: totalValue,
+              selectedQuotas: quotasToReserve,
+              campaignTitle: campaign.title,
+              campaignId: campaign.id,
+              expiresAt: new Date(Date.now() + (campaign.reservation_timeout_minutes || 15) * 60 * 1000).toISOString()
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error during reservation:', error);
+      alert('Erro ao reservar cotas. Tente novamente.');
+    } finally {
+      setShowReservationModal(false);
+    }
+  }, [campaign, user, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate]);
+
+  // Handle opening reservation modal
+  const handleOpenReservationModal = useCallback(() => {
+    if (!user) {
+      alert('Você precisa estar logado para reservar cotas');
+      navigate('/login');
+      return;
+    }
+
+    if (campaign?.campaign_model === 'manual' && selectedQuotas.length === 0) {
+      alert('Selecione pelo menos uma cota para reservar');
+      return;
+    }
+
+    if (campaign?.campaign_model === 'automatic' && quantity <= 0) {
+      alert('Selecione uma quantidade válida de cotas');
+      return;
+    }
+
+    setShowReservationModal(true);
+  }, [user, campaign, selectedQuotas, quantity, navigate]);
+
+  // Image navigation
+  const handlePreviousImage = () => {
+    if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
+      setCurrentImageIndex(prev => 
+        prev === 0 ? campaign.prize_image_urls!.length - 1 : prev - 1
+      );
+    }
+  };
+
+  const handleNextImage = () => {
+    if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
+      setCurrentImageIndex(prev => 
+        prev === campaign.prize_image_urls!.length - 1 ? 0 : prev + 1
+      );
+    }
+  };
+
+  // Handle fullscreen image view
+  const handleImageClick = (imageIndex: number) => {
+    setFullscreenImageIndex(imageIndex);
+  };
+
+  const handleCloseFullscreen = () => {
+    setFullscreenImageIndex(null);
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+
+  // Fullscreen navigation functions
+  const goToPreviousFullscreenImage = () => {
+    if (fullscreenImageIndex === null || !campaign?.prize_image_urls) return;
+    
+    const totalImages = campaign.prize_image_urls.length;
+    if (totalImages <= 1) return;
+    
+    setFullscreenImageIndex(prev => 
+      prev === 0 ? totalImages - 1 : (prev || 0) - 1
+    );
+  };
+
+  const goToNextFullscreenImage = () => {
+    if (fullscreenImageIndex === null || !campaign?.prize_image_urls) return;
+    
+    const totalImages = campaign.prize_image_urls.length;
+    if (totalImages <= 1) return;
+    
+    setFullscreenImageIndex(prev => 
+      prev === totalImages - 1 ? 0 : (prev || 0) + 1
+    );
+  };
+
+  // Keyboard navigation for fullscreen
+  useEffect(() => {
+    if (fullscreenImageIndex === null) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToPreviousFullscreenImage();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goToNextFullscreenImage();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        handleCloseFullscreen();
       }
     };
 
-    loadOrganizerProfile();
-  }, [campaign?.user_id]);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [fullscreenImageIndex]);
 
-  // --- Apply theme & primary color to document --- 
-  useEffect(() => {
-    const campaignTheme = organizerProfile?.theme || 'claro';
-    try {
-      document.documentElement.setAttribute('data-theme', campaignTheme);
-      if (campaignTheme === 'escuro' || campaignTheme === 'escuro-preto') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      if (campaignTheme === 'escuro-preto') {
-        document.documentElement.classList.add('dark-black');
-      } else {
-        document.documentElement.classList.remove('dark-black');
-      }
-    } catch (err) {
-      // SSR or tests may not have document — ignore
-    }
-  }, [organizerProfile?.theme]);
-
-  useEffect(() => {
-    const color = organizerProfile?.primary_color || '#3B82F6';
-    try {
-      document.documentElement.style.setProperty('--primary-color', color);
-    } catch (err) {
-      // ignore in non-browser environment
-    }
-  }, [organizerProfile?.primary_color]);
-
-  // --- Utility functions & UI handlers ---
-
-  const isCampaignAvailable = (cmp: any) => {
-    if (!cmp) return false;
-    if (cmp.status !== 'active') return false;
-    if (cmp.end_date) {
-      const end = new Date(cmp.end_date);
-      if (new Date() > end) return false;
-    }
-    return cmp.is_paid !== false; // follow your earlier logic
+  // Touch/swipe handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
   };
 
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      goToNextFullscreenImage();
+    } else if (isRightSwipe) {
+      goToPreviousFullscreenImage();
+    }
+
+    // Reset touch state
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+  // Get theme classes based on campaign theme
   const getThemeClasses = (campaignTheme: string) => {
     switch (campaignTheme) {
       case 'claro':
@@ -212,249 +479,135 @@ const CampaignPage: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-  const getProgressPercentage = () => {
-    if (!campaign) return 0;
-    const total = campaign.total_tickets || 1;
-    return Math.round((campaign.sold_tickets / total) * 100);
+  // Format date
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
-  const getBestPromotionForDisplay = useCallback((quotaCount: number): PromotionInfo | null => {
-    if (!campaign?.promotions || !Array.isArray(campaign.promotions) || campaign.promotions.length === 0) {
-      return null;
-    }
-    const applicable = campaign.promotions.filter((p: Promotion) => p.ticketQuantity <= quotaCount);
-    if (applicable.length === 0) return null;
-    const best = applicable.reduce((a: Promotion, b: Promotion) => (b.ticketQuantity > a.ticketQuantity ? b : a));
-    const originalTotal = quotaCount * campaign.ticket_price;
-    const { total: promotionalTotal } = calculateTotalWithPromotions(quotaCount, campaign.ticket_price, campaign.promotions);
-    const savings = originalTotal - promotionalTotal;
-    const discountPercentage = Math.round((savings / (originalTotal || 1)) * 100);
-    return { promotion: best, originalTotal, promotionalTotal, savings, discountPercentage };
-  }, [campaign?.promotions, campaign?.ticket_price]);
+  // Calculate progress percentage
+  const getProgressPercentage = () => {
+    if (!campaign) return 0;
+    return Math.round((campaign.sold_tickets / campaign.total_tickets) * 100);
+  };
 
-  const handleQuotaSelect = useCallback((quotaNumber: number) => {
-    if (!campaign || campaign.campaign_model !== 'manual') return;
-    const available = getAvailableTickets();
-    const isAvailable = available.some((t: any) => t.quota_number === quotaNumber);
-    if (!isAvailable) return;
-    setSelectedQuotas(prev => prev.includes(quotaNumber) ? prev.filter(q => q !== quotaNumber) : [...prev, quotaNumber].slice(0, campaign.max_tickets_per_purchase || 1000));
-  }, [campaign, getAvailableTickets]);
+  // Get current promotion info for selected/quantity
+  const currentPromotionInfo = campaign?.campaign_model === 'manual' 
+    ? getBestPromotionForDisplay(selectedQuotas.length)
+    : getBestPromotionForDisplay(quantity);
 
-  const handleQuantityChange = useCallback((newQuantity: number) => setQuantity(newQuantity), []);
-
+  // Calculate current total value
   const getCurrentTotalValue = () => {
     const currentQuantity = campaign?.campaign_model === 'manual' ? selectedQuotas.length : quantity;
+    
     if (!campaign) return 0;
-    const { total } = calculateTotalWithPromotions(currentQuantity, campaign.ticket_price, campaign.promotions || []);
+    
+    // Use the new block promotion calculation
+    const { total } = calculateTotalWithPromotions(
+      currentQuantity,
+      campaign.ticket_price,
+      campaign.promotions || []
+    );
+    
     return total;
   };
 
-  const handleReservationSubmit = useCallback(async (customerData: CustomerData) => {
-    if (!campaign || !user) {
-      alert('Você precisa estar logado para reservar cotas');
-      return;
+  // Get configured payment methods
+  const getConfiguredPaymentMethods = () => {
+    if (!organizerProfile?.payment_integrations_config) return [];
+    
+    const config = organizerProfile.payment_integrations_config;
+    const methods = [];
+    
+    if (config.mercado_pago?.client_id || config.mercado_pago?.access_token) {
+      methods.push({ name: 'Mercado Pago', icon: '💳', color: '#00B1EA' });
     }
-
-    try {
-      let quotasToReserve: number[] = [];
-
-      if (campaign.campaign_model === 'manual') {
-        if (selectedQuotas.length === 0) {
-          alert('Selecione pelo menos uma cota para reservar');
-          return;
-        }
-        quotasToReserve = selectedQuotas;
-      } else {
-        if (quantity <= 0) {
-          alert('Selecione uma quantidade válida de cotas');
-          return;
-        }
-        const availableTickets = getAvailableTickets();
-        const availableQuotaNumbers = availableTickets.map((t: any) => t.quota_number);
-        if (availableQuotaNumbers.length < quantity) {
-          alert(`Apenas ${availableQuotaNumbers.length} cotas disponíveis`);
-          return;
-        }
-        const shuffled = [...availableQuotaNumbers].sort(() => 0.5 - Math.random());
-        quotasToReserve = shuffled.slice(0, quantity);
-      }
-
-      const result = await reserveTickets(quotasToReserve);
-      if (result) {
-        const { total: totalValue } = calculateTotalWithPromotions(quotasToReserve.length, campaign.ticket_price, campaign.promotions || []);
-        setReservationCustomerData(customerData);
-        setReservationQuotas(quotasToReserve);
-        setReservationTotalValue(totalValue);
-        setSelectedQuotas([]);
-        setQuantity(Math.max(1, campaign.min_tickets_per_purchase || 1));
-        navigate('/payment-confirmation', {
-          state: {
-            reservationData: {
-              reservationId: `RES-${Date.now()}`,
-              customerName: customerData.name,
-              customerEmail: customerData.email,
-              customerPhone: `${customerData.countryCode} ${customerData.phoneNumber}`,
-              quotaCount: quotasToReserve.length,
-              totalValue,
-              selectedQuotas: quotasToReserve,
-              campaignTitle: campaign.title,
-              campaignId: campaign.id,
-              expiresAt: new Date(Date.now() + (campaign.reservation_timeout_minutes || 15) * 60 * 1000).toISOString()
-            }
-          }
-        });
-      }
-    } catch (err) {
-      console.error('Error during reservation:', err);
-      alert('Erro ao reservar cotas. Tente novamente.');
-    } finally {
-      setShowReservationModal(false);
+    if (config.fluxsis?.api_key) {
+      methods.push({ name: 'Fluxsis', icon: '💰', color: '#6366F1' });
     }
-  }, [campaign, user, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate]);
-
-  const handleOpenReservationModal = useCallback(() => {
-    if (!user) {
-      alert('Você precisa estar logado para reservar cotas');
-      navigate('/login');
-      return;
+    if (config.pay2m?.api_key) {
+      methods.push({ name: 'Pay2m', icon: '💸', color: '#10B981' });
     }
-    if (campaign?.campaign_model === 'manual' && selectedQuotas.length === 0) {
-      alert('Selecione pelo menos uma cota para reservar');
-      return;
+    if (config.paggue?.api_key) {
+      methods.push({ name: 'Paggue', icon: '💵', color: '#F59E0B' });
     }
-    if (campaign?.campaign_model === 'automatic' && quantity <= 0) {
-      alert('Selecione uma quantidade válida de cotas');
-      return;
+    if (config.efi_bank?.client_id) {
+      methods.push({ name: 'Efi Bank', icon: '🏦', color: '#EF4444' });
     }
-    setShowReservationModal(true);
-  }, [user, campaign, selectedQuotas, quantity, navigate]);
-
-  // Gallery handlers
-  const handlePreviousImage = () => {
-    if (!campaign?.prize_image_urls) return;
-    setCurrentImageIndex(prev => prev === 0 ? campaign.prize_image_urls.length - 1 : prev - 1);
-  };
-  const handleNextImage = () => {
-    if (!campaign?.prize_image_urls) return;
-    setCurrentImageIndex(prev => prev === campaign.prize_image_urls.length - 1 ? 0 : prev + 1);
-  };
-  const handleImageClick = (idx: number) => setFullscreenImageIndex(idx);
-  const handleCloseFullscreen = () => { setFullscreenImageIndex(null); setTouchStartX(null); setTouchEndX(null); };
-
-  const goToPreviousFullscreenImage = () => {
-    if (fullscreenImageIndex === null || !campaign?.prize_image_urls) return;
-    const total = campaign.prize_image_urls.length;
-    setFullscreenImageIndex(prev => prev === 0 ? total - 1 : (prev || 0) - 1);
-  };
-  const goToNextFullscreenImage = () => {
-    if (fullscreenImageIndex === null || !campaign?.prize_image_urls) return;
-    const total = campaign.prize_image_urls.length;
-    setFullscreenImageIndex(prev => prev === total - 1 ? 0 : (prev || 0) + 1);
-  };
-
-  useEffect(() => {
-    if (fullscreenImageIndex === null) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') goToPreviousFullscreenImage();
-      else if (e.key === 'ArrowRight') goToNextFullscreenImage();
-      else if (e.key === 'Escape') handleCloseFullscreen();
-    };
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
-  }, [fullscreenImageIndex, goToNextFullscreenImage, goToPreviousFullscreenImage]);
-
-  const handleTouchStart = (e: React.TouchEvent) => setTouchStartX(e.targetTouches[0].clientX);
-  const handleTouchMove = (e: React.TouchEvent) => setTouchEndX(e.targetTouches[0].clientX);
-  const handleTouchEnd = () => {
-    if (!touchStartX || !touchEndX) return;
-    const distance = touchStartX - touchEndX;
-    if (distance > 50) goToNextFullscreenImage();
-    else if (distance < -50) goToPreviousFullscreenImage();
-    setTouchStartX(null);
-    setTouchEndX(null);
-  };
-
-  // social media & payments rendering helpers
-  const renderSocialMediaLinks = () => {
-    if (!organizerProfile?.social_media_links) return null;
-    const links = Object.entries(organizerProfile.social_media_links).filter(([_, url]) => url);
-    if (links.length === 0) return null;
-    return (
-      <div className="flex flex-wrap gap-2 justify-center">
-        {links.map(([platform, url]) => {
-          const cfg = socialMediaConfig[platform as keyof typeof socialMediaConfig];
-          if (!cfg || !url) return null;
-          const Icon = cfg.icon;
-          return (
-            <a key={platform} href={url} target="_blank" rel="noreferrer" className="w-9 h-9 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: cfg.color }}>
-              <Icon size={16} />
-            </a>
-          );
-        })}
-      </div>
-    );
-  };
-
-  const renderPaymentMethods = () => {
-    const cfg = organizerProfile?.payment_integrations_config;
-    if (!cfg) return null;
-    const methods: { name: string; icon?: string; color?: string }[] = [];
-    if (cfg.mercado_pago?.client_id || cfg.mercado_pago?.access_token) methods.push({ name: 'Mercado Pago', icon: '💳', color: '#00B1EA' });
-    if (cfg.fluxsis?.api_key) methods.push({ name: 'Fluxsis', icon: '💰', color: '#6366F1' });
-    if (cfg.pay2m?.api_key) methods.push({ name: 'Pay2m', icon: '💸', color: '#10B981' });
-    if (cfg.paggue?.api_key) methods.push({ name: 'Paggue', icon: '💵', color: '#F59E0B' });
-    if (cfg.efi_bank?.client_id) methods.push({ name: 'Efi Bank', icon: '🏦', color: '#EF4444' });
-    // always show PIX
+    
+    // Always show PIX as it's the default
     methods.push({ name: 'PIX', icon: '₽', color: '#00BC63' });
-
-    if (methods.length === 0) return null;
-    return (
-      <div className="flex flex-wrap gap-2 justify-center">
-        {methods.map(m => (
-          <div key={m.name} className="flex items-center gap-2 px-3 py-1 border rounded">
-            <div className="w-6 h-6 flex items-center justify-center text-white text-xs" style={{ backgroundColor: m.color }}>{m.icon}</div>
-            <div className="text-sm">{m.name}</div>
-          </div>
-        ))}
-      </div>
-    );
+    
+    return methods;
   };
 
-  const generateShareUrl = () => `${typeof window !== 'undefined' ? window.location.origin : ''}/c/${campaign?.slug || slug}`;
+  // Generate share URL
+  const generateShareUrl = () => {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/c/${campaign?.slug}`;
+  };
 
+  // Handle social media sharing
   const handleShare = (platform: string) => {
     const shareUrl = generateShareUrl();
-    const shareText = `Participe da ${campaign?.title}! Cotas por ${formatCurrency(campaign?.ticket_price || 0)}`;
+    const shareText = `Participe da ${campaign?.title}! Cotas por apenas ${formatCurrency(campaign?.ticket_price || 0)}`;
+    
     let url = '';
+    
     switch (platform) {
-      case 'whatsapp': url = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`; break;
-      case 'facebook': url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`; break;
-      case 'telegram': url = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`; break;
-      case 'x': url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`; break;
-      default: return;
+      case 'whatsapp':
+        url = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`;
+        break;
+      case 'facebook':
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+        break;
+      case 'telegram':
+        url = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+        break;
+      case 'x':
+        url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+        break;
+      default:
+        return;
     }
+    
     window.open(url, '_blank', 'width=600,height=400');
   };
 
-  // combined loading state
-  if (loadingCampaign || ticketsLoading || loadingOrganizer) {
+  // Handle organizer social media click
+  const handleOrganizerSocialClick = (platform: string, url: string) => {
+    window.open(url, '_blank');
+  };
+
+  if (loading || ticketsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-indigo-600" />
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
       </div>
     );
   }
 
-  if (errorCampaign || !campaign) {
+  if (error || !campaign) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-6">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold mb-3">Campanha não encontrada</h1>
-          <p className="text-gray-600 mb-6">A campanha que você procura não existe ou foi removida.</p>
-          <button onClick={() => navigate('/')} className="px-4 py-2 bg-indigo-600 text-white rounded">Voltar ao início</button>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            Campanha não encontrada
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-8">
+            A campanha que você está procurando não existe ou foi removida.
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+          >
+            Voltar ao início
+          </button>
         </div>
       </div>
     );
@@ -466,67 +619,108 @@ const CampaignPage: React.FC = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${themeClasses.background}`}>
-      {/* Header */}
+      {/* Header - Redesigned according to image specifications */}
       <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.cardBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              {organizerProfile?.logo_url ? (
-                <img src={organizerProfile.logo_url} alt={organizerProfile.name || 'Organizador'} className="w-14 h-14 object-contain rounded-md" style={{ border: `2px solid ${primaryColor}`, padding: 4, background: '#fff' }} />
-              ) : (
-                <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">R</div>
-              )}
-              <div>
-                <span className={`text-lg font-bold ${themeClasses.text}`}>Rifaqui</span>
-                <div className="text-xs" style={{ color: (themeClasses.textSecondary as string) }}>{organizerProfile?.name || ''}</div>
-              </div>
+            {/* Logo - Left aligned */}
+            <div className="flex items-center space-x-2">
+              <img 
+                src="/logo-chatgpt.png" 
+                alt="Rifaqui Logo" 
+                className="w-10 h-10 object-contain"
+              />
+              <span className={`text-xl font-bold ${themeClasses.text}`}>Rifaqui</span>
             </div>
-
-            <button onClick={() => navigate('/my-tickets')} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md flex items-center space-x-2">
-              <Eye className="w-4 h-4" />
+            
+            {/* "Ver Minhas Cotas" Button - Right aligned and highlighted */}
+            <button
+              onClick={() => navigate('/my-tickets')}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 shadow-md"
+            >
+              <Eye className="h-4 w-4" />
               <span className="hidden sm:inline">Ver Minhas Cotas</span>
+              <span className="sm:hidden">Cotas</span>
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <h1 className={`text-2xl md:text-3xl font-bold ${themeClasses.text} mb-4 text-center`}>{campaign.title}</h1>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+        {/* Campaign Title - Standalone, not in a card */}
+        <h1 className={`text-2xl md:text-3xl font-bold ${themeClasses.text} mb-4 text-center`}>
+          {campaign.title}
+        </h1>
 
-        {/* Gallery */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-6 max-w-3xl mx-auto`}>
+        {/* 1. Seção de galeria de imagens - card com largura limitada */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}>
           <div className="relative group w-full">
             <img
-              src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg'}
+              src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
               alt={campaign.title}
-              className="w-full h-[320px] sm:h-[520px] object-cover rounded-t-xl"
+              className="w-full h-[300px] sm:h-[500px] object-cover rounded-t-xl"
               onClick={() => handleImageClick(currentImageIndex)}
               style={{ cursor: 'pointer' }}
             />
-
+            
+            {/* Navigation Arrows */}
             {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
               <>
-                <button onClick={handlePreviousImage} className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-2 rounded-full opacity-0 group-hover:opacity-100">
-                  <ChevronLeft />
+                <button
+                  onClick={handlePreviousImage}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75"
+                >
+                  <ChevronLeft className="h-6 w-6" />
                 </button>
-                <button onClick={handleNextImage} className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-2 rounded-full opacity-0 group-hover:opacity-100">
-                  <ChevronRight />
+                
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75"
+                >
+                  <ChevronRight className="h-6 w-6" />
                 </button>
               </>
             )}
+            
+            {/* Image Counter */}
+            {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
+              <div className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                {currentImageIndex + 1} / {campaign.prize_image_urls.length}
+              </div>
+            )}
 
-            <div className="absolute top-3 left-3 bg-white bg-opacity-90 px-3 py-1 rounded-full shadow" >
-              <div className="text-xs">Participe por</div>
-              <div className="font-bold" style={{ color: primaryColor }}>{formatCurrency(campaign.ticket_price)}</div>
+            {/* Price Badge */}
+            <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white bg-opacity-95 backdrop-blur-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-lg">
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <span className="text-xs sm:text-sm text-gray-600">Participe por apenas</span>
+                <span className="font-bold text-sm sm:text-base md:text-lg" style={{ color: primaryColor }}>
+                  {formatCurrency(campaign.ticket_price)}
+                </span>
+              </div>
             </div>
           </div>
 
+          {/* Thumbnail Strip */}
           {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
-            <div className="p-3 bg-gray-50">
+            <div className="p-3 bg-gray-50 dark:bg-gray-800">
               <div className="flex space-x-2 overflow-x-auto pb-2">
-                {campaign.prize_image_urls.map((img: string, i: number) => (
-                  <button key={i} onClick={() => setCurrentImageIndex(i)} className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${i === currentImageIndex ? 'border-indigo-500' : 'border-gray-300'}`}>
-                    <img src={img} alt={`thumb ${i}`} className="w-full h-full object-cover" />
+                {campaign.prize_image_urls.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                      index === currentImageIndex
+                        ? 'border-purple-500 opacity-100'
+                        : 'border-gray-300 dark:border-gray-600 opacity-60 hover:opacity-80'
+                    }`}
+                    onDoubleClick={() => handleImageClick(index)}
+                  >
+                    <img
+                      src={image}
+                      alt={`Thumbnail ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
                   </button>
                 ))}
               </div>
@@ -534,41 +728,117 @@ const CampaignPage: React.FC = () => {
           )}
         </section>
 
-        {/* Organizer */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-6 max-w-3xl mx-auto text-center`}>
-          <h3 className={`text-xl font-bold ${themeClasses.text} mb-3`}>Organizador</h3>
-          <div className="flex items-center justify-center gap-4 mb-3">
-            {organizerProfile?.logo_url ? (
-              <img src={organizerProfile.logo_url} alt={organizerProfile.name} className="w-16 h-16 rounded-md object-contain" style={{ border: `2px solid ${primaryColor}`, padding: 4, background: '#fff' }} />
-            ) : organizerProfile?.avatar_url ? (
-              <img src={organizerProfile.avatar_url} alt={organizerProfile.name} className="w-16 h-16 rounded-full object-cover" style={{ border: `2px solid ${primaryColor}` }} />
-            ) : (
-              <div className="w-16 h-16 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: primaryColor }}>{(organizerProfile?.name || 'O').charAt(0).toUpperCase()}</div>
-            )}
-          </div>
-          <div className={`${themeClasses.text} font-semibold`}>{organizerProfile?.name}</div>
-          <div className={`text-sm ${themeClasses.textSecondary} mt-2`}>Organizador da campanha</div>
+        {/* 2. Seção de Organizador - card com layout melhorado e logo maior */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+          <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
+            Organizador
+          </h3>
+          
+          {loadingOrganizer ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+            </div>
+          ) : organizerProfile ? (
+            <div className="flex flex-col items-center text-center">
+              {/* Logo / Avatar - aumentados e centralizados */}
+              {organizerProfile.logo_url ? (
+                <img
+                  src={organizerProfile.logo_url}
+                  alt={organizerProfile.name}
+                  className="w-20 h-20 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
+                  style={{ borderColor: primaryColor }}
+                />
+              ) : organizerProfile.avatar_url ? (
+                <img
+                  src={organizerProfile.avatar_url}
+                  alt={organizerProfile.name}
+                  className="w-20 h-20 rounded-full object-cover border-4 shadow-md"
+                  style={{ borderColor: primaryColor }}
+                />
+              ) : (
+                <div 
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-md"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {organizerProfile.name ? organizerProfile.name.charAt(0).toUpperCase() : 'O'}
+                </div>
+              )}
 
-          <div className="mt-4">
-            {renderSocialMediaLinks()}
-          </div>
+              <h4 className={`mt-4 text-lg font-semibold ${themeClasses.text}`}>
+                {organizerProfile.name}
+              </h4>
+              <p className={`text-sm ${themeClasses.textSecondary}`}>
+                Organizador da campanha
+              </p>
+
+              {/* Organizer Social Media */}
+              {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
+                <div className="mt-4">
+                  <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>Redes Sociais</p>
+                  <div className="flex justify-center flex-wrap gap-2">
+                    {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
+                      if (!url || typeof url !== 'string') return null;
+                      
+                      const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
+                      if (!config) return null;
+                      
+                      const IconComponent = config.icon;
+                      return (
+                        <button
+                          key={platform}
+                          onClick={() => handleOrganizerSocialClick(platform, url)}
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform duration-200"
+                          style={{ backgroundColor: config.color }}
+                          title={`${config.name} do organizador`}
+                        >
+                          <IconComponent size={18} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <Users className={`h-8 w-8 ${themeClasses.textSecondary} mx-auto mb-2`} />
+              <p className={`text-sm ${themeClasses.textSecondary}`}>
+                Informações do organizador não disponíveis
+              </p>
+            </div>
+          )}
         </section>
 
-        {/* Promotions (if any) */}
-        {campaign.promotions && campaign.promotions.length > 0 && (
-          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-6 max-w-3xl mx-auto`}>
-            <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>🎁 Promoções</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        {/* 3. Seção de Promoções Disponíveis - card com largura limitada */}
+        {campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
+              🎁 Promoções Disponíveis
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
               {campaign.promotions.map((promo: Promotion) => {
                 const originalValue = promo.ticketQuantity * campaign.ticket_price;
-                const discountPercentage = Math.round((promo.fixedDiscountAmount / (originalValue || 1)) * 100);
+                const discountPercentage = Math.round((promo.fixedDiscountAmount / originalValue) * 100);
+                
                 return (
-                  <div key={promo.id} className="p-3 rounded-lg border">
+                  <div
+                    key={promo.id}
+                    className={`border ${themeClasses.border} rounded-lg p-2 hover:shadow-md transition-all duration-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20`}
+                  >
                     <div className="text-center">
-                      <div className={`font-semibold ${themeClasses.text}`}>{promo.ticketQuantity} cotas</div>
-                      <div className="text-sm text-green-600">{discountPercentage}% OFF</div>
-                      <div className="line-through text-xs text-gray-500">{formatCurrency(originalValue)}</div>
-                      <div className="font-bold text-green-600">{formatCurrency(promo.discountedTotalValue)}</div>
+                      <div className={`font-bold text-sm ${themeClasses.text} mb-0.5`}>
+                        {promo.ticketQuantity} cotas
+                      </div>
+                      <div className="text-xs text-green-600 dark:text-green-400 font-medium mb-0.5">
+                        {discountPercentage}% de desconto
+                      </div>
+                      <div className={`text-xs ${getThemeClasses(campaignTheme).textSecondary} line-through mb-0.5`}>
+                        {formatCurrency(originalValue)}
+                      </div>
+                      <div className="text-base font-bold text-green-600 dark:text-green-400">
+                        {formatCurrency(promo.discountedTotalValue)}
+                      </div>
                     </div>
                   </div>
                 );
@@ -577,18 +847,58 @@ const CampaignPage: React.FC = () => {
           </section>
         )}
 
-        {/* Purchase / Quotas */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-6 max-w-3xl mx-auto`}>
+        {/* 4. Seção de Prêmios - card com largura limitada */}
+        {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
+              🏆 Prêmios
+            </h3>
+            
+            <div className="w-full space-y-1">
+              {campaign.prizes.map((prize: any, index: number) => (
+                <div key={prize.id} className="flex items-center justify-center space-x-1.5">
+                  <div 
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    {index + 1}
+                  </div>
+                  <span className={`${themeClasses.text} font-medium text-sm`}>{prize.name}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 5. Seção de compra/seleção de cota - card com largura limitada */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           <h2 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
             {campaign.campaign_model === 'manual' ? 'Selecione suas Cotas' : 'Escolha a Quantidade'}
           </h2>
 
           {campaign.campaign_model === 'manual' ? (
-            <>
+            <div className="space-y-4">
+              {/* Campaign Unavailable Alert */}
+              {!isCampaignAvailable && (
+                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-center space-x-3">
+                    <AlertTriangle className="h-6 w-6 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
+                        Campanha Indisponível
+                      </h4>
+                      <p className="text-sm text-orange-700 dark:text-orange-300">
+                        Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <QuotaGrid
                 totalQuotas={campaign.total_tickets}
                 selectedQuotas={selectedQuotas}
-                onQuotaSelect={isCampaignAvailable(campaign) ? handleQuotaSelect : undefined}
+                onQuotaSelect={isCampaignAvailable ? handleQuotaSelect : undefined}
                 activeFilter={activeFilter}
                 onFilterChange={setActiveFilter}
                 mode="manual"
@@ -598,27 +908,93 @@ const CampaignPage: React.FC = () => {
                 primaryColor={primaryColor}
               />
 
+              {/* Manual Mode - Selection Summary */}
               {selectedQuotas.length > 0 && (
-                <div className="mt-4">
-                  <div className="mb-3 text-sm text-gray-600">Números selecionados:</div>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {selectedQuotas.sort((a,b)=>a-b).map(q => (
-                      <span key={q} className="px-3 py-1 rounded text-white text-sm" style={{ backgroundColor: primaryColor }}>{String(q).padStart(3,'0')}</span>
-                    ))}
+                <div className={`${themeClasses.background} rounded-xl p-4 border ${themeClasses.border}`}>
+                  <h3 className={`text-base font-bold ${themeClasses.text} mb-3`}>
+                    Cotas Selecionadas
+                  </h3>
+                  
+                  <div className="mb-3">
+                    <div className={`text-sm ${themeClasses.textSecondary} mb-2`}>
+                      Números selecionados:
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedQuotas.sort((a, b) => a - b).map(quota => (
+                        <span
+                          key={quota}
+                          className="px-2 py-1 text-white rounded text-xs font-medium"
+                          style={{ backgroundColor: primaryColor }}
+                        >
+                          {quota.toString().padStart(3, '0')}
+                        </span>
+                      ))}
+                    </div>
                   </div>
 
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="text-sm">{selectedQuotas.length} {selectedQuotas.length === 1 ? 'cota' : 'cotas'}</div>
-                    <div className="text-xl font-bold" style={{ color: primaryColor }}>{formatCurrency(getCurrentTotalValue())}</div>
+                  {/* Promotion Info */}
+                  {currentPromotionInfo && (
+                    <div className="mb-3 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="text-center">
+                        <div className="text-xs font-medium text-green-800 dark:text-green-200 mb-1">
+                          🎉 Promoção Aplicada: {currentPromotionInfo.discountPercentage}% OFF
+                        </div>
+                        <div className="text-xs text-green-700 dark:text-green-300">
+                          Economia de {formatCurrency(currentPromotionInfo.savings)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center mb-6">
+                    <span className={`font-medium ${themeClasses.text}`}>
+                      {selectedQuotas.length} {selectedQuotas.length === 1 ? 'cota' : 'cotas'}
+                    </span>
+                    <div className="text-right">
+                      {currentPromotionInfo && (
+                        <div className={`text-xs ${themeClasses.textSecondary} line-through`}>
+                          {formatCurrency(currentPromotionInfo.originalTotal)}
+                        </div>
+                      )}
+                      <div 
+                        className={`text-xl font-bold ${currentPromotionInfo ? 'text-green-600' : ''}`}
+                        style={!currentPromotionInfo ? { color: primaryColor } : {}}
+                      >
+                        {formatCurrency(getCurrentTotalValue())}
+                      </div>
+                    </div>
                   </div>
 
-                  <button onClick={handleOpenReservationModal} disabled={!isCampaignAvailable(campaign)} className="w-full py-3 rounded-lg text-white" style={{ backgroundColor: primaryColor }}>
-                    {isCampaignAvailable(campaign) ? 'Reservar Cotas Selecionadas' : 'Campanha Indisponível'}
+                  <button
+                    onClick={handleOpenReservationModal}
+                    disabled={selectedQuotas.length === 0}
+                    className="w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    {isCampaignAvailable ? 'Reservar Cotas Selecionadas' : 'Campanha Indisponível'}
                   </button>
                 </div>
               )}
-            </>
+            </div>
           ) : (
+            <>
+              {/* Campaign Unavailable Alert */}
+              {!isCampaignAvailable && (
+                <div className="bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-800 rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <AlertTriangle className="h-6 w-6 text-orange-700 dark:text-orange-400 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
+                        Campanha Indisponível
+                      </h4>
+                      <p className="text-sm text-orange-700 dark:text-orange-300">
+                        Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
             <QuotaSelector
               ticketPrice={campaign.ticket_price}
               minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
@@ -626,95 +1002,235 @@ const CampaignPage: React.FC = () => {
               onQuantityChange={handleQuantityChange}
               initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
               mode="automatic"
-              promotionInfo={getBestPromotionForDisplay(quantity)}
+              promotionInfo={currentPromotionInfo}
               promotions={campaign.promotions || []}
               primaryColor={primaryColor}
               campaignTheme={campaignTheme}
-              onReserve={isCampaignAvailable(campaign) ? handleOpenReservationModal : undefined}
+              onReserve={isCampaignAvailable ? handleOpenReservationModal : undefined}
               reserving={reserving}
-              disabled={!isCampaignAvailable(campaign)}
+              disabled={!isCampaignAvailable}
             />
+            </>
           )}
         </section>
 
-        {/* Description / Progress */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-6 max-w-3xl mx-auto`}>
-          <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center`}>Descrição / Regulamento</h3>
-          {campaign.description ? (
-            <div className={`${themeClasses.textSecondary} prose max-w-none`} dangerouslySetInnerHTML={{ __html: campaign.description }} />
-          ) : <div className={`${themeClasses.textSecondary} italic text-center`}>Nenhuma descrição fornecida.</div>}
+        {/* 6. Descrição/Regulamento - card com largura limitada */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+          <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center`}>
+            Descrição/Regulamento
+          </h3>
+          
+          {/* Campaign Description */}
+          {campaign.description && isValidDescription(campaign.description) ? (
+            <div 
+              className={`${themeClasses.textSecondary} mb-4 prose prose-base max-w-none ql-editor`}
+              dangerouslySetInnerHTML={{ __html: campaign.description }}
+            />
+          ) : (
+            <div className={`${themeClasses.textSecondary} mb-4 text-center italic`}>
+              <p>Nenhuma descrição fornecida para esta campanha.</p>
+            </div>
+          )}
 
+          {/* Draw Date */}
+          {campaign.show_draw_date && campaign.draw_date && (
+            <div className="flex items-center justify-center space-x-2 mb-4">
+              <Calendar className={`h-5 w-5 ${themeClasses.textSecondary}`} />
+              <span className={`text-base ${themeClasses.text}`}>
+                Data de sorteio: <strong>{formatDate(campaign.draw_date)}</strong>
+              </span>
+            </div>
+          )}
+
+          {/* Progress Bar - Only show if show_percentage is enabled */}
           {campaign.show_percentage && (
-            <div className="mt-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-sm">Progresso</div>
-                <div className="text-sm font-semibold">{getProgressPercentage()}%</div>
+            <div className="max-w-3xl mx-auto">
+              <div className="flex justify-center items-center mb-3">
+                <span className={`text-base font-bold ${themeClasses.text}`}>
+                  {getProgressPercentage()}%
+                </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div className="h-3 rounded-full" style={{ width: `${getProgressPercentage()}%`, backgroundColor: primaryColor }} />
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                <div 
+                  className="h-3 rounded-full transition-all duration-300"
+                  style={{ 
+                    width: `${getProgressPercentage()}%`,
+                    backgroundColor: primaryColor 
+                  }}
+                />
               </div>
             </div>
           )}
         </section>
 
-        {/* Payment Methods & Draw Method */}
-        <section className="mb-8 max-w-3xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* 7. Métodos de Pagamento e Método de Sorteio - centralizados e com largura limitada */}
+        <section className="mb-4">
+          <div className="max-w-3xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Payment Methods Card - Left */}
             <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
-              <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>Métodos de Pagamento</h3>
-              {renderPaymentMethods()}
+              <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
+                Métodos de Pagamento
+              </h3>
+              
+              <div className="space-y-2">
+                {getConfiguredPaymentMethods().map((method, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
+                  >
+                    <div 
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                      style={{ backgroundColor: method.color }}
+                    >
+                      {method.icon}
+                    </div>
+                    <span className={`font-medium text-sm ${themeClasses.text}`}>
+                      {method.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
+
+            {/* Draw Method Card - Right */}
             <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
-              <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>Método de Sorteio</h3>
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white" style={{ backgroundColor: primaryColor }}>
-                  <Trophy />
+              <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
+                Método de Sorteio
+              </h3>
+              
+              <div className="flex items-center justify-center space-x-2">
+                <div 
+                  className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  <Trophy className="h-5 w-5" />
                 </div>
                 <div className="text-center">
-                  <div className={`font-semibold ${themeClasses.text}`}>{campaign.draw_method}</div>
-                  <div className={`text-xs ${themeClasses.textSecondary}`}>Sorteio transparente e confiável</div>
+                  <p className={`font-medium text-sm ${themeClasses.text}`}>
+                    {campaign.draw_method}
+                  </p>
+                  <p className={`text-xs ${themeClasses.textSecondary}`}>
+                    Sorteio transparente e confiável
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Share */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-8`}>
-          <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>Compartilhar Campanha</h3>
+        {/* Share Campaign Section - centralizado e com largura limitada */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-6`}>
+          <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
+            Compartilhar Campanha
+          </h3>
+          
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {Object.entries(shareSectionConfig).map(([platform, cfg]: any) => {
-              const Icon = cfg.icon;
+            {Object.entries(shareSectionConfig).map(([platform, config]) => {
+              const IconComponent = config.icon;
               return (
-                <button key={platform} onClick={() => handleShare(platform)} className="flex flex-col items-center p-3 rounded border">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: cfg.color }}>
-                    <Icon size={18} />
+                <button
+                  key={platform}
+                  onClick={() => handleShare(platform)}
+                  className={`flex flex-col items-center space-y-1.5 p-3 rounded-lg border ${themeClasses.border} hover:shadow-lg transition-all duration-200 group`}
+                  style={{ 
+                    backgroundColor: themeClasses.cardBg === 'bg-white' ? '#ffffff' : '#1f2937',
+                    borderColor: config.color + '20'
+                  }}
+                >
+                  <div 
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-200"
+                    style={{ backgroundColor: config.color }}
+                  >
+                    <IconComponent size={20} />
                   </div>
-                  <div className={`text-xs mt-2 ${themeClasses.text}`}>{cfg.name}</div>
+                  <span className={`text-xs font-medium ${themeClasses.text}`}>
+                    {config.name}
+                  </span>
                 </button>
               );
             })}
           </div>
         </section>
+
+        {/* REMOVED CONFIDENTIAL SECTIONS */}
+        {/* 
+          The following sections have been removed from public view as they contain confidential information:
+          - Campaign Stats Card (total_tickets, sold_tickets, available_tickets, reservation_timeout_minutes)
+          - Campaign Details Card (ticket_price, min_tickets_per_purchase, max_tickets_per_purchase, campaign_model)
+          
+          These sections are only appropriate for the campaign organizer's dashboard view.
+        */}
       </main>
 
-      {/* Fullscreen modal */}
+      {/* Fullscreen Image Modal */}
       {fullscreenImageIndex !== null && campaign?.prize_image_urls && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4" onClick={handleCloseFullscreen}>
-          <div className="relative" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onClick={(e) => e.stopPropagation()}>
-            <img src={campaign.prize_image_urls[fullscreenImageIndex]} alt={`img ${fullscreenImageIndex + 1}`} className="max-w-full max-h-[90vh] object-contain" />
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
+          onClick={handleCloseFullscreen}
+        >
+          <div 
+            className="relative max-w-full max-h-full"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <img
+              src={campaign.prize_image_urls[fullscreenImageIndex]}
+              alt={campaign.title}
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+            
+            {/* Navigation Buttons - Only show if multiple images */}
             {campaign.prize_image_urls.length > 1 && (
               <>
-                <button onClick={goToPreviousFullscreenImage} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-black bg-opacity-50 rounded-full text-white"><ChevronLeft /></button>
-                <button onClick={goToNextFullscreenImage} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black bg-opacity-50 rounded-full text-white"><ChevronRight /></button>
+                {/* Previous Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToPreviousFullscreenImage();
+                  }}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
+                  aria-label="Imagem anterior"
+                >
+                  <ChevronLeft className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
+                </button>
+
+                {/* Next Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToNextFullscreenImage();
+                  }}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
+                  aria-label="Próxima imagem"
+                >
+                  <ChevronRight className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
+                </button>
               </>
             )}
-            <button onClick={handleCloseFullscreen} className="absolute top-2 right-2 p-2 bg-black bg-opacity-50 rounded-full text-white">✕</button>
+
+            {/* Image Counter */}
+            {campaign.prize_image_urls.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm font-medium">
+                {fullscreenImageIndex + 1} / {campaign.prize_image_urls.length}
+              </div>
+            )}
+            
+            <button
+              onClick={handleCloseFullscreen}
+              className="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-colors duration-200 flex items-center justify-center"
+              aria-label="Fechar imagem em tela cheia"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
       )}
 
-      {/* Reservation modal */}
+      {/* Reservation Modal */}
       <ReservationModal
         isOpen={showReservationModal}
         onClose={() => setShowReservationModal(false)}
@@ -728,16 +1244,6 @@ const CampaignPage: React.FC = () => {
         reserving={reserving}
         reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
       />
-
-      {/* Footer (pass social links) */}
-      <footer className="mt-12">
-        {/* If you already have a Footer component that accepts socialMediaLinks prop, pass it */}
-        {/* <Footer socialMediaLinks={organizerProfile?.social_media_links} /> */}
-        {/* If not, simple fallback: render small block */}
-        <div className="max-w-7xl mx-auto px-4 py-6 text-center text-sm text-gray-500">
-          {organizerProfile?.social_media_links ? renderSocialMediaLinks() : <div>© {new Date().getFullYear()} Rifaqui</div>}
-        </div>
-      </footer>
     </div>
   );
 };
