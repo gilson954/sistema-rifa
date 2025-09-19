@@ -1,16 +1,17 @@
+// src/pages/CampaignPage.tsx
 import React, { useState, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-Share2,
-Calendar,
-Users,
-Trophy,
-ChevronLeft,
-ChevronRight,
-Eye,
-Gift,
-ExternalLink,
-AlertTriangle
+import { 
+  Share2, 
+  Calendar, 
+  Users, 
+  Trophy, 
+  ChevronLeft, 
+  ChevronRight,
+  Eye,
+  Gift,
+  ExternalLink,
+  AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -38,6 +39,7 @@ interface OrganizerProfile {
   name: string;
   email: string;
   avatar_url?: string;
+  logo_url?: string;
   social_media_links?: any;
   payment_integrations_config?: any;
   primary_color?: string;
@@ -91,17 +93,6 @@ const CampaignPage = () => {
   const loading = isCustomDomain ? loadingByDomain : loadingBySlug;
   const error = isCustomDomain ? errorByDomain : errorBySlug;
 
-  // Check if campaign is available for purchases (paid and active)
-  const isCampaignAvailable = campaign?.status === 'active' && campaign?.is_paid !== false;
-
-  // Debug: Log campaign description (remover após teste)
-  useEffect(() => {
-    if (campaign?.description) {
-      console.log('📝 Descrição da campanha:', campaign.description);
-      console.log('📝 Descrição é válida:', isValidDescription(campaign.description));
-    }
-  }, [campaign?.description]);
-
   // Organizer profile state
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
@@ -135,7 +126,15 @@ const CampaignPage = () => {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
-  // Load organizer profile
+  // Debug: Log campaign description (remover após teste)
+  useEffect(() => {
+    if (campaign?.description) {
+      console.log('📝 Descrição da campanha:', campaign.description);
+      console.log('📝 Descrição é válida:', isValidDescription(campaign.description));
+    }
+  }, [campaign?.description]);
+
+  // Load organizer profile (always using campaign.user_id per Bolt plan)
   useEffect(() => {
     if (campaign?.user_id) {
       // DEBUG: Log campaign reservation timeout value
@@ -156,8 +155,8 @@ const CampaignPage = () => {
           } else {
             setOrganizerProfile(data);
           }
-        } catch (error) {
-          console.error('Error loading organizer profile:', error);
+        } catch (err) {
+          console.error('Error loading organizer profile:', err);
         } finally {
           setLoadingOrganizer(false);
         }
@@ -166,6 +165,39 @@ const CampaignPage = () => {
       loadOrganizerProfile();
     }
   }, [campaign?.user_id]);
+
+  // Apply theme and primary color to document (Bolt plan: apply theme to document.documentElement)
+  useEffect(() => {
+    const campaignTheme = organizerProfile?.theme || 'claro';
+    // set data attribute (won't break styling) and toggle dark class for compatibility
+    try {
+      document.documentElement.setAttribute('data-theme', campaignTheme);
+      if (campaignTheme === 'escuro' || campaignTheme === 'escuro-preto') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      // special class for pure-black dark theme (optional)
+      if (campaignTheme === 'escuro-preto') {
+        document.documentElement.classList.add('dark-black');
+      } else {
+        document.documentElement.classList.remove('dark-black');
+      }
+    } catch (err) {
+      // server-side rendering / tests might fail here; guard quietly
+      // console.warn('Could not set document theme', err);
+    }
+  }, [organizerProfile?.theme]);
+
+  // Set CSS variable for primary color so components / styles can use it
+  useEffect(() => {
+    const color = organizerProfile?.primary_color || '#3B82F6';
+    try {
+      document.documentElement.style.setProperty('--primary-color', color);
+    } catch (err) {
+      // ignore in non-browser environments
+    }
+  }, [organizerProfile?.primary_color]);
 
   // Get applicable promotion for a given quantity
   const getBestPromotionForDisplay = useCallback((quotaCount: number): PromotionInfo | null => {
@@ -197,7 +229,7 @@ const CampaignPage = () => {
     );
     
     const savings = originalTotal - promotionalTotal;
-    const discountPercentage = Math.round((savings / originalTotal) * 100);
+    const discountPercentage = Math.round((savings / (originalTotal || 1)) * 100);
 
     return {
       promotion: applicablePromotion,
@@ -313,8 +345,8 @@ const CampaignPage = () => {
           }
         });
       }
-    } catch (error) {
-      console.error('Error during reservation:', error);
+    } catch (err) {
+      console.error('Error during reservation:', err);
       alert('Erro ao reservar cotas. Tente novamente.');
     } finally {
       setShowReservationModal(false);
@@ -583,7 +615,8 @@ const CampaignPage = () => {
     window.open(url, '_blank');
   };
 
-  if (loading || ticketsLoading) {
+  // Show loading while campaign, tickets or organizer profile are loading
+  if (loading || ticketsLoading || loadingOrganizer) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
@@ -618,18 +651,30 @@ const CampaignPage = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${themeClasses.background}`}>
-      {/* Header - Redesigned according to image specifications */}
+      {/* Header - show organizer logo if available (increased size per request) */}
       <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.cardBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo - Left aligned */}
-            <div className="flex items-center space-x-2">
-              <img 
-                src="/logo-chatgpt.png" 
-                alt="Rifaqui Logo" 
-                className="w-10 h-10 object-contain"
-              />
-              <span className={`text-xl font-bold ${themeClasses.text}`}>Rifaqui</span>
+            {/* Logo - Left aligned (use organizer logo when present) */}
+            <div className="flex items-center space-x-3">
+              {organizerProfile?.logo_url ? (
+                <img 
+                  src={organizerProfile.logo_url} 
+                  alt={organizerProfile.name || 'Organizador'} 
+                  className="w-14 h-14 object-contain rounded-md"
+                  style={{ border: `2px solid ${primaryColor}`, padding: 4, background: '#fff' }}
+                />
+              ) : (
+                <img 
+                  src="/logo-chatgpt.png" 
+                  alt="Rifaqui Logo" 
+                  className="w-10 h-10 object-contain"
+                />
+              )}
+              <div>
+                <span className={`text-lg font-bold ${themeClasses.text}`}>Rifaqui</span>
+                <div className="text-xs" style={{ color: themeClasses.textSecondary as string }}>{organizerProfile?.name || ''}</div>
+              </div>
             </div>
             
             {/* "Ver Minhas Cotas" Button - Right aligned and highlighted */}
@@ -647,12 +692,12 @@ const CampaignPage = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-        {/* Campaign Title - Standalone, not in a card */}
+        {/* Campaign Title */}
         <h1 className={`text-2xl md:text-3xl font-bold ${themeClasses.text} mb-4 text-center`}>
           {campaign.title}
         </h1>
 
-        {/* 1. Seção de galeria de imagens - card com largura limitada */}
+        {/* Gallery */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}>
           <div className="relative group w-full">
             <img
@@ -727,7 +772,7 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 2. Seção de Organizador - card com largura limitada */}
+        {/* Organizer */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
             Organizador
@@ -739,27 +784,28 @@ const CampaignPage = () => {
             </div>
           ) : organizerProfile ? (
             <div className="w-full">
-              <div className="flex items-center space-x-3 mb-3 justify-center">
+              <div className="flex items-center space-x-4 mb-3 justify-center">
+                {/* Larger logo/avatar (increased size) */}
                 {organizerProfile.logo_url ? (
                   <img
                     src={organizerProfile.logo_url}
                     alt={organizerProfile.name}
-                    className="w-12 h-12 rounded object-contain bg-white dark:bg-gray-800 border-2 p-1"
+                    className="w-16 h-16 rounded-md object-contain bg-white dark:bg-gray-800 border-2 p-1"
                     style={{ borderColor: primaryColor }}
                   />
                 ) : organizerProfile.avatar_url ? (
                   <img
                     src={organizerProfile.avatar_url}
                     alt={organizerProfile.name}
-                    className="w-12 h-12 rounded-full object-cover border-2"
+                    className="w-16 h-16 rounded-full object-cover border-2"
                     style={{ borderColor: primaryColor }}
                   />
                 ) : (
                   <div 
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
+                    className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl"
                     style={{ backgroundColor: primaryColor }}
                   >
-                    {organizerProfile.name.charAt(0).toUpperCase()}
+                    {organizerProfile.name?.charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div className="text-center flex-1">
@@ -812,7 +858,7 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 3. Seção de Promoções Disponíveis - card com largura limitada */}
+        {/* Promotions */}
         {campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
           <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
             <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
@@ -822,7 +868,7 @@ const CampaignPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
               {campaign.promotions.map((promo: Promotion) => {
                 const originalValue = promo.ticketQuantity * campaign.ticket_price;
-                const discountPercentage = Math.round((promo.fixedDiscountAmount / originalValue) * 100);
+                const discountPercentage = Math.round((promo.fixedDiscountAmount / (originalValue || 1)) * 100);
                 
                 return (
                   <div
@@ -850,7 +896,7 @@ const CampaignPage = () => {
           </section>
         )}
 
-        {/* 4. Seção de Prêmios - card com largura limitada */}
+        {/* Prizes */}
         {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
           <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
             <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
@@ -873,7 +919,7 @@ const CampaignPage = () => {
           </section>
         )}
 
-        {/* 5. Seção de compra/seleção de cota - card com largura limitada */}
+        {/* Purchase / Selection */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           <h2 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
             {campaign.campaign_model === 'manual' ? 'Selecione suas Cotas' : 'Escolha a Quantidade'}
@@ -998,26 +1044,26 @@ const CampaignPage = () => {
                 </div>
               )}
 
-            <QuotaSelector
-              ticketPrice={campaign.ticket_price}
-              minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
-              maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 1000}
-              onQuantityChange={handleQuantityChange}
-              initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
-              mode="automatic"
-              promotionInfo={currentPromotionInfo}
-              promotions={campaign.promotions || []}
-              primaryColor={primaryColor}
-              campaignTheme={campaignTheme}
-              onReserve={isCampaignAvailable ? handleOpenReservationModal : undefined}
-              reserving={reserving}
-              disabled={!isCampaignAvailable}
-            />
+              <QuotaSelector
+                ticketPrice={campaign.ticket_price}
+                minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
+                maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 1000}
+                onQuantityChange={handleQuantityChange}
+                initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
+                mode="automatic"
+                promotionInfo={currentPromotionInfo}
+                promotions={campaign.promotions || []}
+                primaryColor={primaryColor}
+                campaignTheme={campaignTheme}
+                onReserve={isCampaignAvailable ? handleOpenReservationModal : undefined}
+                reserving={reserving}
+                disabled={!isCampaignAvailable}
+              />
             </>
           )}
         </section>
 
-        {/* 6. Descrição/Regulamento - card com largura limitada */}
+        {/* Description / Rules */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center`}>
             Descrição/Regulamento
@@ -1066,7 +1112,7 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 7. Métodos de Pagamento e Método de Sorteio - centralizados e com largura limitada */}
+        {/* Payment Methods & Draw Method */}
         <section className="mb-4">
           <div className="max-w-3xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Payment Methods Card - Left */}
@@ -1121,7 +1167,7 @@ const CampaignPage = () => {
           </div>
         </section>
 
-        {/* Share Campaign Section - centralizado e com largura limitada */}
+        {/* Share Section */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-6`}>
           <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
             Compartilhar Campanha
@@ -1155,14 +1201,7 @@ const CampaignPage = () => {
           </div>
         </section>
 
-        {/* REMOVED CONFIDENTIAL SECTIONS */}
-        {/* 
-          The following sections have been removed from public view as they contain confidential information:
-          - Campaign Stats Card (total_tickets, sold_tickets, available_tickets, reservation_timeout_minutes)
-          - Campaign Details Card (ticket_price, min_tickets_per_purchase, max_tickets_per_purchase, campaign_model)
-          
-          These sections are only appropriate for the campaign organizer's dashboard view.
-        */}
+        {/* REMOVED CONFIDENTIAL SECTIONS (kept intentionally removed) */}
       </main>
 
       {/* Fullscreen Image Modal */}
