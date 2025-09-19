@@ -25,8 +25,6 @@ import { formatCurrency } from '../utils/currency';
 import { calculateTotalWithPromotions } from '../utils/currency';
 import { socialMediaConfig, shareSectionConfig } from '../components/SocialMediaIcons';
 import { supabase, Database } from '../lib/supabase';
-import { socialMediaConfig } from '../components/SocialMediaIcons';
-import { supabase } from '../lib/supabase';
 import { formatReservationTime } from '../utils/timeFormatters';
 
 interface PromotionInfo {
