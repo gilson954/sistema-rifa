@@ -1,6 +1,6 @@
 // src/pages/CampaignPage.tsx
 import React, { useState, useCallback, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Share2, 
   Calendar, 
@@ -24,7 +24,10 @@ import { Promotion } from '../types/promotion';
 import { formatCurrency } from '../utils/currency';
 import { calculateTotalWithPromotions } from '../utils/currency';
 import { socialMediaConfig, shareSectionConfig } from '../components/SocialMediaIcons';
+import { supabase, Database } from '../lib/supabase';
+import { socialMediaConfig } from '../components/SocialMediaIcons';
 import { supabase } from '../lib/supabase';
+import { formatReservationTime } from '../utils/timeFormatters';
 
 interface PromotionInfo {
   promotion: Promotion;
@@ -67,11 +70,17 @@ const isCampaignAvailable = (campaign: Campaign | null): boolean => {
 const CampaignPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { theme } = useTheme();
 
   // Função para verificar se a descrição contém conteúdo válido
   const isValidDescription = (description: string): boolean => {
+  // Profile data for campaign owner
+  const [profile, setProfile] = useState<Database['public']['Tables']['profiles']['Row'] | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  
     if (!description || typeof description !== 'string') return false;
     
     // Remove HTML tags e espaços para verificar se há conteúdo real
@@ -134,6 +143,59 @@ const CampaignPage = () => {
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
   const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
+  // Fetch campaign owner's profile data
+  useEffect(() => {
+    const fetchOwnerProfile = async () => {
+      if (!campaign?.user_id) return;
+      
+      setProfileLoading(true);
+      setProfileError(null);
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', campaign.user_id)
+          .single();
+          
+        if (error) {
+          console.error('Error fetching campaign owner profile:', error);
+          setProfileError('Erro ao carregar dados do organizador');
+        } else {
+          setProfile(data);
+        }
+      } catch (error) {
+        console.error('Error fetching campaign owner profile:', error);
+        setProfileError('Erro ao carregar dados do organizador');
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+    
+    fetchOwnerProfile();
+  }, [campaign?.user_id]);
+  
+  // Apply campaign owner's theme to the page
+  useEffect(() => {
+    if (profile?.theme) {
+      // Remove any existing theme classes
+      document.documentElement.classList.remove('dark');
+      
+      // Apply the campaign owner's theme
+      if (profile.theme === 'escuro' || profile.theme === 'escuro-preto') {
+        document.documentElement.classList.add('dark');
+      }
+    }
+    
+    // Cleanup function to restore original theme when leaving the page
+    return () => {
+      // Only remove dark class if we're navigating away from this page
+      if (location.pathname !== `/c/${slug}`) {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+  }, [profile?.theme, location.pathname, slug]);
+  
   const [reservationTotalValue, setReservationTotalValue] = useState(0);
 
   // Image gallery state
@@ -528,6 +590,81 @@ const CampaignPage = () => {
     }
   };
 
+  // Render social media links
+  const renderSocialMediaLinks = () => {
+    if (!profile?.social_media_links) return null;
+    
+    const links = profile.social_media_links;
+    const availableLinks = Object.entries(links).filter(([key, url]) => url && url.trim());
+    
+    if (availableLinks.length === 0) return null;
+    
+    return (
+      <div className="flex flex-wrap gap-2 justify-center">
+        {availableLinks.map(([platform, url]) => {
+          const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
+          if (!config) return null;
+          
+          const IconComponent = config.icon;
+          
+          return (
+            <a
+              key={platform}
+              href={url as string}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:opacity-80 transition-opacity duration-200"
+              style={{ backgroundColor: config.color }}
+              title={config.name}
+            >
+              <IconComponent size={20} />
+            </a>
+          );
+        })}
+      </div>
+    );
+  };
+  
+  // Render payment methods
+  const renderPaymentMethods = () => {
+    if (!profile?.payment_integrations_config) return null;
+    
+    const config = profile.payment_integrations_config;
+    const availableMethods = [];
+    
+    if (config.fluxsis?.api_key) availableMethods.push({ name: 'Fluxsis', logo: '/fluxsis22.png' });
+    if (config.pay2m?.api_key) availableMethods.push({ name: 'Pay2m', logo: '/pay2m2.png' });
+    if (config.paggue?.api_key) availableMethods.push({ name: 'Paggue', logo: '/paggue2.png' });
+    if (config.efi_bank?.client_id) availableMethods.push({ name: 'Efi Bank', logo: '/efi2.png' });
+    
+    if (availableMethods.length === 0) return null;
+    
+    return (
+      <div className="space-y-3">
+        <h4 className={`text-sm font-medium ${getThemeClasses(profile?.theme || 'claro').text}`}>
+          Métodos de Pagamento Aceitos
+        </h4>
+        <div className="flex flex-wrap gap-2 justify-center">
+          {availableMethods.map((method) => (
+            <div
+              key={method.name}
+              className={`flex items-center space-x-2 px-3 py-2 ${getThemeClasses(profile?.theme || 'claro').cardBg} rounded-lg border ${getThemeClasses(profile?.theme || 'claro').border}`}
+            >
+              <img 
+                src={method.logo} 
+                alt={`${method.name} Logo`} 
+                className="w-6 h-6 object-contain"
+              />
+              <span className={`text-xs font-medium ${getThemeClasses(profile?.theme || 'claro').text}`}>
+                {method.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+  
   // Format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -633,10 +770,10 @@ const CampaignPage = () => {
     window.open(url, '_blank');
   };
 
-  // Show loading while campaign, tickets or organizer profile are loading
-  if (loading || ticketsLoading || loadingOrganizer) {
+  // Loading state - wait for both campaign and profile data
+  if (campaignLoading || ticketsLoading || profileLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center ${getThemeClasses(profile?.theme || 'claro').background}`}>
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
       </div>
     );
@@ -644,12 +781,12 @@ const CampaignPage = () => {
 
   if (error || !campaign) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
+      <div className={`min-h-screen flex items-center justify-center p-4 ${getThemeClasses(profile?.theme || 'claro').background}`}>
+        <div className={`rounded-2xl shadow-xl p-8 border text-center max-w-md ${getThemeClasses(profile?.theme || 'claro').cardBg} ${getThemeClasses(profile?.theme || 'claro').border}`}>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             Campanha não encontrada
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-8">
+          <h2 className={`text-2xl font-bold mb-4 ${getThemeClasses(profile?.theme || 'claro').text}`}>
             A campanha que você está procurando não existe ou foi removida.
           </p>
           <button
@@ -920,31 +1057,51 @@ const CampaignPage = () => {
             <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
               🏆 Prêmios
             </h3>
-            
+    <div className={`min-h-screen transition-colors duration-300 ${getThemeClasses(profile?.theme || 'claro').background}`}>
             <div className="w-full space-y-1">
-              {campaign.prizes.map((prize: any, index: number) => (
+      <div className={`shadow-sm border-b transition-colors duration-300 ${getThemeClasses(profile?.theme || 'claro').cardBg} ${getThemeClasses(profile?.theme || 'claro').border}`}>
                 <div key={prize.id} className="flex items-center justify-center space-x-1.5">
                   <div 
                     className="w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs"
                     style={{ backgroundColor: primaryColor }}
-                  >
+              className={`flex items-center space-x-2 transition-colors duration-200 ${getThemeClasses(profile?.theme || 'claro').textSecondary}`}
+              style={{ 
+                '--hover-color': profile?.primary_color || '#8B5CF6'
+              } as React.CSSProperties}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = profile?.primary_color || '#8B5CF6';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '';
+              }}
                     {index + 1}
                   </div>
                   <span className={`${themeClasses.text} font-medium text-sm`}>{prize.name}</span>
                 </div>
               ))}
             </div>
-          </section>
-        )}
-
-        {/* Purchase / Selection */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
-          <h2 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
+              {profile?.logo_url ? (
+                <img 
+                  src={profile.logo_url} 
+                  alt="Logo do Organizador" 
+                  className="w-10 h-10 object-contain"
+                />
+              ) : (
+                <img 
+                  src="/logo-chatgpt.png" 
+                  alt="Rifaqui Logo" 
+                  className="w-10 h-10 object-contain"
+                />
+              )}
+              <span className={`text-xl font-bold ${getThemeClasses(profile?.theme || 'claro').text}`}>
+                {profile?.logo_url ? (profile?.name || 'Organizador') : 'Rifaqui'}
+              </span>
             {campaign.campaign_model === 'manual' ? 'Selecione suas Cotas' : 'Escolha a Quantidade'}
           </h2>
-
+          <p className={`mb-6 ${getThemeClasses(profile?.theme || 'claro').textSecondary}`}>
           {campaign.campaign_model === 'manual' ? (
-            <div className="space-y-4">
+              className="text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 hover:brightness-90"
+              style={{ backgroundColor: profile?.primary_color || '#8B5CF6' }}
               {/* Campaign Unavailable Alert */}
               {!isCampaignAvailable && (
                 <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
@@ -958,7 +1115,7 @@ const CampaignPage = () => {
                         Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
                       </p>
                     </div>
-                  </div>
+            <h1 className={`text-3xl md:text-4xl font-bold ${getThemeClasses(profile?.theme || 'claro').text}`}>
                 </div>
               )}
 
@@ -1026,12 +1183,12 @@ const CampaignPage = () => {
                       <div 
                         className={`text-xl font-bold ${currentPromotionInfo ? 'text-green-600' : ''}`}
                         style={!currentPromotionInfo ? { color: primaryColor } : {}}
-                      >
+                <h2 className={`text-xl font-semibold mb-4 ${getThemeClasses(profile?.theme || 'claro').text}`}>
                         {formatCurrency(getCurrentTotalValue())}
                       </div>
-                    </div>
-                  </div>
-
+                <div className={`rounded-lg p-6 border ${getThemeClasses(profile?.theme || 'claro').cardBg} ${getThemeClasses(profile?.theme || 'claro').border}`}>
+                  <div 
+                    className={`prose max-w-none ${profile?.theme === 'claro' ? 'prose-gray' : 'prose-invert'}`}
                   <button
                     onClick={handleOpenReservationModal}
                     disabled={selectedQuotas.length === 0}
@@ -1039,22 +1196,31 @@ const CampaignPage = () => {
                     style={{ backgroundColor: primaryColor }}
                   >
                     {isCampaignAvailable ? 'Reservar Cotas Selecionadas' : 'Campanha Indisponível'}
-                  </button>
-                </div>
+            <div className={`rounded-lg p-6 border ${getThemeClasses(profile?.theme || 'claro').cardBg} ${getThemeClasses(profile?.theme || 'claro').border}`}>
+              <h2 className={`text-xl font-semibold mb-4 ${getThemeClasses(profile?.theme || 'claro').text}`}>
               )}
             </div>
           ) : (
             <>
               {/* Campaign Unavailable Alert */}
-              {!isCampaignAvailable && (
+                  <span className={getThemeClasses(profile?.theme || 'claro').textSecondary}>Cotas vendidas</span>
                 <div className="bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-800 rounded-lg p-4">
                   <div className="flex items-center space-x-3">
                     <AlertTriangle className="h-6 w-6 text-orange-700 dark:text-orange-400 flex-shrink-0" />
-                    <div>
+                      className={`transition-colors duration-200 ${getThemeClasses(profile?.theme || 'claro').textSecondary}`}
+                      style={{
+                        '--hover-color': profile?.primary_color || '#8B5CF6'
+                      } as React.CSSProperties}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = profile?.primary_color || '#8B5CF6';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = '';
+                      }}
                       <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
                         Campanha Indisponível
                       </h4>
-                      <p className="text-sm text-orange-700 dark:text-orange-300">
+                    <span className={`font-semibold ${getThemeClasses(profile?.theme || 'claro').text}`}>
                         Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
                       </p>
                     </div>
@@ -1062,17 +1228,20 @@ const CampaignPage = () => {
                 </div>
               )}
 
-              <QuotaSelector
-                ticketPrice={campaign.ticket_price}
+                    className="h-3 rounded-full transition-all duration-300"
+                    style={{ 
+                      backgroundColor: profile?.primary_color || '#8B5CF6',
+                      width: `${progressPercentage}%`
+                    }}
                 minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
                 maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 1000}
                 onQuantityChange={handleQuantityChange}
                 initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
-                mode="automatic"
+                  <span className={getThemeClasses(profile?.theme || 'claro').textSecondary}>
                 promotionInfo={currentPromotionInfo}
                 promotions={campaign.promotions || []}
                 primaryColor={primaryColor}
-                campaignTheme={campaignTheme}
+                    <span className="font-semibold text-green-600 dark:text-green-400">
                 onReserve={isCampaignAvailable ? handleOpenReservationModal : undefined}
                 reserving={reserving}
                 disabled={!isCampaignAvailable}
@@ -1081,8 +1250,8 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* Description / Rules */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+            <div className={`rounded-lg p-6 border ${getThemeClasses(profile?.theme || 'claro').cardBg} ${getThemeClasses(profile?.theme || 'claro').border}`}>
+              <h2 className={`text-xl font-semibold mb-4 ${getThemeClasses(profile?.theme || 'claro').text}`}>
           <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center`}>
             Descrição/Regulamento
           </h3>
@@ -1091,8 +1260,8 @@ const CampaignPage = () => {
           {campaign.description && isValidDescription(campaign.description) ? (
             <div 
               className={`${themeClasses.textSecondary} mb-4 prose prose-base max-w-none ql-editor`}
-              dangerouslySetInnerHTML={{ __html: campaign.description }}
-            />
+                  <div className={`text-sm ${getThemeClasses(profile?.theme || 'claro').textSecondary}`}>Total de Cotas</div>
+                  <div className={`font-semibold ${getThemeClasses(profile?.theme || 'claro').text}`}>
           ) : (
             <div className={`${themeClasses.textSecondary} mb-4 text-center italic`}>
               <p>Nenhuma descrição fornecida para esta campanha.</p>
@@ -1101,8 +1270,8 @@ const CampaignPage = () => {
 
           {/* Draw Date */}
           {campaign.show_draw_date && campaign.draw_date && (
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <Calendar className={`h-5 w-5 ${themeClasses.textSecondary}`} />
+                  <div className={`text-sm ${getThemeClasses(profile?.theme || 'claro').textSecondary}`}>Valor por Cota</div>
+                  <div className={`font-semibold ${getThemeClasses(profile?.theme || 'claro').text}`}>
               <span className={`text-base ${themeClasses.text}`}>
                 Data de sorteio: <strong>{formatDate(campaign.draw_date)}</strong>
               </span>
@@ -1112,8 +1281,8 @@ const CampaignPage = () => {
           {/* Progress Bar - Only show if show_percentage is enabled */}
           {campaign.show_percentage && (
             <div className="max-w-3xl mx-auto">
-              <div className="flex justify-center items-center mb-3">
-                <span className={`text-base font-bold ${themeClasses.text}`}>
+                    <div className={`text-sm ${getThemeClasses(profile?.theme || 'claro').textSecondary}`}>Data do Sorteio</div>
+                    <div className={`font-semibold text-xs ${getThemeClasses(profile?.theme || 'claro').text}`}>
                   {getProgressPercentage()}%
                 </span>
               </div>
@@ -1123,8 +1292,8 @@ const CampaignPage = () => {
                   style={{ 
                     width: `${getProgressPercentage()}%`,
                     backgroundColor: primaryColor 
-                  }}
-                />
+                  <div className={`text-sm ${getThemeClasses(profile?.theme || 'claro').textSecondary}`}>Tempo de Reserva</div>
+                  <div className={`font-semibold text-xs ${getThemeClasses(profile?.theme || 'claro').text}`}>
               </div>
             </div>
           )}
@@ -1132,35 +1301,51 @@ const CampaignPage = () => {
 
         {/* Payment Methods & Draw Method */}
         <section className="mb-4">
-          <div className="max-w-3xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Payment Methods Card - Left */}
+            <div className={`rounded-lg p-6 border ${getThemeClasses(profile?.theme || 'claro').cardBg} ${getThemeClasses(profile?.theme || 'claro').border}`}>
+              <h2 className={`text-xl font-semibold mb-4 text-center ${getThemeClasses(profile?.theme || 'claro').text}`}>
             <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
               <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
                 Métodos de Pagamento
               </h3>
               
               <div className="space-y-2">
-                {getConfiguredPaymentMethods().map((method, index) => (
-                  <div
+                  <div 
+                    className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl"
+                    style={{ backgroundColor: profile?.primary_color || '#8B5CF6' }}
+                  >
+                    {profile?.name ? profile.name.charAt(0).toUpperCase() : campaign.title.charAt(0).toUpperCase()}
                     key={index}
                     className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
                   >
                     <div 
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                <div className={`text-sm ${getThemeClasses(profile?.theme || 'claro').textSecondary}`}>
                       style={{ backgroundColor: method.color }}
                     >
-                      {method.icon}
-                    </div>
+                <div className={`font-semibold ${getThemeClasses(profile?.theme || 'claro').text}`}>
+                  {profile?.name || 'Organizador'}
                     <span className={`font-medium text-sm ${themeClasses.text}`}>
+                
+                {/* Social Media Links */}
+                {renderSocialMediaLinks() && (
+                  <div className="space-y-3">
+                    <h4 className={`text-sm font-medium ${getThemeClasses(profile?.theme || 'claro').text}`}>
+                      Redes Sociais
+                    </h4>
+                    {renderSocialMediaLinks()}
+                  </div>
+                )}
+                
+                {/* Payment Methods */}
+                {renderPaymentMethods()}
                       {method.name}
                     </span>
                   </div>
                 ))}
               </div>
-            </div>
+              <div className={`rounded-lg p-6 border ${getThemeClasses(profile?.theme || 'claro').cardBg} ${getThemeClasses(profile?.theme || 'claro').border}`}>
 
             {/* Draw Method Card - Right */}
-            <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+                  <h2 className={`text-xl font-semibold ${getThemeClasses(profile?.theme || 'claro').text}`}>
               <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
                 Método de Sorteio
               </h3>
@@ -1173,17 +1358,21 @@ const CampaignPage = () => {
                   <Trophy className="h-5 w-5" />
                 </div>
                 <div className="text-center">
-                  <p className={`font-medium text-sm ${themeClasses.text}`}>
+                        className={`border rounded-lg p-4 ${
+                          profile?.theme === 'claro' 
+                            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200' 
+                            : 'bg-gradient-to-r from-green-900/20 to-emerald-900/20 border-green-800'
+                        }`}
                     {campaign.draw_method}
                   </p>
-                  <p className={`text-xs ${themeClasses.textSecondary}`}>
+                          <div className={`text-lg font-bold mb-1 ${getThemeClasses(profile?.theme || 'claro').text}`}>
                     Sorteio transparente e confiável
                   </p>
                 </div>
               </div>
             </div>
           </div>
-        </section>
+                            <div className={`text-xs line-through ${getThemeClasses(profile?.theme || 'claro').textSecondary}`}>
 
         {/* Share Section */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-6`}>
@@ -1200,10 +1389,10 @@ const CampaignPage = () => {
                   onClick={() => handleShare(platform)}
                   className={`flex flex-col items-center space-y-1.5 p-3 rounded-lg border ${themeClasses.border} hover:shadow-lg transition-all duration-200 group`}
                   style={{ 
-                    backgroundColor: themeClasses.cardBg === 'bg-white' ? '#ffffff' : '#1f2937',
+              <div className={`rounded-lg p-6 border ${getThemeClasses(profile?.theme || 'claro').cardBg} ${getThemeClasses(profile?.theme || 'claro').border}`}>
                     borderColor: config.color + '20'
                   }}
-                >
+                  <h2 className={`text-xl font-semibold ${getThemeClasses(profile?.theme || 'claro').text}`}>
                   <div 
                     className="w-10 h-10 rounded-full flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-200"
                     style={{ backgroundColor: config.color }}
@@ -1212,11 +1401,12 @@ const CampaignPage = () => {
                   </div>
                   <span className={`text-xs font-medium ${themeClasses.text}`}>
                     {config.name}
-                  </span>
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                        style={{ backgroundColor: profile?.primary_color || '#EAB308' }}
                 </button>
               );
             })}
-          </div>
+                      <span className={`font-medium ${getThemeClasses(profile?.theme || 'claro').text}`}>
         </section>
 
         {/* REMOVED CONFIDENTIAL SECTIONS (kept intentionally removed) */}
@@ -1227,31 +1417,33 @@ const CampaignPage = () => {
         <div 
           className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
           onClick={handleCloseFullscreen}
-        >
+              <div className={`rounded-lg p-6 border ${getThemeClasses(profile?.theme || 'claro').cardBg} ${getThemeClasses(profile?.theme || 'claro').border}`}>
           <div 
             className="relative max-w-full max-h-full"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            className="text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 hover:brightness-90"
+            style={{ backgroundColor: profile?.primary_color || '#8B5CF6' }}
           >
             <img
               src={campaign.prize_image_urls[fullscreenImageIndex]}
-              alt={campaign.title}
-              className="max-w-full max-h-full object-contain"
+                  campaignTheme={profile?.theme || 'claro'}
+                  primaryColor={profile?.primary_color}
               onClick={(e) => e.stopPropagation()}
             />
             
             {/* Navigation Buttons - Only show if multiple images */}
             {campaign.prize_image_urls.length > 1 && (
-              <>
-                {/* Previous Button */}
+            <div className={`rounded-lg p-6 border ${getThemeClasses(profile?.theme || 'claro').cardBg} ${getThemeClasses(profile?.theme || 'claro').border}`}>
+              <h2 className={`text-xl font-semibold mb-4 text-center ${getThemeClasses(profile?.theme || 'claro').text}`}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     goToPreviousFullscreenImage();
                   }}
                   className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
-                  aria-label="Imagem anterior"
+                  className="text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 hover:brightness-90"
+                  style={{ backgroundColor: profile?.primary_color || '#3B82F6' }}
                 >
                   <ChevronLeft className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
                 </button>
@@ -1259,7 +1451,7 @@ const CampaignPage = () => {
                 {/* Next Button */}
                 <button
                   onClick={(e) => {
-                    e.stopPropagation();
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 border ${getThemeClasses(profile?.theme || 'claro').border} ${getThemeClasses(profile?.theme || 'claro').text} hover:${getThemeClasses(profile?.theme || 'claro').cardBg}`}
                     goToNextFullscreenImage();
                   }}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
@@ -1275,15 +1467,16 @@ const CampaignPage = () => {
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm font-medium">
                 {fullscreenImageIndex + 1} / {campaign.prize_image_urls.length}
               </div>
-            )}
+          <h2 className={`text-2xl font-bold mb-4 ${getThemeClasses(profile?.theme || 'claro').text}`}>
             
             <button
-              onClick={handleCloseFullscreen}
+          <p className={`mb-6 ${getThemeClasses(profile?.theme || 'claro').textSecondary}`}>
               className="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-colors duration-200 flex items-center justify-center"
-              aria-label="Fechar imagem em tela cheia"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                primaryColor={profile?.primary_color}
+                campaignTheme={profile?.theme || 'claro'}
+      <div className={`min-h-screen flex items-center justify-center p-4 ${getThemeClasses(profile?.theme || 'claro').background}`}>
+            className="text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 hover:brightness-90"
+            style={{ backgroundColor: profile?.primary_color || '#8B5CF6' }}
               </svg>
             </button>
           </div>
@@ -1295,12 +1488,21 @@ const CampaignPage = () => {
         isOpen={showReservationModal}
         onClose={() => setShowReservationModal(false)}
         onReserve={handleReservationSubmit}
-        quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
+              className="transition-colors duration-200"
+              style={{
+                '--hover-color': profile?.primary_color || '#8B5CF6'
+              } as React.CSSProperties}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = profile?.primary_color || '#8B5CF6';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '';
+              }}
         totalValue={getCurrentTotalValue()}
         selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
         campaignTitle={campaign.title}
-        primaryColor={primaryColor}
-        campaignTheme={campaignTheme}
+        primaryColor={profile?.primary_color}
+        campaignTheme={profile?.theme || 'claro'}
         reserving={reserving}
         reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
       />
@@ -1309,3 +1511,14 @@ const CampaignPage = () => {
 };
 
 export default CampaignPage;
+
+              className="transition-colors duration-200"
+              style={{
+                '--hover-color': profile?.primary_color || '#8B5CF6'
+              } as React.CSSProperties}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = profile?.primary_color || '#8B5CF6';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '';
+              }}
