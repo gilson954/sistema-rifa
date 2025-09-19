@@ -1,6 +1,4 @@
-// src/pages/CampaignPage.tsx
 import React, { useState, useCallback, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Share2, 
   Calendar, 
@@ -13,6 +11,7 @@ import {
   ExternalLink,
   AlertTriangle
 } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useCampaignBySlug, useCampaignByCustomDomain } from '../hooks/useCampaigns';
@@ -24,8 +23,7 @@ import { Promotion } from '../types/promotion';
 import { formatCurrency } from '../utils/currency';
 import { calculateTotalWithPromotions } from '../utils/currency';
 import { socialMediaConfig, shareSectionConfig } from '../components/SocialMediaIcons';
-import { supabase, Database } from '../lib/supabase';
-import { formatReservationTime } from '../utils/timeFormatters';
+import { supabase } from '../lib/supabase';
 
 interface PromotionInfo {
   promotion: Promotion;
@@ -47,28 +45,9 @@ interface OrganizerProfile {
   theme?: string;
 }
 
-// Helper function to check if campaign is available for participation
-const isCampaignAvailable = (campaign: Campaign | null): boolean => {
-  if (!campaign) return false;
-  
-  // Campaign must be active
-  if (campaign.status !== 'active') return false;
-  
-  // Check if campaign has not expired (if end_date is set)
-  if (campaign.end_date) {
-    const endDate = new Date(campaign.end_date);
-    const now = new Date();
-    if (now > endDate) return false;
-  }
-  
-  // Campaign is available
-  return true;
-};
-
 const CampaignPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
   const { user } = useAuth();
   const { theme } = useTheme();
 
@@ -84,11 +63,6 @@ const CampaignPage = () => {
     
     return textContent.length > 0;
   };
-
-  // Profile data for campaign owner
-  const [profile, setProfile] = useState<Database['public']['Tables']['profiles']['Row'] | null>(null);
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [profileError, setProfileError] = useState<string | null>(null);
   
   // Check if this is a custom domain request
   const developmentHosts = [
@@ -118,6 +92,17 @@ const CampaignPage = () => {
   const loading = isCustomDomain ? loadingByDomain : loadingBySlug;
   const error = isCustomDomain ? errorByDomain : errorBySlug;
 
+  // Check if campaign is available for purchases (paid and active)
+  const isCampaignAvailable = campaign?.status === 'active' && campaign?.is_paid !== false;
+
+  // Debug: Log campaign description (remover após teste)
+  useEffect(() => {
+    if (campaign?.description) {
+      console.log('📝 Descrição da campanha:', campaign.description);
+      console.log('📝 Descrição é válida:', isValidDescription(campaign.description));
+    }
+  }, [campaign?.description]);
+
   // Organizer profile state
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
@@ -141,60 +126,6 @@ const CampaignPage = () => {
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
   const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
-
-  // Fetch campaign owner's profile data
-  useEffect(() => {
-    const fetchOwnerProfile = async () => {
-      if (!campaign?.user_id) return;
-      
-      setProfileLoading(true);
-      setProfileError(null);
-      
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', campaign.user_id)
-          .single();
-          
-        if (error) {
-          console.error('Error fetching campaign owner profile:', error);
-          setProfileError('Erro ao carregar dados do organizador');
-        } else {
-          setProfile(data);
-        }
-      } catch (error) {
-        console.error('Error fetching campaign owner profile:', error);
-        setProfileError('Erro ao carregar dados do organizador');
-      } finally {
-        setProfileLoading(false);
-      }
-    };
-    
-    fetchOwnerProfile();
-  }, [campaign?.user_id]);
-  
-  // Apply campaign owner's theme to the page
-  useEffect(() => {
-    if (profile?.theme) {
-      // Remove any existing theme classes
-      document.documentElement.classList.remove('dark');
-      
-      // Apply the campaign owner's theme
-      if (profile.theme === 'escuro' || profile.theme === 'escuro-preto') {
-        document.documentElement.classList.add('dark');
-      }
-    }
-    
-    // Cleanup function to restore original theme when leaving the page
-    return () => {
-      // Only remove dark class if we're navigating away from this page
-      if (location.pathname !== `/c/${slug}`) {
-        document.documentElement.classList.remove('dark');
-      }
-    };
-  }, [profile?.theme, location.pathname, slug]);
-  
   const [reservationTotalValue, setReservationTotalValue] = useState(0);
 
   // Image gallery state
@@ -205,15 +136,7 @@ const CampaignPage = () => {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
-  // Debug: Log campaign description (remover após teste)
-  useEffect(() => {
-    if (campaign?.description) {
-      console.log('📝 Descrição da campanha:', campaign.description);
-      console.log('📝 Descrição é válida:', isValidDescription(campaign.description));
-    }
-  }, [campaign?.description]);
-
-  // Load organizer profile (always using campaign.user_id per Bolt plan)
+  // Load organizer profile
   useEffect(() => {
     if (campaign?.user_id) {
       // DEBUG: Log campaign reservation timeout value
@@ -234,8 +157,8 @@ const CampaignPage = () => {
           } else {
             setOrganizerProfile(data);
           }
-        } catch (err) {
-          console.error('Error loading organizer profile:', err);
+        } catch (error) {
+          console.error('Error loading organizer profile:', error);
         } finally {
           setLoadingOrganizer(false);
         }
@@ -244,39 +167,6 @@ const CampaignPage = () => {
       loadOrganizerProfile();
     }
   }, [campaign?.user_id]);
-
-  // Apply theme and primary color to document (Bolt plan: apply theme to document.documentElement)
-  useEffect(() => {
-    const campaignTheme = organizerProfile?.theme || 'claro';
-    // set data attribute (won't break styling) and toggle dark class for compatibility
-    try {
-      document.documentElement.setAttribute('data-theme', campaignTheme);
-      if (campaignTheme === 'escuro' || campaignTheme === 'escuro-preto') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      // special class for pure-black dark theme (optional)
-      if (campaignTheme === 'escuro-preto') {
-        document.documentElement.classList.add('dark-black');
-      } else {
-        document.documentElement.classList.remove('dark-black');
-      }
-    } catch (err) {
-      // server-side rendering / tests might fail here; guard quietly
-      // console.warn('Could not set document theme', err);
-    }
-  }, [organizerProfile?.theme]);
-
-  // Set CSS variable for primary color so components / styles can use it
-  useEffect(() => {
-    const color = organizerProfile?.primary_color || '#3B82F6';
-    try {
-      document.documentElement.style.setProperty('--primary-color', color);
-    } catch (err) {
-      // ignore in non-browser environments
-    }
-  }, [organizerProfile?.primary_color]);
 
   // Get applicable promotion for a given quantity
   const getBestPromotionForDisplay = useCallback((quotaCount: number): PromotionInfo | null => {
@@ -308,7 +198,7 @@ const CampaignPage = () => {
     );
     
     const savings = originalTotal - promotionalTotal;
-    const discountPercentage = Math.round((savings / (originalTotal || 1)) * 100);
+    const discountPercentage = Math.round((savings / originalTotal) * 100);
 
     return {
       promotion: applicablePromotion,
@@ -424,8 +314,8 @@ const CampaignPage = () => {
           }
         });
       }
-    } catch (err) {
-      console.error('Error during reservation:', err);
+    } catch (error) {
+      console.error('Error during reservation:', error);
       alert('Erro ao reservar cotas. Tente novamente.');
     } finally {
       setShowReservationModal(false);
@@ -551,7 +441,6 @@ const CampaignPage = () => {
     setTouchStartX(null);
     setTouchEndX(null);
   };
-
   // Get theme classes based on campaign theme
   const getThemeClasses = (campaignTheme: string) => {
     switch (campaignTheme) {
@@ -590,81 +479,6 @@ const CampaignPage = () => {
     }
   };
 
-  // Render social media links
-  const renderSocialMediaLinks = () => {
-    if (!profile?.social_media_links) return null;
-    
-    const links = profile.social_media_links;
-    const availableLinks = Object.entries(links).filter(([key, url]) => url && url.trim());
-    
-    if (availableLinks.length === 0) return null;
-    
-    return (
-      <div className="flex flex-wrap gap-2 justify-center">
-        {availableLinks.map(([platform, url]) => {
-          const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
-          if (!config) return null;
-          
-          const IconComponent = config.icon;
-          
-          return (
-            <a
-              key={platform}
-              href={url as string}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:opacity-80 transition-opacity duration-200"
-              style={{ backgroundColor: config.color }}
-              title={config.name}
-            >
-              <IconComponent size={20} />
-            </a>
-          );
-        })}
-      </div>
-    );
-  };
-  
-  // Render payment methods
-  const renderPaymentMethods = () => {
-    if (!profile?.payment_integrations_config) return null;
-    
-    const config = profile.payment_integrations_config;
-    const availableMethods = [];
-    
-    if (config.fluxsis?.api_key) availableMethods.push({ name: 'Fluxsis', logo: '/fluxsis22.png' });
-    if (config.pay2m?.api_key) availableMethods.push({ name: 'Pay2m', logo: '/pay2m2.png' });
-    if (config.paggue?.api_key) availableMethods.push({ name: 'Paggue', logo: '/paggue2.png' });
-    if (config.efi_bank?.client_id) availableMethods.push({ name: 'Efi Bank', logo: '/efi2.png' });
-    
-    if (availableMethods.length === 0) return null;
-    
-    return (
-      <div className="space-y-3">
-        <h4 className={`text-sm font-medium ${getThemeClasses(profile?.theme || 'claro').text}`}>
-          Métodos de Pagamento Aceitos
-        </h4>
-        <div className="flex flex-wrap gap-2 justify-center">
-          {availableMethods.map((method) => (
-            <div
-              key={method.name}
-              className={`flex items-center space-x-2 px-3 py-2 ${getThemeClasses(profile?.theme || 'claro').cardBg} rounded-lg border ${getThemeClasses(profile?.theme || 'claro').border}`}
-            >
-              <img 
-                src={method.logo} 
-                alt={`${method.name} Logo`} 
-                className="w-6 h-6 object-contain"
-              />
-              <span className={`text-xs font-medium ${getThemeClasses(profile?.theme || 'claro').text}`}>
-                {method.name}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-  
   // Format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -770,10 +584,9 @@ const CampaignPage = () => {
     window.open(url, '_blank');
   };
 
-  // Loading state - wait for both campaign and profile data
-  if (loading || ticketsLoading || profileLoading) {
+  if (loading || ticketsLoading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${getThemeClasses(profile?.theme || 'claro').background}`}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
       </div>
     );
@@ -781,12 +594,12 @@ const CampaignPage = () => {
 
   if (error || !campaign) {
     return (
-      <div className={`min-h-screen flex items-center justify-center p-4 ${getThemeClasses(profile?.theme || 'claro').background}`}>
-        <div className={`rounded-2xl shadow-xl p-8 border text-center max-w-md ${getThemeClasses(profile?.theme || 'claro').cardBg} ${getThemeClasses(profile?.theme || 'claro').border}`}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             Campanha não encontrada
           </h1>
-          <p className={`text-2xl font-bold mb-4 ${getThemeClasses(profile?.theme || 'claro').text}`}>
+          <p className="text-gray-600 dark:text-gray-400 mb-8">
             A campanha que você está procurando não existe ou foi removida.
           </p>
           <button
@@ -806,30 +619,18 @@ const CampaignPage = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${themeClasses.background}`}>
-      {/* Header - show organizer logo if available (increased size per request) */}
+      {/* Header - Redesigned according to image specifications */}
       <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.cardBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo - Left aligned (use organizer logo when present) */}
-            <div className="flex items-center space-x-3">
-              {organizerProfile?.logo_url ? (
-                <img 
-                  src={organizerProfile.logo_url} 
-                  alt={organizerProfile.name || 'Organizador'} 
-                  className="w-14 h-14 object-contain rounded-md"
-                  style={{ border: `2px solid ${primaryColor}`, padding: 4, background: '#fff' }}
-                />
-              ) : (
-                <img 
-                  src="/logo-chatgpt.png" 
-                  alt="Rifaqui Logo" 
-                  className="w-10 h-10 object-contain"
-                />
-              )}
-              <div>
-                <span className={`text-lg font-bold ${themeClasses.text}`}>Rifaqui</span>
-                <div className="text-xs" style={{ color: themeClasses.textSecondary as string }}>{organizerProfile?.name || ''}</div>
-              </div>
+            {/* Logo - Left aligned */}
+            <div className="flex items-center space-x-2">
+              <img 
+                src="/logo-chatgpt.png" 
+                alt="Rifaqui Logo" 
+                className="w-10 h-10 object-contain"
+              />
+              <span className={`text-xl font-bold ${themeClasses.text}`}>Rifaqui</span>
             </div>
             
             {/* "Ver Minhas Cotas" Button - Right aligned and highlighted */}
@@ -847,12 +648,12 @@ const CampaignPage = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-        {/* Campaign Title */}
+        {/* Campaign Title - Standalone, not in a card */}
         <h1 className={`text-2xl md:text-3xl font-bold ${themeClasses.text} mb-4 text-center`}>
           {campaign.title}
         </h1>
 
-        {/* Gallery */}
+        {/* 1. Seção de galeria de imagens - card com largura limitada */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}>
           <div className="relative group w-full">
             <img
@@ -927,7 +728,7 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* Organizer */}
+        {/* 2. Seção de Organizador - card com layout melhorado e logo maior */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
             Organizador
@@ -938,48 +739,43 @@ const CampaignPage = () => {
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
             </div>
           ) : organizerProfile ? (
-            <div className="w-full">
-              <div className="flex items-center space-x-4 mb-3 justify-center">
-                {/* Larger logo/avatar (increased size) */}
-                {organizerProfile.logo_url ? (
-                  <img
-                    src={organizerProfile.logo_url}
-                    alt={organizerProfile.name}
-                    className="w-16 h-16 rounded-md object-contain bg-white dark:bg-gray-800 border-2 p-1"
-                    style={{ borderColor: primaryColor }}
-                  />
-                ) : organizerProfile.avatar_url ? (
-                  <img
-                    src={organizerProfile.avatar_url}
-                    alt={organizerProfile.name}
-                    className="w-16 h-16 rounded-full object-cover border-2"
-                    style={{ borderColor: primaryColor }}
-                  />
-                ) : (
-                  <div 
-                    className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    {organizerProfile.name?.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="text-center flex-1">
-                  <h4 className={`text-base font-semibold ${themeClasses.text}`}>
-                    {organizerProfile.name}
-                  </h4>
-                  <p className={`text-sm ${themeClasses.textSecondary}`}>
-                    Organizador da campanha
-                  </p>
+            <div className="flex flex-col items-center text-center">
+              {/* Logo / Avatar - aumentados e centralizados */}
+              {organizerProfile.logo_url ? (
+                <img
+                  src={organizerProfile.logo_url}
+                  alt={organizerProfile.name}
+                  className="w-20 h-20 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
+                  style={{ borderColor: primaryColor }}
+                />
+              ) : organizerProfile.avatar_url ? (
+                <img
+                  src={organizerProfile.avatar_url}
+                  alt={organizerProfile.name}
+                  className="w-20 h-20 rounded-full object-cover border-4 shadow-md"
+                  style={{ borderColor: primaryColor }}
+                />
+              ) : (
+                <div 
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-md"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {organizerProfile.name ? organizerProfile.name.charAt(0).toUpperCase() : 'O'}
                 </div>
-              </div>
+              )}
+
+              <h4 className={`mt-4 text-lg font-semibold ${themeClasses.text}`}>
+                {organizerProfile.name}
+              </h4>
+              <p className={`text-sm ${themeClasses.textSecondary}`}>
+                Organizador da campanha
+              </p>
 
               {/* Organizer Social Media */}
               {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
-                <div className="text-center">
-                  <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>
-                    Redes Sociais
-                  </p>
-                  <div className="flex justify-center flex-wrap gap-1.5">
+                <div className="mt-4">
+                  <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>Redes Sociais</p>
+                  <div className="flex justify-center flex-wrap gap-2">
                     {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
                       if (!url || typeof url !== 'string') return null;
                       
@@ -991,11 +787,11 @@ const CampaignPage = () => {
                         <button
                           key={platform}
                           onClick={() => handleOrganizerSocialClick(platform, url)}
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform duration-200"
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform duration-200"
                           style={{ backgroundColor: config.color }}
                           title={`${config.name} do organizador`}
                         >
-                          <IconComponent size={16} />
+                          <IconComponent size={18} />
                         </button>
                       );
                     })}
@@ -1013,7 +809,7 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* Promotions */}
+        {/* 3. Seção de Promoções Disponíveis - card com largura limitada */}
         {campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
           <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
             <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
@@ -1023,7 +819,7 @@ const CampaignPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
               {campaign.promotions.map((promo: Promotion) => {
                 const originalValue = promo.ticketQuantity * campaign.ticket_price;
-                const discountPercentage = Math.round((promo.fixedDiscountAmount / (originalValue || 1)) * 100);
+                const discountPercentage = Math.round((promo.fixedDiscountAmount / originalValue) * 100);
                 
                 return (
                   <div
@@ -1051,14 +847,15 @@ const CampaignPage = () => {
           </section>
         )}
 
-        {/* Prizes */}
+        {/* 4. Seção de Prêmios - card com largura limitada */}
         {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
           <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
             <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
               🏆 Prêmios
             </h3>
+            
             <div className="w-full space-y-1">
-              {campaign.prizes.map((prize, index) => (
+              {campaign.prizes.map((prize: any, index: number) => (
                 <div key={prize.id} className="flex items-center justify-center space-x-1.5">
                   <div 
                     className="w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs"
@@ -1073,41 +870,35 @@ const CampaignPage = () => {
           </section>
         )}
 
-        {/* Campaign Unavailable Alert */}
-        {!isCampaignAvailable(campaign) && (
-          <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
-            <div className="flex items-center space-x-3">
-              <AlertTriangle className="h-6 w-6 text-orange-600 dark:text-orange-400 flex-shrink-0" />
-              <div>
-                <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
-                  Campanha Indisponível
-                </h4>
-                <p className="text-sm text-orange-700 dark:text-orange-300">
-                  Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Quota Selection */}
+        {/* 5. Seção de compra/seleção de cota - card com largura limitada */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           <h2 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
             {campaign.campaign_model === 'manual' ? 'Selecione suas Cotas' : 'Escolha a Quantidade'}
           </h2>
-          <p className={`mb-6 ${themeClasses.textSecondary}`}>
-            {campaign.campaign_model === 'manual' ? 
-              'Clique nos números para selecionar suas cotas da sorte' : 
-              'Escolha quantas cotas deseja participar'
-            }
-          </p>
 
           {campaign.campaign_model === 'manual' ? (
-            <>
+            <div className="space-y-4">
+              {/* Campaign Unavailable Alert */}
+              {!isCampaignAvailable && (
+                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-center space-x-3">
+                    <AlertTriangle className="h-6 w-6 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
+                        Campanha Indisponível
+                      </h4>
+                      <p className="text-sm text-orange-700 dark:text-orange-300">
+                        Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <QuotaGrid
                 totalQuotas={campaign.total_tickets}
                 selectedQuotas={selectedQuotas}
-                onQuotaSelect={isCampaignAvailable(campaign) ? handleQuotaSelect : undefined}
+                onQuotaSelect={isCampaignAvailable ? handleQuotaSelect : undefined}
                 activeFilter={activeFilter}
                 onFilterChange={setActiveFilter}
                 mode="manual"
@@ -1180,31 +971,50 @@ const CampaignPage = () => {
                     className="w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ backgroundColor: primaryColor }}
                   >
-                    {isCampaignAvailable(campaign) ? 'Reservar Cotas Selecionadas' : 'Campanha Indisponível'}
+                    {isCampaignAvailable ? 'Reservar Cotas Selecionadas' : 'Campanha Indisponível'}
                   </button>
                 </div>
               )}
-            </>
+            </div>
           ) : (
             <>
-              <QuotaSelector
-                ticketPrice={campaign.ticket_price}
-                minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
-                maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 1000}
-                onQuantityChange={handleQuantityChange}
-                initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
-                promotionInfo={currentPromotionInfo}
-                promotions={campaign.promotions || []}
-                primaryColor={primaryColor}
-                onReserve={isCampaignAvailable(campaign) ? handleOpenReservationModal : undefined}
-                reserving={reserving}
-                disabled={!isCampaignAvailable(campaign)}
-              />
+              {/* Campaign Unavailable Alert */}
+              {!isCampaignAvailable && (
+                <div className="bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-800 rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <AlertTriangle className="h-6 w-6 text-orange-700 dark:text-orange-400 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
+                        Campanha Indisponível
+                      </h4>
+                      <p className="text-sm text-orange-700 dark:text-orange-300">
+                        Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            <QuotaSelector
+              ticketPrice={campaign.ticket_price}
+              minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
+              maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 1000}
+              onQuantityChange={handleQuantityChange}
+              initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
+              mode="automatic"
+              promotionInfo={currentPromotionInfo}
+              promotions={campaign.promotions || []}
+              primaryColor={primaryColor}
+              campaignTheme={campaignTheme}
+              onReserve={isCampaignAvailable ? handleOpenReservationModal : undefined}
+              reserving={reserving}
+              disabled={!isCampaignAvailable}
+            />
             </>
           )}
         </section>
 
-        {/* Campaign Description */}
+        {/* 6. Descrição/Regulamento - card com largura limitada */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center`}>
             Descrição/Regulamento
@@ -1224,7 +1034,8 @@ const CampaignPage = () => {
 
           {/* Draw Date */}
           {campaign.show_draw_date && campaign.draw_date && (
-            <div className="mb-4 text-center">
+            <div className="flex items-center justify-center space-x-2 mb-4">
+              <Calendar className={`h-5 w-5 ${themeClasses.textSecondary}`} />
               <span className={`text-base ${themeClasses.text}`}>
                 Data de sorteio: <strong>{formatDate(campaign.draw_date)}</strong>
               </span>
@@ -1234,9 +1045,8 @@ const CampaignPage = () => {
           {/* Progress Bar - Only show if show_percentage is enabled */}
           {campaign.show_percentage && (
             <div className="max-w-3xl mx-auto">
-              <div className="flex justify-between items-center mb-2">
-                <span className={`text-sm ${themeClasses.textSecondary}`}>Progresso</span>
-                <span className={`text-sm font-semibold ${themeClasses.text}`}>
+              <div className="flex justify-center items-center mb-3">
+                <span className={`text-base font-bold ${themeClasses.text}`}>
                   {getProgressPercentage()}%
                 </span>
               </div>
@@ -1247,15 +1057,15 @@ const CampaignPage = () => {
                     width: `${getProgressPercentage()}%`,
                     backgroundColor: primaryColor 
                   }}
-                ></div>
+                />
               </div>
             </div>
           )}
         </section>
 
-        {/* Payment Methods & Draw Method */}
+        {/* 7. Métodos de Pagamento e Método de Sorteio - centralizados e com largura limitada */}
         <section className="mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+          <div className="max-w-3xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Payment Methods Card - Left */}
             <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
               <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
@@ -1269,7 +1079,7 @@ const CampaignPage = () => {
                     className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
                   >
                     <div 
-                      className="w-6 h-6 rounded flex items-center justify-center text-white text-xs"
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
                       style={{ backgroundColor: method.color }}
                     >
                       {method.icon}
@@ -1296,7 +1106,7 @@ const CampaignPage = () => {
                   <Trophy className="h-5 w-5" />
                 </div>
                 <div className="text-center">
-                  <p className={`font-semibold text-sm ${themeClasses.text} mb-1`}>
+                  <p className={`font-medium text-sm ${themeClasses.text}`}>
                     {campaign.draw_method}
                   </p>
                   <p className={`text-xs ${themeClasses.textSecondary}`}>
@@ -1308,7 +1118,7 @@ const CampaignPage = () => {
           </div>
         </section>
 
-        {/* Share Section */}
+        {/* Share Campaign Section - centralizado e com largura limitada */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-6`}>
           <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
             Compartilhar Campanha
@@ -1323,6 +1133,7 @@ const CampaignPage = () => {
                   onClick={() => handleShare(platform)}
                   className={`flex flex-col items-center space-y-1.5 p-3 rounded-lg border ${themeClasses.border} hover:shadow-lg transition-all duration-200 group`}
                   style={{ 
+                    backgroundColor: themeClasses.cardBg === 'bg-white' ? '#ffffff' : '#1f2937',
                     borderColor: config.color + '20'
                   }}
                 >
@@ -1341,7 +1152,14 @@ const CampaignPage = () => {
           </div>
         </section>
 
-        {/* REMOVED CONFIDENTIAL SECTIONS (kept intentionally removed) */}
+        {/* REMOVED CONFIDENTIAL SECTIONS */}
+        {/* 
+          The following sections have been removed from public view as they contain confidential information:
+          - Campaign Stats Card (total_tickets, sold_tickets, available_tickets, reservation_timeout_minutes)
+          - Campaign Details Card (ticket_price, min_tickets_per_purchase, max_tickets_per_purchase, campaign_model)
+          
+          These sections are only appropriate for the campaign organizer's dashboard view.
+        */}
       </main>
 
       {/* Fullscreen Image Modal */}
@@ -1358,7 +1176,7 @@ const CampaignPage = () => {
           >
             <img
               src={campaign.prize_image_urls[fullscreenImageIndex]}
-              alt={`Imagem ${fullscreenImageIndex + 1}`}
+              alt={campaign.title}
               className="max-w-full max-h-full object-contain"
               onClick={(e) => e.stopPropagation()}
             />
@@ -1399,11 +1217,10 @@ const CampaignPage = () => {
               </div>
             )}
             
-            {/* Close Button */}
             <button
               onClick={handleCloseFullscreen}
               className="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-colors duration-200 flex items-center justify-center"
-              aria-label="Fechar"
+              aria-label="Fechar imagem em tela cheia"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1418,11 +1235,12 @@ const CampaignPage = () => {
         isOpen={showReservationModal}
         onClose={() => setShowReservationModal(false)}
         onReserve={handleReservationSubmit}
+        quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
         totalValue={getCurrentTotalValue()}
         selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
         campaignTitle={campaign.title}
-        primaryColor={organizerProfile?.primary_color}
-        campaignTheme={organizerProfile?.theme || 'claro'}
+        primaryColor={primaryColor}
+        campaignTheme={campaignTheme}
         reserving={reserving}
         reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
       />
