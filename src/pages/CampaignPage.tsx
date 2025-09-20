@@ -36,7 +36,6 @@ interface PromotionInfo {
 interface OrganizerProfile {
   id: string;
   name: string;
-  email: string;
   avatar_url?: string;
   logo_url?: string;
   social_media_links?: any;
@@ -148,7 +147,7 @@ const CampaignPage = () => {
         try {
           const { data, error } = await supabase
             .from('public_profiles_view')
-            .select('id, name, email, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme')
+            .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme')
             .eq('id', campaign.user_id)
             .maybeSingle();
           

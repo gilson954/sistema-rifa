@@ -2,7 +2,6 @@ import { supabase } from '../supabase';
 
 export interface PublicProfile {
   id: string;
-  name: string;
   avatar_url: string | null;
   primary_color: string | null;
   theme: string | null;
