@@ -147,7 +147,7 @@ const CampaignPage = () => {
         setLoadingOrganizer(true);
         try {
           const { data, error } = await supabase
-            .from('profiles')
+            .from('public_profiles_view')
             .select('id, name, email, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme')
             .eq('id', campaign.user_id)
             .maybeSingle();
