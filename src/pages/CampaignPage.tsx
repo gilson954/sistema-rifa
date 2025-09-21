@@ -715,7 +715,7 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 2. Seção de Organizador — modelo conforme seu desenho (avatar à esquerda, nome à direita, círculos pequenos) */}
+        {/* 2. Seção de Organizador — modelo conforme seu desenho (avatar à esquerda, name à direita, círculos pequenos) */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           <h3 className={`text-xl font-bold ${themeClasses.text} mb-4`}>
             Organizador
@@ -726,9 +726,12 @@ const CampaignPage = () => {
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
             </div>
           ) : organizerProfile ? (
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-              {/* Avatar / Logo à esquerda */}
-              <div className="flex-shrink-0">
+            /* -----  Modified organizer layout for responsive behavior ----- */
+            /* Desktop (md and above): row -> avatar left, info right
+               Mobile (below md): column -> avatar centered above, name + icons centered below */
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
+              {/* Avatar / Logo - centered on mobile, left on md+ */}
+              <div className="flex-shrink-0 mx-auto md:mx-0">
                 {organizerProfile.logo_url ? (
                   <img
                     src={organizerProfile.logo_url}
@@ -753,15 +756,15 @@ const CampaignPage = () => {
                 )}
               </div>
 
-              {/* Nome e ícones (alinhados à direita do avatar) */}
-              <div className="flex-1">
+              {/* Name + social icons. Center on mobile, left aligned on md+ */}
+              <div className="flex-1 text-center md:text-left">
                 <h4 className={`text-lg font-semibold ${themeClasses.text}`}>
                   {organizerProfile.name}
                 </h4>
 
-                {/* Small social icons in a single row (no label) */}
+                {/* Social icons: centered on mobile, start-aligned on md+ */}
                 {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
-                  <div className="mt-3 flex items-center gap-2">
+                  <div className="mt-3 flex items-center gap-2 justify-center md:justify-start flex-wrap">
                     {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
                       if (!url || typeof url !== 'string') return null;
                       const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
@@ -771,11 +774,12 @@ const CampaignPage = () => {
                         <button
                           key={platform}
                           onClick={() => handleOrganizerSocialClick(platform, url)}
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform duration-150"
+                          className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform duration-150"
                           style={{ backgroundColor: config.color }}
                           title={`${config.name} do organizador`}
                         >
-                          <IconComponent size={14} />
+                          {/* use className to size lucide icons responsively */}
+                          <IconComponent className="h-3 w-3 md:h-4 md:w-4" />
                         </button>
                       );
                     })}
