@@ -94,14 +94,6 @@ const CampaignPage = () => {
   // Check if campaign is available for purchases (paid and active)
   const isCampaignAvailable = campaign?.status === 'active' && campaign?.is_paid !== false;
 
-  // Debug: Log campaign description (remover após teste)
-  useEffect(() => {
-    if (campaign?.description) {
-      console.log('📝 Descrição da campanha:', campaign.description);
-      console.log('📝 Descrição é válida:', isValidDescription(campaign.description));
-    }
-  }, [campaign?.description]);
-
   // Organizer profile state
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
@@ -138,10 +130,6 @@ const CampaignPage = () => {
   // Load organizer profile
   useEffect(() => {
     if (campaign?.user_id) {
-      // DEBUG: Log campaign reservation timeout value
-      console.log('🔧 [CAMPAIGN DEBUG] Campaign reservation_timeout_minutes:', campaign?.reservation_timeout_minutes);
-      console.log('🔧 [CAMPAIGN DEBUG] Full campaign object:', campaign);
-      
       const loadOrganizerProfile = async () => {
         setLoadingOrganizer(true);
         try {
@@ -727,37 +715,37 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 2. Seção de Organizador - card com layout melhorado e redes sociais menores */}
+        {/* 2. Seção de Organizador — modelo conforme seu desenho (avatar à esquerda, nome à direita, círculos pequenos) */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
-          <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
+          <h3 className={`text-xl font-bold ${themeClasses.text} mb-4`}>
             Organizador
           </h3>
-          
+
           {loadingOrganizer ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
             </div>
           ) : organizerProfile ? (
-            <div className="flex flex-col md:flex-row items-center md:items-start md:space-x-6 text-center md:text-left">
-              {/* Logo / Avatar - à esquerda em telas maiores */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+              {/* Avatar / Logo à esquerda */}
               <div className="flex-shrink-0">
                 {organizerProfile.logo_url ? (
                   <img
                     src={organizerProfile.logo_url}
                     alt={organizerProfile.name}
-                    className="w-24 h-24 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
+                    className="w-20 h-20 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
                     style={{ borderColor: primaryColor }}
                   />
                 ) : organizerProfile.avatar_url ? (
                   <img
                     src={organizerProfile.avatar_url}
                     alt={organizerProfile.name}
-                    className="w-24 h-24 rounded-full object-cover border-4 shadow-md"
+                    className="w-20 h-20 rounded-full object-cover border-4 shadow-md"
                     style={{ borderColor: primaryColor }}
                   />
                 ) : (
-                  <div 
-                    className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold text-3xl shadow-md"
+                  <div
+                    className="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-md"
                     style={{ backgroundColor: primaryColor }}
                   >
                     {organizerProfile.name ? organizerProfile.name.charAt(0).toUpperCase() : 'O'}
@@ -765,87 +753,34 @@ const CampaignPage = () => {
                 )}
               </div>
 
-              {/* Conteúdo do organizador */}
-              <div className="mt-3 md:mt-0 flex-1">
+              {/* Nome e ícones (alinhados à direita do avatar) */}
+              <div className="flex-1">
                 <h4 className={`text-lg font-semibold ${themeClasses.text}`}>
                   {organizerProfile.name}
                 </h4>
-                <p className={`text-sm ${themeClasses.textSecondary}`}>
-                  Organizador da campanha
-                </p>
 
-                {/* Suporte / Grupo e Redes Sociais */}
-                <div className="mt-3 flex flex-wrap items-center gap-3">
-                  {/* Support Button (se existir link de suporte) */}
-                  {((organizerProfile.payment_integrations_config && organizerProfile.payment_integrations_config.support_url) || (organizerProfile.social_media_links && organizerProfile.social_media_links.support)) ? (
-                    <button
-                      onClick={() => {
-                        const url = organizerProfile.payment_integrations_config?.support_url || organizerProfile.social_media_links?.support;
-                        if (url) window.open(url, '_blank');
-                      }}
-                      className="px-3 py-1.5 rounded-md border text-sm font-medium transition-shadow duration-150"
-                      style={{ borderColor: themeClasses.border.includes('dark') ? '#374151' : '#E5E7EB' }}
-                    >
-                      Suporte
-                    </button>
-                  ) : (
-                    <button
-                      disabled
-                      className="px-3 py-1.5 rounded-md border text-sm font-medium opacity-60"
-                    >
-                      Suporte
-                    </button>
-                  )}
-
-                  {/* Group Button (se existir link de grupo) */}
-                  {organizerProfile.social_media_links && (organizerProfile.social_media_links.group || organizerProfile.social_media_links.telegram_group) ? (
-                    <button
-                      onClick={() => {
-                        const url = organizerProfile.social_media_links.group || organizerProfile.social_media_links.telegram_group;
-                        if (url) window.open(url, '_blank');
-                      }}
-                      className="px-3 py-1.5 rounded-md border text-sm font-medium transition-shadow duration-150"
-                      style={{ borderColor: themeClasses.border.includes('dark') ? '#374151' : '#E5E7EB' }}
-                    >
-                      Grupo
-                    </button>
-                  ) : (
-                    <button
-                      disabled
-                      className="px-3 py-1.5 rounded-md border text-sm font-medium opacity-60"
-                    >
-                      Grupo
-                    </button>
-                  )}
-
-                  {/* Pequenos indicadores / espaço flexível */}
-                  <div className="flex-1" />
-
-                  {/* Redes Sociais - Ícones menores (reduzidos) */}
-                  {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
-                    <div className="flex items-center gap-2">
-                      {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
-                        if (!url || typeof url !== 'string') return null;
-                        
-                        const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
-                        if (!config) return null;
-                        
-                        const IconComponent = config.icon;
-                        return (
-                          <button
-                            key={platform}
-                            onClick={() => handleOrganizerSocialClick(platform, url)}
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform duration-150"
-                            style={{ backgroundColor: config.color }}
-                            title={`${config.name} do organizador`}
-                          >
-                            <IconComponent size={14} />
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                {/* Small social icons in a single row (no label) */}
+                {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
+                  <div className="mt-3 flex items-center gap-2">
+                    {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
+                      if (!url || typeof url !== 'string') return null;
+                      const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
+                      if (!config) return null;
+                      const IconComponent = config.icon;
+                      return (
+                        <button
+                          key={platform}
+                          onClick={() => handleOrganizerSocialClick(platform, url)}
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform duration-150"
+                          style={{ backgroundColor: config.color }}
+                          title={`${config.name} do organizador`}
+                        >
+                          <IconComponent size={14} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -1200,15 +1135,6 @@ const CampaignPage = () => {
             })}
           </div>
         </section>
-
-        {/* REMOVED CONFIDENTIAL SECTIONS */}
-        {/* 
-          The following sections have been removed from public view as they contain confidential information:
-          - Campaign Stats Card (total_tickets, sold_tickets, available_tickets, reservation_timeout_minutes)
-          - Campaign Details Card (ticket_price, min_tickets_per_purchase, max_tickets_per_purchase, campaign_model)
-          
-          These sections are only appropriate for the campaign organizer's dashboard view.
-        */}
       </main>
 
       {/* Fullscreen Image Modal */}
