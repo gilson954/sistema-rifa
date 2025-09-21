@@ -715,40 +715,33 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 2. Seção de Organizador — modelo conforme seu desenho (avatar à esquerda, name à direita, círculos pequenos) */}
+        {/* 2. Seção de Organizador — layout ajustado ao wireframe (avatar à esquerda, "Organizador:" + nome à direita, ícones em linha abaixo do nome) */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
-          <h3 className={`text-xl font-bold ${themeClasses.text} mb-4`}>
-            Organizador
-          </h3>
-
           {loadingOrganizer ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
             </div>
           ) : organizerProfile ? (
-            /* -----  Modified organizer layout for responsive behavior ----- */
-            /* Desktop (md and above): row -> avatar left, info right
-               Mobile (below md): column -> avatar centered above, name + icons centered below */
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
-              {/* Avatar / Logo - centered on mobile, left on md+ */}
-              <div className="flex-shrink-0 mx-auto md:mx-0">
+            <div className="flex items-start gap-4">
+              {/* Avatar / Logo à esquerda */}
+              <div className="flex-shrink-0">
                 {organizerProfile.logo_url ? (
                   <img
                     src={organizerProfile.logo_url}
                     alt={organizerProfile.name}
-                    className="w-20 h-20 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
+                    className="w-16 h-16 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
                     style={{ borderColor: primaryColor }}
                   />
                 ) : organizerProfile.avatar_url ? (
                   <img
                     src={organizerProfile.avatar_url}
                     alt={organizerProfile.name}
-                    className="w-20 h-20 rounded-full object-cover border-4 shadow-md"
+                    className="w-16 h-16 rounded-full object-cover border-4 shadow-md"
                     style={{ borderColor: primaryColor }}
                   />
                 ) : (
                   <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-md"
+                    className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md"
                     style={{ backgroundColor: primaryColor }}
                   >
                     {organizerProfile.name ? organizerProfile.name.charAt(0).toUpperCase() : 'O'}
@@ -756,15 +749,18 @@ const CampaignPage = () => {
                 )}
               </div>
 
-              {/* Name + social icons. Center on mobile, left aligned on md+ */}
-              <div className="flex-1 text-center md:text-left">
-                <h4 className={`text-lg font-semibold ${themeClasses.text}`}>
+              {/* Conteúdo à direita do avatar: label, nome e ícones sociais em linha abaixo */}
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm ${themeClasses.textSecondary} leading-tight`}>
+                  Organizador:
+                </p>
+                <h4 className={`text-base font-semibold ${themeClasses.text} truncate`}>
                   {organizerProfile.name}
                 </h4>
 
-                {/* Social icons: centered on mobile, start-aligned on md+ */}
+                {/* Ícones sociais em linha, logo abaixo do nome */}
                 {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
-                  <div className="mt-3 flex items-center gap-2 justify-center md:justify-start flex-wrap">
+                  <div className="mt-2 flex items-center gap-2">
                     {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
                       if (!url || typeof url !== 'string') return null;
                       const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
@@ -774,12 +770,11 @@ const CampaignPage = () => {
                         <button
                           key={platform}
                           onClick={() => handleOrganizerSocialClick(platform, url)}
-                          className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform duration-150"
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform duration-150"
                           style={{ backgroundColor: config.color }}
                           title={`${config.name} do organizador`}
                         >
-                          {/* use className to size lucide icons responsively */}
-                          <IconComponent className="h-3 w-3 md:h-4 md:w-4" />
+                          <IconComponent size={12} />
                         </button>
                       );
                     })}
