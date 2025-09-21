@@ -729,7 +729,7 @@ const CampaignPage = () => {
                   <img
                     src={organizerProfile.logo_url}
                     alt={organizerProfile.name}
-                    className="w-24 h-16 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
+                    className="w-16 h-16 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
                     style={{ borderColor: primaryColor }}
                   />
                 ) : organizerProfile.avatar_url ? (
