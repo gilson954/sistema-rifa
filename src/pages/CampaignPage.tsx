@@ -727,7 +727,7 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 2. Seção de Organizador - card com layout melhorado e logo maior */}
+        {/* 2. Seção de Organizador - card com layout melhorado e redes sociais menores */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
             Organizador
@@ -738,65 +738,115 @@ const CampaignPage = () => {
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
             </div>
           ) : organizerProfile ? (
-            <div className="flex flex-col items-center text-center">
-              {/* Logo / Avatar - aumentados e centralizados */}
-              {organizerProfile.logo_url ? (
-                <img
-                  src={organizerProfile.logo_url}
-                  alt={organizerProfile.name}
-                  className="w-20 h-20 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
-                  style={{ borderColor: primaryColor }}
-                />
-              ) : organizerProfile.avatar_url ? (
-                <img
-                  src={organizerProfile.avatar_url}
-                  alt={organizerProfile.name}
-                  className="w-20 h-20 rounded-full object-cover border-4 shadow-md"
-                  style={{ borderColor: primaryColor }}
-                />
-              ) : (
-                <div 
-                  className="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-md"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  {organizerProfile.name ? organizerProfile.name.charAt(0).toUpperCase() : 'O'}
-                </div>
-              )}
-
-              <h4 className={`mt-4 text-lg font-semibold ${themeClasses.text}`}>
-                {organizerProfile.name}
-              </h4>
-              <p className={`text-sm ${themeClasses.textSecondary}`}>
-                Organizador da campanha
-              </p>
-
-              {/* Organizer Social Media */}
-              {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
-                <div className="mt-4">
-                  <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>Redes Sociais</p>
-                  <div className="flex justify-center flex-wrap gap-2">
-                    {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
-                      if (!url || typeof url !== 'string') return null;
-                      
-                      const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
-                      if (!config) return null;
-                      
-                      const IconComponent = config.icon;
-                      return (
-                        <button
-                          key={platform}
-                          onClick={() => handleOrganizerSocialClick(platform, url)}
-                          className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform duration-200"
-                          style={{ backgroundColor: config.color }}
-                          title={`${config.name} do organizador`}
-                        >
-                          <IconComponent size={18} />
-                        </button>
-                      );
-                    })}
+            <div className="flex flex-col md:flex-row items-center md:items-start md:space-x-6 text-center md:text-left">
+              {/* Logo / Avatar - à esquerda em telas maiores */}
+              <div className="flex-shrink-0">
+                {organizerProfile.logo_url ? (
+                  <img
+                    src={organizerProfile.logo_url}
+                    alt={organizerProfile.name}
+                    className="w-24 h-24 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
+                    style={{ borderColor: primaryColor }}
+                  />
+                ) : organizerProfile.avatar_url ? (
+                  <img
+                    src={organizerProfile.avatar_url}
+                    alt={organizerProfile.name}
+                    className="w-24 h-24 rounded-full object-cover border-4 shadow-md"
+                    style={{ borderColor: primaryColor }}
+                  />
+                ) : (
+                  <div 
+                    className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold text-3xl shadow-md"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    {organizerProfile.name ? organizerProfile.name.charAt(0).toUpperCase() : 'O'}
                   </div>
+                )}
+              </div>
+
+              {/* Conteúdo do organizador */}
+              <div className="mt-3 md:mt-0 flex-1">
+                <h4 className={`text-lg font-semibold ${themeClasses.text}`}>
+                  {organizerProfile.name}
+                </h4>
+                <p className={`text-sm ${themeClasses.textSecondary}`}>
+                  Organizador da campanha
+                </p>
+
+                {/* Suporte / Grupo e Redes Sociais */}
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  {/* Support Button (se existir link de suporte) */}
+                  {((organizerProfile.payment_integrations_config && organizerProfile.payment_integrations_config.support_url) || (organizerProfile.social_media_links && organizerProfile.social_media_links.support)) ? (
+                    <button
+                      onClick={() => {
+                        const url = organizerProfile.payment_integrations_config?.support_url || organizerProfile.social_media_links?.support;
+                        if (url) window.open(url, '_blank');
+                      }}
+                      className="px-3 py-1.5 rounded-md border text-sm font-medium transition-shadow duration-150"
+                      style={{ borderColor: themeClasses.border.includes('dark') ? '#374151' : '#E5E7EB' }}
+                    >
+                      Suporte
+                    </button>
+                  ) : (
+                    <button
+                      disabled
+                      className="px-3 py-1.5 rounded-md border text-sm font-medium opacity-60"
+                    >
+                      Suporte
+                    </button>
+                  )}
+
+                  {/* Group Button (se existir link de grupo) */}
+                  {organizerProfile.social_media_links && (organizerProfile.social_media_links.group || organizerProfile.social_media_links.telegram_group) ? (
+                    <button
+                      onClick={() => {
+                        const url = organizerProfile.social_media_links.group || organizerProfile.social_media_links.telegram_group;
+                        if (url) window.open(url, '_blank');
+                      }}
+                      className="px-3 py-1.5 rounded-md border text-sm font-medium transition-shadow duration-150"
+                      style={{ borderColor: themeClasses.border.includes('dark') ? '#374151' : '#E5E7EB' }}
+                    >
+                      Grupo
+                    </button>
+                  ) : (
+                    <button
+                      disabled
+                      className="px-3 py-1.5 rounded-md border text-sm font-medium opacity-60"
+                    >
+                      Grupo
+                    </button>
+                  )}
+
+                  {/* Pequenos indicadores / espaço flexível */}
+                  <div className="flex-1" />
+
+                  {/* Redes Sociais - Ícones menores (reduzidos) */}
+                  {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
+                    <div className="flex items-center gap-2">
+                      {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
+                        if (!url || typeof url !== 'string') return null;
+                        
+                        const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
+                        if (!config) return null;
+                        
+                        const IconComponent = config.icon;
+                        return (
+                          <button
+                            key={platform}
+                            onClick={() => handleOrganizerSocialClick(platform, url)}
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform duration-150"
+                            style={{ backgroundColor: config.color }}
+                            title={`${config.name} do organizador`}
+                          >
+                            <IconComponent size={14} />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           ) : (
             <div className="text-center py-4">
