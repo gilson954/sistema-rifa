@@ -794,52 +794,40 @@ const CampaignPage = () => {
 
         {/* 3. Seção de Promoções Disponíveis - card com largura limitada */}
         {campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
-          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
-  <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${themeClasses.text}`}>
-    🎁 Promoções Disponíveis
-  </h3>
-
-  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    {campaign.promotions.map((promo, index) => (
-      <div
-        key={index}
-        className="rounded-xl p-5 text-center shadow-md border transition-transform transform hover:scale-[1.02] duration-200"
-        style={{
-          background: "linear-gradient(145deg, rgba(34,34,34,0.95), rgba(20,20,20,0.9))",
-          borderColor: primaryColor,
-        }}
-      >
-        {/* Quantidade de cotas */}
-        <p className="text-lg font-bold text-white mb-1">
-          {promo.quantity} cotas
-        </p>
-
-        {/* Desconto */}
-        <p className="text-sm font-medium text-green-400 flex items-center justify-center gap-1">
-          💸 {promo.discount}% de desconto
-        </p>
-
-        {/* Preço original riscado */}
-        <p className="line-through text-sm text-gray-400">
-          R$ {promo.original_price}
-        </p>
-
-        {/* Preço final destacado */}
-        <p className="text-2xl font-extrabold text-green-500 mt-1">
-          R$ {promo.final_price}
-        </p>
-
-        {/* Botão de ação */}
-        <button
-          className="mt-3 w-full py-2 rounded-lg font-semibold text-sm text-white transition-colors duration-200"
-          style={{ backgroundColor: primaryColor }}
-        >
-          Aproveitar
-        </button>
-      </div>
-    ))}
-  </div>
-</section>
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
+              🎁 Promoções Disponíveis
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              {campaign.promotions.map((promo: Promotion) => {
+                const originalValue = promo.ticketQuantity * campaign.ticket_price;
+                const discountPercentage = Math.round((promo.fixedDiscountAmount / originalValue) * 100);
+                
+                return (
+                  <div
+                    key={promo.id}
+                    className={`border ${themeClasses.border} rounded-lg p-2 hover:shadow-md transition-all duration-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20`}
+                  >
+                    <div className="text-center">
+                      <div className={`font-bold text-sm ${themeClasses.text} mb-0.5`}>
+                        {promo.ticketQuantity} cotas
+                      </div>
+                      <div className="text-xs text-green-600 dark:text-green-400 font-medium mb-0.5">
+                        {discountPercentage}% de desconto
+                      </div>
+                      <div className={`text-xs ${getThemeClasses(campaignTheme).textSecondary} line-through mb-0.5`}>
+                        {formatCurrency(originalValue)}
+                      </div>
+                      <div className="text-base font-bold text-green-600 dark:text-green-400">
+                        {formatCurrency(promo.discountedTotalValue)}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
         )}
 
         {/* 4. Seção de Prêmios - card com largura limitada */}
