@@ -792,37 +792,71 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 3. Seção de Promoções Disponíveis - card com largura limitada */}
+        {/* 3. Seção de Promoções Disponíveis - redesigned for better mobile/desktop visuals */}
         {campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
-          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
-            <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-4 flex items-center gap-2 justify-center`}>
               🎁 Promoções Disponíveis
             </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-              {campaign.promotions.map((promo: Promotion) => {
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {campaign.promotions.map((promo: Promotion, index: number) => {
                 const originalValue = promo.ticketQuantity * campaign.ticket_price;
-                const discountPercentage = Math.round((promo.fixedDiscountAmount / originalValue) * 100);
-                
+                const discountPercentage = originalValue > 0
+                  ? Math.round((promo.fixedDiscountAmount / originalValue) * 100)
+                  : 0;
+
                 return (
                   <div
-                    key={promo.id}
-                    className={`border ${themeClasses.border} rounded-lg p-2 hover:shadow-md transition-all duration-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20`}
+                    key={promo.id ?? index}
+                    className={`rounded-xl p-4 text-center border ${themeClasses.border} shadow-md transition-transform transform hover:scale-[1.02] duration-200 flex flex-col`}
+                    style={{
+                      background: themeClasses.cardBg === 'bg-white'
+                        ? 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,246,250,0.98))'
+                        : 'linear-gradient(180deg, rgba(17,24,39,0.9), rgba(15,23,42,0.85))'
+                    }}
                   >
-                    <div className="text-center">
-                      <div className={`font-bold text-sm ${themeClasses.text} mb-0.5`}>
+                    <div className="flex-1">
+                      {/* Quantidade de cotas */}
+                      <p className={`text-lg font-bold ${themeClasses.text} mb-1`}>
                         {promo.ticketQuantity} cotas
-                      </div>
-                      <div className="text-xs text-green-600 dark:text-green-400 font-medium mb-0.5">
-                        {discountPercentage}% de desconto
-                      </div>
-                      <div className={`text-xs ${getThemeClasses(campaignTheme).textSecondary} line-through mb-0.5`}>
+                      </p>
+
+                      {/* Desconto */}
+                      <p className="text-sm font-medium text-green-400 mb-2">
+                        💸 {discountPercentage}% de desconto
+                      </p>
+
+                      {/* Preço original riscado */}
+                      <p className={`line-through text-sm ${themeClasses.textSecondary} mb-1`}>
                         {formatCurrency(originalValue)}
-                      </div>
-                      <div className="text-base font-bold text-green-600 dark:text-green-400">
+                      </p>
+
+                      {/* Preço final destacado */}
+                      <p className="text-2xl font-extrabold text-green-500 mt-1">
                         {formatCurrency(promo.discountedTotalValue)}
-                      </div>
+                      </p>
                     </div>
+
+                    {/* CTA */}
+                    <button
+                      className="mt-4 w-full py-2 rounded-lg font-semibold text-sm text-white"
+                      style={{ backgroundColor: primaryColor }}
+                      onClick={() => {
+                        // default CTA: scroll to selector / reserve flow
+                        // If you have a specific action, plug it here.
+                        if (campaign.campaign_model === 'automatic') {
+                          // open reservation modal for automatic (pre-fill quantity if you want)
+                          setQuantity(promo.ticketQuantity);
+                          handleOpenReservationModal();
+                        } else {
+                          // for manual, just open modal and user selects numbers
+                          handleOpenReservationModal();
+                        }
+                      }}
+                    >
+                      Aproveitar
+                    </button>
                   </div>
                 );
               })}
