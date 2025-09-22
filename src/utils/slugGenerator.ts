@@ -34,7 +34,11 @@ function generateBaseSlug(text: string): string {
     slug = slug.substring(0, 50).replace(/-[^-]*$/, ''); // Remove palavra parcial no final
   }
 
-  return slug || 'campanha'; // Fallback se o slug ficar vazio
+  // Adiciona um sufixo aleatório curto para reduzir colisões
+  const randomSuffix = Math.random().toString(36).substring(2, 6); // 4 caracteres aleatórios
+  const baseSlug = slug || 'campanha';
+  
+  return `${baseSlug}-${randomSuffix}`;
 }
 
 /**
