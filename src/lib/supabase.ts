@@ -40,7 +40,7 @@ export type Database = {
           promotions: any[] | null
           prizes: any | null
           show_percentage: boolean
-          slug: string | null
+          public_id: string | null
           reservation_timeout_minutes: number | null
           is_paid: boolean
         }
@@ -75,7 +75,7 @@ export type Database = {
           promotions?: any[] | null
           prizes?: any | null
           show_percentage?: boolean
-          slug?: string | null
+          public_id?: string | null
           reservation_timeout_minutes?: number | null
           is_paid?: boolean
         }
@@ -110,7 +110,7 @@ export type Database = {
           promotions?: any[] | null
           prizes?: any | null
           show_percentage?: boolean
-          slug?: string | null
+          public_id?: string | null
           reservation_timeout_minutes?: number | null
           is_paid?: boolean
         }
