@@ -87,7 +87,7 @@ export async function generateUniqueSlug(
 
   let uniqueSlug = baseSlug;
   let counter = 0;
-  const maxAttempts = 100; // Evita loop infinito
+  const maxAttempts = 5; // Evita loop infinito e timeout do banco
 
   while (counter < maxAttempts) {
     const exists = await slugExists(uniqueSlug, excludeCampaignId);
