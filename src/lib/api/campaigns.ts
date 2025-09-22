@@ -173,14 +173,14 @@ export class CampaignAPI {
   }
 
   /**
-   * Busca uma campanha por slug
+   * Busca uma campanha pelo public_id
    */
-  static async getCampaignBySlug(slug: string): Promise<{ data: Campaign | null; error: any }> {
+  static async getCampaignByPublicId(publicId: string): Promise<{ data: Campaign | null; error: any }> {
     try {
       const { data, error } = await supabase
         .from('campaigns')
         .select('*')
-        .eq('slug', slug);
+        .eq('public_id', publicId);
 
       if (error) {
         return { data: null, error };
@@ -190,7 +190,7 @@ export class CampaignAPI {
       const campaign = data && data.length > 0 ? data[0] : null;
       return { data: campaign, error: null };
     } catch (error) {
-      console.error('Error fetching campaign by slug:', error);
+      console.error('Error fetching campaign by public_id:', error);
       return { data: null, error };
     }
   }

@@ -81,10 +81,10 @@ const CreateCampaignStep3Page = () => {
 
   const handlePreview = () => {
     // Navigate to campaign page using slug
-    if (campaign?.slug) {
-      window.open(`/c/${campaign.slug}`, '_blank');
+    if (campaign?.public_id) {
+      window.open(`/c/${campaign.public_id}`, '_blank');
     } else {
-      // Fallback to ID if no slug exists
+      // Fallback to ID if no public_id exists
       window.open(`/c/${campaignId}`, '_blank');
     }
   };

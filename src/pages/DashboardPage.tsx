@@ -169,11 +169,11 @@ const DashboardPage = () => {
   const handleViewCampaign = (campaignId: string) => {
     // Busca a campanha para obter o slug
     const campaign = campaigns.find(c => c.id === campaignId);
-    if (campaign?.slug) {
+    if (campaign?.public_id) {
       // Abre em nova aba para visualizar como usuário final
-      window.open(`/c/${campaign.slug}`, '_blank');
+      window.open(`/c/${campaign.public_id}`, '_blank');
     } else {
-      // Fallback para ID se não houver slug
+      // Fallback para ID se não houver public_id
       window.open(`/c/${campaignId}`, '_blank');
     }
   };

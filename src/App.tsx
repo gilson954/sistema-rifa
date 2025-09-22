@@ -49,7 +49,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           
           {/* Página Pública de Campanha */}
-          <Route path="/c/:slug" element={<CampaignPage />} />
+          <Route path="/c/:publicId" element={<CampaignPage />} />
           
           {/* Página de Confirmação de Pagamento */}
           <Route path="/payment-confirmation" element={<PaymentConfirmationPage />} />

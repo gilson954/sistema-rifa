@@ -45,7 +45,7 @@ interface OrganizerProfile {
 }
 
 const CampaignPage = () => {
-  const { slug } = useParams<{ slug: string }>();
+  const { publicId } = useParams<{ publicId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme } = useTheme();
@@ -78,18 +78,18 @@ const CampaignPage = () => {
     window.location.hostname === host || window.location.hostname.includes(host)
   );
   
-  const isCustomDomain = !isDevelopmentHost && slug;
+  const isCustomDomain = !isDevelopmentHost && publicId;
   
   // Use appropriate hook based on access method
-  const { campaign: campaignBySlug, loading: loadingBySlug, error: errorBySlug } = useCampaignBySlug(slug || '');
+  const { campaign: campaignByPublicId, loading: loadingByPublicId, error: errorByPublicId } = useCampaignByPublicId(publicId || '');
   const { campaign: campaignByDomain, loading: loadingByDomain, error: errorByDomain } = useCampaignByCustomDomain(
     isCustomDomain ? window.location.hostname : ''
   );
   
   // Select the appropriate campaign data
-  const campaign = isCustomDomain ? campaignByDomain : campaignBySlug;
-  const loading = isCustomDomain ? loadingByDomain : loadingBySlug;
-  const error = isCustomDomain ? errorByDomain : errorBySlug;
+  const campaign = isCustomDomain ? campaignByDomain : campaignByPublicId;
+  const loading = isCustomDomain ? loadingByDomain : loadingByPublicId;
+  const error = isCustomDomain ? errorByDomain : errorByPublicId;
 
   // Check if campaign is available for purchases (paid and active)
   const isCampaignAvailable = campaign?.status === 'active' && campaign?.is_paid !== false;
@@ -536,7 +536,7 @@ const CampaignPage = () => {
   // Generate share URL
   const generateShareUrl = () => {
     const baseUrl = window.location.origin;
-    return `${baseUrl}/c/${campaign?.slug}`;
+    return `${baseUrl}/c/${campaign?.public_id}`;
   };
 
   // Handle social media sharing

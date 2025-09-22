@@ -31,7 +31,7 @@ export interface CustomerTicket {
   ticket_id: string;
   campaign_id: string;
   campaign_title: string;
-  campaign_slug: string | null;
+  campaign_public_id: string | null;
   prize_image_urls: string[] | null;
   quota_number: number;
   status: string;

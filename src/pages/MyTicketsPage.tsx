@@ -14,7 +14,7 @@ interface Country {
 interface GroupedTickets {
   campaign_id: string;
   campaign_title: string;
-  campaign_slug: string | null;
+  campaign_public_id: string | null;
   prize_image_urls: string[] | null;
   tickets: CustomerTicket[];
   total_tickets: number;
@@ -75,9 +75,9 @@ const MyTicketsPage = () => {
     navigate('/');
   };
 
-  const handleViewCampaign = (slug: string | null, campaignId: string) => {
-    if (slug) {
-      window.open(`/c/${slug}`, '_blank');
+  const handleViewCampaign = (publicId: string | null, campaignId: string) => {
+    if (publicId) {
+      window.open(`/c/${publicId}`, '_blank');
     } else {
       window.open(`/c/${campaignId}`, '_blank');
     }
@@ -105,7 +105,7 @@ const MyTicketsPage = () => {
       groups.push({
         campaign_id: ticket.campaign_id,
         campaign_title: ticket.campaign_title,
-        campaign_slug: ticket.campaign_slug,
+        campaign_public_id: ticket.campaign_public_id,
         prize_image_urls: ticket.prize_image_urls,
         tickets: [ticket],
         total_tickets: 1
@@ -269,7 +269,7 @@ const MyTicketsPage = () => {
                             </div>
                           </div>
                           <button
-                            onClick={() => handleViewCampaign(group.campaign_slug, group.campaign_id)}
+                            onClick={() => handleViewCampaign(group.campaign_public_id, group.campaign_id)}
                             className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
                           >
                             <Eye className="h-4 w-4" />

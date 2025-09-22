@@ -83,7 +83,7 @@ const PaymentConfirmationPage = () => {
       alert('✅ Pagamento simulado com sucesso!\n\nSuas cotas foram confirmadas e você receberá uma confirmação por email/WhatsApp.');
       
       // Redirect to campaign page
-      navigate(`/c/${reservationData?.campaignId || campaign?.slug}`, {
+      navigate(`/c/${reservationData?.campaignId || campaign?.public_id}`, {
         state: { paymentSuccess: true }
       });
     }

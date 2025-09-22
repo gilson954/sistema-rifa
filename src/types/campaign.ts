@@ -2,7 +2,7 @@ export interface Campaign {
   id: string;
   user_id: string;
   title: string;
-  slug: string | null;
+  public_id: string | null;
   description: string | null;
   prize_image_url: string | null;
   ticket_price: number;
@@ -39,7 +39,7 @@ export type CampaignStatus = 'draft' | 'active' | 'completed' | 'cancelled';
 
 export interface CreateCampaignData {
   title: string;
-  slug?: string;
+  public_id?: string;
   description?: string;
   prize_image_url?: string;
   ticket_price: number;
@@ -67,7 +67,7 @@ export interface CreateCampaignData {
 
 export interface UpdateCampaignData extends Partial<CreateCampaignData> {
   id: string;
-  slug?: string;
+  public_id?: string;
   prize_image_urls?: string[];
   promotions?: Promotion[];
   prizes?: Prize[];

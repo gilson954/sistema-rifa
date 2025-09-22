@@ -146,7 +146,7 @@ export const useCampaign = (id: string) => {
   return { campaign, loading, error };
 };
 
-export const useCampaignBySlug = (slug: string) => {
+export const useCampaignByPublicId = (publicId: string) => {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -156,11 +156,11 @@ export const useCampaignBySlug = (slug: string) => {
       setLoading(true);
       setError(null);
 
-      const { data, error: apiError } = await CampaignAPI.getCampaignBySlug(slug);
+      const { data, error: apiError } = await CampaignAPI.getCampaignByPublicId(publicId);
 
       if (apiError) {
         setError('Erro ao carregar campanha');
-        console.error('Error fetching campaign by slug:', apiError);
+        console.error('Error fetching campaign by public_id:', apiError);
       } else {
         setCampaign(data);
       }
@@ -168,10 +168,10 @@ export const useCampaignBySlug = (slug: string) => {
       setLoading(false);
     };
 
-    if (slug) {
+    if (publicId) {
       fetchCampaign();
     }
-  }, [slug]);
+  }, [publicId]);
 
   return { campaign, loading, error };
 };
