@@ -35,7 +35,7 @@ function generateBaseSlug(text: string): string {
   }
 
   // Adiciona um sufixo aleatório curto para reduzir colisões
-  const randomSuffix = Math.random().toString(36).substring(2, 6); // 4 caracteres aleatórios
+  const randomSuffix = Math.random().toString(36).substring(2, 10); // 8 caracteres aleatórios
   const baseSlug = slug || 'campanha';
   
   return `${baseSlug}-${randomSuffix}`;
@@ -87,7 +87,7 @@ export async function generateUniqueSlug(
 
   let uniqueSlug = baseSlug;
   let counter = 0;
-  const maxAttempts = 5; // Evita loop infinito e timeout do banco
+  const maxAttempts = 2; // Reduzido ainda mais para evitar timeout
 
   while (counter < maxAttempts) {
     const exists = await slugExists(uniqueSlug, excludeCampaignId);
