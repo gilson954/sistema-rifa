@@ -4,7 +4,7 @@ import { AlertTriangle, Clock, Users, Trophy, Share2, Heart, Calendar, MapPin } 
 import { Campaign } from '../types/campaign';
 import { getCampaignBySlug, getCampaignByPublicId } from '../lib/api/campaigns';
 import { getPublicProfile } from '../lib/api/publicProfiles';
-import { QuotaGrid } from '../components/QuotaGrid';
+import QuotaGrid from '../components/QuotaGrid';
 import { QuotaSelector } from '../components/QuotaSelector';
 import { ReservationModal } from '../components/ReservationModal';
 import { SocialMediaIcons } from '../components/SocialMediaIcons';
