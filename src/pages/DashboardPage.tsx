@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
 import { useAuth } from '../context/AuthContext';
+import { CampaignAPI } from '../lib/api/campaigns';
 import SubscriptionStatus from '../components/SubscriptionStatus';
 import { supabase } from '../lib/supabase';
 
@@ -166,15 +167,29 @@ const DashboardPage = () => {
     navigate(`/dashboard/campaigns/${campaignId}/sales-history`);
   };
 
-  const handleViewCampaign = (campaignId: string) => {
+  const handleViewCampaign = async (campaignId: string) => {
     // Busca a campanha para obter o slug
-    const campaign = campaigns.find(c => c.id === campaignId);
-    if (campaign?.public_id) {
+    let campaignToView = campaigns.find(c => c.id === campaignId);
+
+    // Se public_id estiver faltando no estado local, refetch a campanha
+    if (!campaignToView?.public_id) {
+      console.log(`Public ID missing for campaign ${campaignId} in local state. Refetching...`);
+      const { data: fetchedCampaign, error: fetchError } = await CampaignAPI.getCampaignById(campaignId);
+      if (fetchError) {
+        console.error('Error refetching campaign for view:', fetchError);
+        alert('Erro ao carregar detalhes da campanha.');
+        return;
+      }
+      campaignToView = fetchedCampaign;
+    }
+
+    if (campaignToView?.public_id) {
       // Abre em nova aba para visualizar como usuário final
-      window.open(`/c/${campaign.public_id}`, '_blank');
+      window.open(`/c/${campaignToView.public_id}`, '_blank');
     } else {
-      // Fallback para ID se não houver public_id
-      window.open(`/c/${campaignId}`, '_blank');
+      // Fallback se public_id ainda não for encontrado após refetch (não deve acontecer se o DB for NOT NULL)
+      console.error(`Could not get public_id for campaign ${campaignId} even after refetch.`);
+      alert('Não foi possível encontrar o ID público da campanha.');
     }
   };
 
