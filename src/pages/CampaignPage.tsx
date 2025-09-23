@@ -814,21 +814,20 @@ const CampaignPage = () => {
                     key={promo.id}
                     type="button"
                     onClick={() => {
-                      // comportamento opcional ao clicar na promoção (pode abrir detalhes, aplicar, etc.)
                     }}
                     className="flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 shadow-sm"
                     style={{
                       border: `1.5px solid ${primaryColor}`,
                       background: 'transparent',
-                    }}
-                  >
+                      }}
+                    >
                     <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
                       {promo.ticketQuantity} cotas por {formatCurrency(originalValue)}
-                    </span>
-                    <span className={`ml-3 text-sm font-extrabold ${themeClasses.text}`}>
-                      {discountPercentage}% 
-                    </span>
-                  </button>
+                      </span>
+                      <span className="ml-3 text-sm font-extrabold text-green-500 dark:text-green-300">
+                        {discountPercentage}%
+                      </span>
+                    </button>
                 );
               })}
             </div>
