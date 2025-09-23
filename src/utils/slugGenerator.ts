@@ -162,18 +162,30 @@ async function publicIdExists(publicId: string, excludeCampaignId?: string): Pro
 async function generateUniquePublicId(excludeCampaignId?: string): Promise<string> {
   let uniquePublicId = generateShortUniquePublicId();
   let counter = 0;
-  const maxAttempts = 10;
+  const maxAttempts = 5; // A bit more attempts, but with a delay
+  let delay = 100; // Start with 100ms delay
 
   while (counter < maxAttempts) {
-    const exists = await publicIdExists(uniquePublicId, excludeCampaignId);
-    
-    if (!exists) {
-      return uniquePublicId;
-    }
+    try {
+      const exists = await publicIdExists(uniquePublicId, excludeCampaignId);
+      
+      if (!exists) {
+        return uniquePublicId;
+      }
 
-    // Public ID já existe, gera um novo
-    counter++;
-    uniquePublicId = generateShortUniquePublicId();
+      // Public ID já existe, gera um novo e espera antes de tentar novamente
+      counter++;
+      uniquePublicId = generateShortUniquePublicId();
+      await new Promise(resolve => setTimeout(resolve, delay)); // Add delay
+      delay *= 2; // Exponential backoff
+    } catch (error) {
+      // If a specific query times out, log it and retry the attempt
+      console.warn(`Attempt ${counter + 1} to generate unique public_id failed:`, error);
+      counter++;
+      uniquePublicId = generateShortUniquePublicId(); // Generate a new one for the next attempt
+      await new Promise(resolve => setTimeout(resolve, delay)); // Add delay
+      delay *= 2; // Exponential backoff
+    }
   }
 
   throw new Error('Não foi possível gerar um public_id único após múltiplas tentativas');
