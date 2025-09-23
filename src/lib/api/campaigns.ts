@@ -1,141 +1,309 @@
 import { supabase } from '../supabase';
-import { Campaign } from '../../types/campaign';
-
-export interface CampaignFilters {
-  status?: 'draft' | 'active' | 'completed' | 'cancelled';
-  userId?: string;
-  search?: string;
-  limit?: number;
-  offset?: number;
-}
+import { CreateCampaignInput, UpdateCampaignInput, createCampaignSchema, updateCampaignSchema } from '../validations/campaign';
+import { Campaign, CampaignStatus } from '../../types/campaign';
+import { generateUniqueSlugAndPublicId } from '../../utils/slugGenerator';
+import { ZodError } from 'zod';
+import { STRIPE_PRODUCTS, getPublicationProductByRevenue } from '../../stripe-config';
 
 export class CampaignAPI {
-  static async getCampaigns(filters: CampaignFilters = {}) {
-    let query = supabase
-      .from('campaigns')
-      .select('*')
-      .order('created_at', { ascending: false });
+  /**
+   * Cria uma nova campanha
+   */
+  static async createCampaign(data: CreateCampaignInput, userId: string): Promise<{ data: Campaign | null; error: any }> {
+    try {
+      // Validate input data against schema before processing
+      try {
+        createCampaignSchema.parse(data);
+      } catch (validationError) {
+        if (validationError instanceof ZodError) {
+          const errorMessage = (validationError.errors || []).map(err => err.message).join(', ');
+          console.error('❌ [API VALIDATION] Campaign creation validation failed:', errorMessage);
+          return { 
+            data: null, 
+            error: { 
+              message: errorMessage,
+              code: 'VALIDATION_ERROR',
+              details: validationError.errors || []
+            }
+          };
+        }
+        throw validationError;
+      }
 
-    if (filters.status) {
-      query = query.eq('status', filters.status);
+      // Gera slug único para a campanha
+      const { slug, publicId } = await generateUniqueSlugAndPublicId(data.title);
+      
+      const now = new Date();
+      console.log('Generated publicId:', publicId); // Log publicId
+      const expiresAt = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
+      
+      const campaignData = {
+        ...data,
+        user_id: userId,
+        slug,
+        public_id: publicId,
+        sold_tickets: 0,
+        status: 'draft' as CampaignStatus,
+        is_paid: false,
+        start_date: now.toISOString(),
+        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 dias
+        expires_at: expiresAt.toISOString()
+      };
+
+      const { data: campaign, error } = await supabase
+        .from('campaigns')
+        .insert(campaignData)
+        .select()
+        .single();
+
+      return { data: campaign, error };
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      return { data: null, error };
     }
-
-    if (filters.userId) {
-      query = query.eq('user_id', filters.userId);
-    }
-
-    if (filters.search) {
-      query = query.ilike('title', `%${filters.search}%`);
-    }
-
-    if (filters.limit) {
-      query = query.limit(filters.limit);
-    }
-
-    if (filters.offset) {
-      query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      throw new Error(`Failed to fetch campaigns: ${error.message}`);
-    }
-
-    return data as Campaign[];
   }
 
-  static async getCampaignById(id: string) {
-    const { data, error } = await supabase
-      .from('campaigns')
-      .select('*')
-      .eq('id', id)
-      .single();
+  /**
+   * Atualiza uma campanha existente
+   */
+  static async updateCampaign(data: UpdateCampaignInput): Promise<{ data: Campaign | null; error: any }> {
+    try {
+      // Validate input data against schema before processing
+      try {
+        console.log('🔧 [API DEBUG] Data being validated:', JSON.stringify(data, null, 2));
+        updateCampaignSchema.parse(data);
+      } catch (validationError) {
+        if (validationError instanceof ZodError) {
+          const errorMessage = (validationError.errors || []).map(err => `${err.path.join('.')}: ${err.message}`).join(', ') || 'Erro de validação nos dados da campanha - nenhum erro específico reportado pelo Zod';
+          console.error('❌ [API VALIDATION] Campaign update validation failed:', errorMessage);
+          console.error('❌ [API VALIDATION] Full validation errors:', validationError.errors);
+          return { 
+            data: null, 
+            error: { 
+              message: errorMessage,
+              code: 'VALIDATION_ERROR',
+              details: validationError.errors || []
+            }
+          };
+        }
+        throw validationError;
+      }
 
-    if (error) {
-      throw new Error(`Failed to fetch campaign: ${error.message}`);
+      const { id, ...updateData } = data;
+      
+      // Se o título foi alterado, regenera o slug
+      if (updateData.title) {
+        const { slug: newSlug } = await generateUniqueSlugAndPublicId(updateData.title, id);
+        updateData.slug = newSlug;
+      }
+      
+      // DEBUG: Log reservation timeout value received by API
+      console.log('🔧 [API DEBUG] Received reservation_timeout_minutes:', updateData.reservation_timeout_minutes);
+      console.log('🔧 [API DEBUG] Full updateData received:', updateData);
+      
+      console.log('🔧 [API DEBUG] Updating campaign with data:', updateData);
+      
+      const { data: campaign, error } = await supabase
+        .from('campaigns')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ [API DEBUG] Update error:', error);
+      } else {
+        console.log('✅ [API DEBUG] Campaign updated successfully:', campaign);
+      }
+
+      return { data: campaign, error };
+    } catch (error) {
+      console.error('Error updating campaign:', error);
+      return { data: null, error };
     }
-
-    return data as Campaign;
   }
 
-  static async getCampaignByPublicId(publicId: string) {
-    const { data, error } = await supabase
-      .from('campaigns')
-      .select('*')
-      .eq('public_id', publicId)
-      .single();
+  /**
+   * Busca campanhas do usuário
+   */
+  static async getUserCampaigns(userId: string, status?: CampaignStatus): Promise<{ data: Campaign[] | null; error: any }> {
+    try {
+      // Filter out expired campaigns that should be cleaned up
+      const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+      
+      let query = supabase
+        .from('campaigns')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        // Exclude expired draft campaigns older than 2 days
+        .or(`status.neq.draft,expires_at.is.null,expires_at.gte.${new Date().toISOString()},created_at.gte.${twoDaysAgo}`);
 
-    if (error) {
-      throw new Error(`Failed to fetch campaign: ${error.message}`);
+      if (status) {
+        query = query.eq('status', status);
+      }
+
+      const { data, error } = await query;
+      return { data, error };
+    } catch (error) {
+      console.error('Error fetching user campaigns:', error);
+      return { data: null, error };
     }
-
-    return data as Campaign;
   }
 
-  static async getCampaignBySlug(slug: string) {
-    const { data, error } = await supabase
-      .from('campaigns')
-      .select('*')
-      .eq('slug', slug)
-      .single();
+  /**
+   * Busca uma campanha por ID
+   */
+  static async getCampaignById(id: string): Promise<{ data: Campaign | null; error: any }> {
+    try {
+      console.log('Fetching campaign by ID:', id); // Log ID
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('id', id);
 
-    if (error) {
-      throw new Error(`Failed to fetch campaign: ${error.message}`);
+      if (error) {
+        console.error('Error fetching campaign by ID:', error); // Log error
+        return { data: null, error };
+      }
+
+      // Return the first campaign if found, otherwise null
+      const campaign = data && data.length > 0 ? data[0] : null;
+      return { data: campaign, error: null };
+    } catch (error) {
+      console.error('Error fetching campaign:', error);
+      return { data: null, error };
     }
-
-    return data as Campaign;
   }
 
-  static async createCampaign(campaign: Partial<Campaign>) {
-    const { data, error } = await supabase
-      .from('campaigns')
-      .insert([campaign])
-      .select()
-      .single();
+  /**
+   * Busca uma campanha pelo public_id
+   */
+  static async getCampaignByPublicId(publicId: string): Promise<{ data: Campaign | null; error: any }> {
+    try {
+      console.log('Fetching campaign by public_id:', publicId); // Log publicId
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('public_id', publicId);
 
-    if (error) {
-      throw new Error(`Failed to create campaign: ${error.message}`);
+      if (error) {
+        console.error('Error fetching campaign by public_id:', error); // Log error
+        return { data: null, error };
+      }
+
+      // Return the first campaign if found, otherwise null
+      const campaign = data && data.length > 0 ? data[0] : null;
+      return { data: campaign, error: null };
+    } catch (error) {
+      console.error('Error fetching campaign by public_id:', error);
+      return { data: null, error };
     }
-
-    return data as Campaign;
   }
 
-  static async updateCampaign(id: string, updates: Partial<Campaign>) {
-    const { data, error } = await supabase
-      .from('campaigns')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
+  /**
+   * Busca uma campanha por domínio personalizado
+   */
+  static async getCampaignByCustomDomain(domain: string): Promise<{ data: Campaign | null; error: any }> {
+    try {
+      // Primeiro busca o domínio personalizado
+      const { data: customDomainData, error: domainError } = await supabase
+        .from('custom_domains')
+        .select('campaign_id')
+        .eq('domain_name', domain)
+        .eq('is_verified', true);
 
-    if (error) {
-      throw new Error(`Failed to update campaign: ${error.message}`);
+      if (domainError) {
+        return { data: null, error: domainError };
+      }
+
+      const customDomain = customDomainData && customDomainData.length > 0 ? customDomainData[0] : null;
+      if (!customDomain) {
+        return { data: null, error: domainError || new Error('Domínio personalizado não encontrado') };
+      }
+
+      // Depois busca a campanha associada
+      const { data: campaignData, error: campaignError } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('id', customDomain.campaign_id);
+
+      if (campaignError) {
+        return { data: null, error: campaignError };
+      }
+
+      const campaign = campaignData && campaignData.length > 0 ? campaignData[0] : null;
+      return { data: campaign, error: null };
+    } catch (error) {
+      console.error('Error fetching campaign by custom domain:', error);
+      return { data: null, error };
     }
-
-    return data as Campaign;
   }
+  /**
+   * Deleta uma campanha
+   */
+  static async deleteCampaign(id: string, userId: string): Promise<{ error: any }> {
+    try {
+      const { error } = await supabase
+        .from('campaigns')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', userId);
 
-  static async deleteCampaign(id: string) {
-    const { error } = await supabase
-      .from('campaigns')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      throw new Error(`Failed to delete campaign: ${error.message}`);
+      return { error };
+    } catch (error) {
+      console.error('Error deleting campaign:', error);
+      return { error };
     }
-
-    return true;
   }
 
-  static async getActiveCampaigns() {
-    return this.getCampaigns({ status: 'active' });
+  /**
+   * Publica uma campanha (muda status para 'active')
+   */
+  static async publishCampaign(id: string, userId: string): Promise<{ data: Campaign | null; error: any }> {
+    try {
+      const { data, error } = await supabase
+        .from('campaigns')
+        .update({ 
+          status: 'active' as CampaignStatus,
+          start_date: new Date().toISOString()
+        })
+        .eq('id', id)
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Error publishing campaign:', error);
+      return { data: null, error };
+    }
   }
 
-  static async getUserCampaigns(userId: string) {
-    return this.getCampaigns({ userId });
+  /**
+   * Busca campanhas ativas (públicas)
+   */
+  static async getActiveCampaigns(limit = 10): Promise<{ data: Campaign[] | null; error: any }> {
+    try {
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      return { data, error };
+    } catch (error) {
+      console.error('Error fetching active campaigns:', error);
+      return { data: null, error };
+    }
+  }
+
+  /**
+   * Retorna a taxa de publicação fixa do produto Rifaqui
+   */
+  static getPublicationTax(estimatedRevenue: number): StripeProduct | undefined {
+    // Returns the StripeProduct object for the publication fee based on estimated revenue
+    return getPublicationProductByRevenue(estimatedRevenue);
   }
 }
-
-export default CampaignAPI;
