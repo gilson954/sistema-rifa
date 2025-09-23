@@ -1,7 +1,7 @@
 import { supabase } from '../supabase';
 import { CreateCampaignInput, UpdateCampaignInput, createCampaignSchema, updateCampaignSchema } from '../validations/campaign';
 import { Campaign, CampaignStatus } from '../../types/campaign';
-import { generateUniqueSlug } from '../../utils/slugGenerator';
+import { generateUniqueSlugAndPublicId } from '../../utils/slugGenerator';
 import { ZodError } from 'zod';
 import { STRIPE_PRODUCTS, getPublicationProductByRevenue } from '../../stripe-config';
 
@@ -31,7 +31,7 @@ export class CampaignAPI {
       }
 
       // Gera slug único para a campanha
-      const slug = await generateUniqueSlug(data.title);
+      const { slug, publicId } = await generateUniqueSlugAndPublicId(data.title);
       
       const now = new Date();
       const expiresAt = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
@@ -40,6 +40,7 @@ export class CampaignAPI {
         ...data,
         user_id: userId,
         slug,
+        public_id: publicId,
         sold_tickets: 0,
         status: 'draft' as CampaignStatus,
         is_paid: false,
@@ -91,7 +92,7 @@ export class CampaignAPI {
       
       // Se o título foi alterado, regenera o slug
       if (updateData.title) {
-        const newSlug = await generateUniqueSlug(updateData.title, id);
+        const { slug: newSlug } = await generateUniqueSlugAndPublicId(updateData.title, id);
         updateData.slug = newSlug;
       }
       
