@@ -1,4 +1,3 @@
-```typescript
 import React, { useState, useCallback, useEffect } from 'react';
 import { 
   Share2, 
@@ -90,7 +89,7 @@ const CampaignPage = () => {
   // Select the appropriate campaign data
   const campaign = isCustomDomain ? campaignByDomain : campaignByPublicId;
   const loading = isCustomDomain ? loadingByDomain : loadingByPublicId;
-  const error = isCustomDomain ? errorByDomain : errorByPublicId; // Corrected line
+  const error = isCustomDomain ? errorByDomain : errorByPublicId;
 
   // Check if campaign is available for purchases (paid and active)
   const isCampaignAvailable = campaign?.status === 'active' && campaign?.is_paid !== false;
@@ -303,8 +302,8 @@ const CampaignPage = () => {
         });
       }
     } catch (error) {
-      console.error('Error making reservation:', error);
-      alert('Erro ao fazer reserva. Tente novamente.');
+      console.error('Error during reservation:', error);
+      alert('Erro ao reservar cotas. Tente novamente.');
     } finally {
       setShowReservationModal(false);
     }
@@ -405,11 +404,11 @@ const CampaignPage = () => {
 
   // Touch/swipe handlers for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartX(e.targetTouches.clientX);
+    setTouchStartX(e.targetTouches[0].clientX);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEndX(e.targetTouches.clientX);
+    setTouchEndX(e.targetTouches[0].clientX);
   };
 
   const handleTouchEnd = () => {
@@ -800,7 +799,7 @@ const CampaignPage = () => {
               🎁 Promoções Disponíveis
             </h3>
 
-            {/* Layout ajustado: botões/pills com texto branco na esquerda e percentual em verde */}
+            {/* Layout ajustado: botões/pills com texto adaptado ao tema na esquerda e percentual em verde */}
             <div className="flex flex-wrap gap-3 justify-center">
               {campaign.promotions.map((promo: Promotion) => {
                 const originalValue = promo.ticketQuantity * campaign.ticket_price;
@@ -819,10 +818,10 @@ const CampaignPage = () => {
                       background: 'transparent',
                     }}
                   >
-                    <span className="text-sm font-bold text-white truncate">
+                    <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
                       {promo.ticketQuantity} cotas por {formatCurrency(originalValue)}
                     </span>
-                    <span className="ml-3 text-sm font-extrabold" style={{ color: '#10B981' /* green-500 */ }}>
+                    <span className={`ml-3 text-sm font-extrabold ${themeClasses.text}`}>
                       {discountPercentage}% 
                     </span>
                   </button>
@@ -865,14 +864,14 @@ const CampaignPage = () => {
             <div className="space-y-4">
               {/* Campaign Unavailable Alert */}
               {!isCampaignAvailable && (
-                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
+                <div className="bg-orange-100 dark:bg-orange-900/20 border border-orange-300 dark:border-orange-800 rounded-lg p-4 mb-4">
                   <div className="flex items-center space-x-3">
-                    <AlertTriangle className="h-6 w-6 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+                    <AlertTriangle className="h-6 w-6 text-orange-700 dark:text-orange-400 flex-shrink-0" />
                     <div>
-                      <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
+                      <h4 className="font-semibold text-orange-900 dark:text-orange-200 mb-1">
                         Campanha Indisponível
                       </h4>
-                      <p className="text-sm text-orange-700 dark:text-orange-300">
+                      <p className="text-sm text-orange-800 dark:text-orange-300">
                         Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
                       </p>
                     </div>
@@ -969,10 +968,10 @@ const CampaignPage = () => {
                   <div className="flex items-center space-x-3">
                     <AlertTriangle className="h-6 w-6 text-orange-700 dark:text-orange-400 flex-shrink-0" />
                     <div>
-                      <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
+                      <h4 className="font-semibold text-orange-900 dark:text-orange-200 mb-1">
                         Campanha Indisponível
                       </h4>
-                      <p className="text-sm text-orange-700 dark:text-orange-300">
+                      <p className="text-sm text-orange-800 dark:text-orange-300">
                         Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
                       </p>
                     </div>
@@ -1225,4 +1224,3 @@ const CampaignPage = () => {
 };
 
 export default CampaignPage;
-```
