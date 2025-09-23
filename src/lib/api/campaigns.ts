@@ -1,866 +1,1226 @@
-// src/lib/api/campaigns.ts
-/**
- * Versão ampliada do módulo de API para campanhas
- * - Sem JSX (arquivo apenas para lógica/DB)
- * - Compatível com supabase client exportado em ../supabase
- * - Importar Promotion do seu types (ajuste import se necessário)
- *
- * Substitua este arquivo em seu projeto. Se seu schema tiver nomes diferentes
- * (ex.: `campaigns.promotions` serializado vs tabela `promotions`), ajuste os selects.
- */
+import React, { useState, useCallback, useEffect } from 'react';
+import { 
+  Share2, 
+  Calendar, 
+  Users, 
+  Trophy, 
+  ChevronLeft, 
+  ChevronRight,
+  Eye,
+  Gift,
+  ExternalLink,
+  AlertTriangle
+} from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { useCampaignByPublicId, useCampaignByCustomDomain } from '../hooks/useCampaigns';
+import { useTickets } from '../hooks/useTickets';
+import QuotaGrid from '../components/QuotaGrid';
+import QuotaSelector from '../components/QuotaSelector';
+import ReservationModal, { CustomerData } from '../components/ReservationModal';
+import { Promotion } from '../types/promotion';
+import { formatCurrency } from '../utils/currency';
+import { calculateTotalWithPromotions } from '../utils/currency';
+import { socialMediaConfig, shareSectionConfig } from '../components/SocialMediaIcons';
+import { supabase } from '../lib/supabase';
 
-import { supabase } from '../supabase';
-import type { Promotion as ImportedPromotion } from '../../types/promotion';
+interface PromotionInfo {
+  promotion: Promotion;
+  originalTotal: number;
+  promotionalTotal: number;
+  savings: number;
+  discountPercentage: number;
+}
 
-/* ----------------------------- Tipagens ----------------------------- */
-
-export type Promotion = ImportedPromotion | {
-  id?: string;
-  campaign_id?: string;
-  ticketQuantity: number; // número de cotas do bloco
-  type?: 'fixed' | 'percentage' | 'block' | 'bundle'; // convenções possíveis
-  fixedDiscountAmount?: number; // desconto fixo em reais (centavos se preferir)
-  percentage?: number; // desconto percentual (ex: 20 para 20%)
-  discountedTotalValue?: number; // valor final do bloco (opcional)
-  created_at?: string | null;
-  updated_at?: string | null;
-};
-
-export interface Prize {
+interface OrganizerProfile {
   id: string;
-  campaign_id?: string;
   name: string;
-  description?: string;
-  image_url?: string;
-  position?: number;
-  created_at?: string | null;
+  avatar_url?: string;
+  logo_url?: string;
+  social_media_links?: any;
+  payment_integrations_config?: any;
+  primary_color?: string;
+  theme?: string;
 }
 
-export interface Ticket {
-  id: string;
-  campaign_id: string;
-  quota_number: number;
-  price?: number;
-  status: 'available' | 'reserved' | 'sold' | 'blocked';
-  reserved_by?: string | null;
-  reserved_until?: string | null;
-  purchased_by?: string | null;
-  purchased_at?: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-}
+const CampaignPage = () => {
+  const { publicId } = useParams<{ publicId: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { theme } = useTheme();
 
-export interface Campaign {
-  id: string;
-  slug: string;
-  title: string;
-  description?: string | null;
-  status?: 'draft' | 'active' | 'paused' | 'finished' | string;
-  is_paid?: boolean;
-  ticket_price?: number;
-  total_tickets?: number;
-  sold_tickets?: number;
-  user_id?: string;
-  draw_date?: string | null;
-  draw_method?: string | null;
-  show_draw_date?: boolean;
-  show_percentage?: boolean;
-  campaign_model?: 'manual' | 'automatic' | string;
-  min_tickets_per_purchase?: number;
-  max_tickets_per_purchase?: number;
-  reservation_timeout_minutes?: number;
-  // Possível campos JSON - trate como array se retornado assim
-  prize_image_urls?: string[] | null;
-  prizes?: Prize[] | null;
-  promotions?: Promotion[] | null;
-  custom_domain?: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-}
+  // Função para verificar se a descrição contém conteúdo válido
+  const isValidDescription = (description: string): boolean => {
+    if (!description || typeof description !== 'string') return false;
+    
+    // Remove HTML tags e espaços para verificar se há conteúdo real
+    const textContent = description
+      .replace(/<[^>]*>/g, '') // Remove todas as tags HTML
+      .replace(/&nbsp;/g, ' ') // Substitui &nbsp; por espaços
+      .trim();
+    
+    return textContent.length > 0;
+  };
+  
+  // Check if this is a custom domain request
+  const developmentHosts = [
+    'localhost',
+    '127.0.0.1',
+    'netlify.app',
+    'stackblitz.io',
+    'stackblitz.com', 
+    'webcontainer.io',
+    'webcontainer-api.io'
+  ];
+  
+  const isDevelopmentHost = developmentHosts.some(host => 
+    window.location.hostname === host || window.location.hostname.includes(host)
+  );
+  
+  const isCustomDomain = !isDevelopmentHost && publicId;
+  
+  // Use appropriate hook based on access method
+  const { campaign: campaignByPublicId, loading: loadingByPublicId, error: errorByPublicId } = useCampaignByPublicId(publicId || '');
+  const { campaign: campaignByDomain, loading: loadingByDomain, error: errorByDomain } = useCampaignByCustomDomain(
+    isCustomDomain ? window.location.hostname : ''
+  );
+  
+  // Select the appropriate campaign data
+  const campaign = isCustomDomain ? campaignByDomain : campaignByPublicId;
+  const loading = isCustomDomain ? loadingByDomain : loadingByPublicId;
+  const error = isCustomDomain ? errorByDomain : errorByPublicId;
 
-/* ----------------------------- Helpers ----------------------------- */
+  // Check if campaign is available for purchases (paid and active)
+  const isCampaignAvailable = campaign?.status === 'active' && campaign?.is_paid !== false;
 
-/**
- * Normaliza um campo possivelmente serializado ou null para array
- */
-function normalizeArrayField<T>(value: unknown): T[] {
-  if (!value) return [];
-  if (Array.isArray(value)) return value as T[];
-  try {
-    const parsed = JSON.parse(String(value));
-    if (Array.isArray(parsed)) return parsed as T[];
-  } catch (e) {
-    // not JSON
-  }
-  return [];
-}
+  // Organizer profile state
+  const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
+  const [loadingOrganizer, setLoadingOrganizer] = useState(false);
 
-/**
- * Formata número (em reais) - utilitário simples
- */
-export function toCurrency(value: number | null | undefined, digits = 2): string {
-  if (typeof value !== 'number') value = 0;
-  return (value).toFixed(digits);
-}
+  // Tickets management
+  const {
+    tickets,
+    loading: ticketsLoading,
+    error: ticketsError,
+    reserveTickets,
+    getAvailableTickets,
+    reserving
+  } = useTickets(campaign?.id || '');
 
-/**
- * Converte data ISO para Date segura (ou null)
- */
-function parseISO(date?: string | null) {
-  if (!date) return null;
-  const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return null;
-  return d;
-}
+  // Local state for manual selection
+  const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
+  const [quantity, setQuantity] = useState(1);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers'>('all');
+  
+  // Modal states
+  const [showReservationModal, setShowReservationModal] = useState(false);
+  const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
+  const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
+  const [reservationTotalValue, setReservationTotalValue] = useState(0);
 
-/* ----------------------------- Campanhas ----------------------------- */
+  // Image gallery state
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [fullscreenImageIndex, setFullscreenImageIndex] = useState<number | null>(null);
+  
+  // Touch/swipe state for mobile navigation
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
-/**
- * Busca campanha por slug
- */
-export async function fetchCampaignBySlug(slug: string): Promise<Campaign | null> {
-  try {
-    const { data, error } = await supabase
-      .from<Campaign>('campaigns')
-      .select('*')
-      .eq('slug', slug)
-      .maybeSingle(); // single() pode lançar se não existir
+  // Load organizer profile
+  useEffect(() => {
+    if (campaign?.user_id) {
+      const loadOrganizerProfile = async () => {
+        setLoadingOrganizer(true);
+        try {
+          const { data, error } = await supabase
+            .from('public_profiles_view')
+            .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme')
+            .eq('id', campaign.user_id)
+            .maybeSingle();
+          
+          if (error) {
+            console.error('Error loading organizer profile:', error);
+          } else {
+            setOrganizerProfile(data);
+          }
+        } catch (error) {
+          console.error('Error loading organizer profile:', error);
+        } finally {
+          setLoadingOrganizer(false);
+        }
+      };
+      
+      loadOrganizerProfile();
+    }
+  }, [campaign?.user_id]);
 
-    if (error) {
-      console.error('[fetchCampaignBySlug] supabase error', error);
+  // Get applicable promotion for a given quantity
+  const getBestPromotionForDisplay = useCallback((quotaCount: number): PromotionInfo | null => {
+    if (!campaign?.promotions || !Array.isArray(campaign.promotions) || campaign.promotions.length === 0) {
       return null;
     }
-    if (!data) return null;
 
-    // Normalizações em caso de campos JSON
-    data.promotions = normalizeArrayField<Promotion>(data.promotions);
-    data.prizes = normalizeArrayField<Prize>(data.prizes);
-    data.prize_image_urls = normalizeArrayField<string>(data.prize_image_urls);
-    return data;
-  } catch (err) {
-    console.error('[fetchCampaignBySlug] unexpected error', err);
-    return null;
-  }
-}
+    // Find the best promotion that applies to this quantity
+    const applicablePromotions = campaign.promotions.filter(
+      (promo: Promotion) => promo.ticketQuantity <= quotaCount
+    );
 
-/**
- * Busca campanha por domínio customizado
- */
-export async function fetchCampaignByDomain(domain: string): Promise<Campaign | null> {
-  try {
-    const { data, error } = await supabase
-      .from<Campaign>('campaigns')
-      .select('*')
-      .eq('custom_domain', domain)
-      .maybeSingle();
-
-    if (error) {
-      console.error('[fetchCampaignByDomain] supabase error', error);
+    if (applicablePromotions.length === 0) {
       return null;
     }
-    if (!data) return null;
 
-    data.promotions = normalizeArrayField<Promotion>(data.promotions);
-    data.prizes = normalizeArrayField<Prize>(data.prizes);
-    data.prize_image_urls = normalizeArrayField<string>(data.prize_image_urls);
-    return data;
-  } catch (err) {
-    console.error('[fetchCampaignByDomain] unexpected error', err);
-    return null;
-  }
-}
+    // Get the promotion with the highest ticket quantity (best deal)
+    const applicablePromotion = applicablePromotions.reduce((best, current) => 
+      current.ticketQuantity > best.ticketQuantity ? current : best
+    );
 
-/**
- * Busca campanhas com paginação e filtros simples
- */
-export async function fetchCampaignsPaginated(params?: {
-  profileId?: string;
-  status?: string;
-  page?: number;
-  pageSize?: number;
-  search?: string;
-}): Promise<{ data: Campaign[]; count: number }>{
-  const page = Math.max(1, params?.page || 1);
-  const pageSize = Math.min(100, Math.max(1, params?.pageSize || 20));
-  try {
-    let query = supabase.from<Campaign>('campaigns').select('*', { count: 'exact' }).order('created_at', { ascending: false });
+    const originalTotal = quotaCount * campaign.ticket_price;
+    
+    // Calculate total using the new block promotion logic
+    const { total: promotionalTotal } = calculateTotalWithPromotions(
+      quotaCount,
+      campaign.ticket_price,
+      campaign.promotions
+    );
+    
+    const savings = originalTotal - promotionalTotal;
+    const discountPercentage = Math.round((savings / originalTotal) * 100);
 
-    if (params?.profileId) {
-      query = (query as any).eq('user_id', params.profileId);
-    }
-    if (params?.status) {
-      query = (query as any).eq('status', params.status);
-    }
-    if (params?.search) {
-      // Busca simples em title (ajuste conforme seu index)
-      query = (query as any).ilike('title', `%${params.search}%`);
-    }
+    return {
+      promotion: applicablePromotion,
+      originalTotal,
+      promotionalTotal,
+      savings,
+      discountPercentage
+    };
+  }, [campaign?.promotions, campaign?.ticket_price]);
 
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
+  // Handle manual quota selection
+  const handleQuotaSelect = useCallback((quotaNumber: number) => {
+    if (!campaign || campaign.campaign_model !== 'manual') return;
 
-    const { data, error, count } = await (query as any).range(from, to);
+    // Check if quota is available
+    const availableTickets = getAvailableTickets();
+    const isAvailable = availableTickets.some(ticket => ticket.quota_number === quotaNumber);
+    
+    if (!isAvailable) return;
 
-    if (error) {
-      console.error('[fetchCampaignsPaginated] supabase error', error);
-      return { data: [], count: 0 };
-    }
-
-    const normalized = (data || []).map((c: Campaign) => {
-      c.promotions = normalizeArrayField<Promotion>(c.promotions);
-      c.prizes = normalizeArrayField<Prize>(c.prizes);
-      c.prize_image_urls = normalizeArrayField<string>(c.prize_image_urls);
-      return c;
-    });
-
-    return { data: normalized, count: count || 0 };
-  } catch (err) {
-    console.error('[fetchCampaignsPaginated] unexpected error', err);
-    return { data: [], count: 0 };
-  }
-}
-
-/**
- * Cria nova campanha
- */
-export async function createCampaign(newCampaign: Partial<Campaign>): Promise<Campaign | null> {
-  try {
-    const { data, error } = await supabase
-      .from<Campaign>('campaigns')
-      .insert(newCampaign)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('[createCampaign] supabase error', error);
-      return null;
-    }
-    const campaign = data as Campaign;
-    campaign.promotions = normalizeArrayField<Promotion>(campaign.promotions);
-    campaign.prizes = normalizeArrayField<Prize>(campaign.prizes);
-    campaign.prize_image_urls = normalizeArrayField<string>(campaign.prize_image_urls);
-    return campaign;
-  } catch (err) {
-    console.error('[createCampaign] unexpected error', err);
-    return null;
-  }
-}
-
-/**
- * Atualiza campanha
- */
-export async function updateCampaign(id: string, updates: Partial<Campaign>): Promise<Campaign | null> {
-  try {
-    const { data, error } = await supabase
-      .from<Campaign>('campaigns')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('[updateCampaign] supabase error', error);
-      return null;
-    }
-    const campaign = data as Campaign;
-    campaign.promotions = normalizeArrayField<Promotion>(campaign.promotions);
-    campaign.prizes = normalizeArrayField<Prize>(campaign.prizes);
-    campaign.prize_image_urls = normalizeArrayField<string>(campaign.prize_image_urls);
-    return campaign;
-  } catch (err) {
-    console.error('[updateCampaign] unexpected error', err);
-    return null;
-  }
-}
-
-/**
- * Deleta campanha
- */
-export async function deleteCampaign(id: string): Promise<boolean> {
-  try {
-    const { error } = await supabase.from('campaigns').delete().eq('id', id);
-    if (error) {
-      console.error('[deleteCampaign] supabase error', error);
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.error('[deleteCampaign] unexpected error', err);
-    return false;
-  }
-}
-
-/* ----------------------------- Tickets / Cotas ----------------------------- */
-
-/**
- * Retorna todas as cotas (tickets) de uma campanha, ordenadas por número
- */
-export async function getTicketsForCampaign(campaignId: string): Promise<Ticket[]> {
-  try {
-    const { data, error } = await supabase
-      .from<Ticket>('tickets')
-      .select('*')
-      .eq('campaign_id', campaignId)
-      .order('quota_number', { ascending: true });
-
-    if (error) {
-      console.error('[getTicketsForCampaign] supabase error', error);
-      return [];
-    }
-    return data || [];
-  } catch (err) {
-    console.error('[getTicketsForCampaign] unexpected error', err);
-    return [];
-  }
-}
-
-/**
- * Cria as cotas em massa (útil quando uma campanha é criada)
- * - campaignId: id da campanha
- * - startNumber: número inicial (normalmente 1)
- * - count: quantidade total de cotas a criar
- *
- * Retorna tickets criados (ou [] em caso de falha)
- */
-export async function createTicketsBulk(
-  campaignId: string,
-  startNumber: number,
-  count: number,
-  price?: number
-): Promise<Ticket[]> {
-  if (!campaignId || count <= 0) return [];
-
-  // Constrói objetos em lotes (evitar exceder limites do supabase)
-  const batchSize = 500;
-  const created: Ticket[] = [];
-
-  try {
-    for (let offset = 0; offset < count; offset += batchSize) {
-      const chunk = Math.min(batchSize, count - offset);
-      const items = new Array(chunk).fill(0).map((_, i) => ({
-        campaign_id: campaignId,
-        quota_number: startNumber + offset + i,
-        price: price ?? null,
-        status: 'available'
-      }));
-
-      const { data, error } = await supabase.from<Ticket>('tickets').insert(items).select();
-      if (error) {
-        console.error('[createTicketsBulk] insert error', error);
-        // continue com o próximo chunk (ou interrompa conforme sua necessidade)
-        break;
+    setSelectedQuotas(prev => {
+      if (prev.includes(quotaNumber)) {
+        // Remove if already selected
+        return prev.filter(q => q !== quotaNumber);
+      } else {
+        // Add if not selected and within limits
+        const newSelection = [...prev, quotaNumber];
+        if (newSelection.length <= (campaign.max_tickets_per_purchase || 1000)) {
+          return newSelection;
+        }
+        return prev; // Don't add if exceeds limit
       }
-      if (data && data.length) created.push(...data);
-    }
-    return created;
-  } catch (err) {
-    console.error('[createTicketsBulk] unexpected error', err);
-    return created;
-  }
-}
+    });
+  }, [campaign, getAvailableTickets]);
 
-/**
- * Limpa reservas expiradas (reserves cujo reserved_until < now) e os marca como 'available'
- * - Pode ser executado periodicamente como job
- */
-export async function cleanExpiredReservations(): Promise<{ success: boolean; releasedCount?: number; error?: any }> {
-  try {
-    const nowISO = new Date().toISOString();
+  // Handle automatic quantity change
+  const handleQuantityChange = useCallback((newQuantity: number) => {
+    setQuantity(newQuantity);
+  }, []);
 
-    // Seleciona os tickets expirados (reserved_until < now)
-    const { data: expired, error: selectErr } = await supabase
-      .from<Ticket>('tickets')
-      .select('*')
-      .lt('reserved_until', nowISO)
-      .eq('status', 'reserved');
-
-    if (selectErr) {
-      console.error('[cleanExpiredReservations] select error', selectErr);
-      return { success: false, error: selectErr };
+  // Handle reservation submission
+  const handleReservationSubmit = useCallback(async (customerData: CustomerData) => {
+    if (!campaign || !user) {
+      alert('Você precisa estar logado para reservar cotas');
+      return;
     }
 
-    if (!expired || expired.length === 0) {
-      return { success: true, releasedCount: 0 };
+    try {
+      let quotasToReserve: number[] = [];
+
+      if (campaign.campaign_model === 'manual') {
+        // Manual mode: use selected quotas
+        if (selectedQuotas.length === 0) {
+          alert('Selecione pelo menos uma cota para reservar');
+          return;
+        }
+        quotasToReserve = selectedQuotas;
+      } else {
+        // Automatic mode: generate random quotas
+        if (quantity <= 0) {
+          alert('Selecione uma quantidade válida de cotas');
+          return;
+        }
+
+        const availableTickets = getAvailableTickets();
+        const availableQuotaNumbers = availableTickets.map(ticket => ticket.quota_number);
+
+        if (availableQuotaNumbers.length < quantity) {
+          alert(`Apenas ${availableQuotaNumbers.length} cotas disponíveis`);
+          return;
+        }
+
+        // Randomly select quotas from available ones
+        const shuffled = [...availableQuotaNumbers].sort(() => 0.5 - Math.random());
+        quotasToReserve = shuffled.slice(0, quantity);
+      }
+
+      // Reserve the quotas
+      const result = await reserveTickets(quotasToReserve);
+      
+      if (result) {
+        // Calculate total value (considering promotions)
+        const { total: totalValue } = calculateTotalWithPromotions(
+          quotasToReserve.length,
+          campaign.ticket_price,
+          campaign.promotions || []
+        );
+
+        // Set reservation data
+        setReservationCustomerData(customerData);
+        setReservationQuotas(quotasToReserve);
+        setReservationTotalValue(totalValue);
+
+        // Clear selections
+        setSelectedQuotas([]);
+        setQuantity(Math.max(1, campaign.min_tickets_per_purchase || 1));
+
+        // Navigate to payment confirmation
+        navigate('/payment-confirmation', {
+          state: {
+            reservationData: {
+              reservationId: `RES-${Date.now()}`,
+              customerName: customerData.name,
+              customerEmail: customerData.email,
+              customerPhone: `${customerData.countryCode} ${customerData.phoneNumber}`,
+              quotaCount: quotasToReserve.length,
+              totalValue: totalValue,
+              selectedQuotas: quotasToReserve,
+              campaignTitle: campaign.title,
+              campaignId: campaign.id,
+              expiresAt: new Date(Date.now() + (campaign.reservation_timeout_minutes || 15) * 60 * 1000).toISOString()
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error during reservation:', error);
+      alert('Erro ao reservar cotas. Tente novamente.');
+    } finally {
+      setShowReservationModal(false);
+    }
+  }, [campaign, user, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate]);
+
+  // Handle opening reservation modal
+  const handleOpenReservationModal = useCallback(() => {
+    if (!user) {
+      alert('Você precisa estar logado para reservar cotas');
+      navigate('/login');
+      return;
     }
 
-    const quotaNumbers = expired.map(t => t.quota_number);
-    const campaignId = expired[0].campaign_id;
+    if (campaign?.campaign_model === 'manual' && selectedQuotas.length === 0) {
+      alert('Selecione pelo menos uma cota para reservar');
+      return;
+    }
 
-    const updates: Partial<Ticket> = {
-      status: 'available',
-      reserved_by: null,
-      reserved_until: null
+    if (campaign?.campaign_model === 'automatic' && quantity <= 0) {
+      alert('Selecione uma quantidade válida de cotas');
+      return;
+    }
+
+    setShowReservationModal(true);
+  }, [user, campaign, selectedQuotas, quantity, navigate]);
+
+  // Image navigation
+  const handlePreviousImage = () => {
+    if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
+      setCurrentImageIndex(prev => 
+        prev === 0 ? campaign.prize_image_urls!.length - 1 : prev - 1
+      );
+    }
+  };
+
+  const handleNextImage = () => {
+    if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
+      setCurrentImageIndex(prev => 
+        prev === campaign.prize_image_urls!.length - 1 ? 0 : prev + 1
+      );
+    }
+  };
+
+  // Handle fullscreen image view
+  const handleImageClick = (imageIndex: number) => {
+    setFullscreenImageIndex(imageIndex);
+  };
+
+  const handleCloseFullscreen = () => {
+    setFullscreenImageIndex(null);
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+
+  // Fullscreen navigation functions
+  const goToPreviousFullscreenImage = () => {
+    if (fullscreenImageIndex === null || !campaign?.prize_image_urls) return;
+    
+    const totalImages = campaign.prize_image_urls.length;
+    if (totalImages <= 1) return;
+    
+    setFullscreenImageIndex(prev => 
+      prev === 0 ? totalImages - 1 : (prev || 0) - 1
+    );
+  };
+
+  const goToNextFullscreenImage = () => {
+    if (fullscreenImageIndex === null || !campaign?.prize_image_urls) return;
+    
+    const totalImages = campaign.prize_image_urls.length;
+    if (totalImages <= 1) return;
+    
+    setFullscreenImageIndex(prev => 
+      prev === totalImages - 1 ? 0 : (prev || 0) + 1
+    );
+  };
+
+  // Keyboard navigation for fullscreen
+  useEffect(() => {
+    if (fullscreenImageIndex === null) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToPreviousFullscreenImage();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goToNextFullscreenImage();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        handleCloseFullscreen();
+      }
     };
 
-    const { data: updated, error: updateErr } = await supabase
-      .from<Ticket>('tickets')
-      .update(updates)
-      .eq('campaign_id', campaignId)
-      .in('quota_number', quotaNumbers)
-      .eq('status', 'reserved'); // só atualiza os que realmente ainda estão reservados
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [fullscreenImageIndex]);
 
-    if (updateErr) {
-      console.error('[cleanExpiredReservations] update error', updateErr);
-      return { success: false, error: updateErr };
+  // Touch/swipe handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      goToNextFullscreenImage();
+    } else if (isRightSwipe) {
+      goToPreviousFullscreenImage();
     }
 
-    return { success: true, releasedCount: updated?.length || 0 };
-  } catch (err) {
-    console.error('[cleanExpiredReservations] unexpected error', err);
-    return { success: false, error: err };
-  }
-}
-
-/**
- * Reserva cotas (foco em atomicidade: primeiro tenta usar RPC Postgres se disponível,
- * senão usa fallback de leitura + update conditional)
- *
- * - campaignId: id da campanha
- * - quotaNumbers: array de números das cotas a reservar
- * - userId: id do usuário que reserva
- * - timeoutMinutes: minutos de expiração
- *
- * Retorna { success, reservedTickets, error }
- *
- * Observação: Recomenda-se implementar uma função RPC em Postgres que faça essa operação
- * atomically no servidor (evita race conditions). Aqui oferecemos fallback seguro que
- * deve funcionar para a maioria dos casos.
- */
-export async function reserveTickets(
-  campaignId: string,
-  quotaNumbers: number[],
-  userId: string,
-  timeoutMinutes = 15
-): Promise<{ success: boolean; reservedTickets?: Ticket[]; error?: any }> {
-  if (!campaignId || !quotaNumbers || quotaNumbers.length === 0) {
-    return { success: false, error: 'invalid_input' };
-  }
-
-  try {
-    // Tenta RPC 'reserve_tickets' (caso exista no banco)
-    try {
-      // Se você tem um RPC no Postgres, ele deve receber (campaign_id, quota_numbers, user_id, timeout_minutes)
-      // const { data, error } = await supabase.rpc('reserve_tickets', { campaign_id: campaignId, quota_numbers: quotaNumbers, user_id: userId, timeout_minutes: timeoutMinutes });
-      // if (!error && data) return { success: true, reservedTickets: data as Ticket[] };
-
-      // Caso RPC não exista, vai cair no fallback abaixo
-    } catch (rpcErr) {
-      // ignore e segue fallback
-      console.warn('[reserveTickets] rpc not available or failed, fallback will be used', rpcErr);
+    // Reset touch state
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+  // Get theme classes based on campaign theme
+  const getThemeClasses = (campaignTheme: string) => {
+    switch (campaignTheme) {
+      case 'claro':
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200'
+        };
+      case 'escuro':
+        return {
+          background: 'bg-gray-950',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-900',
+          border: 'border-gray-800'
+        };
+      case 'escuro-preto':
+        return {
+          background: 'bg-black',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-900',
+          border: 'border-gray-800'
+        };
+      default:
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200'
+        };
     }
+  };
 
-    // Fallback:
-    // 1) Seleciona cotas pedidas que estejam "available"
-    const { data: available, error: selectError } = await supabase
-      .from<Ticket>('tickets')
-      .select('*')
-      .eq('campaign_id', campaignId)
-      .in('quota_number', quotaNumbers)
-      .eq('status', 'available');
+  // Format date
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
-    if (selectError) {
-      console.error('[reserveTickets] selectError', selectError);
-      return { success: false, error: selectError };
+  // Calculate progress percentage
+  const getProgressPercentage = () => {
+    if (!campaign) return 0;
+    return Math.round((campaign.sold_tickets / campaign.total_tickets) * 100);
+  };
+
+  // Get current promotion info for selected/quantity
+  const currentPromotionInfo = campaign?.campaign_model === 'manual' 
+    ? getBestPromotionForDisplay(selectedQuotas.length)
+    : getBestPromotionForDisplay(quantity);
+
+  // Calculate current total value
+  const getCurrentTotalValue = () => {
+    const currentQuantity = campaign?.campaign_model === 'manual' ? selectedQuotas.length : quantity;
+    
+    if (!campaign) return 0;
+    
+    // Use the new block promotion calculation
+    const { total } = calculateTotalWithPromotions(
+      currentQuantity,
+      campaign.ticket_price,
+      campaign.promotions || []
+    );
+    
+    return total;
+  };
+
+  // Get configured payment methods
+  const getConfiguredPaymentMethods = () => {
+    if (!organizerProfile?.payment_integrations_config) return [];
+    
+    const config = organizerProfile.payment_integrations_config;
+    const methods = [];
+    
+    if (config.mercado_pago?.client_id || config.mercado_pago?.access_token) {
+      methods.push({ name: 'Mercado Pago', icon: '💳', color: '#00B1EA' });
     }
-
-    if (!available || available.length !== quotaNumbers.length) {
-      return { success: false, error: 'not_all_available' };
+    if (config.fluxsis?.api_key) {
+      methods.push({ name: 'Fluxsis', icon: '💰', color: '#6366F1' });
     }
-
-    // 2) Atualiza apenas as linhas correspondentes que ainda estão 'available'
-    const reservedUntil = new Date(Date.now() + timeoutMinutes * 60 * 1000).toISOString();
-
-    const { data: updated, error: updateError } = await supabase
-      .from<Ticket>('tickets')
-      .update({
-        status: 'reserved',
-        reserved_by: userId,
-        reserved_until: reservedUntil
-      })
-      .eq('campaign_id', campaignId)
-      .in('quota_number', quotaNumbers)
-      .eq('status', 'available');
-
-    if (updateError) {
-      console.error('[reserveTickets] updateError', updateError);
-      return { success: false, error: updateError };
+    if (config.pay2m?.api_key) {
+      methods.push({ name: 'Pay2m', icon: '💸', color: '#10B981' });
     }
-
-    // Verifica se o update retornou todas as linhas
-    if (!updated || updated.length === 0) {
-      return { success: false, error: 'update_failed' };
+    if (config.paggue?.api_key) {
+      methods.push({ name: 'Paggue', icon: '💵', color: '#F59E0B' });
     }
-
-    return { success: true, reservedTickets: updated };
-  } catch (err) {
-    console.error('[reserveTickets] unexpected error', err);
-    return { success: false, error: err };
-  }
-}
-
-/**
- * Libera reservas (opcionalmente apenas as pertencentes a um userId)
- */
-export async function releaseReservedTickets(
-  campaignId: string,
-  quotaNumbers: number[],
-  userId?: string
-): Promise<{ success: boolean; releasedTickets?: Ticket[]; error?: any }> {
-  if (!campaignId || !quotaNumbers || quotaNumbers.length === 0) {
-    return { success: false, error: 'invalid_input' };
-  }
-
-  try {
-    let query = supabase
-      .from<Ticket>('tickets')
-      .update({
-        status: 'available',
-        reserved_by: null,
-        reserved_until: null
-      })
-      .eq('campaign_id', campaignId)
-      .in('quota_number', quotaNumbers)
-      .eq('status', 'reserved');
-
-    if (userId) {
-      query = (query as any).eq('reserved_by', userId);
+    if (config.efi_bank?.client_id) {
+      methods.push({ name: 'Efi Bank', icon: '🏦', color: '#EF4444' });
     }
+    
+    // Always show PIX as it's the default
+    methods.push({ name: 'PIX', icon: '₽', color: '#00BC63' });
+    
+    return methods;
+  };
 
-    const { data, error } = await query.select();
-    if (error) {
-      console.error('[releaseReservedTickets] error', error);
-      return { success: false, error };
+  // Generate share URL
+  const generateShareUrl = () => {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/c/${campaign?.public_id}`;
+  };
+
+  // Handle social media sharing
+  const handleShare = (platform: string) => {
+    const shareUrl = generateShareUrl();
+    const shareText = `Participe da ${campaign?.title}! Cotas por apenas ${formatCurrency(campaign?.ticket_price || 0)}`;
+    
+    let url = '';
+    
+    switch (platform) {
+      case 'whatsapp':
+        url = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`;
+        break;
+      case 'facebook':
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+        break;
+      case 'telegram':
+        url = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+        break;
+      case 'x':
+        url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+        break;
+      default:
+        return;
     }
+    
+    window.open(url, '_blank', 'width=600,height=400');
+  };
 
-    return { success: true, releasedTickets: data || [] };
-  } catch (err) {
-    console.error('[releaseReservedTickets] unexpected', err);
-    return { success: false, error: err };
-  }
-}
+  // Handle organizer social media click
+  const handleOrganizerSocialClick = (platform: string, url: string) => {
+    window.open(url, '_blank');
+  };
 
-/**
- * Marca as cotas como vendidas (após confirmação de pagamento)
- */
-export async function confirmPurchase(
-  campaignId: string,
-  quotaNumbers: number[],
-  userId: string
-): Promise<{ success: boolean; purchased?: Ticket[]; error?: any }> {
-  if (!campaignId || !quotaNumbers || quotaNumbers.length === 0) {
-    return { success: false, error: 'invalid_input' };
-  }
-
-  try {
-    // Atualiza status -> sold e limpa reserved_by/reserved_until. Usa neq('status', 'sold') para evitar re-venda.
-    const { data, error } = await supabase
-      .from<Ticket>('tickets')
-      .update({
-        status: 'sold',
-        purchased_by: userId,
-        purchased_at: new Date().toISOString(),
-        reserved_by: null,
-        reserved_until: null
-      })
-      .eq('campaign_id', campaignId)
-      .in('quota_number', quotaNumbers)
-      .neq('status', 'sold')
-      .select();
-
-    if (error) {
-      console.error('[confirmPurchase] error', error);
-      return { success: false, error };
-    }
-
-    return { success: true, purchased: data || [] };
-  } catch (err) {
-    console.error('[confirmPurchase] unexpected', err);
-    return { success: false, error: err };
-  }
-}
-
-/* ----------------------------- Promoções & Cálculo ----------------------------- */
-
-/**
- * Busca promoções vinculadas a uma campanha
- * Tenta tabela 'promotions' primeiro, senão tenta campo campaigns.promotions
- */
-export async function fetchPromotionsForCampaign(campaignId: string): Promise<Promotion[]> {
-  try {
-    const { data: promosTable, error: tableErr } = await supabase
-      .from<Promotion>('promotions')
-      .select('*')
-      .eq('campaign_id', campaignId)
-      .order('ticketQuantity', { ascending: true });
-
-    if (!tableErr && promosTable && promosTable.length) return promosTable;
-
-    // fallback para campo JSON dentro da campanha
-    const { data: campaignData, error: campErr } = await supabase
-      .from<Campaign>('campaigns')
-      .select('promotions')
-      .eq('id', campaignId)
-      .maybeSingle();
-
-    if (campErr) {
-      console.error('[fetchPromotionsForCampaign] campErr', campErr);
-      return [];
-    }
-    return normalizeArrayField<Promotion>(campaignData?.promotions);
-  } catch (err) {
-    console.error('[fetchPromotionsForCampaign] unexpected', err);
-    return [];
-  }
-}
-
-/**
- * Calcula o total aplicado com promoções.
- *
- * Regras asumidas:
- * - promotions array pode conter promos do tipo 'block' (comprar N cotas por X valor),
- *   ou 'percentage'/'fixed' sobre o total.
- * - A função tenta aplicar combos (bloques) primeiro para maximizar desconto.
- *
- * Retorna { total, appliedPromotions, savings, details }
- */
-export function calculateTotalWithPromotions(
-  quantity: number,
-  pricePerTicket: number,
-  promotions: Promotion[] = []
-): { total: number; appliedPromotions: Promotion[]; savings: number; details?: any } {
-  // Trivial: sem promoções
-  if (!promotions || promotions.length === 0) {
-    const total = (quantity * pricePerTicket);
-    return { total, appliedPromotions: [], savings: 0, details: null };
+  if (loading || ticketsLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+      </div>
+    );
   }
 
-  // Copiamos e normalizamos promos
-  const promos = promotions.map(p => ({ ...p }));
-
-  // Separar promos por tipo
-  const blockPromos = promos.filter(p => typeof p.ticketQuantity === 'number' && (p.type === 'block' || p.discountedTotalValue !== undefined));
-  const pctPromos = promos.filter(p => p.percentage && (!p.ticketQuantity || p.ticketQuantity <= 0));
-  const fixedPromos = promos.filter(p => p.fixedDiscountAmount && (!p.ticketQuantity || p.ticketQuantity <= 0));
-
-  // Ordenar blockPromos por ticketQuantity desc (aplica maiores blocos primeiro)
-  blockPromos.sort((a, b) => (b.ticketQuantity || 0) - (a.ticketQuantity || 0));
-
-  let remaining = quantity;
-  let total = 0;
-  const applied: Promotion[] = [];
-  const details: any[] = [];
-
-  // Aplica blocks (ex: 10 por R$ 800)
-  for (const promo of blockPromos) {
-    const blockSize = promo.ticketQuantity || 0;
-    if (blockSize <= 0) continue;
-    const times = Math.floor(remaining / blockSize);
-    if (times > 0) {
-      // define block value
-      let blockValue = 0;
-      if (typeof promo.discountedTotalValue === 'number') {
-        blockValue = promo.discountedTotalValue;
-      } else if (promo.fixedDiscountAmount) {
-        // Se fixedDiscountAmount é desconto total do bloco (em reais), então blockValue = blockSize*price - fixed
-        blockValue = (blockSize * pricePerTicket) - (promo.fixedDiscountAmount || 0);
-      } else if (promo.percentage) {
-        blockValue = (blockSize * pricePerTicket) * (1 - (promo.percentage / 100));
-      } else {
-        // se não houver campos suficientes, assume como preço normal
-        blockValue = blockSize * pricePerTicket;
-      }
-
-      total += blockValue * times;
-      remaining -= blockSize * times;
-      applied.push(promo);
-      details.push({ promoApplied: promo, times, blockValue });
-    }
+  if (error || !campaign) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            Campanha não encontrada
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-8">
+            A campanha que você está procurando não existe ou foi removida.
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+          >
+            Voltar ao início
+          </button>
+        </div>
+      </div>
+    );
   }
 
-  // Preço de itens restantes sem block
-  total += remaining * pricePerTicket;
+  const campaignTheme = organizerProfile?.theme || 'claro';
+  const primaryColor = organizerProfile?.primary_color || '#3B82F6';
+  const themeClasses = getThemeClasses(campaignTheme);
 
-  // Aplica promoções globais (percentuais ou fixed) — assume que são cumulativas (ajuste se não quiser)
-  let totalBeforeGlobal = total;
-  if (pctPromos.length) {
-    for (const p of pctPromos) {
-      const pct = p.percentage || 0;
-      if (pct > 0) {
-        const newTotal = total * (1 - pct / 100);
-        details.push({ applied: p, before: total, after: newTotal });
-        total = newTotal;
-        applied.push(p);
-      }
-    }
-  }
+  return (
+    <div className={`min-h-screen transition-colors duration-300 ${themeClasses.background}`}>
+      {/* Header - Redesigned according to image specifications */}
+      <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.cardBg}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo - Left aligned */}
+            <div className="flex items-center space-x-2">
+              <img 
+                src="/logo-chatgpt.png" 
+                alt="Rifaqui Logo" 
+                className="w-10 h-10 object-contain"
+              />
+              <span className={`text-xl font-bold ${themeClasses.text}`}>Rifaqui</span>
+            </div>
+            
+            {/* "Ver Minhas Cotas" Button - Right aligned and highlighted */}
+            <button
+              onClick={() => navigate('/my-tickets')}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 shadow-md"
+            >
+              <Eye className="h-4 w-4" />
+              <span className="hidden sm:inline">Ver Minhas Cotas</span>
+              <span className="sm:hidden">Cotas</span>
+            </button>
+          </div>
+        </div>
+      </header>
 
-  if (fixedPromos.length) {
-    // aplica os fixed (desconto fixo em reais) sequencialmente
-    for (const p of fixedPromos) {
-      const fixed = p.fixedDiscountAmount || 0;
-      const newTotal = Math.max(0, total - fixed);
-      details.push({ applied: p, before: total, after: newTotal });
-      total = newTotal;
-      applied.push(p);
-    }
-  }
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+        {/* Campaign Title - Standalone, not in a card */}
+        <h1 className={`text-2xl md:text-3xl font-bold ${themeClasses.text} mb-4 text-center`}>
+          {campaign.title}
+        </h1>
 
-  const original = quantity * pricePerTicket;
-  const savings = Math.max(0, original - total);
+        {/* 1. Seção de galeria de imagens - card com largura limitada */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}>
+          <div className="relative group w-full">
+            <img
+              src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
+              alt={campaign.title}
+              className="w-full h-[300px] sm:h-[500px] object-cover rounded-t-xl"
+              onClick={() => handleImageClick(currentImageIndex)}
+              style={{ cursor: 'pointer' }}
+            />
+            
+            {/* Navigation Arrows */}
+            {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
+              <>
+                <button
+                  onClick={handlePreviousImage}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </>
+            )}
+            
+            {/* Image Counter */}
+            {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
+              <div className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                {currentImageIndex + 1} / {campaign.prize_image_urls.length}
+              </div>
+            )}
 
-  return { total, appliedPromotions: applied, savings, details: { original: original, totalBeforeGlobal, steps: details } };
-}
+            {/* Price Badge */}
+            <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white bg-opacity-95 backdrop-blur-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-lg">
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <span className="text-xs sm:text-sm text-gray-600">Participe por apenas</span>
+                <span className="font-bold text-sm sm:text-base md:text-lg" style={{ color: primaryColor }}>
+                  {formatCurrency(campaign.ticket_price)}
+                </span>
+              </div>
+            </div>
+          </div>
 
-/* ----------------------------- Estatísticas ----------------------------- */
+          {/* Thumbnail Strip */}
+          {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
+            <div className="p-3 bg-gray-50 dark:bg-gray-800">
+              <div className="flex space-x-2 overflow-x-auto pb-2">
+                {campaign.prize_image_urls.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                      index === currentImageIndex
+                        ? 'border-purple-500 opacity-100'
+                        : 'border-gray-300 dark:border-gray-600 opacity-60 hover:opacity-80'
+                    }`}
+                    onDoubleClick={() => handleImageClick(index)}
+                  >
+                    <img
+                      src={image}
+                      alt={`Thumbnail ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
 
-/**
- * Retorna estatísticas (total, vendidos, disponíveis, reservados)
- */
-export async function getCampaignStats(campaignId: string): Promise<{
-  total: number;
-  sold: number;
-  available: number;
-  reserved: number;
-  reservedByMe?: number;
-} | null> {
-  try {
-    // Conta por status
-    const { data, error } = await supabase
-      .from<Ticket>('tickets')
-      .select('status, count:count', { head: false })
-      .eq('campaign_id', campaignId)
-      .group('status');
+        {/* 2. Seção de Organizador — layout ajustado ao wireframe (avatar à esquerda, "Organizador:" + nome à direita, ícones em linha abaixo do nome) */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+          {loadingOrganizer ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+            </div>
+          ) : organizerProfile ? (
+            <div className="flex items-start gap-4">
+              {/* Avatar / Logo à esquerda */}
+              <div className="flex-shrink-0">
+                {organizerProfile.logo_url ? (
+                  <img
+                    src={organizerProfile.logo_url}
+                    alt={organizerProfile.name}
+                    className="w-24 h-24 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
+                    style={{ borderColor: primaryColor }}
+                  />
+                ) : organizerProfile.avatar_url ? (
+                  <img
+                    src={organizerProfile.avatar_url}
+                    alt={organizerProfile.name}
+                    className="w-16 h-16 rounded-full object-cover border-4 shadow-md"
+                    style={{ borderColor: primaryColor }}
+                  />
+                ) : (
+                  <div
+                    className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    {organizerProfile.name ? organizerProfile.name.charAt(0).toUpperCase() : 'O'}
+                  </div>
+                )}
+              </div>
 
-    // NOTE: Supabase default doesn't support group/count like this via client easily.
-    // fallback: buscar todas e reduzir localmente (aceitável se total de cotas razoável).
-    if (error) {
-      // fallback local
-      const all = await getTicketsForCampaign(campaignId);
-      const total = all.length;
-      const sold = all.filter(t => t.status === 'sold').length;
-      const reserved = all.filter(t => t.status === 'reserved').length;
-      const available = all.filter(t => t.status === 'available').length;
-      return { total, sold, available, reserved };
-    }
+              {/* Conteúdo à direita do avatar: label, nome e ícones sociais em linha abaixo */}
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm ${themeClasses.textSecondary} leading-tight`}>
+                  Organizador:
+                </p>
+                <h4 className={`text-base font-semibold ${themeClasses.text} truncate`}>
+                  {organizerProfile.name}
+                </h4>
 
-    // Se conseguimos agrupar via query, tente transformar resultados
-    // (Mas muitos projetos preferem fazer via getTicketsForCampaign)
-    // Implementação alternativa:
-    const all = await getTicketsForCampaign(campaignId);
-    const total = all.length;
-    const sold = all.filter(t => t.status === 'sold').length;
-    const reserved = all.filter(t => t.status === 'reserved').length;
-    const available = all.filter(t => t.status === 'available').length;
-    return { total, sold, available, reserved };
-  } catch (err) {
-    console.error('[getCampaignStats] unexpected', err);
-    return null;
-  }
-}
+                {/* Ícones sociais em linha, logo abaixo do nome */}
+                {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
+                  <div className="mt-2 flex items-center gap-2">
+                    {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
+                      if (!url || typeof url !== 'string') return null;
+                      const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
+                      if (!config) return null;
+                      const IconComponent = config.icon;
+                      return (
+                        <button
+                          key={platform}
+                          onClick={() => handleOrganizerSocialClick(platform, url)}
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform duration-150"
+                          style={{ backgroundColor: config.color }}
+                          title={`${config.name} do organizador`}
+                        >
+                          <IconComponent size={12} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <Users className={`h-8 w-8 ${themeClasses.textSecondary} mx-auto mb-2`} />
+              <p className={`text-sm ${themeClasses.textSecondary}`}>
+                Informações do organizador não disponíveis
+              </p>
+            </div>
+          )}
+        </section>
 
-/* ----------------------------- Promoções CRUD (opcional) ----------------------------- */
+        {/* 3. Seção de Promoções Disponíveis - card com largura limitada */}
+        {campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
+              🎁 Promoções Disponíveis
+            </h3>
 
-/**
- * Cria uma promoção (se houver tabela `promotions`)
- */
-export async function createPromotion(campaignId: string, promo: Partial<Promotion>): Promise<Promotion | null> {
-  try {
-    const toInsert = { ...promo, campaign_id: campaignId };
-    const { data, error } = await supabase.from<Promotion>('promotions').insert(toInsert).select().single();
-    if (error) {
-      console.error('[createPromotion] error', error);
-      return null;
-    }
-    return data || null;
-  } catch (err) {
-    console.error('[createPromotion] unexpected', err);
-    return null;
-  }
-}
+            {/* Layout ajustado: botões/pills com texto adaptado ao tema na esquerda e percentual em verde */}
+            <div className="flex flex-wrap gap-3 justify-center">
+              {campaign.promotions.map((promo: Promotion) => {
+                const originalValue = promo.ticketQuantity * campaign.ticket_price;
+                const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0;
 
-/**
- * Atualiza promoção
- */
-export async function updatePromotion(promoId: string, updates: Partial<Promotion>): Promise<Promotion | null> {
-  try {
-    const { data, error } = await supabase.from<Promotion>('promotions').update(updates).eq('id', promoId).select().single();
-    if (error) {
-      console.error('[updatePromotion] error', error);
-      return null;
-    }
-    return data || null;
-  } catch (err) {
-    console.error('[updatePromotion] unexpected', err);
-    return null;
-  }
-}
+                return (
+                  <button
+                    key={promo.id}
+                    type="button"
+                    onClick={() => {
+                      // comportamento opcional ao clicar na promoção (pode abrir detalhes, aplicar, etc.)
+                    }}
+                    className="flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 shadow-sm"
+                    style={{
+                      border: `1.5px solid ${primaryColor}`,
+                      background: 'transparent',
+                    }}
+                  >
+                    <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
+                      {promo.ticketQuantity} cotas por {formatCurrency(originalValue)}
+                    </span>
+                    <span className={`ml-3 text-sm font-extrabold ${themeClasses.text}`}>
+                      {discountPercentage}% 
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
-/**
- * Deleta promoção
- */
-export async function deletePromotion(promoId: string): Promise<boolean> {
-  try {
-    const { error } = await supabase.from('promotions').delete().eq('id', promoId);
-    if (error) {
-      console.error('[deletePromotion] error', error);
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.error('[deletePromotion] unexpected', err);
-    return false;
-  }
-}
+        {/* 4. Seção de Prêmios - card com largura limitada */}
+        {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
+              🏆 Prêmios
+            </h3>
+            
+            <div className="w-full space-y-1">
+              {campaign.prizes.map((prize: any, index: number) => (
+                <div key={prize.id} className="flex items-center justify-center space-x-1.5">
+                  <div 
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    {index + 1}
+                  </div>
+                  <span className={`${themeClasses.text} font-medium text-sm`}>{prize.name}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
-/* ----------------------------- Utilities extras ----------------------------- */
+        {/* 5. Seção de compra/seleção de cota - card com largura limitada */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+          <h2 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
+            {campaign.campaign_model === 'manual' ? 'Selecione suas Cotas' : 'Escolha a Quantidade'}
+          </h2>
 
-/**
- * Realiza um "upsert" de um campo JSON (ex.: atualizar campo promotions dentro de campaigns)
- */
-export async function updateCampaignJsonField<T = any>(campaignId: string, fieldName: string, value: T): Promise<Campaign | null> {
-  try {
-    const updates: any = {};
-    updates[fieldName] = value;
-    const { data, error } = await supabase
-      .from<Campaign>('campaigns')
-      .update(updates)
-      .eq('id', campaignId)
-      .select()
-      .single();
+          {campaign.campaign_model === 'manual' ? (
+            <div className="space-y-4">
+              {/* Campaign Unavailable Alert (manual) - ESTILO ATUALIZADO */}
+              {!isCampaignAvailable && (
+                <div className="bg-gray-900 border border-orange-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-center space-x-3">
+                    <AlertTriangle className="h-6 w-6 text-orange-400 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-orange-300 mb-1">
+                        Campanha Indisponível
+                      </h4>
+                      <p className="text-sm text-orange-400">
+                        Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-    if (error) {
-      console.error('[updateCampaignJsonField] error', error);
-      return null;
-    }
-    const campaign = data as Campaign;
-    campaign.promotions = normalizeArrayField<Promotion>(campaign.promotions);
-    return campaign;
-  } catch (err) {
-    console.error('[updateCampaignJsonField] unexpected', err);
-    return null;
-  }
-}
+              <QuotaGrid
+                totalQuotas={campaign.total_tickets}
+                selectedQuotas={selectedQuotas}
+                onQuotaSelect={isCampaignAvailable ? handleQuotaSelect : undefined}
+                activeFilter={activeFilter}
+                onFilterChange={setActiveFilter}
+                mode="manual"
+                tickets={tickets}
+                currentUserId={user?.id}
+                campaignTheme={campaignTheme}
+                primaryColor={primaryColor}
+              />
 
-/* ----------------------------- Export padrão ----------------------------- */
+              {/* Manual Mode - Selection Summary */}
+              {selectedQuotas.length > 0 && (
+                <div className={`${themeClasses.background} rounded-xl p-4 border ${themeClasses.border}`}>
+                  <h3 className={`text-base font-bold ${themeClasses.text} mb-3`}>
+                    Cotas Selecionadas
+                  </h3>
+                  
+                  <div className="mb-3">
+                    <div className={`text-sm ${themeClasses.textSecondary} mb-2`}>
+                      Números selecionados:
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedQuotas.sort((a, b) => a - b).map(quota => (
+                        <span
+                          key={quota}
+                          className="px-2 py-1 text-white rounded text-xs font-medium"
+                          style={{ backgroundColor: primaryColor }}
+                        >
+                          {quota.toString().padStart(3, '0')}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
 
-export default {
-  fetchCampaignBySlug,
-  fetchCampaignByDomain,
-  fetchCampaignsPaginated,
-  createCampaign,
-  updateCampaign,
-  deleteCampaign,
-  getTicketsForCampaign,
-  createTicketsBulk,
-  cleanExpiredReservations,
-  reserveTickets,
-  releaseReservedTickets,
-  confirmPurchase,
-  fetchPromotionsForCampaign,
-  calculateTotalWithPromotions,
-  getCampaignStats,
-  createPromotion,
-  updatePromotion,
-  deletePromotion,
-  updateCampaignJsonField
+                  {/* Promotion Info */}
+                  {currentPromotionInfo && (
+                    <div className="mb-3 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="text-center">
+                        <div className="text-xs font-medium text-green-800 dark:text-green-200 mb-1">
+                          🎉 Promoção Aplicada: {currentPromotionInfo.discountPercentage}% OFF
+                        </div>
+                        <div className="text-xs text-green-700 dark:text-green-300">
+                          Economia de {formatCurrency(currentPromotionInfo.savings)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center mb-6">
+                    <span className={`font-medium ${themeClasses.text}`}>
+                      {selectedQuotas.length} {selectedQuotas.length === 1 ? 'cota' : 'cotas'}
+                    </span>
+                    <div className="text-right">
+                      {currentPromotionInfo && (
+                        <div className={`text-xs ${themeClasses.textSecondary} line-through`}>
+                          {formatCurrency(currentPromotionInfo.originalTotal)}
+                        </div>
+                      )}
+                      <div 
+                        className={`text-xl font-bold ${currentPromotionInfo ? 'text-green-600' : ''}`}
+                        style={!currentPromotionInfo ? { color: primaryColor } : {}}
+                      >
+                        {formatCurrency(getCurrentTotalValue())}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleOpenReservationModal}
+                    disabled={selectedQuotas.length === 0}
+                    className="w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    {isCampaignAvailable ? 'Reservar Cotas Selecionadas' : 'Campanha Indisponível'}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Campaign Unavailable Alert (automatic) - ESTILO ATUALIZADO */}
+              {!isCampaignAvailable && (
+                <div className="bg-gray-900 border border-orange-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-center space-x-3">
+                    <AlertTriangle className="h-6 w-6 text-orange-400 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-orange-300 mb-1">
+                        Campanha Indisponível
+                      </h4>
+                      <p className="text-sm text-orange-400">
+                        Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            <QuotaSelector
+              ticketPrice={campaign.ticket_price}
+              minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
+              maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 1000}
+              onQuantityChange={handleQuantityChange}
+              initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
+              mode="automatic"
+              promotionInfo={currentPromotionInfo}
+              promotions={campaign.promotions || []}
+              primaryColor={primaryColor}
+              campaignTheme={campaignTheme}
+              onReserve={isCampaignAvailable ? handleOpenReservationModal : undefined}
+              reserving={reserving}
+              disabled={!isCampaignAvailable}
+            />
+            </>
+          )}
+        </section>
+
+        {/* 6. Descrição/Regulamento - card com largura limitada */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+          <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center`}>
+            Descrição/Regulamento
+          </h3>
+          
+          {/* Campaign Description */}
+          {campaign.description && isValidDescription(campaign.description) ? (
+            <div 
+              className={`${themeClasses.textSecondary} mb-4 prose prose-base max-w-none ql-editor`}
+              dangerouslySetInnerHTML={{ __html: campaign.description }}
+            />
+          ) : (
+            <div className={`${themeClasses.textSecondary} mb-4 text-center italic`}>
+              <p>Nenhuma descrição fornecida para esta campanha.</p>
+            </div>
+          )}
+
+          {/* Draw Date */}
+          {campaign.show_draw_date && campaign.draw_date && (
+            <div className="flex items-center justify-center space-x-2 mb-4">
+              <Calendar className={`h-5 w-5 ${themeClasses.textSecondary}`} />
+              <span className={`text-base ${themeClasses.text}`}>
+                Data de sorteio: <strong>{formatDate(campaign.draw_date)}</strong>
+              </span>
+            </div>
+          )}
+
+          {/* Progress Bar - Only show if show_percentage is enabled */}
+          {campaign.show_percentage && (
+            <div className="max-w-3xl mx-auto">
+              <div className="flex justify-center items-center mb-3">
+                <span className={`text-base font-bold ${themeClasses.text}`}>
+                  {getProgressPercentage()}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                <div 
+                  className="h-3 rounded-full transition-all duration-300"
+                  style={{ 
+                    width: `${getProgressPercentage()}%`,
+                    backgroundColor: primaryColor 
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* 7. Métodos de Pagamento e Método de Sorteio - centralizados e com largura limitada */}
+        <section className="mb-4">
+          <div className="max-w-3xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Payment Methods Card - Left */}
+            <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+              <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
+                Métodos de Pagamento
+              </h3>
+              
+              <div className="space-y-2">
+                {getConfiguredPaymentMethods().map((method, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
+                  >
+                    <div 
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                      style={{ backgroundColor: method.color }}
+                    >
+                      {method.icon}
+                    </div>
+                    <span className={`font-medium text-sm ${themeClasses.text}`}>
+                      {method.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Draw Method Card - Right */}
+            <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+              <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
+                Método de Sorteio
+              </h3>
+              
+              <div className="flex items-center justify-center space-x-2">
+                <div 
+                  className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  <Trophy className="h-5 w-5" />
+                </div>
+                <div className="text-center">
+                  <p className={`font-medium text-sm ${themeClasses.text}`}>
+                    {campaign.draw_method}
+                  </p>
+                  <p className={`text-xs ${themeClasses.textSecondary}`}>
+                    Sorteio transparente e confiável
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Share Campaign Section - centralizado e com largura limitado */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-6`}>
+          <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
+            Compartilhar Campanha
+          </h3>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {Object.entries(shareSectionConfig).map(([platform, config]) => {
+              const IconComponent = config.icon;
+              return (
+                <button
+                  key={platform}
+                  onClick={() => handleShare(platform)}
+                  className={`flex flex-col items-center space-y-1.5 p-3 rounded-lg border ${themeClasses.border} hover:shadow-lg transition-all duration-200 group`}
+                  style={{ 
+                    backgroundColor: themeClasses.cardBg === 'bg-white' ? '#ffffff' : '#1f2937',
+                    borderColor: config.color + '20'
+                  }}
+                >
+                  <div 
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-200"
+                    style={{ backgroundColor: config.color }}
+                  >
+                    <IconComponent size={20} />
+                  </div>
+                  <span className={`text-xs font-medium ${themeClasses.text}`}>
+                    {config.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      </main>
+
+      {/* Fullscreen Image Modal */}
+      {fullscreenImageIndex !== null && campaign?.prize_image_urls && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
+          onClick={handleCloseFullscreen}
+        >
+          <div 
+            className="relative max-w-full max-h-full"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <img
+              src={campaign.prize_image_urls[fullscreenImageIndex]}
+              alt={campaign.title}
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+            
+            {/* Navigation Buttons - Only show if multiple images */}
+            {campaign.prize_image_urls.length > 1 && (
+              <>
+                {/* Previous Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToPreviousFullscreenImage();
+                  }}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
+                  aria-label="Imagem anterior"
+                >
+                  <ChevronLeft className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
+                </button>
+
+                {/* Next Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToNextFullscreenImage();
+                  }}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
+                  aria-label="Próxima imagem"
+                >
+                  <ChevronRight className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
+                </button>
+              </>
+            )}
+
+            {/* Image Counter */}
+            {campaign.prize_image_urls.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm font-medium">
+                {fullscreenImageIndex + 1} / {campaign.prize_image_urls.length}
+              </div>
+            )}
+            
+            <button
+              onClick={handleCloseFullscreen}
+              className="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-colors duration-200 flex items-center justify-center"
+              aria-label="Fechar imagem em tela cheia"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Reservation Modal */}
+      <ReservationModal
+        isOpen={showReservationModal}
+        onClose={() => setShowReservationModal(false)}
+        onReserve={handleReservationSubmit}
+        quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
+        totalValue={getCurrentTotalValue()}
+        selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
+        campaignTitle={campaign.title}
+        primaryColor={primaryColor}
+        campaignTheme={campaignTheme}
+        reserving={reserving}
+        reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
+      />
+    </div>
+  );
 };
+
+export default CampaignPage;
