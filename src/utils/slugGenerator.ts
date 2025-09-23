@@ -115,6 +115,86 @@ export async function generateUniqueSlug(
 }
 
 /**
+ * Gera um ID público curto e único (11 caracteres)
+ */
+function generateShortUniquePublicId(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < 11; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+/**
+ * Verifica se um public_id já existe no banco de dados
+ */
+async function publicIdExists(publicId: string, excludeCampaignId?: string): Promise<boolean> {
+  try {
+    let query = supabase
+      .from('campaigns')
+      .select('id')
+      .eq('public_id', publicId)
+      .limit(1);
+
+    // Se estamos atualizando uma campanha existente, excluí-la da verificação
+    if (excludeCampaignId) {
+      query = query.neq('id', excludeCampaignId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Erro ao verificar existência do public_id:', error);
+      throw new Error('Falha ao verificar unicidade do public_id');
+    }
+
+    return data && data.length > 0;
+  } catch (error) {
+    console.error('Erro na verificação de public_id:', error);
+    throw error;
+  }
+}
+
+/**
+ * Gera um public_id único para uma campanha
+ */
+async function generateUniquePublicId(excludeCampaignId?: string): Promise<string> {
+  let uniquePublicId = generateShortUniquePublicId();
+  let counter = 0;
+  const maxAttempts = 10;
+
+  while (counter < maxAttempts) {
+    const exists = await publicIdExists(uniquePublicId, excludeCampaignId);
+    
+    if (!exists) {
+      return uniquePublicId;
+    }
+
+    // Public ID já existe, gera um novo
+    counter++;
+    uniquePublicId = generateShortUniquePublicId();
+  }
+
+  throw new Error('Não foi possível gerar um public_id único após múltiplas tentativas');
+}
+
+/**
+ * Gera tanto um slug único quanto um public_id único para uma campanha
+ */
+export async function generateUniqueSlugAndPublicId(
+  title: string, 
+  excludeCampaignId?: string
+): Promise<{ slug: string; publicId: string }> {
+  const [slug, publicId] = await Promise.all([
+    generateUniqueSlug(title, excludeCampaignId),
+    generateUniquePublicId(excludeCampaignId)
+  ]);
+
+  return { slug, publicId };
+}
+
+/**
  * Valida se um slug tem formato válido
  */
 function isValidSlug(slug: string): boolean {
