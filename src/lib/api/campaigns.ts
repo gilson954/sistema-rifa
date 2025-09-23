@@ -34,6 +34,7 @@ export class CampaignAPI {
       const { slug, publicId } = await generateUniqueSlugAndPublicId(data.title);
       
       const now = new Date();
+      console.log('Generated publicId:', publicId); // Log publicId
       const expiresAt = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
       
       const campaignData = {
@@ -155,12 +156,14 @@ export class CampaignAPI {
    */
   static async getCampaignById(id: string): Promise<{ data: Campaign | null; error: any }> {
     try {
+      console.log('Fetching campaign by ID:', id); // Log ID
       const { data, error } = await supabase
         .from('campaigns')
         .select('*')
         .eq('id', id);
 
       if (error) {
+        console.error('Error fetching campaign by ID:', error); // Log error
         return { data: null, error };
       }
 
@@ -178,12 +181,14 @@ export class CampaignAPI {
    */
   static async getCampaignByPublicId(publicId: string): Promise<{ data: Campaign | null; error: any }> {
     try {
+      console.log('Fetching campaign by public_id:', publicId); // Log publicId
       const { data, error } = await supabase
         .from('campaigns')
         .select('*')
         .eq('public_id', publicId);
 
       if (error) {
+        console.error('Error fetching campaign by public_id:', error); // Log error
         return { data: null, error };
       }
 

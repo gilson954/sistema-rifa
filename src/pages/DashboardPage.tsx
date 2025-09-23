@@ -174,6 +174,7 @@ const DashboardPage = () => {
     // Se public_id estiver faltando no estado local, refetch a campanha
     if (!campaignToView?.public_id) {
       console.log(`Public ID missing for campaign ${campaignId} in local state. Refetching...`);
+      console.log(`Public ID missing for campaign ${campaignId} in local state. Refetching...`);
       const { data: fetchedCampaign, error: fetchError } = await CampaignAPI.getCampaignById(campaignId);
       if (fetchError) {
         console.error('Error refetching campaign for view:', fetchError);
@@ -184,9 +185,11 @@ const DashboardPage = () => {
     }
 
     if (campaignToView?.public_id) {
+      console.log(`Navigating to /c/${campaignToView.public_id}`);
       // Abre em nova aba para visualizar como usuário final
       window.open(`/c/${campaignToView.public_id}`, '_blank');
     } else {
+      console.error(`Could not get public_id for campaign ${campaignId} even after refetch.`);
       // Fallback se public_id ainda não for encontrado após refetch (não deve acontecer se o DB for NOT NULL)
       console.error(`Could not get public_id for campaign ${campaignId} even after refetch.`);
       alert('Não foi possível encontrar o ID público da campanha.');

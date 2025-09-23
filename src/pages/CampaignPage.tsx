@@ -48,6 +48,7 @@ const CampaignPage = () => {
   const { publicId } = useParams<{ publicId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  console.log('CampaignPage loaded with publicId from URL:', publicId); // Log publicId from URL
   const { theme } = useTheme();
 
   // Função para verificar se a descrição contém conteúdo válido
@@ -89,6 +90,8 @@ const CampaignPage = () => {
   // Select the appropriate campaign data
   const campaign = isCustomDomain ? campaignByDomain : campaignByPublicId;
   const loading = isCustomDomain ? loadingByDomain : loadingByPublicId;
+  console.log('Campaign data in CampaignPage:', campaign); // Log campaign data
+  console.log('Error in CampaignPage:', error); // Log error
   const error = isCustomDomain ? errorByDomain : errorByPublicId;
 
   // Check if campaign is available for purchases (paid and active)
