@@ -14,8 +14,6 @@ const CreateCampaignStep1Page = () => {
     ticketQuantity: '',
     ticketPrice: '0,00',
     drawMethod: '',
-    acceptTerms: false,
-    campaignModel: 'automatic', // Adicionado ao estado do formulário
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -125,11 +123,6 @@ const CreateCampaignStep1Page = () => {
     updateCalculations(rawTicketPrice, quantity);
   };
 
-  const handleCampaignModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { value } = e.target;
-    setFormData({ ...formData, campaignModel: value });
-  };
-
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -151,10 +144,6 @@ const CreateCampaignStep1Page = () => {
       newErrors.drawMethod = 'Método de sorteio é obrigatório';
     }
 
-    if (!formData.acceptTerms) {
-      newErrors.acceptTerms = 'Você deve aceitar os termos de uso';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -166,27 +155,30 @@ const CreateCampaignStep1Page = () => {
       return;
     }
 
+    const ticketPrice = parseFloat(rawTicketPrice) / 100; // Convert cents to reais
+    const totalTickets = parseInt(formData.ticketQuantity);
+
+    // Determine campaign_model automatically
+    const campaignModel = totalTickets > 10000 ? 'automatic' : 'manual';
+
     setLoading(true);
 
     try {
-      const ticketPrice = parseFloat(rawTicketPrice) / 100; // Convert cents to reais
-      const ticketQuantity = parseInt(formData.ticketQuantity);
-
       // Ensure max_tickets_per_purchase doesn't exceed total_tickets
-      const maxTicketsPerPurchase = Math.min(1000, ticketQuantity);
+      const maxTicketsPerPurchase = Math.min(1000, totalTickets);
 
       const campaignData = {
         title: formData.title,
         ticket_price: ticketPrice,
-        total_tickets: ticketQuantity,
+        total_tickets: totalTickets,
         draw_method: formData.drawMethod,
         require_email: true,
         show_ranking: false,
         min_tickets_per_purchase: 1,
         max_tickets_per_purchase: maxTicketsPerPurchase,
-        initial_filter: 'all',
-        campaign_model: formData.campaignModel, // Usar o valor selecionado
-       prize_image_urls: []
+        initial_filter: 'all', // Default to 'all'
+        campaign_model: campaignModel, // Automatically determined
+        prize_image_urls: [] // Initialize with empty array
       };
 
       // Always create new campaign in step1
@@ -342,36 +334,6 @@ const CreateCampaignStep1Page = () => {
             )}
           </div>
 
-          {/* Campaign Model */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Modelo da Campanha *
-            </label>
-            <div className="relative">
-              <select
-                name="campaignModel"
-                value={formData.campaignModel}
-                onChange={handleCampaignModelChange}
-                className={`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
-                  errors.campaignModel ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                }`}
-                required
-              >
-                <option value="automatic">Automático (Recomendado para muitas cotas)</option>
-                <option value="manual">Manual (Para até 10.000 cotas)</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-            </div>
-            {errors.campaignModel && (
-              <p className="text-red-500 text-sm mt-1">{errors.campaignModel}</p>
-            )}
-            {formData.campaignModel === 'manual' && parseInt(formData.ticketQuantity) > 10000 && (
-              <div className="mt-2 flex items-center space-x-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg px-3 py-2">
-                <AlertCircle className="h-4 w-4 text-orange-600" />
-                <span className="text-orange-800 dark:text-orange-200 text-sm">O modelo manual não é recomendado para mais de 10.000 cotas devido a limitações de desempenho. Considere o modelo automático.</span>
-              </div>
-            )}
-          </div>
           {/* Phone Number with Country Selection */}
 
           {/* Publication Tax Section */}
@@ -404,32 +366,6 @@ const CreateCampaignStep1Page = () => {
               </div>
             </div>
           </div>
-
-          {/* Terms Acceptance */}
-          <div className="flex items-start space-x-3">
-            <input
-              type="checkbox"
-              id="acceptTerms"
-              checked={formData.acceptTerms}
-              onChange={(e) => setFormData({ ...formData, acceptTerms: e.target.checked })}
-              className="w-4 h-4 text-green-600 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-green-500 focus:ring-2 mt-1"
-              required
-            />
-            <label htmlFor="acceptTerms" className="text-sm text-gray-700 dark:text-gray-300">
-              Ao criar esta campanha, você aceita nossos{' '}
-              <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">
-                Termos de Uso
-              </a>{' '}
-              e a nossa{' '}
-              <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">
-                Política de Privacidade
-              </a>
-              .
-            </label>
-          </div>
-          {errors.acceptTerms && (
-            <p className="text-red-500 text-sm">{errors.acceptTerms}</p>
-          )}
 
           {/* Submit Button */}
           <button
