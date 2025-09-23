@@ -14,7 +14,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { useCampaignBySlug, useCampaignByCustomDomain } from '../hooks/useCampaigns';
+import { useCampaignByPublicId, useCampaignByCustomDomain } from '../hooks/useCampaigns';
 import { useTickets } from '../hooks/useTickets';
 import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
