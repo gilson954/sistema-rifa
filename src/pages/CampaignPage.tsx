@@ -579,11 +579,7 @@ const CampaignPage = () => {
     );
   }
 
-  if (
-    error || 
-    !campaign || 
-    (!user && campaign && campaign.is_paid === false)
-  ) {
+  if (error || !campaign) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
         <div className="text-center">
