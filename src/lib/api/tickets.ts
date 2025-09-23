@@ -86,13 +86,19 @@ export class TicketsAPI {
   static async reserveTickets(
     campaignId: string,
     quotaNumbers: number[],
-    userId: string
+    userId: string | null,
+    customerName: string,
+    customerEmail: string,
+    customerPhone: string
   ): Promise<{ data: ReservationResult[] | null; error: any }> {
     try {
       const { data, error } = await supabase.rpc('reserve_tickets', {
         p_campaign_id: campaignId,
         p_quota_numbers: quotaNumbers,
         p_user_id: userId,
+        p_customer_name: customerName,
+        p_customer_email: customerEmail,
+        p_customer_phone: customerPhone,
       });
 
       return { data, error };

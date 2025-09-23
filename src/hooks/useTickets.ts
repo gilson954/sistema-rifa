@@ -41,9 +41,15 @@ export const useTickets = (campaignId: string) => {
   /**
    * Reserva cotas para o usuário atual
    */
-  const reserveTickets = async (quotaNumbers: number[]): Promise<ReservationResult[] | null> => {
-    if (!user || !campaignId || quotaNumbers.length === 0) {
-      throw new Error('Usuário não autenticado ou dados inválidos');
+  const reserveTickets = async (
+    quotaNumbers: number[],
+    userId: string | null = null,
+    customerName: string = '',
+    customerEmail: string = '',
+    customerPhone: string = ''
+  ): Promise<ReservationResult[] | null> => {
+    if (!campaignId || quotaNumbers.length === 0) {
+      throw new Error('Dados inválidos para reserva');
     }
 
     setReserving(true);
@@ -53,7 +59,10 @@ export const useTickets = (campaignId: string) => {
       const { data, error: apiError } = await TicketsAPI.reserveTickets(
         campaignId,
         quotaNumbers,
-        user.id
+        userId || user?.id || null,
+        customerName,
+        customerEmail,
+        customerPhone
       );
 
       if (apiError) {

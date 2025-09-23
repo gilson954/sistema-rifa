@@ -228,8 +228,8 @@ const CampaignPage = () => {
 
   // Handle reservation submission
   const handleReservationSubmit = useCallback(async (customerData: CustomerData) => {
-    if (!campaign || !user) {
-      alert('Você precisa estar logado para reservar cotas');
+    if (!campaign) {
+      alert('Erro: dados da campanha não encontrados');
       return;
     }
 
@@ -264,7 +264,13 @@ const CampaignPage = () => {
       }
 
       // Reserve the quotas
-      const result = await reserveTickets(quotasToReserve);
+      const result = await reserveTickets(
+        quotasToReserve,
+        user?.id || null, // Pass user ID if logged in, null if not
+        customerData.name,
+        customerData.email,
+        `${customerData.countryCode} ${customerData.phoneNumber}`
+      );
       
       if (result) {
         // Calculate total value (considering promotions)
@@ -311,12 +317,6 @@ const CampaignPage = () => {
 
   // Handle opening reservation modal
   const handleOpenReservationModal = useCallback(() => {
-    if (!user) {
-      alert('Você precisa estar logado para reservar cotas');
-      navigate('/login');
-      return;
-    }
-
     if (campaign?.campaign_model === 'manual' && selectedQuotas.length === 0) {
       alert('Selecione pelo menos uma cota para reservar');
       return;
