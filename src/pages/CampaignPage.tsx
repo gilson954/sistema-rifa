@@ -823,8 +823,11 @@ const CampaignPage = () => {
                     }}
                   >
                     <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
-                      {promo.ticketQuantity} cotas por {formatCurrency(originalValue)}
-                    </span>
+                      <span className="text-green-500">
+                        {promo.ticketQuantity}
+                    </span>{" "}
+                    cotas por {formatCurrency(originalValue)}
+                   </span>
                     <span className={`ml-3 text-sm font-extrabold ${themeClasses.text}`}>
                       {discountPercentage}% 
                     </span>
