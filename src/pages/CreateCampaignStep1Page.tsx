@@ -15,6 +15,7 @@ const CreateCampaignStep1Page = () => {
     ticketPrice: '0,00',
     drawMethod: '',
     acceptTerms: false,
+    campaignModel: 'automatic', // Adicionado ao estado do formulário
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -124,6 +125,11 @@ const CreateCampaignStep1Page = () => {
     updateCalculations(rawTicketPrice, quantity);
   };
 
+  const handleCampaignModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = e.target;
+    setFormData({ ...formData, campaignModel: value });
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -178,8 +184,8 @@ const CreateCampaignStep1Page = () => {
         show_ranking: false,
         min_tickets_per_purchase: 1,
         max_tickets_per_purchase: maxTicketsPerPurchase,
-        initial_filter: 'all' as 'all' | 'available',
-        campaign_model: 'automatic' as 'manual' | 'automatic',
+        initial_filter: 'all',
+        campaign_model: formData.campaignModel, // Usar o valor selecionado
        prize_image_urls: []
       };
 
@@ -336,6 +342,36 @@ const CreateCampaignStep1Page = () => {
             )}
           </div>
 
+          {/* Campaign Model */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Modelo da Campanha *
+            </label>
+            <div className="relative">
+              <select
+                name="campaignModel"
+                value={formData.campaignModel}
+                onChange={handleCampaignModelChange}
+                className={`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
+                  errors.campaignModel ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                }`}
+                required
+              >
+                <option value="automatic">Automático (Recomendado para muitas cotas)</option>
+                <option value="manual">Manual (Para até 10.000 cotas)</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+            </div>
+            {errors.campaignModel && (
+              <p className="text-red-500 text-sm mt-1">{errors.campaignModel}</p>
+            )}
+            {formData.campaignModel === 'manual' && parseInt(formData.ticketQuantity) > 10000 && (
+              <div className="mt-2 flex items-center space-x-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg px-3 py-2">
+                <AlertCircle className="h-4 w-4 text-orange-600" />
+                <span className="text-orange-800 dark:text-orange-200 text-sm">O modelo manual não é recomendado para mais de 10.000 cotas devido a limitações de desempenho. Considere o modelo automático.</span>
+              </div>
+            )}
+          </div>
           {/* Phone Number with Country Selection */}
 
           {/* Publication Tax Section */}
