@@ -87,31 +87,32 @@ export async function generateUniqueSlug(
 
   let uniqueSlug = baseSlug;
   let counter = 0;
-  const maxAttempts = 2; // Reduzido ainda mais para evitar timeout
+  const maxAttempts = 10; // Increased attempts
+  let delay = 50; // Initial delay in ms
 
   while (counter < maxAttempts) {
-    const exists = await slugExists(uniqueSlug, excludeCampaignId);
-    
-    if (!exists) {
-      return uniqueSlug;
+    try {
+      const exists = await slugExists(uniqueSlug, excludeCampaignId);
+      
+      if (!exists) {
+        return uniqueSlug;
+      }
+
+      // Slug already exists, try with counter and exponential backoff
+      counter++;
+      uniqueSlug = `${baseSlug}-${counter}`;
+      await new Promise(resolve => setTimeout(resolve, delay)); // Add delay
+      delay *= 2; // Exponential backoff
+    } catch (error) {
+      console.warn(`Attempt ${counter + 1} to generate unique slug failed:`, error);
+      counter++;
+      uniqueSlug = `${baseSlug}-${counter}`; // Generate a new one for the next attempt
+      await new Promise(resolve => setTimeout(resolve, delay)); // Add delay
+      delay *= 2; // Exponential backoff
     }
-
-    // Slug já existe, tenta com contador
-    counter++;
-    uniqueSlug = `${baseSlug}-${counter}`;
   }
 
-  // Se chegou aqui, não conseguiu gerar um slug único
-  // Adiciona timestamp como último recurso
-  const timestamp = Date.now().toString().slice(-6);
-  uniqueSlug = `${baseSlug}-${timestamp}`;
-  
-  const finalExists = await slugExists(uniqueSlug, excludeCampaignId);
-  if (finalExists) {
-    throw new Error('Não foi possível gerar um slug único após múltiplas tentativas');
-  }
-
-  return uniqueSlug;
+  throw new Error('Não foi possível gerar um slug único após múltiplas tentativas');
 }
 
 /**
@@ -162,8 +163,8 @@ async function publicIdExists(publicId: string, excludeCampaignId?: string): Pro
 async function generateUniquePublicId(excludeCampaignId?: string): Promise<string> {
   let uniquePublicId = generateShortUniquePublicId();
   let counter = 0;
-  const maxAttempts = 5; // A bit more attempts, but with a delay
-  let delay = 100; // Start with 100ms delay
+  const maxAttempts = 10; // Increased attempts
+  let delay = 50; // Start with 50ms delay
 
   while (counter < maxAttempts) {
     try {
