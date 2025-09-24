@@ -33,6 +33,8 @@ import SalesHistoryPage from './pages/SalesHistoryPage';
 import MultiStepFormContainer from './components/MultiStepFormContainer';
 import { MultiStepFormProvider } from './context/MultiStepFormContext';
 import { initialFormData } from './lib/validations/formSteps';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 function App() {
   return (
@@ -47,6 +49,8 @@ function App() {
           {/* Rotas de Autenticação */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           
           {/* Página Pública de Campanha */}
           <Route path="/c/:publicId" element={<CampaignPage />} />

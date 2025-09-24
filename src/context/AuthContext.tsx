@@ -8,6 +8,7 @@ interface AuthContextType {
   isAdmin: boolean | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
+  signInWithGoogle: () => Promise<{ error: any }>
   signUp: (email: string, password: string, name: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
   updateProfile: (data: { name?: string; avatar_url?: string }) => Promise<{ error: any }>
@@ -81,6 +82,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
+    })
+    return { error }
+  }
+
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`
+      }
     })
     return { error }
   }
@@ -169,6 +180,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAdmin,
     loading,
     signIn,
+    signInWithGoogle,
     signUp,
     signOut,
     updateProfile,
