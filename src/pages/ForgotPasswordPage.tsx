@@ -144,23 +144,6 @@ const ForgotPasswordPage = () => {
                 <span>Voltar para Login</span>
               </Link>
             </div>
-
-            {/* Help Section */}
-            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                Precisa de ajuda?
-              </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                Se você não conseguir redefinir sua senha ou não receber o email, 
-                entre em contato com nosso suporte através do WhatsApp.
-              </p>
-              <button 
-                onClick={() => window.open('https://wa.me/5562981127960', '_blank')}
-                className="mt-3 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
-              >
-                Falar com Suporte →
-              </button>
-            </div>
           </div>
         </div>
       </div>
