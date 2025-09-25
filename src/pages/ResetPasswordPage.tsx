@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Eye, EyeOff, Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Eye, EyeOff, Lock, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 import AuthHeader from '../components/AuthHeader';
 
 const ResetPasswordPage = () => {
@@ -12,18 +13,21 @@ const ResetPasswordPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [searchParams] = useSearchParams();
+  const [authError, setAuthError] = useState(false);
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
 
-  // Check if we have the required tokens
+  // Check authentication state after component mounts
   useEffect(() => {
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
-    
-    if (!accessToken || !refreshToken) {
-      setError('Link de redefinição inválido ou expirado');
+    // Wait for auth to finish loading
+    if (!authLoading) {
+      // If no user is authenticated after auth loading completes,
+      // it means the reset link is invalid or expired
+      if (!user) {
+        setAuthError(true);
+      }
     }
-  }, [searchParams]);
+  }, [user, authLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,21 +46,100 @@ const ResetPasswordPage = () => {
       return;
     }
 
-    const { error } = await supabase.auth.updateUser({
-      password: password
-    });
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
 
-    if (error) {
-      setError(error.message);
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+      } else {
+        setSuccess(true);
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error updating password:', error);
+      setError('Erro inesperado. Tente novamente.');
       setLoading(false);
-    } else {
-      setSuccess(true);
-      setTimeout(() => {
-        navigate('/login');
-      }, 3000);
     }
   };
 
+  // Show loading while auth is being determined
+  if (authLoading) {
+    return (
+      <>
+        <AuthHeader />
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
+          <div className="max-w-md w-full text-center">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Verificando link de redefinição...
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Aguarde enquanto validamos seu link de redefinição de senha
+              </p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Show error if authentication failed (invalid/expired link)
+  if (authError || !user) {
+    return (
+      <>
+        <AuthHeader />
+        <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
+          <div className="max-w-md w-full text-center">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+              </div>
+              
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                Link Inválido ou Expirado
+              </h2>
+              
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                O link de redefinição de senha que você clicou é inválido ou já expirou. 
+                Por favor, solicite um novo link.
+              </p>
+              
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  <strong>Dica:</strong> Links de redefinição de senha expiram após algumas horas por segurança.
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  to="/forgot-password"
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 text-center"
+                >
+                  Solicitar Novo Link
+                </Link>
+                
+                <Link
+                  to="/login"
+                  className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 text-center flex items-center justify-center space-x-2"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                  <span>Voltar para Login</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Show success message
   if (success) {
     return (
       <>
@@ -81,6 +164,7 @@ const ResetPasswordPage = () => {
     );
   }
 
+  // Show reset password form (user is authenticated via reset link)
   return (
     <>
       <AuthHeader />
@@ -113,6 +197,14 @@ const ResetPasswordPage = () => {
                   <span className="text-red-700 dark:text-red-300 text-sm">{error}</span>
                 </div>
               )}
+
+              {/* Success Message for Valid Link */}
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span className="text-green-700 dark:text-green-300 text-sm">
+                  Link válido! Agora você pode definir sua nova senha.
+                </span>
+              </div>
 
               {/* Password Field */}
               <div>
