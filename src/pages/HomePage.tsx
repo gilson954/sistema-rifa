@@ -17,6 +17,11 @@ const HomePage = () => {
   useEffect(() => {
     // Se o usuário estiver logado e não estiver carregando
     if (!loading && user) {
+      // Não redirecionar se estiver na página de redefinição de senha
+      if (location.pathname === '/reset-password') {
+        return;
+      }
+      
       // Verifica se há uma rota para restaurar
       const lastRoute = restoreLastRoute();
       
@@ -36,7 +41,7 @@ const HomePage = () => {
       // Caso contrário, vai para o dashboard
       navigate('/dashboard', { replace: true });
     }
-  }, [user, loading, navigate, location.state, restoreLastRoute]);
+  }, [user, loading, navigate, location.state, restoreLastRoute, location.pathname]);
 
   // Mostra loading enquanto verifica o status de autenticação
   if (loading) {

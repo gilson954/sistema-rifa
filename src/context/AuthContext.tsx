@@ -64,6 +64,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       checkAdminStatus(session?.user ?? null)
       setLoading(false)
 
+      // Handle password recovery flow
+      if (event === 'SIGNED_IN' && session?.user) {
+        // Check if this is a password recovery session
+        const urlParams = new URLSearchParams(window.location.search);
+        const isRecovery = urlParams.get('type') === 'recovery' || 
+                          window.location.pathname === '/reset-password';
+        
+        if (isRecovery) {
+          // Don't redirect to dashboard for password recovery
+          return;
+        }
+      }
+
       // Limpa o histórico de rotas quando o usuário faz logout
       if (event === 'SIGNED_OUT') {
         try {

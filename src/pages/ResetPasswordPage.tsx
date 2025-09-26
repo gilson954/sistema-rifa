@@ -21,10 +21,23 @@ const ResetPasswordPage = () => {
   useEffect(() => {
     // Wait for auth to finish loading
     if (!authLoading) {
+      // Check URL parameters for recovery type
+      const urlParams = new URLSearchParams(window.location.search);
+      const isRecoveryFlow = urlParams.get('type') === 'recovery';
+      
       // If no user is authenticated after auth loading completes,
       // it means the reset link is invalid or expired
-      if (!user) {
+      if (!user && !isRecoveryFlow) {
         setAuthError(true);
+      } else if (!user && isRecoveryFlow) {
+        // Recovery flow but no user - wait a bit more for auth to process
+        const timeout = setTimeout(() => {
+          if (!user) {
+            setAuthError(true);
+          }
+        }, 2000);
+        
+        return () => clearTimeout(timeout);
       }
     }
   }, [user, authLoading]);
