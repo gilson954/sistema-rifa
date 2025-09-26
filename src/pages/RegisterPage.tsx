@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { useRouteHistory } from '../hooks/useRouteHistory'
 import AuthHeader from '../components/AuthHeader'
 
 const RegisterPage = () => {
@@ -18,8 +17,6 @@ const RegisterPage = () => {
 
   const { signUp, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
-  const { restoreLastRoute } = useRouteHistory()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,7 +35,8 @@ const RegisterPage = () => {
       return
     }
 
-    const { error } = await signUp(email, password, name)
+    // ✅ Agora passando redirectTo para login
+    const { error } = await signUp(email, password, name, `${window.location.origin}/login`)
 
     if (error) {
       setError(error.message)
@@ -46,7 +44,6 @@ const RegisterPage = () => {
     } else {
       setSuccess(true)
       setTimeout(() => {
-        // ✅ Agora sempre redireciona para login após registro
         navigate('/login', { replace: true })
       }, 2000)
     }
