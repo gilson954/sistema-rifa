@@ -17,23 +17,37 @@ const ResetPasswordPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
-  // Check authentication state after component mounts
+  // Tempo limite: 15 minutos em ms
+  const EXPIRATION_TIME = 15 * 60 * 1000;
+
   useEffect(() => {
     if (!authLoading) {
-      // Agora lê do fragmento da URL (#) em vez de search (?)
       const urlParams = new URLSearchParams(window.location.hash.substring(1));
       const isRecoveryFlow = urlParams.get('type') === 'recovery';
-      
+
       if (!user && !isRecoveryFlow) {
         setAuthError(true);
-      } else if (!user && isRecoveryFlow) {
-        const timeout = setTimeout(() => {
-          if (!user) {
+      } else if (isRecoveryFlow) {
+        // Verifica se já existe timestamp salvo
+        const storedTime = localStorage.getItem('reset_password_start');
+        let startTime = storedTime ? parseInt(storedTime, 10) : null;
+
+        if (!startTime) {
+          startTime = Date.now();
+          localStorage.setItem('reset_password_start', startTime.toString());
+        }
+
+        // Checa expiração
+        const interval = setInterval(() => {
+          const elapsed = Date.now() - startTime!;
+          if (elapsed > EXPIRATION_TIME) {
             setAuthError(true);
+            localStorage.removeItem('reset_password_start');
+            clearInterval(interval);
           }
-        }, 2000);
-        
-        return () => clearTimeout(timeout);
+        }, 1000);
+
+        return () => clearInterval(interval);
       }
     }
   }, [user, authLoading]);
@@ -64,6 +78,7 @@ const ResetPasswordPage = () => {
         setError(error.message);
         setLoading(false);
       } else {
+        localStorage.removeItem('reset_password_start'); // limpa timestamp após sucesso
         setSuccess(true);
         setTimeout(() => {
           navigate('/login');
@@ -116,7 +131,7 @@ const ResetPasswordPage = () => {
               </p>
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
                 <p className="text-sm text-blue-800 dark:text-blue-200">
-                  <strong>Dica:</strong> Links de redefinição de senha expiram após algumas horas por segurança.
+                  <strong>Dica:</strong> Este link expira em até 15 minutos após o clique por segurança.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
