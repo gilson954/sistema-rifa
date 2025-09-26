@@ -9,7 +9,7 @@ interface AuthContextType {
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signInWithGoogle: () => Promise<{ error: any }>
-  signUp: (email: string, password: string, name: string) => Promise<{ error: any }>
+  signUp: (email: string, password: string, name: string, redirectTo?: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
   updateProfile: (data: { name?: string; avatar_url?: string }) => Promise<{ error: any }>
 }
@@ -66,14 +66,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Handle password recovery flow
       if (event === 'SIGNED_IN' && session?.user) {
-        // Agora usando fragmento da URL (#) em vez de query string (?)
+        // Check if this is a password recovery session
         const urlParams = new URLSearchParams(window.location.hash.substring(1))
-        const isRecovery =
-          urlParams.get('type') === 'recovery' ||
-          window.location.pathname === '/reset-password'
-
+        const isRecovery = urlParams.get('type') === 'recovery' || 
+                          window.location.pathname === '/reset-password'
+        
         if (isRecovery) {
-          // Não redireciona para dashboard durante recuperação de senha
+          // Don't redirect to dashboard for password recovery
           return
         }
       }
@@ -106,14 +105,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       options: {
         redirectTo: `${window.location.origin}/dashboard`,
         queryParams: {
-          prompt: 'select_account', // força seleção de conta do Google
+          prompt: 'select_account',
         },
       },
     })
     return { error }
   }
 
-  const signUp = async (email: string, password: string, name: string) => {
+  const signUp = async (email: string, password: string, name: string, redirectTo?: string) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -121,6 +120,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         data: {
           name,
         },
+        ...(redirectTo ? { emailRedirectTo: redirectTo } : {}),
       },
     })
 
@@ -128,16 +128,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Create or update profile using upsert to handle existing profiles
       const { error: profileError } = await supabase
         .from('profiles')
-        .upsert(
-          {
-            id: data.user.id,
-            name,
-            email,
-          },
-          {
-            onConflict: 'id',
-          }
-        )
+        .upsert({
+          id: data.user.id,
+          name,
+          email,
+        }, {
+          onConflict: 'id'
+        })
 
       if (profileError) {
         console.error('Error creating profile:', profileError)
@@ -149,27 +146,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     try {
+      // Only attempt to sign out if there's a valid session
       if (session) {
         const { error } = await supabase.auth.signOut()
-
+        
         if (error) {
-          if (
-            error.message === 'Session from session_id claim in JWT does not exist' ||
-            error.message === 'Auth session missing!'
-          ) {
+          // Check if the error is specifically about session not found or missing
+          if (error.message === 'Session from session_id claim in JWT does not exist' || 
+              error.message === 'Auth session missing!') {
             console.warn('Session already expired or invalid - proceeding with local logout')
           } else {
+            // Log other types of logout errors
             console.error('Logout error:', error)
           }
         }
       }
     } catch (error) {
+      // Handle any unexpected errors during logout
       console.warn('Unexpected logout error (handled gracefully):', error)
     } finally {
+      // Always clear local state regardless of logout success/failure
       setUser(null)
       setSession(null)
       setIsAdmin(null)
-
+      
+      // Limpa o histórico de rotas no logout
       try {
         localStorage.removeItem('rifaqui_last_route')
         localStorage.removeItem('rifaqui_route_timestamp')
@@ -182,7 +183,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const updateProfile = async (data: { name?: string; avatar_url?: string }) => {
     if (!user) return { error: new Error('No user logged in') }
 
-    const { error } = await supabase.from('profiles').update(data).eq('id', user.id)
+    const { error } = await supabase
+      .from('profiles')
+      .update(data)
+      .eq('id', user.id)
 
     return { error }
   }
