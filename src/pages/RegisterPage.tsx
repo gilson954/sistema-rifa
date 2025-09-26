@@ -46,20 +46,8 @@ const RegisterPage = () => {
     } else {
       setSuccess(true)
       setTimeout(() => {
-        // Após registro bem-sucedido, verifica se há uma rota para restaurar
-        const lastRoute = restoreLastRoute()
-        
-        if (lastRoute) {
-          navigate(lastRoute, { replace: true })
-        } else {
-          // Se há um estado 'from' (vindo de uma rota protegida), navega para lá
-          const from = location.state?.from
-          if (from && typeof from === 'string') {
-            navigate(from, { replace: true })
-          } else {
-            navigate('/dashboard', { replace: true })
-          }
-        }
+        // ✅ Agora sempre redireciona para login após registro
+        navigate('/login', { replace: true })
       }, 2000)
     }
   }
@@ -74,8 +62,6 @@ const RegisterPage = () => {
       setError(error.message)
       setLoading(false)
     }
-    // Note: For OAuth, the user will be redirected to Google and then back to our app
-    // The loading state will be handled by the redirect flow
   }
 
   if (success) {
@@ -89,12 +75,15 @@ const RegisterPage = () => {
                 <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Conta criada com sucesso!
+                Verifique seu e-mail!
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Bem-vindo ao Rifaqui! Você será redirecionado em instantes.
+                Enviamos um link de confirmação para o seu e-mail. Por favor, verifique sua caixa de entrada (e também a pasta de spam) para ativar sua conta.
               </p>
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto"></div>
+              <p className="text-gray-600 dark:text-gray-400 mt-4">
+                Você será redirecionado para a página de login em instantes.
+              </p>
             </div>
           </div>
         </div>
