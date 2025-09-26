@@ -35,7 +35,7 @@ const RegisterPage = () => {
       return
     }
 
-    // ✅ Agora passando redirectTo para login
+    // ✅ Inclui redirectTo para /login no Supabase
     const { error } = await signUp(email, password, name, `${window.location.origin}/login`)
 
     if (error) {
@@ -43,9 +43,7 @@ const RegisterPage = () => {
       setLoading(false)
     } else {
       setSuccess(true)
-      setTimeout(() => {
-        navigate('/login', { replace: true })
-      }, 2000)
+      setLoading(false)
     }
   }
 
@@ -74,13 +72,17 @@ const RegisterPage = () => {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 Verifique seu e-mail!
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Enviamos um link de confirmação para o seu e-mail. Por favor, verifique sua caixa de entrada (e também a pasta de spam) para ativar sua conta.
               </p>
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto"></div>
-              <p className="text-gray-600 dark:text-gray-400 mt-4">
-                Você será redirecionado para a página de login em instantes.
-              </p>
+
+              {/* ✅ Botão manual para login */}
+              <Link
+                to="/login"
+                className="inline-block w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors duration-200"
+              >
+                Ir para Login
+              </Link>
             </div>
           </div>
         </div>
