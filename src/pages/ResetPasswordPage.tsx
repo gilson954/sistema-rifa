@@ -19,18 +19,14 @@ const ResetPasswordPage = () => {
 
   // Check authentication state after component mounts
   useEffect(() => {
-    // Wait for auth to finish loading
     if (!authLoading) {
-      // Check URL parameters for recovery type
-      const urlParams = new URLSearchParams(window.location.search);
+      // Agora lê do fragmento da URL (#) em vez de search (?)
+      const urlParams = new URLSearchParams(window.location.hash.substring(1));
       const isRecoveryFlow = urlParams.get('type') === 'recovery';
       
-      // If no user is authenticated after auth loading completes,
-      // it means the reset link is invalid or expired
       if (!user && !isRecoveryFlow) {
         setAuthError(true);
       } else if (!user && isRecoveryFlow) {
-        // Recovery flow but no user - wait a bit more for auth to process
         const timeout = setTimeout(() => {
           if (!user) {
             setAuthError(true);
@@ -80,7 +76,6 @@ const ResetPasswordPage = () => {
     }
   };
 
-  // Show loading while auth is being determined
   if (authLoading) {
     return (
       <>
@@ -102,7 +97,6 @@ const ResetPasswordPage = () => {
     );
   }
 
-  // Show error if authentication failed (invalid/expired link)
   if (authError || !user) {
     return (
       <>
@@ -113,22 +107,18 @@ const ResetPasswordPage = () => {
               <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                 <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
               </div>
-              
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                 Link Inválido ou Expirado
               </h2>
-              
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 O link de redefinição de senha que você clicou é inválido ou já expirou. 
                 Por favor, solicite um novo link.
               </p>
-              
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
                 <p className="text-sm text-blue-800 dark:text-blue-200">
                   <strong>Dica:</strong> Links de redefinição de senha expiram após algumas horas por segurança.
                 </p>
               </div>
-              
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link
                   to="/forgot-password"
@@ -136,7 +126,6 @@ const ResetPasswordPage = () => {
                 >
                   Solicitar Novo Link
                 </Link>
-                
                 <Link
                   to="/login"
                   className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 text-center flex items-center justify-center space-x-2"
@@ -152,7 +141,6 @@ const ResetPasswordPage = () => {
     );
   }
 
-  // Show success message
   if (success) {
     return (
       <>
@@ -177,13 +165,11 @@ const ResetPasswordPage = () => {
     );
   }
 
-  // Show reset password form (user is authenticated via reset link)
   return (
     <>
       <AuthHeader />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
         <div className="max-w-md w-full">
-          {/* Logo */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
               <img 
@@ -200,10 +186,8 @@ const ResetPasswordPage = () => {
             </p>
           </div>
 
-          {/* Reset Password Form */}
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Error Message */}
               {error && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center space-x-2">
                   <AlertCircle className="h-5 w-5 text-red-500" />
@@ -211,7 +195,6 @@ const ResetPasswordPage = () => {
                 </div>
               )}
 
-              {/* Success Message for Valid Link */}
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center space-x-2">
                 <CheckCircle className="h-5 w-5 text-green-500" />
                 <span className="text-green-700 dark:text-green-300 text-sm">
@@ -286,7 +269,6 @@ const ResetPasswordPage = () => {
                 </ul>
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -300,7 +282,6 @@ const ResetPasswordPage = () => {
               </button>
             </form>
 
-            {/* Back to Login Link */}
             <div className="mt-6 text-center">
               <Link
                 to="/login"
