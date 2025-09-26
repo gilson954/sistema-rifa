@@ -16,8 +16,9 @@ const ForgotPasswordPage = () => {
     setLoading(true);
     setError('');
 
+    // 🔹 Ajuste do plano do Bolt: remover ?type=recovery
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password?type=recovery`,
+      redirectTo: `${window.location.origin}/reset-password`,
     });
 
     if (error) {
