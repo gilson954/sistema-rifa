@@ -35,8 +35,13 @@ const RegisterPage = () => {
       return
     }
 
-    // ✅ Inclui redirectTo para /login no Supabase
-    const { error } = await signUp(email, password, name, `${window.location.origin}/login`)
+    // ✅ Ajuste automático do redirectTo
+    const redirectTo =
+      process.env.NODE_ENV === 'development'
+        ? 'http://localhost:5173/login'
+        : 'https://rifaqui.netlify.app/login'
+
+    const { error } = await signUp(email, password, name, redirectTo)
 
     if (error) {
       setError(error.message)
