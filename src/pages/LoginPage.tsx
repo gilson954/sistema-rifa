@@ -2,11 +2,11 @@
 import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useRouteHistory } from '../hooks/useRouteHistory'
 import AuthHeader from '../components/AuthHeader'
 import { translateAuthError } from '../utils/errorTranslators'
-import { motion } from 'framer-motion'
 
 const LoginPage = () => {
   const [email, setEmail] = useState('')
@@ -55,72 +55,70 @@ const LoginPage = () => {
     }
   }
 
-  // Variantes para animação
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  }
-
   return (
     <>
       <AuthHeader />
 
+      {/* Background */}
       <div className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <div className="w-full h-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 dark:from-gray-900 dark:via-purple-900 dark:to-black animate-gradient" />
         </div>
 
         <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeInUp}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
           className="max-w-md w-full"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
         >
           {/* Logo + Header */}
-          <div className="text-center mb-10">
-            <motion.img
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+          <motion.div
+            className="text-center mb-10"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+          >
+            <img
               src="/logo-chatgpt.png"
               alt="Rifaqui Logo"
               className="w-24 h-24 mx-auto mb-4 drop-shadow-xl"
             />
             <motion.h1
-              initial="hidden"
-              animate="visible"
-              variants={fadeInUp}
-              transition={{ duration: 0.6, delay: 0.3 }}
               className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
             >
               Bem-vindo de volta
             </motion.h1>
             <motion.p
-              initial="hidden"
-              animate="visible"
-              variants={fadeInUp}
-              transition={{ duration: 0.6, delay: 0.4 }}
               className="text-gray-700 dark:text-gray-300 text-lg"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.6 }}
             >
               Entre na sua conta para continuar
             </motion.p>
-          </div>
+          </motion.div>
 
           {/* Card */}
           <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-            transition={{ duration: 0.6, delay: 0.5 }}
             className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-800"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
           >
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-4 flex items-center space-x-2">
+                <motion.div
+                  className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-4 flex items-center space-x-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
                   <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
                   <span className="text-red-700 dark:text-red-300 text-sm">{error}</span>
-                </div>
+                </motion.div>
               )}
 
               {/* Email */}
@@ -177,9 +175,11 @@ const LoginPage = () => {
               </div>
 
               {/* Submit */}
-              <button
+              <motion.button
                 type="submit"
                 disabled={loading}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:opacity-90 disabled:opacity-50 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center shadow-lg shadow-purple-500/30"
               >
                 {loading ? (
@@ -187,7 +187,7 @@ const LoginPage = () => {
                 ) : (
                   'Entrar'
                 )}
-              </button>
+              </motion.button>
             </form>
 
             {/* Divider */}
@@ -198,9 +198,11 @@ const LoginPage = () => {
             </div>
 
             {/* Google */}
-            <button
+            <motion.button
               onClick={handleGoogleSignIn}
               disabled={loading}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.96 }}
               className="w-full bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-3"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -210,10 +212,15 @@ const LoginPage = () => {
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
               <span>Entrar com Google</span>
-            </button>
+            </motion.button>
 
             {/* Sign Up */}
-            <div className="mt-8 text-center">
+            <motion.div
+              className="mt-8 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+            >
               <p className="text-gray-600 dark:text-gray-400">
                 Não tem uma conta?{' '}
                 <Link
@@ -223,7 +230,7 @@ const LoginPage = () => {
                   Criar conta
                 </Link>
               </p>
-            </div>
+            </motion.div>
           </motion.div>
         </motion.div>
       </div>
