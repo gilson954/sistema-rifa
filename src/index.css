@@ -345,4 +345,13 @@
 /* Button Gradient Animation */
 @keyframes gradientMove {
   0% { background-position: 0% 50%; }
-  50% { background-position: 100% 
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-button {
+  background: linear-gradient(45deg, #FF0066, #00A1FF);
+  background-size: 200% 200%;
+  animation: gradientMove 3s linear infinite;
+}
+
