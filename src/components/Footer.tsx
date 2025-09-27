@@ -3,7 +3,7 @@ import { Youtube, MessageCircle, Instagram } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-900 dark:bg-gray-950 text-white py-12 transition-colors duration-300">
+    <footer className="w-full bg-gray-900 dark:bg-gray-950 text-white py-12 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           {/* Brand */}
