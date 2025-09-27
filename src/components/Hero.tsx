@@ -1,7 +1,7 @@
-// src/components/Hero.tsx
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion'; // Adicionando a importação do motion
 
 const Hero = () => {
   const navigate = useNavigate();
