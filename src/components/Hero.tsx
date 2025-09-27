@@ -30,7 +30,7 @@ const Hero = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <button 
                 onClick={handleGetStarted}
-                className="px-8 py-4 rounded-lg font-semibold text-lg flex items-center justify-center group gradient-button"
+                className="px-8 py-4 rounded-lg font-semibold text-lg flex items-center justify-center group animate-gradient-button"
               >
                 Comece Agora
                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-200" size={20} />
