@@ -5,6 +5,22 @@ import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-
 import { useAuth } from '../context/AuthContext'
 import AuthHeader from '../components/AuthHeader'
 import { translateAuthError } from '../utils/errorTranslators'
+import { motion } from 'framer-motion'
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 60 } },
+}
 
 const RegisterPage = () => {
   const [name, setName] = useState('')
@@ -68,17 +84,31 @@ const RegisterPage = () => {
     return (
       <>
         <AuthHeader backTo="login" />
-        <div className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden">
-          {/* Animated Gradient Background */}
+        <motion.div
+          className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        >
           <div className="absolute inset-0 -z-10">
             <div className="w-full h-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 dark:from-gray-900 dark:via-purple-900 dark:to-black animate-gradient" />
           </div>
 
-          <div className="max-w-md w-full">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', duration: 0.6 }}
+            className="max-w-md w-full"
+          >
             <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-800">
-              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <motion.div
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4"
+              >
                 <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
-              </div>
+              </motion.div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">
                 Verifique seu e-mail!
               </h2>
@@ -92,8 +122,8 @@ const RegisterPage = () => {
                 Ir para Login
               </Link>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </>
     )
   }
@@ -102,39 +132,50 @@ const RegisterPage = () => {
     <>
       <AuthHeader backTo="login" />
       <div className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden">
-        {/* Animated Gradient Background */}
         <div className="absolute inset-0 -z-10">
           <div className="w-full h-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 dark:from-gray-900 dark:via-purple-900 dark:to-black animate-gradient" />
         </div>
 
-        <div className="max-w-md w-full">
-          {/* Logo + Heading */}
-          <div className="text-center mb-8">
-            <img 
-              src="/logo-chatgpt.png" 
-              alt="Rifaqui Logo" 
-              className="w-20 h-20 mx-auto mb-4 drop-shadow-xl"
-            />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Criar conta
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Comece a criar suas rifas hoje mesmo
-            </p>
-          </div>
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', duration: 0.6 }}
+          className="max-w-md w-full"
+        >
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-800"
+          >
+            {/* Logo + Heading */}
+            <motion.div variants={itemVariants} className="text-center mb-8">
+              <img
+                src="/logo-chatgpt.png"
+                alt="Rifaqui Logo"
+                className="w-20 h-20 mx-auto mb-4 drop-shadow-xl"
+              />
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                Criar conta
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                Comece a criar suas rifas hoje mesmo
+              </p>
+            </motion.div>
 
-          {/* Register Card */}
-          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-800">
+            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-4 flex items-center space-x-2">
+                <motion.div
+                  variants={itemVariants}
+                  className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-4 flex items-center space-x-2"
+                >
                   <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
                   <span className="text-red-700 dark:text-red-300 text-sm">{error}</span>
-                </div>
+                </motion.div>
               )}
 
-              {/* Name */}
-              <div className="relative">
+              <motion.div variants={itemVariants} className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
@@ -144,10 +185,9 @@ const RegisterPage = () => {
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200"
                   required
                 />
-              </div>
+              </motion.div>
 
-              {/* Email */}
-              <div className="relative">
+              <motion.div variants={itemVariants} className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="email"
@@ -157,10 +197,9 @@ const RegisterPage = () => {
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200"
                   required
                 />
-              </div>
+              </motion.div>
 
-              {/* Password */}
-              <div className="relative">
+              <motion.div variants={itemVariants} className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -177,10 +216,9 @@ const RegisterPage = () => {
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
-              </div>
+              </motion.div>
 
-              {/* Confirm Password */}
-              <div className="relative">
+              <motion.div variants={itemVariants} className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
@@ -197,10 +235,10 @@ const RegisterPage = () => {
                 >
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
-              </div>
+              </motion.div>
 
-              {/* Submit */}
-              <button
+              <motion.button
+                variants={itemVariants}
                 type="submit"
                 disabled={loading}
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:opacity-90 disabled:opacity-50 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center shadow-lg shadow-purple-500/30"
@@ -210,18 +248,19 @@ const RegisterPage = () => {
                 ) : (
                   'Criar conta'
                 )}
-              </button>
+              </motion.button>
             </form>
 
             {/* Divider */}
-            <div className="mt-8 mb-6 flex items-center">
+            <motion.div variants={itemVariants} className="mt-8 mb-6 flex items-center">
               <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
               <span className="px-3 text-gray-500 dark:text-gray-400 text-sm">ou</span>
               <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
-            </div>
+            </motion.div>
 
             {/* Google Sign In */}
-            <button
+            <motion.button
+              variants={itemVariants}
               onClick={handleGoogleSignIn}
               disabled={loading}
               className="w-full bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-3"
@@ -233,10 +272,9 @@ const RegisterPage = () => {
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
               <span>Criar conta com Google</span>
-            </button>
+            </motion.button>
 
-            {/* Login Link */}
-            <div className="mt-8 text-center">
+            <motion.div variants={itemVariants} className="mt-8 text-center">
               <p className="text-gray-600 dark:text-gray-400">
                 Já tem uma conta?{' '}
                 <Link
@@ -246,9 +284,9 @@ const RegisterPage = () => {
                   Fazer login
                 </Link>
               </p>
-            </div>
-          </div>
-        </div>
+            </motion.div>
+          </motion.div>
+        </motion.div>
       </div>
     </>
   )
