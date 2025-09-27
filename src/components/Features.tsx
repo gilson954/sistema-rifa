@@ -73,7 +73,7 @@ const Features = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.5, ease: 'easeOut' }}
           >
-            <span className="bg-gradient-to-r from-blue-400 to-pink-500 bg-clip-text text-transparent animate-gradient">Funcionalidades</span>
+            <span className="bg-gradient-to-r from-blue-500 to-pink-500 bg-clip-text text-transparent animate-gradient">Funcionalidades</span>
           </motion.h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto transition-colors duration-300">
             Conheça o que o nosso sistema de rifas pode fazer por você
@@ -84,13 +84,14 @@ const Features = () => {
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
-              <div 
+              <motion.div 
                 key={index} 
-                className="bg-white dark:bg-gray-900 rounded-2xl p-6 hover:shadow-xl dark:hover:shadow-none transition-all duration-300 group cursor-pointer"
+                className="bg-white dark:bg-gray-900 rounded-2xl p-6 hover:shadow-2xl dark:hover:shadow-none transition-all duration-300 group cursor-pointer transform hover:scale-105"
+                whileHover={{ scale: 1.05 }}
               >
                 <div className="mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <IconComponent className="text-purple-600 dark:text-purple-400" size={24} />
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-900 dark:to-blue-900 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <IconComponent className="text-white" size={24} />
                   </div>
                 </div>
                 
@@ -101,14 +102,14 @@ const Features = () => {
                 <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed transition-colors duration-300">
                   {feature.description}
                 </p>
-              </div>
+              </motion.div>
             );
           })}
         </div>
 
         {/* CTA Section */}
         <div className="mt-16 text-center">
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8 text-white">
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8 text-white shadow-lg hover:shadow-xl transition-shadow duration-300">
             <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 bg-gradient-to-r from-purple-500 to-blue-500 shadow-lg">
               <DollarSign className="text-white" size={40} />
             </div>
@@ -121,7 +122,7 @@ const Features = () => {
             </p>
             <button 
               onClick={handleCreateCampaign}
-              className="bg-white text-purple-600 px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 font-semibold"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3 rounded-lg hover:bg-gradient-to-r hover:from-purple-700 hover:to-pink-700 transition-colors duration-200 font-semibold"
             >
               Criar minha campanha
             </button>
