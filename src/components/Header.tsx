@@ -51,7 +51,7 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-md shadow-md fixed w-full top-0 z-50 transition-all duration-300">
+    <header className="bg-transparent backdrop-blur-lg shadow-md fixed w-full top-0 z-50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -64,13 +64,13 @@ export default function Header() {
               <img 
                 src="/logo-chatgpt.png" 
                 alt="Rifaqui Logo" 
-                className="w-14 h-14 object-contain"
+                className="w-14 h-14 object-contain transition-transform transform hover:scale-105"
               />
               <span className="ml-2 text-2xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
             </button>
           </div>
 
-          {/* Desktop Navigation - só mostra se o usuário não estiver logado */}
+          {/* Desktop Navigation */}
           {!user && (
             <nav className="hidden md:flex space-x-8">
               <button 
@@ -104,7 +104,7 @@ export default function Header() {
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </button>
             
-            {/* Só mostra botões de login/registro se o usuário não estiver logado */}
+            {/* Botões de Login/Registro */}
             {!user && (
               <>
                 <button 
@@ -129,7 +129,7 @@ export default function Header() {
             )}
           </div>
 
-          {/* Mobile menu button - só mostra se o usuário não estiver logado */}
+          {/* Mobile menu button */}
           {!user && (
             <div className="md:hidden">
               <button
@@ -142,7 +142,7 @@ export default function Header() {
           )}
         </div>
 
-        {/* Mobile Navigation - só mostra se o usuário não estiver logado */}
+        {/* Mobile Navigation */}
         {!user && isMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-100 dark:border-gray-800">
             <div className="flex flex-col space-y-4">
@@ -165,15 +165,13 @@ export default function Header() {
                 Dúvidas
               </button>
               <div className="flex flex-col space-y-2 pt-4 border-t border-gray-100 dark:border-gray-800">
-                <div className="flex items-center justify-between">
-                  <button
-                    onClick={toggleTheme}
-                    className="p-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-                    aria-label="Alternar tema"
-                  >
-                    {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-                  </button>
-                </div>
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                  aria-label="Alternar tema"
+                >
+                  {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                </button>
                 <button 
                   onClick={() => {
                     navigate('/my-tickets');
