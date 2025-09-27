@@ -73,7 +73,7 @@ const Features = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.5, ease: 'easeOut' }}
           >
-            <span className="bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent animate-gradient">Funcionalidades</span>
+            <span className="bg-gradient-to-r from-blue-400 to-pink-500 bg-clip-text text-transparent animate-gradient">Funcionalidades</span>
           </motion.h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto transition-colors duration-300">
             Conheça o que o nosso sistema de rifas pode fazer por você
@@ -84,40 +84,24 @@ const Features = () => {
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
-              <motion.div 
+              <div 
                 key={index} 
                 className="bg-white dark:bg-gray-900 rounded-2xl p-6 hover:shadow-xl dark:hover:shadow-none transition-all duration-300 group cursor-pointer"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: 'spring', stiffness: 300 }}
               >
                 <div className="mb-4">
-                  <motion.div
-                    className="w-12 h-12 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-xl flex items-center justify-center"
-                    whileHover={{ scale: 1.2 }}
-                    transition={{ type: 'spring', stiffness: 200 }}
-                  >
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <IconComponent className="text-purple-600 dark:text-purple-400" size={24} />
-                  </motion.div>
+                  </div>
                 </div>
                 
-                <motion.h3
-                  className="text-lg font-semibold text-gray-900 dark:text-white mb-3 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5, duration: 1 }}
-                >
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
                   {feature.title}
-                </motion.h3>
+                </h3>
                 
-                <motion.p
-                  className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed transition-colors duration-300"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6, duration: 1 }}
-                >
+                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed transition-colors duration-300">
                   {feature.description}
-                </motion.p>
-              </motion.div>
+                </p>
+              </div>
             );
           })}
         </div>
