@@ -2,10 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ==================== */
-/* React DatePicker CSS */
-/* ==================== */
-
+/* React DatePicker Styles - Clean and Modern */
 .react-datepicker-wrapper {
   width: 100%;
 }
@@ -15,8 +12,7 @@
   font-family: inherit;
   border: 1px solid rgb(229 231 235);
   border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-              0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   background-color: white;
   overflow: hidden;
   position: static !important;
@@ -36,8 +32,7 @@
 .inline-datepicker {
   position: static !important;
   transform: none !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-              0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* Header Styling */
@@ -297,7 +292,7 @@
 .react-datepicker__time-box select:focus {
   outline: none;
   border-color: rgb(59 130 246);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 0 2px rgba(59, 130 246, 0.2);
 }
 
 /* Time Separator */
@@ -321,7 +316,7 @@
   width: 100%;
 }
 
-/* Responsive Design for DatePicker */
+/* Responsive Design */
 @media (max-width: 640px) {
   .react-datepicker {
     font-size: 0.875rem;
@@ -348,9 +343,7 @@
   }
 }
 
-/* ===================== */
-/* Custom Scrollbar      */
-/* ===================== */
+/* Custom Scrollbar Styles */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -362,199 +355,21 @@
 /* ===================== */
 /* Gradient Animation BG */
 /* ===================== */
-
-/* two compatible names */
-@keyframes gradientBG {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
 @keyframes gradientBackground {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
-/* full page colorful */
-.bg-animated-gradient {
-  background: linear-gradient(-45deg, #7c3aed 0%, #ec4899 35%, #f97316 65%, #06b6d4 100%);
-  background-size: 400% 400%;
-  animation: gradientBG 15s ease infinite;
-}
-
-/* dark variant */
-.dark .bg-animated-gradient-dark {
-  background: linear-gradient(-45deg, #0f172a 0%, #1f2937 50%, #111827 100%);
-  background-size: 400% 400%;
-  animation: gradientBG 20s ease infinite;
-}
-
-/* common animate class used across pages */
 .animate-gradient {
   background-size: 200% 200%;
   animation: gradientBackground 8s ease infinite;
 }
 
-/* alternative speeds */
-.animate-gradient-fast {
-  background-size: 200% 200%;
-  animation: gradientBackground 6s ease infinite;
-}
-
-/* Utility: animated gradient border (useful) */
-.animate-gradient-border {
-  background: linear-gradient(90deg, #7c3aed, #ec4899, #6366f1);
-  background-size: 400% 400%;
-  animation: gradientBackground 6s ease infinite;
-}
-
-/* fallback utilities */
-.bg-animated-cover {
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-position: center;
-}
-
-/* card blur helper */
-.bg-card-blur {
-  background: rgba(255,255,255,0.8);
-  backdrop-filter: blur(8px);
-}
-.dark .bg-card-blur {
-  background: rgba(17,24,39,0.75);
-}
-
-/* ===================== */
-/* Buttons / UI Helpers  */
-/* ===================== */
-
-/* Primary gradient button (used for main CTA) */
-.btn-gradient {
-  background: linear-gradient(90deg, #7c3aed 0%, #ec4899 50%, #6366f1 100%);
-  color: white;
-  border: none;
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  font-weight: 700;
-  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.12), 0 6px 12px rgba(124, 58, 237, 0.06);
-  transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
-}
-.btn-gradient:hover { transform: translateY(-2px); }
-.btn-gradient:active { transform: translateY(0); }
-.btn-gradient:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-/* ===================== */
-/* GOOGLE BUTTON (fixed) */
-/* ===================== */
-
-/* Use this class on the Google button element:
-   className="w-full btn-google"
-   This will override other bg classes and produce the expected gradient look. */
-.btn-google {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
-  font-weight: 700;
-  color: #0b1220; /* dark text on light-ish center for contrast */
-  background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));
-  position: relative;
-  overflow: hidden;
-  border: none;
-  cursor: pointer;
-  transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
-  box-shadow: 0 6px 18px rgba(2,6,23,0.12);
-}
-
-/* Outer decorative gradient ring (subtle) using pseudo-element */
-.btn-google::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  z-index: 0;
-  background: linear-gradient(90deg, #7c3aed 0%, #ec4899 40%, #06b6d4 70%, #f59e0b 100%);
-  border-radius: 0.85rem;
-  filter: blur(8px);
-  opacity: 0.95;
-  transform: translateZ(0);
-}
-
-/* Inner overlay to keep content readable (dark translucent in dark mode) */
-.btn-google > * { position: relative; z-index: 1; }
-
-/* In dark-mode make inner surface darker so text/icons are visible */
-.dark .btn-google {
-  color: #fff;
-  background: linear-gradient(180deg, rgba(17,24,39,0.75), rgba(17,24,39,0.6));
-  box-shadow: 0 10px 30px rgba(2,6,23,0.4);
-}
-.dark .btn-google::before { filter: blur(10px); opacity: 0.85; }
-
-/* Hover/focus */
-.btn-google:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(2,6,23,0.14); }
-.btn-google:active { transform: translateY(0); }
-.btn-google:focus { outline: 2px solid rgba(124,58,237,0.12); outline-offset: 2px; }
-
-/* Disabled */
-.btn-google:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
-
-/* Make sure svg icon and text align nicely */
-.btn-google svg { width: 1.15rem; height: 1.15rem; flex-shrink: 0; }
-
-/* If you want a variant with transparent inner and gradient border: */
-.btn-google-border {
-  position: relative;
-  padding: 2px;
-  border-radius: 0.85rem;
-  background: linear-gradient(90deg, #7c3aed, #ec4899, #06b6d4);
-}
-.btn-google-border > .btn-google-inner {
-  border-radius: 0.7rem;
-  padding: 0.6rem 0.9rem;
-  background: rgba(255,255,255,0.95);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-}
-
-/* ===================== */
-/* Accessibility         */
-/* ===================== */
+/* Accessibility: respect user's reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  .animate-gradient,
-  .animate-gradient-fast,
-  .bg-animated-gradient,
-  .bg-animated-gradient-dark,
-  .animate-gradient-border,
-  .btn-gradient,
-  .btn-google,
-  .btn-google::before {
+  .animate-gradient {
     animation: none !important;
-    transition: none !important;
+    background-size: auto !important;
   }
 }
-
-/* ===================== */
-/* Small responsive utils */
-/* ===================== */
-@media (max-width: 480px) {
-  .btn-gradient,
-  .btn-google,
-  .btn-google-border > .btn-google-inner {
-    padding: 0.9rem 1rem;
-    font-size: 0.95rem;
-  }
-}
-
-/* ===================== */
-/* End of file (index.css) */
-/* ===================== */
