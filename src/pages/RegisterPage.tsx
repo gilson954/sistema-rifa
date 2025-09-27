@@ -35,7 +35,7 @@ const RegisterPage = () => {
       return
     }
 
-    // ✅ Agora redireciona para a página de sucesso de confirmação
+    // ✅ Redireciona sempre para a página de sucesso de confirmação
     const { error } = await signUp(
       email,
       password,
@@ -78,10 +78,11 @@ const RegisterPage = () => {
                 Verifique seu e-mail!
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Enviamos um link de confirmação para o seu e-mail. Após confirmar, você será
-                redirecionado automaticamente para a página de sucesso.
+                Enviamos um link de confirmação para o seu e-mail. Por favor,
+                verifique sua caixa de entrada (e também a pasta de spam) para ativar sua conta.
               </p>
 
+              {/* Botão manual para login */}
               <Link
                 to="/login"
                 className="inline-block w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors duration-200"
