@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import AuthHeader from '../components/AuthHeader';
-import { translateAuthError } from '../utils/errorTranslators'; // ✅ Importando função de tradução
+import { translateAuthError } from '../utils/errorTranslators';
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -18,13 +18,12 @@ const ForgotPasswordPage = () => {
     setLoading(true);
     setError('');
 
-    // 🔹 Renomeando variável de erro e traduzindo
     const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
 
     if (authError) {
-      setError(translateAuthError(authError.message)); // ✅ Mensagem em português
+      setError(translateAuthError(authError.message));
       setLoading(false);
     } else {
       setSuccess(true);
@@ -36,7 +35,7 @@ const ForgotPasswordPage = () => {
     return (
       <>
         <AuthHeader backTo="login" />
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
+        <div className="min-h-screen bg-animated-gradient dark:bg-animated-gradient-dark flex items-center justify-center p-4 pt-20 transition-colors duration-300">
           <div className="max-w-md w-full">
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800 text-center">
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -75,7 +74,7 @@ const ForgotPasswordPage = () => {
   return (
     <>
       <AuthHeader backTo="login" />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
+      <div className="min-h-screen bg-animated-gradient dark:bg-animated-gradient-dark flex items-center justify-center p-4 pt-20 transition-colors duration-300">
         <div className="max-w-md w-full">
           {/* Logo */}
           <div className="text-center mb-8">
