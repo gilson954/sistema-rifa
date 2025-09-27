@@ -17,6 +17,22 @@ const LoginPage = () => {
   const location = useLocation()
   const { restoreLastRoute } = useRouteHistory()
 
+  // Função para traduzir mensagens de erro para PT-BR
+  const traduzirErro = (msg: string) => {
+    switch (msg) {
+      case 'Invalid login credentials':
+        return 'Email ou senha inválidos.'
+      case 'User not found':
+        return 'Usuário não encontrado.'
+      case 'Account not confirmed':
+        return 'Conta não confirmada. Verifique seu email.'
+      case 'Network error':
+        return 'Erro de rede. Tente novamente mais tarde.'
+      default:
+        return 'Ocorreu um erro. Tente novamente.'
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -25,16 +41,13 @@ const LoginPage = () => {
     const { error } = await signIn(email, password)
 
     if (error) {
-      setError(error.message)
+      setError(traduzirErro(error.message))
       setLoading(false)
     } else {
-      // Após login bem-sucedido, verifica se há uma rota para restaurar
       const lastRoute = restoreLastRoute()
-      
       if (lastRoute) {
         navigate(lastRoute, { replace: true })
       } else {
-        // Se há um estado 'from' (vindo de uma rota protegida), navega para lá
         const from = location.state?.from
         if (from && typeof from === 'string') {
           navigate(from, { replace: true })
@@ -52,11 +65,9 @@ const LoginPage = () => {
     const { error } = await signInWithGoogle()
 
     if (error) {
-      setError(error.message)
+      setError(traduzirErro(error.message))
       setLoading(false)
     }
-    // Note: For OAuth, the user will be redirected to Google and then back to our app
-    // The loading state will be handled by the redirect flow
   }
 
   return (
