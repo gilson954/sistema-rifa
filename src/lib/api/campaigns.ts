@@ -1,9 +1,11 @@
+// src/lib/api/campaigns.ts
 import { supabase } from '../supabase';
 import { CreateCampaignInput, UpdateCampaignInput, createCampaignSchema, updateCampaignSchema } from '../validations/campaign';
 import { Campaign, CampaignStatus } from '../../types/campaign';
 import { generateUniqueSlugAndPublicId } from '../../utils/slugGenerator';
 import { ZodError } from 'zod';
 import { STRIPE_PRODUCTS, getPublicationProductByRevenue } from '../../stripe-config';
+import { translateAuthError } from '../../utils/errorTranslators'; // ✅ Importado
 
 export class CampaignAPI {
   /**
@@ -11,7 +13,6 @@ export class CampaignAPI {
    */
   static async createCampaign(data: CreateCampaignInput, userId: string): Promise<{ data: Campaign | null; error: any }> {
     try {
-      // Validate input data against schema before processing
       try {
         createCampaignSchema.parse(data);
       } catch (validationError) {
@@ -30,13 +31,11 @@ export class CampaignAPI {
         throw validationError;
       }
 
-      // Gera slug único para a campanha
       const { slug, publicId } = await generateUniqueSlugAndPublicId(data.title);
-      
       const now = new Date();
-      console.log('Generated publicId:', publicId); // Log publicId
-      const expiresAt = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
-      
+      console.log('Generated publicId:', publicId);
+      const expiresAt = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+
       const campaignData = {
         ...data,
         user_id: userId,
@@ -46,7 +45,7 @@ export class CampaignAPI {
         status: 'draft' as CampaignStatus,
         is_paid: false,
         start_date: now.toISOString(),
-        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 dias
+        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         expires_at: expiresAt.toISOString()
       };
 
@@ -68,7 +67,6 @@ export class CampaignAPI {
    */
   static async updateCampaign(data: UpdateCampaignInput): Promise<{ data: Campaign | null; error: any }> {
     try {
-      // Validate input data against schema before processing
       try {
         console.log('🔧 [API DEBUG] Data being validated:', JSON.stringify(data, null, 2));
         updateCampaignSchema.parse(data);
@@ -90,19 +88,12 @@ export class CampaignAPI {
       }
 
       const { id, ...updateData } = data;
-      
-      // Se o título foi alterado, regenera o slug
       if (updateData.title) {
         const { slug: newSlug } = await generateUniqueSlugAndPublicId(updateData.title, id);
         updateData.slug = newSlug;
       }
-      
-      // DEBUG: Log reservation timeout value received by API
-      console.log('🔧 [API DEBUG] Received reservation_timeout_minutes:', updateData.reservation_timeout_minutes);
-      console.log('🔧 [API DEBUG] Full updateData received:', updateData);
-      
+
       console.log('🔧 [API DEBUG] Updating campaign with data:', updateData);
-      
       const { data: campaign, error } = await supabase
         .from('campaigns')
         .update(updateData)
@@ -110,11 +101,8 @@ export class CampaignAPI {
         .select()
         .single();
 
-      if (error) {
-        console.error('❌ [API DEBUG] Update error:', error);
-      } else {
-        console.log('✅ [API DEBUG] Campaign updated successfully:', campaign);
-      }
+      if (error) console.error('❌ [API DEBUG] Update error:', error);
+      else console.log('✅ [API DEBUG] Campaign updated successfully:', campaign);
 
       return { data: campaign, error };
     } catch (error) {
@@ -128,20 +116,15 @@ export class CampaignAPI {
    */
   static async getUserCampaigns(userId: string, status?: CampaignStatus): Promise<{ data: Campaign[] | null; error: any }> {
     try {
-      // Filter out expired campaigns that should be cleaned up
       const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
-      
       let query = supabase
         .from('campaigns')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
-        // Exclude expired draft campaigns older than 2 days
         .or(`status.neq.draft,expires_at.is.null,expires_at.gte.${new Date().toISOString()},created_at.gte.${twoDaysAgo}`);
 
-      if (status) {
-        query = query.eq('status', status);
-      }
+      if (status) query = query.eq('status', status);
 
       const { data, error } = await query;
       return { data, error };
@@ -156,19 +139,21 @@ export class CampaignAPI {
    */
   static async getCampaignById(id: string): Promise<{ data: Campaign | null; error: any }> {
     try {
-      console.log('Fetching campaign by ID:', id); // Log ID
+      console.log('Fetching campaign by ID:', id);
       const { data, error } = await supabase
         .from('campaigns')
         .select('*')
         .eq('id', id);
 
       if (error) {
-        console.error('Error fetching campaign by ID:', error); // Log error
+        console.error('Error fetching campaign by ID:', error);
         return { data: null, error };
       }
 
-      // Return the first campaign if found, otherwise null
       const campaign = data && data.length > 0 ? data[0] : null;
+      if (!campaign) {
+        return { data: null, error: new Error(translateAuthError('Campaign not found')) }; // ✅ traduzido
+      }
       return { data: campaign, error: null };
     } catch (error) {
       console.error('Error fetching campaign:', error);
@@ -181,19 +166,21 @@ export class CampaignAPI {
    */
   static async getCampaignByPublicId(publicId: string): Promise<{ data: Campaign | null; error: any }> {
     try {
-      console.log('Fetching campaign by public_id:', publicId); // Log publicId
+      console.log('Fetching campaign by public_id:', publicId);
       const { data, error } = await supabase
         .from('campaigns')
         .select('*')
         .eq('public_id', publicId);
 
       if (error) {
-        console.error('Error fetching campaign by public_id:', error); // Log error
+        console.error('Error fetching campaign by public_id:', error);
         return { data: null, error };
       }
 
-      // Return the first campaign if found, otherwise null
       const campaign = data && data.length > 0 ? data[0] : null;
+      if (!campaign) {
+        return { data: null, error: new Error(translateAuthError('Campaign not found')) }; // ✅ traduzido
+      }
       return { data: campaign, error: null };
     } catch (error) {
       console.error('Error fetching campaign by public_id:', error);
@@ -206,7 +193,6 @@ export class CampaignAPI {
    */
   static async getCampaignByCustomDomain(domain: string): Promise<{ data: Campaign | null; error: any }> {
     try {
-      // Primeiro busca o domínio personalizado
       const { data: customDomainData, error: domainError } = await supabase
         .from('custom_domains')
         .select('campaign_id')
@@ -219,10 +205,9 @@ export class CampaignAPI {
 
       const customDomain = customDomainData && customDomainData.length > 0 ? customDomainData[0] : null;
       if (!customDomain) {
-        return { data: null, error: domainError || new Error('Domínio personalizado não encontrado') };
+        return { data: null, error: domainError || new Error(translateAuthError('Domínio personalizado não encontrado')) }; // ✅ traduzido
       }
 
-      // Depois busca a campanha associada
       const { data: campaignData, error: campaignError } = await supabase
         .from('campaigns')
         .select('*')
@@ -239,6 +224,7 @@ export class CampaignAPI {
       return { data: null, error };
     }
   }
+
   /**
    * Deleta uma campanha
    */
@@ -258,7 +244,7 @@ export class CampaignAPI {
   }
 
   /**
-   * Publica uma campanha (muda status para 'active')
+   * Publica uma campanha
    */
   static async publishCampaign(id: string, userId: string): Promise<{ data: Campaign | null; error: any }> {
     try {
@@ -281,7 +267,7 @@ export class CampaignAPI {
   }
 
   /**
-   * Busca campanhas ativas (públicas)
+   * Busca campanhas ativas
    */
   static async getActiveCampaigns(limit = 10): Promise<{ data: Campaign[] | null; error: any }> {
     try {
@@ -303,7 +289,6 @@ export class CampaignAPI {
    * Retorna a taxa de publicação fixa do produto Rifaqui
    */
   static getPublicationTax(estimatedRevenue: number): StripeProduct | undefined {
-    // Returns the StripeProduct object for the publication fee based on estimated revenue
     return getPublicationProductByRevenue(estimatedRevenue);
   }
 }
