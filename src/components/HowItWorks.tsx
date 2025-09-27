@@ -77,14 +77,11 @@ const HowItWorks = () => {
                   </div>
                 </div>
 
-                {/* Icon */}
+                {/* Icon - versão antiga */}
                 <div className="mt-8 mb-6">
-                  <motion.div
-                    className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-500 rounded-2xl flex items-center justify-center transition-all duration-300"
-                    whileHover={{ scale: 1.1 }}
-                  >
-                    <IconComponent className="text-white" size={32} />
-                  </motion.div>
+                  <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center transition-colors duration-300">
+                    <IconComponent className="text-purple-600 dark:text-purple-400" size={32} />
+                  </div>
                 </div>
 
                 {/* Content */}
