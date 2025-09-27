@@ -1,3 +1,4 @@
+// src/components/FAQ.tsx
 import React, { useState } from 'react';
 import { ChevronDown, MessageCircle } from 'lucide-react';
 
@@ -5,8 +6,8 @@ const FAQ = () => {
   const [openItems, setOpenItems] = useState<number[]>([]);
 
   const toggleItem = (index: number) => {
-    setOpenItems(prev => 
-      prev.includes(index) 
+    setOpenItems(prev =>
+      prev.includes(index)
         ? prev.filter(item => item !== index)
         : [...prev, index]
     );
@@ -44,8 +45,12 @@ const FAQ = () => {
   ];
 
   return (
-    <section id="duvidas" className="py-20 bg-white dark:bg-gray-950 transition-colors duration-300">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section
+      id="duvidas"
+      className="py-20 bg-white dark:bg-gray-950 transition-colors duration-300"
+    >
+      {/* Largura maior para alinhar com outras seções */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 transition-colors duration-300">
             <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
@@ -61,7 +66,7 @@ const FAQ = () => {
           {faqs.map((faq, index) => {
             const isOpen = openItems.includes(index);
             return (
-              <div 
+              <div
                 key={index}
                 className="bg-gray-50 dark:bg-gray-900 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg"
               >
@@ -72,17 +77,19 @@ const FAQ = () => {
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white pr-4 transition-colors duration-300">
                     {faq.question}
                   </h3>
-                  <ChevronDown 
+                  <ChevronDown
                     className={`text-purple-600 dark:text-purple-400 flex-shrink-0 transition-transform duration-300 ${
-                      isOpen ? 'rotate-180' : ''
+                      isOpen ? "rotate-180" : ""
                     }`}
                     size={24}
                   />
                 </button>
-                
-                <div className={`overflow-hidden transition-all duration-300 ${
-                  isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                }`}>
+
+                <div
+                  className={`overflow-hidden transition-all duration-300 ${
+                    isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                  }`}
+                >
                   <div className="px-6 pb-6">
                     <p className="text-gray-600 dark:text-gray-300 leading-relaxed transition-colors duration-300">
                       {faq.answer}
@@ -100,16 +107,17 @@ const FAQ = () => {
             <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <MessageCircle className="text-white" size={32} />
             </div>
-            
+
             <h3 className="text-2xl font-bold mb-4 transition-colors duration-300">
               <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 Ainda tem dúvidas?
               </span>
             </h3>
             <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto transition-colors duration-300">
-              Nossa equipe está sempre disponível para ajudar você a tirar suas dúvidas e começar a vender suas rifas.
+              Nossa equipe está sempre disponível para ajudar você a tirar suas dúvidas e começar a
+              vender suas rifas.
             </p>
-            <button 
+            <button
               onClick={handleWhatsAppSupport}
               className="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-semibold"
             >
