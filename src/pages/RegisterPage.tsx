@@ -39,7 +39,6 @@ const RegisterPage = () => {
     const redirectTo =
       process.env.NODE_ENV === 'development'
         ? 'http://localhost:5173/email-confirmation-success'
-        : 'https://rifaqui.netlify.app/email-confirmation-success'
 
     const { error } = await signUp(email, password, name, redirectTo)
 
