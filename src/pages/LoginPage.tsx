@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { useRouteHistory } from '../hooks/useRouteHistory'
 import AuthHeader from '../components/AuthHeader'
 import { translateAuthError } from '../utils/errorTranslators'
+import { motion } from 'framer-motion'
 
 const LoginPage = () => {
   const [email, setEmail] = useState('')
@@ -54,34 +55,66 @@ const LoginPage = () => {
     }
   }
 
+  // Variantes para animação
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  }
+
   return (
     <>
       <AuthHeader />
 
-      {/* Animated Gradient Background */}
       <div className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <div className="w-full h-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 dark:from-gray-900 dark:via-purple-900 dark:to-black animate-gradient" />
         </div>
 
-        <div className="max-w-md w-full">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUp}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="max-w-md w-full"
+        >
           {/* Logo + Header */}
           <div className="text-center mb-10">
-            <img 
-              src="/logo-chatgpt.png" 
-              alt="Rifaqui Logo" 
+            <motion.img
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              src="/logo-chatgpt.png"
+              alt="Rifaqui Logo"
               className="w-24 h-24 mx-auto mb-4 drop-shadow-xl"
             />
-            <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight">
+            <motion.h1
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight"
+            >
               Bem-vindo de volta
-            </h1>
-            <p className="text-gray-700 dark:text-gray-300 text-lg">
+            </motion.h1>
+            <motion.p
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-gray-700 dark:text-gray-300 text-lg"
+            >
               Entre na sua conta para continuar
-            </p>
+            </motion.p>
           </div>
 
           {/* Card */}
-          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-800">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={fadeInUp}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-800"
+          >
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
                 <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-4 flex items-center space-x-2">
@@ -191,8 +224,8 @@ const LoginPage = () => {
                 </Link>
               </p>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </>
   )
