@@ -1,5 +1,7 @@
+// src/lib/api/stripe.ts
 import { supabase } from '../supabase';
 import { STRIPE_PRODUCTS, getProductByPriceId } from '../../stripe-config';
+import { translateAuthError } from '../../utils/errorTranslators'; // ✅ Importado
 
 export interface StripeCheckoutRequest {
   priceId: string;
@@ -62,7 +64,7 @@ export class StripeAPI {
     try {
       const product = getProductByPriceId(request.priceId);
       if (!product) {
-        throw new Error('Product not found');
+        throw new Error(translateAuthError('Product not found')); // ✅ traduzido
       }
 
       console.log('🛒 Creating Stripe checkout session:', {
@@ -70,6 +72,7 @@ export class StripeAPI {
         campaignId: request.campaignId,
         productName: product.name
       });
+
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const response = await fetch(`${supabaseUrl}/functions/v1/stripe-checkout`, {
         method: 'POST',
@@ -92,8 +95,9 @@ export class StripeAPI {
         hasCheckoutUrl: !!result.checkout_url,
         sessionId: result.session_id
       });
+
       if (!response.ok) {
-        throw new Error(result.error || 'Checkout creation failed');
+        throw new Error(translateAuthError(result.error || 'Checkout creation failed')); // ✅ traduzido
       }
 
       return { data: result, error: null };
@@ -114,7 +118,8 @@ export class StripeAPI {
         .eq('user_id', userId)
         .single();
 
-      return { data, error };
+      if (error) throw new Error(translateAuthError(error.message)); // ✅ traduzido
+      return { data, error: null };
     } catch (error) {
       console.error('Error fetching Stripe customer:', error);
       return { data: null, error };
@@ -133,7 +138,8 @@ export class StripeAPI {
         .in('status', ['active', 'trialing'])
         .order('created_at', { ascending: false });
 
-      return { data, error };
+      if (error) throw new Error(translateAuthError(error.message)); // ✅ traduzido
+      return { data, error: null };
     } catch (error) {
       console.error('Error fetching user subscriptions:', error);
       return { data: null, error };
@@ -151,7 +157,8 @@ export class StripeAPI {
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      return { data, error };
+      if (error) throw new Error(translateAuthError(error.message)); // ✅ traduzido
+      return { data, error: null };
     } catch (error) {
       console.error('Error fetching user orders:', error);
       return { data: null, error };
@@ -169,7 +176,8 @@ export class StripeAPI {
         .eq('stripe_session_id', sessionId)
         .single();
 
-      return { data, error };
+      if (error) throw new Error(translateAuthError(error.message)); // ✅ traduzido
+      return { data, error: null };
     } catch (error) {
       console.error('Error fetching order by session ID:', error);
       return { data: null, error };
