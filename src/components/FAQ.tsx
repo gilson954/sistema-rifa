@@ -47,7 +47,7 @@ const FAQ = () => {
     <section id="duvidas" className="py-20 bg-white dark:bg-gray-950 transition-colors duration-300">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-15xl md:text-5xl lg:text-6xl font-bold mb-4 transition-colors duration-300">
+          <h2 className="text-1xl md:text-5xl lg:text-6xl font-bold mb-4 transition-colors duration-300">
             <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               Dúvidas Frequentes
             </span>
