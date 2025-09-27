@@ -1,8 +1,10 @@
+// src/pages/RegisterPage.tsx
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import AuthHeader from '../components/AuthHeader'
+import { translateAuthError } from '../utils/errorTranslators' // ✅ Importando função de tradução
 
 const RegisterPage = () => {
   const [name, setName] = useState('')
@@ -36,15 +38,15 @@ const RegisterPage = () => {
     }
 
     // ✅ Redireciona sempre para a página de sucesso de confirmação
-    const { error } = await signUp(
+    const { error: authError } = await signUp(
       email,
       password,
       name,
       `${window.location.origin}/email-confirmation-success`
     )
 
-    if (error) {
-      setError(error.message)
+    if (authError) {
+      setError(translateAuthError(authError.message)) // ✅ Traduzindo mensagem
       setLoading(false)
     } else {
       setSuccess(true)
@@ -56,10 +58,10 @@ const RegisterPage = () => {
     setLoading(true)
     setError('')
 
-    const { error } = await signInWithGoogle()
+    const { error: authError } = await signInWithGoogle() // ✅ Renomeando variável de erro
 
-    if (error) {
-      setError(error.message)
+    if (authError) {
+      setError(translateAuthError(authError.message)) // ✅ Traduzindo mensagem
       setLoading(false)
     }
   }
@@ -82,7 +84,6 @@ const RegisterPage = () => {
                 verifique sua caixa de entrada (e também a pasta de spam) para ativar sua conta.
               </p>
 
-              {/* Botão manual para login */}
               <Link
                 to="/login"
                 className="inline-block w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors duration-200"
