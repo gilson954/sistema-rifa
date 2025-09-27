@@ -35,13 +35,13 @@ const RegisterPage = () => {
       return
     }
 
-    // ✅ Ajuste automático do redirectTo para a nova página de sucesso
-    const redirectTo =
-      process.env.NODE_ENV === 'development'
-        ? 'http://localhost:5173/email-confirmation-success'
-        : 'https://rifaqui.netlify.app/email-confirmation-success'
-
-    const { error } = await signUp(email, password, name, redirectTo)
+    // ✅ Agora redireciona para a página de sucesso de confirmação
+    const { error } = await signUp(
+      email,
+      password,
+      name,
+      `${window.location.origin}/email-confirmation-success`
+    )
 
     if (error) {
       setError(error.message)
@@ -78,10 +78,10 @@ const RegisterPage = () => {
                 Verifique seu e-mail!
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Enviamos um link de confirmação para o seu e-mail. Por favor, verifique sua caixa de entrada (e também a pasta de spam) para ativar sua conta.
+                Enviamos um link de confirmação para o seu e-mail. Após confirmar, você será
+                redirecionado automaticamente para a página de sucesso.
               </p>
 
-              {/* ✅ Botão manual para login */}
               <Link
                 to="/login"
                 className="inline-block w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors duration-200"
