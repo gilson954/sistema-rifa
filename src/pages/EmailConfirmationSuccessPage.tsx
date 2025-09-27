@@ -8,9 +8,9 @@ const EmailConfirmationSuccessPage = () => {
   return (
     <>
       <AuthHeader backTo="login" />
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
+      <div className="min-h-screen bg-animated-gradient dark:bg-animated-gradient-dark animate-gradient flex items-center justify-center p-4 pt-20">
         <div className="max-w-md w-full text-center">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
+          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-gray-200/50 dark:border-gray-800/50">
             <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
