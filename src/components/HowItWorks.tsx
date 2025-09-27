@@ -70,12 +70,18 @@ const HowItWorks = () => {
                 transition={{ duration: 0.6, delay: 0.3 + index * 0.2 }}
                 className="relative bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 hover:bg-white dark:hover:bg-gray-800 hover:shadow-xl transition-all duration-300"
               >
-                {/* Step Number - Animação de Gradiente */}
+                {/* Step Number - Animação de Gradiente com Movimento */}
                 <div className="absolute -top-4 left-8">
                   <motion.div
-                    className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg"
-                    animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg"
+                    style={{
+                      background: 'linear-gradient(270deg, #7e22ce, #9333ea, #4f46e5)', // Gradiente de cor
+                      backgroundSize: '400% 400%',
+                    }}
+                    animate={{
+                      backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                    }}
+                    transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
                   >
                     {step.number}
                   </motion.div>
