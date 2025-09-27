@@ -14,23 +14,17 @@ const AdminLoginPage = () => {
   const { user, session, loading: authLoading, signIn, signOut } = useAuth()
   const navigate = useNavigate()
 
-  // Check if user is admin by looking at user metadata
   const isAdmin = user?.user_metadata?.is_admin === true || user?.user_metadata?.is_admin === 'true'
 
-  // Effect to handle authentication state changes
   useEffect(() => {
-    // Only proceed if auth is not loading
     if (!authLoading) {
       if (user && isAdmin) {
-        // User is authenticated and is admin - redirect to admin dashboard
         navigate('/admin/dashboard')
       } else if (user && !isAdmin && session) {
-        // User is authenticated but not admin and has valid session - sign them out and show error
         signOut()
         setError('Acesso negado. Esta área é restrita a administradores.')
         setLoading(false)
       } else if (user && !isAdmin && !session) {
-        // User exists but no valid session - just show error without signing out
         setError('Acesso negado. Esta área é restrita a administradores.')
         setLoading(false)
       }
@@ -50,9 +44,6 @@ const AdminLoginPage = () => {
         setLoading(false)
         return
       }
-
-      // Don't set loading to false here - let the useEffect handle the redirect
-      // The AuthContext will update user, triggering the useEffect
     } catch (error) {
       console.error('Error during admin login:', error)
       setError('Erro ao fazer login. Tente novamente.')
@@ -60,13 +51,12 @@ const AdminLoginPage = () => {
     }
   }
 
-  // Show loading while auth context is determining user status
   if (authLoading) {
     return (
       <>
         <AuthHeader />
-        <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
+        <div className="min-h-screen flex items-center justify-center p-4 pt-20 transition-colors duration-300 bg-animated-gradient dark:bg-animated-gradient-dark">
+          <div className="bg-white/90 dark:bg-gray-900/90 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800 backdrop-blur-md">
             <div className="flex items-center justify-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
               <span className="ml-3 text-gray-600 dark:text-gray-400">Verificando permissões...</span>
@@ -80,16 +70,16 @@ const AdminLoginPage = () => {
   return (
     <>
       <AuthHeader />
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
+      <div className="min-h-screen flex items-center justify-center p-4 pt-20 transition-colors duration-300 bg-animated-gradient dark:bg-animated-gradient-dark">
         <div className="max-w-md w-full">
           {/* Logo and Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-6">
               <div className="relative">
-                <div className="w-20 h-20 bg-gradient-to-r from-red-600 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
+                <div className="w-20 h-20 bg-gradient-to-r from-red-600 to-orange-600 rounded-full flex items-center justify-center shadow-lg animate-pulse">
                   <Shield className="w-10 h-10 text-white" />
                 </div>
-                <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center shadow-md">
                   <Crown className="w-4 h-4 text-white" />
                 </div>
               </div>
@@ -103,9 +93,8 @@ const AdminLoginPage = () => {
           </div>
 
           {/* Login Form */}
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
+          <div className="bg-white/90 dark:bg-gray-900/90 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800 backdrop-blur-md">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Error Message */}
               {error && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center space-x-2">
                   <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
@@ -113,7 +102,6 @@ const AdminLoginPage = () => {
                 </div>
               )}
 
-              {/* Admin Notice */}
               <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 flex items-center space-x-2">
                 <Shield className="h-5 w-5 text-orange-500 flex-shrink-0" />
                 <span className="text-orange-700 dark:text-orange-300 text-sm">
@@ -121,7 +109,6 @@ const AdminLoginPage = () => {
                 </span>
               </div>
 
-              {/* Email Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Email Administrativo
@@ -139,7 +126,6 @@ const AdminLoginPage = () => {
                 </div>
               </div>
 
-              {/* Password Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Senha Administrativa
@@ -164,7 +150,6 @@ const AdminLoginPage = () => {
                 </div>
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -181,7 +166,6 @@ const AdminLoginPage = () => {
               </button>
             </form>
 
-            {/* Back to Regular Login */}
             <div className="mt-6 text-center">
               <p className="text-gray-600 dark:text-gray-400">
                 Não é administrador?{' '}
@@ -194,7 +178,6 @@ const AdminLoginPage = () => {
               </p>
             </div>
 
-            {/* Security Notice */}
             <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <div className="flex items-start space-x-2">
                 <Shield className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5 flex-shrink-0" />
@@ -208,7 +191,7 @@ const AdminLoginPage = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> 
     </>
   )
 }
