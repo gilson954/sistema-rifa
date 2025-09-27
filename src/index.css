@@ -2,113 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===================== */
-/* Gradient Animation BG */
-/* ===================== */
-@keyframes gradientBackground {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradientBackground 8s ease infinite;
-}
-
-/* ===================== */
-/* Animated Gradient for Titles */
-/* ===================== */
-@keyframes gradientBackgroundText {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.animate-gradient-text {
-  background: linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5, #FFD700); /* Cores mais vivas e modernas */
-  background-size: 400% 400%;
-  animation: gradientBackgroundText 6s ease infinite;
-  -webkit-background-clip: text;
-  color: transparent;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-gradient-text {
-    animation: none !important;
-    background-size: auto !important;
-  }
-}
-
-/* ===================== */
-/* Button & Card Animations */
-/* ===================== */
-
-/* Botões */
-.button {
-  padding: 12px 24px;
-  font-size: 16px;
-  border-radius: 8px;
-  background: linear-gradient(45deg, #FF0066, #00A1FF);
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.button:hover {
-  background: linear-gradient(45deg, #00A1FF, #FF0066);
-  transform: scale(1.05);
-}
-
-/* Cards */
-.card {
-  border-radius: 12px;
-  background-color: white;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.card:hover {
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  transform: translateY(-10px);
-}
-
-/* ===================== */
-/* Custom Scrollbar Styles */
-/* ===================== */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* ===================== */
-/* Custom Animated Gradient for HomePage */
-/* ===================== */
-@keyframes animatedGradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.bg-animated-gradient {
-  background: linear-gradient(-45deg, #7e22ce, #4f46e5, #9333ea, #0f172a);
-  background-size: 300% 300%;
-  animation: animatedGradient 15s ease infinite;
-}
-
-.dark .bg-animated-gradient-dark {
-  background: linear-gradient(-45deg, #1e1b4b, #312e81, #6d28d9, #000000);
-  background-size: 300% 300%;
-  animation: animatedGradient 15s ease infinite;
-}
-
-/* ===================== */
 /* React DatePicker Styles - Clean and Modern */
-/* ===================== */
 .react-datepicker-wrapper {
   width: 100%;
 }
@@ -156,6 +50,39 @@
   border-bottom-color: rgb(75 85 99);
 }
 
+.react-datepicker__current-month {
+  color: rgb(17 24 39);
+  font-weight: 500;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  text-align: center;
+  text-transform: lowercase;
+}
+
+.dark .react-datepicker__current-month {
+  color: rgb(243 244 246);
+}
+
+.react-datepicker__day-names {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+  padding: 0 0.25rem;
+}
+
+.react-datepicker__day-name {
+  color: rgb(107 114 128);
+  font-weight: 500;
+  width: 2.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.dark .react-datepicker__day-name {
+  color: rgb(156 163 175);
+}
+
 /* Navigation Arrows */
 .react-datepicker__navigation {
   top: 1rem;
@@ -176,6 +103,39 @@
 
 .dark .react-datepicker__navigation:hover {
   background-color: rgb(55 65 81);
+}
+
+.react-datepicker__navigation--previous {
+  left: 1rem;
+}
+
+.react-datepicker__navigation--next {
+  right: 1rem;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: rgb(107 114 128);
+  border-width: 2px 2px 0 0;
+  width: 6px;
+  height: 6px;
+}
+
+.dark .react-datepicker__navigation-icon::before {
+  border-color: rgb(156 163 175);
+}
+
+/* Month Container */
+.react-datepicker__month-container {
+  background-color: white;
+  flex: 1;
+}
+
+.dark .react-datepicker__month-container {
+  background-color: rgb(31 41 55);
+}
+
+.react-datepicker__month {
+  padding: 0.5rem;
 }
 
 /* Day Styling */
@@ -244,9 +204,7 @@
   color: rgb(107 114 128);
 }
 
-/* ===================== */
 /* Time Selection Container */
-/* ===================== */
 .react-datepicker__time-container {
   border-top: none;
   border-right: 1px solid rgb(229 231 235);
@@ -294,9 +252,7 @@
   border: none;
 }
 
-/* ===================== */
-/* Time Display in Footer */
-/* ===================== */
+/* Date Display in Footer */
 .react-datepicker__time-box .date-display {
   color: rgb(59 130 246);
   font-weight: 500;
@@ -308,9 +264,7 @@
   color: rgb(147 197 253);
 }
 
-/* ===================== */
 /* Time Selection Dropdowns */
-/* ===================== */
 .react-datepicker__time-box select {
   width: auto;
   padding: 0.25rem 0.5rem;
@@ -338,12 +292,10 @@
 .react-datepicker__time-box select:focus {
   outline: none;
   border-color: rgb(59 130 246);
-  box-shadow: 0 0 0 2px rgba(59, 130 246, 0.2);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
-/* ===================== */
 /* Time Separator */
-/* ===================== */
 .react-datepicker__time-box .time-separator {
   color: rgb(107 114 128);
   font-weight: 500;
@@ -354,16 +306,111 @@
   color: rgb(156 163 175);
 }
 
-/* ===================== */
 /* Time Caption */
-/* ===================== */
 .react-datepicker__time-name {
   display: none;
 }
 
-/* ===================== */
 /* Input Field Enhancement */
-/* ===================== */
 .react-datepicker__input-container input {
   width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .react-datepicker {
+    font-size: 0.875rem;
+    max-width: 100%;
+  }
+  
+  .react-datepicker__time-container {
+    width: 100%;
+  }
+  
+  .react-datepicker__day {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.875rem;
+  }
+  
+  .react-datepicker__header {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .react-datepicker__current-month {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Custom Scrollbar Styles */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ===================== */
+/* Gradient Animation BG */
+/* ===================== */
+@keyframes gradientBackground {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradientBackground 8s ease infinite;
+}
+
+/* Accessibility: respect user's reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-gradient {
+    animation: none !important;
+    background-size: auto !important;
+  }
+}
+
+/* ===================== */
+/* Custom Animated Gradient for HomePage */
+/* ===================== */
+@keyframes animatedGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.bg-animated-gradient {
+  background: linear-gradient(-45deg, #7e22ce, #4f46e5, #9333ea, #0f172a);
+  background-size: 300% 300%;
+  animation: animatedGradient 15s ease infinite;
+}
+
+.dark .bg-animated-gradient-dark {
+  background: linear-gradient(-45deg, #1e1b4b, #312e81, #6d28d9, #000000);
+  background-size: 300% 300%;
+  animation: animatedGradient 15s ease infinite;
+}
+
+/* Button Gradient Animation */
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.gradient-button {
+  background: linear-gradient(-45deg, #7e22ce, #4f46e5, #9333ea, #0f172a);
+  background-size: 300% 300%;
+  animation: gradientMove 5s ease infinite;
+  color: white;
+  transition: opacity 0.3s ease;
+}
+
+.gradient-button:hover {
+  opacity: 0.9;
+  background-position: 100% 50%;
 }
