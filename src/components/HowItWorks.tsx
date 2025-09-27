@@ -51,7 +51,7 @@ const HowItWorks = () => {
             return (
               <div
                 key={index}
-                className="relative bg-white/70 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300"
+                className="relative bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300"
               >
                 {/* Step Number */}
                 <div className="absolute -top-4 left-8">
@@ -91,7 +91,7 @@ const HowItWorks = () => {
         </div>
 
         {/* Tips Section */}
-        <div className="mt-16 bg-gradient-to-r from-purple-50/70 to-blue-50/70 dark:from-gray-900/60 dark:to-gray-800/60 backdrop-blur-sm rounded-2xl p-8 shadow-md transition-colors duration-300">
+        <div className="mt-16 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-8 shadow-md transition-colors duration-300">
           <div className="flex items-start">
             <div className="text-2xl mr-4">💡</div>
             <div>
