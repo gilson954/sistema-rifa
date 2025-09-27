@@ -68,7 +68,12 @@ const RegisterPage = () => {
     return (
       <>
         <AuthHeader backTo="login" />
-        <div className="min-h-screen flex items-center justify-center p-4 pt-20 animate-gradient bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <div className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden">
+          {/* Animated Gradient Background */}
+          <div className="absolute inset-0 -z-10">
+            <div className="w-full h-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 dark:from-gray-900 dark:via-purple-900 dark:to-black animate-gradient" />
+          </div>
+
           <div className="max-w-md w-full">
             <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-800">
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -96,14 +101,19 @@ const RegisterPage = () => {
   return (
     <>
       <AuthHeader backTo="login" />
-      <div className="min-h-screen flex items-center justify-center p-4 pt-20 animate-gradient bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden">
+        {/* Animated Gradient Background */}
+        <div className="absolute inset-0 -z-10">
+          <div className="w-full h-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 dark:from-gray-900 dark:via-purple-900 dark:to-black animate-gradient" />
+        </div>
+
         <div className="max-w-md w-full">
           {/* Logo + Heading */}
           <div className="text-center mb-8">
             <img 
               src="/logo-chatgpt.png" 
               alt="Rifaqui Logo" 
-              className="w-20 h-20 mx-auto mb-4"
+              className="w-20 h-20 mx-auto mb-4 drop-shadow-xl"
             />
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Criar conta
@@ -117,8 +127,8 @@ const RegisterPage = () => {
           <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-800">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center space-x-2">
-                  <AlertCircle className="h-5 w-5 text-red-500" />
+                <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-4 flex items-center space-x-2">
+                  <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
                   <span className="text-red-700 dark:text-red-300 text-sm">{error}</span>
                 </div>
               )}
@@ -193,7 +203,7 @@ const RegisterPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center"
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:opacity-90 disabled:opacity-50 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center shadow-lg shadow-purple-500/30"
               >
                 {loading ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -204,24 +214,17 @@ const RegisterPage = () => {
             </form>
 
             {/* Divider */}
-            <div className="my-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white/80 dark:bg-gray-900/80 text-gray-500 dark:text-gray-400">
-                    ou
-                  </span>
-                </div>
-              </div>
+            <div className="mt-8 mb-6 flex items-center">
+              <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
+              <span className="px-3 text-gray-500 dark:text-gray-400 text-sm">ou</span>
+              <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
             </div>
 
             {/* Google Sign In */}
             <button
               onClick={handleGoogleSignIn}
               disabled={loading}
-              className="w-full bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:bg-gray-100 disabled:cursor-not-allowed border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-3"
+              className="w-full bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-3"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -233,12 +236,12 @@ const RegisterPage = () => {
             </button>
 
             {/* Login Link */}
-            <div className="mt-6 text-center">
+            <div className="mt-8 text-center">
               <p className="text-gray-600 dark:text-gray-400">
                 Já tem uma conta?{' '}
                 <Link
                   to="/login"
-                  className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition-colors duration-200"
+                  className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition"
                 >
                   Fazer login
                 </Link>
