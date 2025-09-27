@@ -1,9 +1,32 @@
+/* Gradiente animado no texto */
 .animated-gradient {
   background: linear-gradient(-45deg, #7e22ce, #2563eb, #9333ea, #3b82f6);
   background-size: 400% 400%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: gradientWave 8s ease infinite;
+  animation: gradientWave 6s ease infinite;
+}
+
+/* Ícone com gradiente animado */
+.icon-gradient {
+  background: linear-gradient(-45deg, #7e22ce, #2563eb, #9333ea, #3b82f6);
+  background-size: 400% 400%;
+  animation: gradientWave 6s ease infinite;
+}
+.icon-gradient-text {
+  color: white;
+}
+
+/* Botão com gradiente animado */
+.button-gradient {
+  background: linear-gradient(-45deg, #7e22ce, #2563eb, #9333ea, #3b82f6);
+  background-size: 400% 400%;
+  animation: gradientWave 6s ease infinite;
+  color: white;
+  transition: transform 0.2s ease;
+}
+.button-gradient:hover {
+  transform: scale(1.05);
 }
 
 @keyframes gradientWave {
