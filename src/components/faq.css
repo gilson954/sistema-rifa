@@ -8,12 +8,12 @@
 
 @keyframes gradientWave {
   0% {
-    background-position: 30% 30%;
+    background-position: 0% 50%;
   }
   50% {
-    background-position: 80% 30%;
+    background-position: 100% 50%;
   }
-  70% {
+  100% {
     background-position: 0% 50%;
   }
 }
