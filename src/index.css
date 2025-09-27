@@ -338,32 +338,11 @@
 .react-datepicker__time-box select:focus {
   outline: none;
   border-color: rgb(59 130 246);
-  box-shadow: 0 0 0 2px rgba(59, 130 246, 0.2);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 /* ===================== */
-/* Time Separator */
-/* ===================== */
-.react-datepicker__time-box .time-separator {
-  color: rgb(107 114 128);
-  font-weight: 500;
-  font-size: 0.875rem;
-}
-
-.dark .react-datepicker__time-box .time-separator {
-  color: rgb(156 163 175);
-}
-
-/* ===================== */
-/* Time Caption */
-/* ===================== */
-.react-datepicker__time-name {
-  display: none;
-}
-
-/* ===================== */
-/* Input Field Enhancement */
-/* ===================== */
-.react-datepicker__input-container input {
-  width: 100%;
-}
+/* Button Gradient Animation */
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 
