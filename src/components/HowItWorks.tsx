@@ -8,22 +8,25 @@ const HowItWorks = () => {
       icon: UserPlus,
       title: 'Crie sua conta',
       subtitle: 'Cadastre-se gratuitamente',
-      description: 'Basta seu nome, e-mail e senha para começar. Leva menos de 1 minuto e não exige aprovação.'
+      description:
+        'Basta seu nome, e-mail e senha para começar. Leva menos de 1 minuto e não exige aprovação.',
     },
     {
       number: 2,
       icon: Settings,
       title: 'Monte sua campanha',
       subtitle: 'Configure do seu jeito',
-      description: 'Escolha o prêmio, defina os bilhetes, valores, formas de pagamento e personalize o visual da sua página.'
+      description:
+        'Escolha o prêmio, defina os bilhetes, valores, formas de pagamento e personalize o visual da sua página.',
     },
     {
       number: 3,
       icon: Share2,
       title: 'Publique e comece a vender',
       subtitle: 'Compartilhe e receba',
-      description: 'Publique sua campanha com uma pequena taxa, compartilhe o link e comece a vender — os pagamentos vão direto para sua conta.'
-    }
+      description:
+        'Publique sua campanha com uma pequena taxa, compartilhe o link e comece a vender — os pagamentos vão direto para sua conta.',
+    },
   ];
 
   return (
@@ -37,7 +40,8 @@ const HowItWorks = () => {
             Como Funciona
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto transition-colors duration-300">
-            Entenda em 3 passos simples como começar a vender suas rifas com nossa plataforma
+            Entenda em 3 passos simples como começar a vender suas rifas com
+            nossa plataforma
           </p>
         </div>
 
@@ -47,7 +51,7 @@ const HowItWorks = () => {
             return (
               <div
                 key={index}
-                className="relative bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 hover:bg-white dark:hover:bg-gray-700 hover:shadow-xl transition-all duration-300 backdrop-blur-sm"
+                className="relative bg-white/70 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300"
               >
                 {/* Step Number */}
                 <div className="absolute -top-4 left-8">
@@ -59,7 +63,10 @@ const HowItWorks = () => {
                 {/* Icon */}
                 <div className="mt-8 mb-6">
                   <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center transition-colors duration-300">
-                    <IconComponent className="text-purple-600 dark:text-purple-400" size={32} />
+                    <IconComponent
+                      className="text-purple-600 dark:text-purple-400"
+                      size={32}
+                    />
                   </div>
                 </div>
 
@@ -84,7 +91,7 @@ const HowItWorks = () => {
         </div>
 
         {/* Tips Section */}
-        <div className="mt-16 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-8 transition-colors duration-300">
+        <div className="mt-16 bg-gradient-to-r from-purple-50/70 to-blue-50/70 dark:from-gray-900/60 dark:to-gray-800/60 backdrop-blur-sm rounded-2xl p-8 shadow-md transition-colors duration-300">
           <div className="flex items-start">
             <div className="text-2xl mr-4">💡</div>
             <div>
@@ -92,7 +99,9 @@ const HowItWorks = () => {
                 Dica Profissional
               </h4>
               <p className="text-gray-600 dark:text-gray-300 transition-colors duration-300">
-                Use imagens de alta qualidade do seu prêmio e crie uma descrição detalhada para aumentar a confiança dos compradores e melhorar suas vendas.
+                Use imagens de alta qualidade do seu prêmio e crie uma descrição
+                detalhada para aumentar a confiança dos compradores e melhorar
+                suas vendas.
               </p>
             </div>
           </div>
