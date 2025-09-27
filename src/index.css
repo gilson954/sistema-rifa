@@ -61,6 +61,33 @@
   transform: scale(1.05);
 }
 
+/* ===================== */
+/* Animated Gradient for "Comece Agora" Button */
+/* ===================== */
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-button {
+  background: linear-gradient(45deg, #FF0066, #00A1FF);
+  background-size: 200% 200%;
+  animation: gradientMove 3s linear infinite;
+  color: white;
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.animate-gradient-button:hover {
+  transform: scale(1.05);
+  background-position: 100% 50%;
+}
+
 /* Cards */
 .card {
   border-radius: 12px;
@@ -242,116 +269,5 @@
 
 .dark .react-datepicker__day--outside-month {
   color: rgb(107 114 128);
-}
-
-/* ===================== */
-/* Time Selection Container */
-/* ===================== */
-.react-datepicker__time-container {
-  border-top: none;
-  border-right: 1px solid rgb(229 231 235);
-  width: 120px;
-  background-color: white;
-  padding: 1rem 0.5rem;
-}
-
-.dark .react-datepicker__time-container {
-  border-right-color: rgb(75 85 99);
-  background-color: rgb(31 41 55);
-}
-
-.react-datepicker__time {
-  position: relative;
-  background: white;
-  border-radius: 0;
-  padding: 0;
-}
-
-.dark .react-datepicker__time {
-  background: rgb(31 41 55);
-}
-
-.react-datepicker__time-box {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.react-datepicker__time-list {
-  height: 180px !important;
-  overflow-y: auto;
-  padding: 0;
-  margin: 0;
-  background: white;
-  border: none;
-  border-radius: 8px;
-  box-shadow: none;
-}
-
-.dark .react-datepicker__time-list {
-  background: rgb(31 41 55);
-  border: none;
-}
-
-/* ===================== */
-/* Time Display in Footer */
-/* ===================== */
-.react-datepicker__time-box .date-display {
-  color: rgb(59 130 246);
-  font-weight: 500;
-  font-size: 0.875rem;
-  text-transform: uppercase;
-}
-
-.dark .react-datepicker__time-box .date-display {
-  color: rgb(147 197 253);
-}
-
-/* ===================== */
-/* Time Selection Dropdowns */
-/* ===================== */
-.react-datepicker__time-box select {
-  width: auto;
-  padding: 0.25rem 0.5rem;
-  margin: 0 0.25rem;
-  border: 1px solid rgb(229 231 235);
-  border-radius: 4px;
-  background-color: white;
-  color: rgb(17 24 39);
-  font-weight: 500;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.dark .react-datepicker__time-box select {
-  background-color: rgb(31 41 55);
-  border-color: rgb(75 85 99);
-  color: rgb(243 244 246);
-}
-
-.react-datepicker__time-box select:hover {
-  border-color: rgb(59 130 246);
-}
-
-.react-datepicker__time-box select:focus {
-  outline: none;
-  border-color: rgb(59 130 246);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-}
-
-/* ===================== */
-/* Button Gradient Animation */
-@keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.animate-gradient-button {
-  background: linear-gradient(45deg, #FF0066, #00A1FF);
-  background-size: 200% 200%;
-  animation: gradientMove 3s linear infinite;
 }
 
