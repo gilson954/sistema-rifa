@@ -5,6 +5,7 @@ import { Mail, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import AuthHeader from '../components/AuthHeader';
 import { translateAuthError } from '../utils/errorTranslators';
+import { motion } from 'framer-motion';
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -35,18 +36,29 @@ const ForgotPasswordPage = () => {
     }
   };
 
+  // Variantes para animações
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   if (success) {
     return (
       <>
         <AuthHeader backTo="login" />
 
-        {/* Animated Gradient Background */}
         <div className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden">
           <div className="absolute inset-0 -z-10">
             <div className="w-full h-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 dark:from-gray-900 dark:via-purple-900 dark:to-black animate-gradient" />
           </div>
 
-          <div className="max-w-md w-full">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={fadeInUp}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="max-w-md w-full"
+          >
             <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-800 text-center">
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
@@ -72,7 +84,7 @@ const ForgotPasswordPage = () => {
                 Voltar para Login
               </Link>
             </div>
-          </div>
+          </motion.div>
         </div>
       </>
     );
@@ -82,26 +94,54 @@ const ForgotPasswordPage = () => {
     <>
       <AuthHeader backTo="login" />
 
-      {/* Animated Gradient Background */}
       <div className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <div className="w-full h-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 dark:from-gray-900 dark:via-purple-900 dark:to-black animate-gradient" />
         </div>
 
-        <div className="max-w-md w-full">
-          {/* Logo + Heading */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUp}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="max-w-md w-full"
+        >
           <div className="text-center mb-10">
-            <img
+            <motion.img
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
               src="/logo-chatgpt.png"
               alt="Rifaqui Logo"
               className="w-24 h-24 mx-auto mb-4 drop-shadow-xl"
             />
-            <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight">Esqueceu sua senha?</h1>
-            <p className="text-gray-700 dark:text-gray-300 text-lg">Digite seu email para receber um link de redefinição</p>
+            <motion.h1
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight"
+            >
+              Esqueceu sua senha?
+            </motion.h1>
+            <motion.p
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-gray-700 dark:text-gray-300 text-lg"
+            >
+              Digite seu email para receber um link de redefinição
+            </motion.p>
           </div>
 
-          {/* Card */}
-          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-800">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={fadeInUp}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-800"
+          >
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
                 <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-4 flex items-center space-x-2">
@@ -110,7 +150,6 @@ const ForgotPasswordPage = () => {
                 </div>
               )}
 
-              {/* Email Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
                 <div className="relative">
@@ -126,7 +165,6 @@ const ForgotPasswordPage = () => {
                 </div>
               </div>
 
-              {/* Submit */}
               <button
                 type="submit"
                 disabled={loading}
@@ -140,14 +178,12 @@ const ForgotPasswordPage = () => {
               </button>
             </form>
 
-            {/* Divider */}
             <div className="mt-8 mb-6 flex items-center">
               <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
               <span className="px-3 text-gray-500 dark:text-gray-400 text-sm">ou</span>
               <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
             </div>
 
-            {/* Back to Login */}
             <div className="mt-4 text-center">
               <Link
                 to="/login"
@@ -157,8 +193,8 @@ const ForgotPasswordPage = () => {
                 <span>Voltar para Login</span>
               </Link>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </>
   );
