@@ -36,6 +36,9 @@ import { initialFormData } from './lib/validations/formSteps';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
+// ✅ Novo import da página de sucesso
+import EmailConfirmationSuccessPage from './pages/EmailConfirmationSuccessPage';
+
 function App() {
   return (
     <AuthProvider>
@@ -51,36 +54,48 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
-          
+
+          {/* ✅ Nova Rota para Sucesso de Confirmação de E-mail */}
+          <Route
+            path="/email-confirmation-success"
+            element={<EmailConfirmationSuccessPage />}
+          />
+
           {/* Página Pública de Campanha */}
           <Route path="/c/:publicId" element={<CampaignPage />} />
-          
+
           {/* Página de Confirmação de Pagamento */}
           <Route path="/payment-confirmation" element={<PaymentConfirmationPage />} />
-          
+
           {/* Páginas de Resultado de Pagamento Stripe */}
           <Route path="/payment-success" element={<PaymentSuccessPage />} />
           <Route path="/payment-cancelled" element={<PaymentCancelledPage />} />
-          
+
           {/* Página Minhas Cotas */}
           <Route path="/my-tickets" element={<MyTicketsPage />} />
-          
+
           {/* Rota de Login Administrativo */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
 
           {/* Admin Dashboard Protegido */}
-          <Route path="/admin/dashboard" element={
-            <AdminProtectedRoute>
-              <AdminDashboardPage />
-            </AdminProtectedRoute>
-          } />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AdminProtectedRoute>
+                <AdminDashboardPage />
+              </AdminProtectedRoute>
+            }
+          />
 
           {/* Dashboard Protegido */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }>
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<DashboardPage />} />
             <Route path="create-campaign" element={<CreateCampaignStep1Page />} />
             <Route path="create-campaign/step-2" element={<CreateCampaignStep2Page />} />
@@ -95,7 +110,10 @@ function App() {
             <Route path="customize" element={<CustomizationPage />} />
             <Route path="account" element={<AccountPage />} />
             <Route path="tutorials" element={<TutorialsPage />} />
-            <Route path="campaigns/:campaignId/sales-history" element={<SalesHistoryPage />} />
+            <Route
+              path="campaigns/:campaignId/sales-history"
+              element={<SalesHistoryPage />}
+            />
           </Route>
         </Routes>
       </Router>
