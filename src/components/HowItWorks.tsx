@@ -27,7 +27,10 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section id="como-funciona" className="py-20 bg-white dark:bg-gray-950 transition-colors duration-300">
+    <section
+      id="como-funciona"
+      className="py-20 bg-white dark:bg-gray-950 transition-colors duration-300"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 transition-colors duration-300">
@@ -42,7 +45,10 @@ const HowItWorks = () => {
           {steps.map((step, index) => {
             const IconComponent = step.icon;
             return (
-              <div key={index} className="relative bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 hover:bg-white dark:hover:bg-gray-800 hover:shadow-xl transition-all duration-300">
+              <div
+                key={index}
+                className="relative bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 hover:bg-white dark:hover:bg-gray-700 hover:shadow-xl transition-all duration-300 backdrop-blur-sm"
+              >
                 {/* Step Number */}
                 <div className="absolute -top-4 left-8">
                   <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
