@@ -47,10 +47,9 @@ const HomePage = () => {
 
   return (
     <div className="relative min-h-screen bg-animated-gradient dark:bg-animated-gradient-dark text-gray-900 dark:text-gray-100 overflow-x-hidden">
-      {/* Overlay com blur suave para melhorar contraste */}
-      <div className="absolute inset-0 bg-black/10 dark:bg-black/40 backdrop-blur-[2px]"></div>
+      {/* soft overlay to lift content from background */}
+      <div className="absolute inset-0 bg-black/6 dark:bg-black/30 backdrop-blur-[2px]" />
 
-      {/* Conteúdo principal */}
       <main className="relative z-10 flex flex-col items-center">
         <motion.section
           initial={{ opacity: 0, y: 30 }}
@@ -58,7 +57,9 @@ const HomePage = () => {
           transition={{ duration: 0.7 }}
           className="w-full"
         >
-          <Hero />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Hero />
+          </div>
         </motion.section>
 
         <motion.section
@@ -66,9 +67,11 @@ const HomePage = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
           viewport={{ once: true }}
-          className="w-full max-w-6xl mx-auto px-4"
+          className="w-full"
         >
-          <HowItWorks />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <HowItWorks />
+          </div>
         </motion.section>
 
         <motion.section
@@ -76,9 +79,11 @@ const HomePage = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
           viewport={{ once: true }}
-          className="w-full max-w-6xl mx-auto px-4"
+          className="w-full"
         >
-          <Features />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Features />
+          </div>
         </motion.section>
 
         <motion.section
@@ -86,9 +91,12 @@ const HomePage = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
           viewport={{ once: true }}
-          className="w-full max-w-4xl mx-auto px-4"
+          className="w-full"
         >
-          <FAQ />
+          {/* IMPORTANT: FAQ width unified here (max-w-7xl) — antes estava em 4xl */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <FAQ />
+          </div>
         </motion.section>
 
         <motion.footer
@@ -97,7 +105,9 @@ const HomePage = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="w-full mt-16"
         >
-          <Footer />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Footer />
+          </div>
         </motion.footer>
       </main>
     </div>
