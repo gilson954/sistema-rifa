@@ -316,8 +316,6 @@
   display: none;
 }
 
-/* Hide default time list */
-
 /* Input Field Enhancement */
 .react-datepicker__input-container input {
   width: 100%;
@@ -365,7 +363,7 @@
 /* Gradient Animation BG */
 /* ===================== */
 
-/* Provide two keyframe names for compatibility */
+/* two compatible names */
 @keyframes gradientBG {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -378,95 +376,154 @@
   100% { background-position: 0% 50%; }
 }
 
-/* Full-page animated gradient (light, colorful) */
+/* full page colorful */
 .bg-animated-gradient {
-  background: linear-gradient(-45deg, #f87171, #fb923c, #facc15, #34d399);
+  background: linear-gradient(-45deg, #7c3aed 0%, #ec4899 35%, #f97316 65%, #06b6d4 100%);
   background-size: 400% 400%;
   animation: gradientBG 15s ease infinite;
 }
 
-/* Dark variant (scoped inside .dark) */
+/* dark variant */
 .dark .bg-animated-gradient-dark {
-  background: linear-gradient(-45deg, #0f172a, #1f2937, #111827, #0c0a09);
+  background: linear-gradient(-45deg, #0f172a 0%, #1f2937 50%, #111827 100%);
   background-size: 400% 400%;
   animation: gradientBG 20s ease infinite;
 }
 
-/* Generic animate-gradient (preferred by many pages) */
+/* common animate class used across pages */
 .animate-gradient {
   background-size: 200% 200%;
   animation: gradientBackground 8s ease infinite;
 }
 
-/* Faster / alternative variants */
-.animate-gradient-preferred,
-.animate-gradient-8s,
+/* alternative speeds */
 .animate-gradient-fast {
   background-size: 200% 200%;
-  animation: gradientBackground 8s ease infinite;
+  animation: gradientBackground 6s ease infinite;
 }
 
-/* Utility: animated gradient border (useful for buttons) */
+/* Utility: animated gradient border (useful) */
 .animate-gradient-border {
-  background: linear-gradient(270deg, #9333ea, #ec4899, #6366f1);
+  background: linear-gradient(90deg, #7c3aed, #ec4899, #6366f1);
   background-size: 400% 400%;
   animation: gradientBackground 6s ease infinite;
-  -webkit-background-clip: padding-box;
 }
 
-/* Utility to cover backgrounds nicely */
+/* fallback utilities */
 .bg-animated-cover {
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-position: center;
 }
 
-/* Small helper to combine translucent card background with blurred backdrop */
+/* card blur helper */
 .bg-card-blur {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255,255,255,0.8);
   backdrop-filter: blur(8px);
 }
 .dark .bg-card-blur {
-  background: rgba(17, 24, 39, 0.75);
+  background: rgba(17,24,39,0.75);
 }
 
 /* ===================== */
-/* Buttons & Shadows     */
+/* Buttons / UI Helpers  */
 /* ===================== */
 
-/* Example gradient button base (usable with utility classes) */
+/* Primary gradient button (used for main CTA) */
 .btn-gradient {
   background: linear-gradient(90deg, #7c3aed 0%, #ec4899 50%, #6366f1 100%);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 0.75rem;
   padding: 0.75rem 1rem;
-  font-weight: 600;
-  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.12), 0 6px 10px rgba(124, 58, 237, 0.06);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.12s ease;
+  font-weight: 700;
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.12), 0 6px 12px rgba(124, 58, 237, 0.06);
+  transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
 }
-.btn-gradient:active { transform: translateY(1px); }
+.btn-gradient:hover { transform: translateY(-2px); }
+.btn-gradient:active { transform: translateY(0); }
 .btn-gradient:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   box-shadow: none;
 }
 
-/* Optionally create bordered gradient button look */
-.btn-gradient-border {
-  position: relative;
-  padding: 2px;
-  border-radius: 10px;
-  display: inline-block;
-  background: linear-gradient(90deg, #7c3aed, #ec4899, #6366f1);
-}
-.btn-gradient-border > .btn-inner {
-  background: var(--inner-bg, white);
-  border-radius: 8px;
-  padding: 0.65rem 0.95rem;
+/* ===================== */
+/* GOOGLE BUTTON (fixed) */
+/* ===================== */
+
+/* Use this class on the Google button element:
+   className="w-full btn-google"
+   This will override other bg classes and produce the expected gradient look. */
+.btn-google {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  color: #0b1220; /* dark text on light-ish center for contrast */
+  background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));
+  position: relative;
+  overflow: hidden;
+  border: none;
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.12);
+}
+
+/* Outer decorative gradient ring (subtle) using pseudo-element */
+.btn-google::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: 0;
+  background: linear-gradient(90deg, #7c3aed 0%, #ec4899 40%, #06b6d4 70%, #f59e0b 100%);
+  border-radius: 0.85rem;
+  filter: blur(8px);
+  opacity: 0.95;
+  transform: translateZ(0);
+}
+
+/* Inner overlay to keep content readable (dark translucent in dark mode) */
+.btn-google > * { position: relative; z-index: 1; }
+
+/* In dark-mode make inner surface darker so text/icons are visible */
+.dark .btn-google {
+  color: #fff;
+  background: linear-gradient(180deg, rgba(17,24,39,0.75), rgba(17,24,39,0.6));
+  box-shadow: 0 10px 30px rgba(2,6,23,0.4);
+}
+.dark .btn-google::before { filter: blur(10px); opacity: 0.85; }
+
+/* Hover/focus */
+.btn-google:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(2,6,23,0.14); }
+.btn-google:active { transform: translateY(0); }
+.btn-google:focus { outline: 2px solid rgba(124,58,237,0.12); outline-offset: 2px; }
+
+/* Disabled */
+.btn-google:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* Make sure svg icon and text align nicely */
+.btn-google svg { width: 1.15rem; height: 1.15rem; flex-shrink: 0; }
+
+/* If you want a variant with transparent inner and gradient border: */
+.btn-google-border {
+  position: relative;
+  padding: 2px;
+  border-radius: 0.85rem;
+  background: linear-gradient(90deg, #7c3aed, #ec4899, #06b6d4);
+}
+.btn-google-border > .btn-google-inner {
+  border-radius: 0.7rem;
+  padding: 0.6rem 0.9rem;
+  background: rgba(255,255,255,0.95);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
 }
 
 /* ===================== */
@@ -474,29 +531,30 @@
 /* ===================== */
 @media (prefers-reduced-motion: reduce) {
   .animate-gradient,
-  .animate-gradient-preferred,
   .animate-gradient-fast,
   .bg-animated-gradient,
   .bg-animated-gradient-dark,
   .animate-gradient-border,
-  .btn-gradient {
+  .btn-gradient,
+  .btn-google,
+  .btn-google::before {
     animation: none !important;
     transition: none !important;
-    background-size: auto !important;
   }
 }
 
 /* ===================== */
 /* Small responsive utils */
 /* ===================== */
-
-/* Slightly larger touch targets on mobile */
 @media (max-width: 480px) {
   .btn-gradient,
-  .btn-gradient-border > .btn-inner {
+  .btn-google,
+  .btn-google-border > .btn-google-inner {
     padding: 0.9rem 1rem;
     font-size: 0.95rem;
   }
 }
 
-/* End of file */
+/* ===================== */
+/* End of file (index.css) */
+/* ===================== */
