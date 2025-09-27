@@ -178,22 +178,20 @@ const LoginPage = () => {
               <motion.button
                 type="submit"
                 disabled={loading}
-                className="relative overflow-hidden w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center shadow-lg shadow-purple-500/30"
-                whileTap={{ scale: 0.97 }}
+                className="w-full text-white py-3 rounded-lg font-semibold transition flex items-center justify-center shadow-lg shadow-purple-500/30"
+                animate={{
+                  background: [
+                    "linear-gradient(90deg, #ec4899, #8b5cf6, #3b82f6)", // rosa → roxo → azul
+                    "linear-gradient(90deg, #3b82f6, #ec4899, #8b5cf6)", // azul → rosa → roxo
+                    "linear-gradient(90deg, #8b5cf6, #3b82f6, #ec4899)"  // roxo → azul → rosa
+                  ]
+                }}
+                transition={{
+                  duration: 6,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
               >
-                {/* Ripple automático infinito */}
-                <motion.span
-                  className="absolute inset-0 bg-white/20"
-                  initial={{ scale: 0, opacity: 0.6 }}
-                  animate={{ scale: 2, opacity: 0 }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    ease: "easeOut",
-                    repeatDelay: 0.5
-                  }}
-                />
-
                 {loading ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 ) : (
