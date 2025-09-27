@@ -311,8 +311,6 @@
   display: none;
 }
 
-/* Hide default time list */
-
 /* Input Field Enhancement */
 .react-datepicker__input-container input {
   width: 100%;
@@ -357,71 +355,21 @@
 /* ===================== */
 /* Gradient Animation BG */
 /* ===================== */
-
-/* existing gradient keyframes (kept for backward compatibility) */
-@keyframes gradientBG {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.bg-animated-gradient {
-  background: linear-gradient(-45deg, #f87171, #fb923c, #facc15, #34d399);
-  background-size: 400% 400%;
-  animation: gradientBG 15s ease infinite;
-}
-
-/* dark variant uses .dark parent to scope it for dark mode */
-.dark .bg-animated-gradient-dark {
-  background: linear-gradient(-45deg, #0f172a, #1f2937, #111827, #0c0a09);
-  background-size: 400% 400%;
-  animation: gradientBG 20s ease infinite;
-}
-
-/* Utility: existing animate-gradient mapped to gradientBG (backwards compat) */
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradientBG 12s ease infinite;
-}
-
-/* New preferred keyframes requested (used by .animate-gradient-preferred below) */
 @keyframes gradientBackground {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
-/* Provide the animate-gradient class that uses the 'gradientBackground' animation
-   as you requested (8s), while keeping existing classes intact. */
-.animate-gradient-preferred,
-.animate-gradient-8s {
-  background-size: 200% 200%;
-  animation: gradientBackground 8s ease infinite;
-}
-
-/* For convenience and to match your earlier snippet, add an alias without "-preferred" */
-.animate-gradient-fast {
+.animate-gradient {
   background-size: 200% 200%;
   animation: gradientBackground 8s ease infinite;
 }
 
 /* Accessibility: respect user's reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  .animate-gradient,
-  .animate-gradient-preferred,
-  .animate-gradient-fast,
-  .bg-animated-gradient,
-  .bg-animated-gradient-dark {
+  .animate-gradient {
     animation: none !important;
     background-size: auto !important;
   }
 }
-
-/* Small helper utilities for responsive background coverage (optional) */
-.bg-animated-cover {
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-position: center;
-}
-
-/* End of file */
