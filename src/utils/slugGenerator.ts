@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { translateAuthError } from './errorTranslators'; // ✅ Importe a função
 
 /**
  * Gera um slug base a partir de uma string (título da campanha)
@@ -52,7 +53,6 @@ async function slugExists(slug: string, excludeCampaignId?: string): Promise<boo
       .eq('slug', slug)
       .limit(1);
 
-    // Se estamos atualizando uma campanha existente, excluí-la da verificação
     if (excludeCampaignId) {
       query = query.neq('id', excludeCampaignId);
     }
@@ -61,7 +61,8 @@ async function slugExists(slug: string, excludeCampaignId?: string): Promise<boo
 
     if (error) {
       console.error('Erro ao verificar existência do slug:', error);
-      throw new Error('Falha ao verificar unicidade do slug');
+      // ✅ Traduza a mensagem de erro
+      throw new Error(translateAuthError('Falha ao verificar unicidade do slug'));
     }
 
     return data && data.length > 0;
@@ -82,13 +83,14 @@ export async function generateUniqueSlug(
   const baseSlug = generateBaseSlug(title);
   
   if (!baseSlug) {
-    throw new Error('Não foi possível gerar um slug válido a partir do título');
+    // ✅ Traduza a mensagem de erro
+    throw new Error(translateAuthError('Não foi possível gerar um slug válido a partir do título'));
   }
 
   let uniqueSlug = baseSlug;
   let counter = 0;
-  const maxAttempts = 10; // Increased attempts
-  let delay = 50; // Initial delay in ms
+  const maxAttempts = 10;
+  let delay = 50;
 
   while (counter < maxAttempts) {
     try {
@@ -98,21 +100,21 @@ export async function generateUniqueSlug(
         return uniqueSlug;
       }
 
-      // Slug already exists, try with counter and exponential backoff
       counter++;
       uniqueSlug = `${baseSlug}-${counter}`;
-      await new Promise(resolve => setTimeout(resolve, delay)); // Add delay
-      delay *= 2; // Exponential backoff
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay *= 2;
     } catch (error) {
       console.warn(`Attempt ${counter + 1} to generate unique slug failed:`, error);
       counter++;
-      uniqueSlug = `${baseSlug}-${counter}`; // Generate a new one for the next attempt
-      await new Promise(resolve => setTimeout(resolve, delay)); // Add delay
-      delay *= 2; // Exponential backoff
+      uniqueSlug = `${baseSlug}-${counter}`;
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay *= 2;
     }
   }
 
-  throw new Error('Não foi possível gerar um slug único após múltiplas tentativas');
+  // ✅ Traduza a mensagem de erro
+  throw new Error(translateAuthError('Não foi possível gerar um slug único após múltiplas tentativas'));
 }
 
 /**
@@ -138,7 +140,6 @@ async function publicIdExists(publicId: string, excludeCampaignId?: string): Pro
       .eq('public_id', publicId)
       .limit(1);
 
-    // Se estamos atualizando uma campanha existente, excluí-la da verificação
     if (excludeCampaignId) {
       query = query.neq('id', excludeCampaignId);
     }
@@ -147,7 +148,8 @@ async function publicIdExists(publicId: string, excludeCampaignId?: string): Pro
 
     if (error) {
       console.error('Erro ao verificar existência do public_id:', error);
-      throw new Error('Falha ao verificar unicidade do public_id');
+      // ✅ Traduza a mensagem de erro
+      throw new Error(translateAuthError('Falha ao verificar unicidade do public_id'));
     }
 
     return data && data.length > 0;
@@ -163,8 +165,8 @@ async function publicIdExists(publicId: string, excludeCampaignId?: string): Pro
 async function generateUniquePublicId(excludeCampaignId?: string): Promise<string> {
   let uniquePublicId = generateShortUniquePublicId();
   let counter = 0;
-  const maxAttempts = 10; // Increased attempts
-  let delay = 50; // Start with 50ms delay
+  const maxAttempts = 10;
+  let delay = 50;
 
   while (counter < maxAttempts) {
     try {
@@ -174,22 +176,21 @@ async function generateUniquePublicId(excludeCampaignId?: string): Promise<strin
         return uniquePublicId;
       }
 
-      // Public ID já existe, gera um novo e espera antes de tentar novamente
       counter++;
       uniquePublicId = generateShortUniquePublicId();
-      await new Promise(resolve => setTimeout(resolve, delay)); // Add delay
-      delay *= 2; // Exponential backoff
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay *= 2;
     } catch (error) {
-      // If a specific query times out, log it and retry the attempt
       console.warn(`Attempt ${counter + 1} to generate unique public_id failed:`, error);
       counter++;
-      uniquePublicId = generateShortUniquePublicId(); // Generate a new one for the next attempt
-      await new Promise(resolve => setTimeout(resolve, delay)); // Add delay
-      delay *= 2; // Exponential backoff
+      uniquePublicId = generateShortUniquePublicId();
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay *= 2;
     }
   }
 
-  throw new Error('Não foi possível gerar um public_id único após múltiplas tentativas');
+  // ✅ Traduza a mensagem de erro
+  throw new Error(translateAuthError('Não foi possível gerar um public_id único após múltiplas tentativas'));
 }
 
 /**
@@ -215,23 +216,19 @@ function isValidSlug(slug: string): boolean {
     return false;
   }
 
-  // Slug deve ter entre 3 e 50 caracteres
   if (slug.length < 3 || slug.length > 50) {
     return false;
   }
 
-  // Deve conter apenas letras minúsculas, números e hífens
   const slugRegex = /^[a-z0-9-]+$/;
   if (!slugRegex.test(slug)) {
     return false;
   }
 
-  // Não deve começar ou terminar com hífen
   if (slug.startsWith('-') || slug.endsWith('-')) {
     return false;
   }
 
-  // Não deve ter hífens consecutivos
   if (slug.includes('--')) {
     return false;
   }
