@@ -1,9 +1,11 @@
+// src/pages/LoginPage.tsx
 import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useRouteHistory } from '../hooks/useRouteHistory'
 import AuthHeader from '../components/AuthHeader'
+import { translateAuthError } from '../utils/errorTranslators' // ✅ Função de tradução
 
 const LoginPage = () => {
   const [email, setEmail] = useState('')
@@ -17,31 +19,15 @@ const LoginPage = () => {
   const location = useLocation()
   const { restoreLastRoute } = useRouteHistory()
 
-  // Função para traduzir mensagens de erro para PT-BR
-  const traduzirErro = (msg: string) => {
-    switch (msg) {
-      case 'Invalid login credentials':
-        return 'Email ou senha inválidos.'
-      case 'User not found':
-        return 'Usuário não encontrado.'
-      case 'Account not confirmed':
-        return 'Conta não confirmada. Verifique seu email.'
-      case 'Network error':
-        return 'Erro de rede. Tente novamente mais tarde.'
-      default:
-        return 'Ocorreu um erro. Tente novamente.'
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const { error } = await signIn(email, password)
+    const { error: authError } = await signIn(email, password)
 
-    if (error) {
-      setError(traduzirErro(error.message))
+    if (authError) {
+      setError(translateAuthError(authError.message))
       setLoading(false)
     } else {
       const lastRoute = restoreLastRoute()
@@ -62,10 +48,10 @@ const LoginPage = () => {
     setLoading(true)
     setError('')
 
-    const { error } = await signInWithGoogle()
+    const { error: authError } = await signInWithGoogle()
 
-    if (error) {
-      setError(traduzirErro(error.message))
+    if (authError) {
+      setError(translateAuthError(authError.message))
       setLoading(false)
     }
   }
