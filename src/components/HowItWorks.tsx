@@ -31,10 +31,7 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section
-      id="como-funciona"
-      className="py-20 bg-transparent dark:bg-transparent transition-colors duration-300"
-    >
+    <section id="como-funciona" className="py-20 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -51,8 +48,7 @@ const HowItWorks = () => {
             return (
               <div
                 key={index}
-                className="relative p-8 rounded-2xl transition-all duration-300 bg-transparent hover:shadow-xl"
-                aria-labelledby={`how-step-${index}`}
+                className="relative p-8 rounded-2xl transition-all duration-300 hover:shadow-xl"
               >
                 {/* Step Number */}
                 <div className="absolute -top-4 left-8">
@@ -69,7 +65,7 @@ const HowItWorks = () => {
                 </div>
 
                 {/* Content */}
-                <h3 id={`how-step-${index}`} className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                   {step.title}
                 </h3>
                 <p className="text-purple-600 dark:text-purple-400 font-semibold mb-4">
@@ -88,8 +84,8 @@ const HowItWorks = () => {
           })}
         </div>
 
-        {/* Tips Section (sem fundo) */}
-        <div className="mt-16 rounded-2xl p-8 bg-transparent">
+        {/* Tips Section - também sem fundo */}
+        <div className="mt-16 rounded-2xl p-8">
           <div className="flex items-start">
             <div className="text-2xl mr-4">💡</div>
             <div>
@@ -97,7 +93,8 @@ const HowItWorks = () => {
                 Dica Profissional
               </h4>
               <p className="text-gray-600 dark:text-gray-300">
-                Use imagens de alta qualidade do seu prêmio e crie uma descrição detalhada para aumentar a confiança dos compradores e melhorar suas vendas.
+                Use imagens de alta qualidade do seu prêmio e crie uma descrição detalhada para
+                aumentar a confiança dos compradores e melhorar suas vendas.
               </p>
             </div>
           </div>
