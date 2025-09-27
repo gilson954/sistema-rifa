@@ -1,9 +1,11 @@
+// src/pages/AccountPage.tsx
 import React, { useState, useEffect } from 'react';
 import { Pencil, Upload, Link, Trash2, X, ArrowRight, ChevronDown, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import CountryPhoneSelect from '../components/CountryPhoneSelect';
 import { useStripe } from '../hooks/useStripe';
+import { translateAuthError } from '../utils/errorTranslators'; // ✅ import adicionado
 
 interface Country {
   code: string;
@@ -133,13 +135,13 @@ const AccountPage = () => {
 
         if (error) {
           console.error('Error updating profile:', error);
-          alert('Erro ao salvar dados. Tente novamente.');
+          alert(translateAuthError(error.message || 'Erro ao salvar dados. Tente novamente.'));
         } else {
           setShowEditModal(false);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error saving user data:', error);
-        alert('Erro ao salvar dados. Tente novamente.');
+        alert(translateAuthError(error.message || 'Erro ao salvar dados. Tente novamente.'));
       }
     }
   };
@@ -170,15 +172,17 @@ const AccountPage = () => {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Erro ao excluir conta');
+        // ✅ traduzir mensagem de erro
+        throw new Error(translateAuthError(result.message || 'Erro ao excluir conta'));
       }
 
       alert('Conta excluída com sucesso');
       await signOut();
       window.location.href = '/login';
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting account:', error);
-      alert(error.message || 'Erro ao excluir conta. Tente novamente.');
+      // ✅ traduzir mensagem de erro
+      alert(translateAuthError(error.message || 'Erro ao excluir conta. Tente novamente.'));
     } finally {
       setDeleting(false);
       setShowDeleteConfirmModal(false);
