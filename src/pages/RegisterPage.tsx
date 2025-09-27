@@ -175,6 +175,7 @@ const RegisterPage = () => {
                 </motion.div>
               )}
 
+              {/* Name */}
               <motion.div variants={itemVariants} className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
@@ -187,6 +188,7 @@ const RegisterPage = () => {
                 />
               </motion.div>
 
+              {/* Email */}
               <motion.div variants={itemVariants} className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
@@ -199,6 +201,7 @@ const RegisterPage = () => {
                 />
               </motion.div>
 
+              {/* Password */}
               <motion.div variants={itemVariants} className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
@@ -218,6 +221,7 @@ const RegisterPage = () => {
                 </button>
               </motion.div>
 
+              {/* Confirm Password */}
               <motion.div variants={itemVariants} className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
@@ -237,17 +241,36 @@ const RegisterPage = () => {
                 </button>
               </motion.div>
 
+              {/* Register Button with Infinite Gradient Animation */}
               <motion.button
                 variants={itemVariants}
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:opacity-90 disabled:opacity-50 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center shadow-lg shadow-purple-500/30"
+                className="relative w-full text-white py-3 rounded-lg font-semibold shadow-lg overflow-hidden"
               >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                ) : (
-                  'Criar conta'
-                )}
+                {/* Gradient Background Layer */}
+                <motion.div
+                  className="absolute inset-0"
+                  style={{
+                    background: 'linear-gradient(270deg, #ec4899, #8b5cf6, #3b82f6, #ec4899)',
+                    backgroundSize: '600% 600%',
+                  }}
+                  animate={{
+                    backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                  }}
+                  transition={{
+                    duration: 10,
+                    ease: 'linear',
+                    repeat: Infinity,
+                  }}
+                />
+                <span className="relative z-10">
+                  {loading ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  ) : (
+                    'Criar conta'
+                  )}
+                </span>
               </motion.button>
             </form>
 
