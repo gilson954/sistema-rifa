@@ -5,7 +5,7 @@ import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useRouteHistory } from '../hooks/useRouteHistory'
 import AuthHeader from '../components/AuthHeader'
-import { translateAuthError } from '../utils/errorTranslators' // ✅ Função de tradução
+import { translateAuthError } from '../utils/errorTranslators'
 
 const LoginPage = () => {
   const [email, setEmail] = useState('')
@@ -47,9 +47,7 @@ const LoginPage = () => {
   const handleGoogleSignIn = async () => {
     setLoading(true)
     setError('')
-
     const { error: authError } = await signInWithGoogle()
-
     if (authError) {
       setError(translateAuthError(authError.message))
       setLoading(false)
@@ -59,84 +57,82 @@ const LoginPage = () => {
   return (
     <>
       <AuthHeader />
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center p-6 pt-20">
         <div className="max-w-md w-full">
-          {/* Logo */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <img 
-                src="/logo-chatgpt.png" 
-                alt="Rifaqui Logo" 
-                className="w-20 h-20 object-contain"
-              />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          {/* Logo + Header */}
+          <div className="text-center mb-10">
+            <img 
+              src="/logo-chatgpt.png" 
+              alt="Rifaqui Logo" 
+              className="w-24 h-24 mx-auto mb-4 drop-shadow-lg"
+            />
+            <h1 className="text-4xl font-extrabold text-white mb-2 tracking-tight">
               Bem-vindo de volta
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-400 text-lg">
               Entre na sua conta para continuar
             </p>
           </div>
 
-          {/* Login Form */}
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
+          {/* Card */}
+          <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-800">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Error Message */}
               {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center space-x-2">
-                  <AlertCircle className="h-5 w-5 text-red-500" />
-                  <span className="text-red-700 dark:text-red-300 text-sm">{error}</span>
+                <div className="bg-red-900/30 border border-red-700 rounded-lg p-4 flex items-center space-x-2">
+                  <AlertCircle className="h-5 w-5 text-red-400" />
+                  <span className="text-red-300 text-sm">{error}</span>
                 </div>
               )}
 
-              {/* Email Field */}
+              {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Email
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="seu@email.com"
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                    className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
                     required
                   />
                 </div>
               </div>
 
-              {/* Password Field */}
+              {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Senha
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Sua senha"
-                    className="w-full pl-10 pr-12 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                    className="w-full pl-10 pr-12 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200"
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
               </div>
 
-              {/* Forgot Password Link */}
+              {/* Forgot Password */}
               <div className="text-right">
                 <Link
                   to="/forgot-password"
-                  className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors duration-200"
+                  className="text-sm text-purple-400 hover:text-purple-300 transition"
                 >
                   Esqueceu sua senha?
                 </Link>
@@ -146,7 +142,7 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center"
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:opacity-90 disabled:opacity-50 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center shadow-lg shadow-purple-600/30"
               >
                 {loading ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -157,24 +153,17 @@ const LoginPage = () => {
             </form>
 
             {/* Divider */}
-            <div className="mt-6 mb-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">
-                    ou
-                  </span>
-                </div>
-              </div>
+            <div className="mt-8 mb-6 flex items-center">
+              <div className="flex-grow border-t border-gray-700"></div>
+              <span className="px-3 text-gray-500 text-sm">ou</span>
+              <div className="flex-grow border-t border-gray-700"></div>
             </div>
 
-            {/* Google Sign In Button */}
+            {/* Google */}
             <button
               onClick={handleGoogleSignIn}
               disabled={loading}
-              className="w-full bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:bg-gray-100 disabled:cursor-not-allowed border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center space-x-3"
+              className="w-full bg-gray-800 hover:bg-gray-700 disabled:opacity-50 border border-gray-700 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-3"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -185,13 +174,13 @@ const LoginPage = () => {
               <span>Entrar com Google</span>
             </button>
 
-            {/* Sign Up Link */}
-            <div className="mt-6 text-center">
-              <p className="text-gray-600 dark:text-gray-400">
+            {/* Sign Up */}
+            <div className="mt-8 text-center">
+              <p className="text-gray-400">
                 Não tem uma conta?{' '}
                 <Link
                   to="/register"
-                  className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition-colors duration-200"
+                  className="text-purple-400 hover:text-purple-300 font-semibold transition"
                 >
                   Criar conta
                 </Link>
