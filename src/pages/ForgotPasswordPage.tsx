@@ -36,7 +36,7 @@ const ForgotPasswordPage = () => {
     }
   };
 
-  // Variantes para animações
+  // Variantes de animação
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
@@ -48,8 +48,9 @@ const ForgotPasswordPage = () => {
         <AuthHeader backTo="login" />
 
         <div className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden">
+          {/* Fundo animado */}
           <div className="absolute inset-0 -z-10">
-            <div className="w-full h-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 dark:from-gray-900 dark:via-purple-900 dark:to-black animate-gradient" />
+            <div className="w-full h-full bg-animated-gradient dark:bg-animated-gradient-dark" />
           </div>
 
           <motion.div
@@ -95,8 +96,9 @@ const ForgotPasswordPage = () => {
       <AuthHeader backTo="login" />
 
       <div className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden">
+        {/* Fundo animado */}
         <div className="absolute inset-0 -z-10">
-          <div className="w-full h-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 dark:from-gray-900 dark:via-purple-900 dark:to-black animate-gradient" />
+          <div className="w-full h-full bg-animated-gradient dark:bg-animated-gradient-dark" />
         </div>
 
         <motion.div
