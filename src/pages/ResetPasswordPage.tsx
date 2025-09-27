@@ -5,7 +5,7 @@ import { Eye, EyeOff, Lock, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-r
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import AuthHeader from '../components/AuthHeader';
-import { translateAuthError } from '../utils/errorTranslators'; // ✅ Importando função de tradução
+import { translateAuthError } from '../utils/errorTranslators';
 
 const ResetPasswordPage = () => {
   const [password, setPassword] = useState('');
@@ -19,7 +19,6 @@ const ResetPasswordPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
-  // Check authentication state after component mounts
   useEffect(() => {
     if (!authLoading) {
       const urlParams = new URLSearchParams(window.location.hash.substring(1));
@@ -57,7 +56,7 @@ const ResetPasswordPage = () => {
       const { error: authError } = await supabase.auth.updateUser({ password });
 
       if (authError) {
-        setError(translateAuthError(authError.message)); // ✅ Mensagem em português
+        setError(translateAuthError(authError.message));
         setLoading(false);
       } else {
         setSuccess(true);
@@ -72,11 +71,14 @@ const ResetPasswordPage = () => {
     }
   };
 
+  // ============================
+  // ESTADOS DE LOADING / ERRO / SUCESSO
+  // ============================
   if (authLoading) {
     return (
       <>
         <AuthHeader />
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
+        <div className="min-h-screen bg-animated-gradient dark:bg-animated-gradient-dark animate-gradient flex items-center justify-center p-4 pt-20">
           <div className="max-w-md w-full text-center">
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
@@ -97,7 +99,7 @@ const ResetPasswordPage = () => {
     return (
       <>
         <AuthHeader />
-        <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
+        <div className="min-h-screen bg-animated-gradient dark:bg-animated-gradient-dark animate-gradient flex items-center justify-center p-4 pt-20">
           <div className="max-w-md w-full text-center">
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
               <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -141,7 +143,7 @@ const ResetPasswordPage = () => {
     return (
       <>
         <AuthHeader />
-        <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
+        <div className="min-h-screen bg-animated-gradient dark:bg-animated-gradient-dark animate-gradient flex items-center justify-center p-4 pt-20">
           <div className="max-w-md w-full text-center">
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -161,10 +163,13 @@ const ResetPasswordPage = () => {
     );
   }
 
+  // ============================
+  // FORMULÁRIO PRINCIPAL
+  // ============================
   return (
     <>
       <AuthHeader />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 pt-20 transition-colors duration-300">
+      <div className="min-h-screen bg-animated-gradient dark:bg-animated-gradient-dark animate-gradient flex items-center justify-center p-4 pt-20">
         <div className="max-w-md w-full">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
@@ -198,7 +203,7 @@ const ResetPasswordPage = () => {
                 </span>
               </div>
 
-              {/* Password Field */}
+              {/* Campo: Nova Senha */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Nova Senha
@@ -223,7 +228,7 @@ const ResetPasswordPage = () => {
                 </div>
               </div>
 
-              {/* Confirm Password Field */}
+              {/* Campo: Confirmar Senha */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Confirmar Nova Senha
@@ -248,7 +253,7 @@ const ResetPasswordPage = () => {
                 </div>
               </div>
 
-              {/* Password Requirements */}
+              {/* Requisitos */}
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                 <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
                   Requisitos da senha:
