@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { translateAuthError } from '../utils/errorTranslators'; // ✅ Importe a função
 
 interface CleanupResult {
   deleted_count: number;
@@ -80,7 +81,8 @@ export const useCampaignCleanup = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Cleanup failed');
+        // ✅ Traduza a mensagem de erro
+        throw new Error(translateAuthError(result.error || 'Cleanup failed'));
       }
 
       // Refresh logs after cleanup
@@ -89,7 +91,7 @@ export const useCampaignCleanup = () => {
       return result.data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(errorMessage);
+      setError(translateAuthError(errorMessage)); // ✅ Traduza a mensagem de erro
       console.error('Cleanup error:', err);
       return null;
     } finally {
