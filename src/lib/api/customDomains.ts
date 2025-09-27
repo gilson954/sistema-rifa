@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import { translateAuthError } from '../../utils/errorTranslators'; // ✅ Importe a função
 
 export interface CustomDomain {
   id: string;
@@ -163,7 +164,8 @@ export class CustomDomainsAPI {
         .single();
 
       if (fetchError || !domain) {
-        return { data: null, error: fetchError || new Error('Domínio não encontrado') };
+        // ✅ Traduza a mensagem de erro
+        return { data: null, error: fetchError || new Error(translateAuthError('Domínio não encontrado')) };
       }
 
       // Simula verificação DNS (em produção, fazer verificação real)
@@ -271,11 +273,6 @@ export class CustomDomainsAPI {
       // Simula uma verificação que às vezes passa, às vezes falha
       // Em produção, substituir por verificação real
       return Math.random() > 0.3; // 70% de chance de sucesso para demonstração
-      
-      // Exemplo de verificação real usando fetch (não funcionará no browser devido a CORS):
-      // const response = await fetch(`https://dns.google/resolve?name=${domain}&type=CNAME`);
-      // const data = await response.json();
-      // return data.Answer && data.Answer.some(record => record.data.includes('meuapp.com'));
       
     } catch (error) {
       console.error('Erro na verificação DNS:', error);
