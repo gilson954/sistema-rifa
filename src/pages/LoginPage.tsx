@@ -2,7 +2,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react'
-import { motion, useAnimation } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useRouteHistory } from '../hooks/useRouteHistory'
 import AuthHeader from '../components/AuthHeader'
@@ -19,8 +19,6 @@ const LoginPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { restoreLastRoute } = useRouteHistory()
-
-  const rippleControls = useAnimation()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,14 +53,6 @@ const LoginPage = () => {
       setError(translateAuthError(authError.message))
       setLoading(false)
     }
-  }
-
-  const triggerRipple = () => {
-    rippleControls.start({
-      scale: [0, 2],
-      opacity: [0.4, 0],
-      transition: { duration: 0.6, ease: 'easeOut' }
-    })
   }
 
   return (
@@ -190,13 +180,18 @@ const LoginPage = () => {
                 disabled={loading}
                 className="relative overflow-hidden w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center shadow-lg shadow-purple-500/30"
                 whileTap={{ scale: 0.97 }}
-                onClick={triggerRipple}
               >
-                {/* Ripple Effect */}
+                {/* Ripple automático infinito */}
                 <motion.span
-                  className="absolute inset-0 bg-white/30"
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={rippleControls}
+                  className="absolute inset-0 bg-white/20"
+                  initial={{ scale: 0, opacity: 0.6 }}
+                  animate={{ scale: 2, opacity: 0 }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "easeOut",
+                    repeatDelay: 0.5
+                  }}
                 />
 
                 {loading ? (
