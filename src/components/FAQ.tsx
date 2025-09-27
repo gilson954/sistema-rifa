@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, MessageCircle } from 'lucide-react';
-import './faq.css'; // Importa o CSS de animação
+import './faq.css'; // Importa o CSS com animações
 
 const FAQ = () => {
   const [openItems, setOpenItems] = useState<number[]>([]);
@@ -101,21 +101,24 @@ const FAQ = () => {
         {/* Contact CTA */}
         <div className="mt-16 text-center">
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-8 transition-colors duration-300">
-            <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-              <MessageCircle className="text-white" size={32} />
+            {/* Ícone WhatsApp com gradiente animado */}
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 icon-gradient">
+              <MessageCircle size={32} className="icon-gradient-text" />
             </div>
 
-            <h3 className="text-2xl font-bold mb-4 transition-colors duration-300">
-              <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                Ainda tem dúvidas?
-              </span>
+            {/* Título animado */}
+            <h3 className="text-2xl font-bold mb-4 transition-colors duration-300 animated-gradient">
+              Ainda tem dúvidas?
             </h3>
+
             <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto transition-colors duration-300">
               Nossa equipe está sempre disponível para ajudar você a tirar suas dúvidas e começar a vender suas rifas.
             </p>
+
+            {/* Botão animado */}
             <button
               onClick={handleWhatsAppSupport}
-              className="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-semibold"
+              className="px-8 py-3 rounded-lg font-semibold button-gradient"
             >
               Falar com Suporte
             </button>
