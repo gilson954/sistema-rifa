@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, MessageCircle } from 'lucide-react';
+import './faq.css'; // Importa o CSS de animação
 
 const FAQ = () => {
   const [openItems, setOpenItems] = useState<number[]>([]);
@@ -44,13 +45,14 @@ const FAQ = () => {
   ];
 
   return (
-    <section id="duvidas" className="w-full py-20 bg-white dark:bg-gray-950 transition-colors duration-300">
+    <section
+      id="duvidas"
+      className="w-full py-20 bg-white dark:bg-gray-950 transition-colors duration-300"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 transition-colors duration-300">
-            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Dúvidas Frequentes
-            </span>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 transition-colors duration-300 animated-gradient">
+            Dúvidas Frequentes
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto transition-colors duration-300">
             Se não encontrar sua dúvida por aqui, fale com a gente. Estamos prontos pra ajudar!
@@ -80,7 +82,11 @@ const FAQ = () => {
                   />
                 </button>
 
-                <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div
+                  className={`overflow-hidden transition-all duration-300 ${
+                    isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                  }`}
+                >
                   <div className="px-6 pb-6">
                     <p className="text-gray-600 dark:text-gray-300 leading-relaxed transition-colors duration-300">
                       {faq.answer}
