@@ -397,20 +397,4 @@
 
 /* Button Gradient Animation */
 @keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.gradient-button {
-  background: linear-gradient(-45deg, #7e22ce, #4f46e5, #9333ea, #0f172a);
-  background-size: 300% 300%;
-  animation: gradientMove 5s ease infinite;
-  color: white;
-  transition: opacity 0.3s ease;
-}
-
-.gradient-button:hover {
-  opacity: 0.9;
-  background-position: 100% 50%;
-}
+  0% { background-position: 0%
