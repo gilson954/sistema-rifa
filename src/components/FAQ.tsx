@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronDown, MessageCircle } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import './faq.css'; // Importa o CSS com animações
 
 const FAQ = () => {
@@ -101,9 +102,10 @@ const FAQ = () => {
         {/* Contact CTA */}
         <div className="mt-16 text-center">
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-8 transition-colors duration-300">
+            
             {/* Ícone WhatsApp com gradiente animado */}
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 icon-gradient">
-              <MessageCircle size={32} className="icon-gradient-text" />
+              <FaWhatsapp size={32} className="icon-gradient-text" />
             </div>
 
             {/* Título animado */}
