@@ -70,11 +70,15 @@ const HowItWorks = () => {
                 transition={{ duration: 0.6, delay: 0.3 + index * 0.2 }}
                 className="relative bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 hover:bg-white dark:hover:bg-gray-800 hover:shadow-xl transition-all duration-300"
               >
-                {/* Step Number */}
+                {/* Step Number - Animação de Gradiente */}
                 <div className="absolute -top-4 left-8">
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                  <motion.div
+                    className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg"
+                    animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                  >
                     {step.number}
-                  </div>
+                  </motion.div>
                 </div>
 
                 {/* Icon - versão antiga */}
