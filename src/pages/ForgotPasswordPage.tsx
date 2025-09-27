@@ -1,8 +1,10 @@
+// src/pages/ForgotPasswordPage.tsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import AuthHeader from '../components/AuthHeader';
+import { translateAuthError } from '../utils/errorTranslators'; // ✅ Importando função de tradução
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -16,13 +18,13 @@ const ForgotPasswordPage = () => {
     setLoading(true);
     setError('');
 
-    // 🔹 Ajuste do plano do Bolt: remover ?type=recovery
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    // 🔹 Removido ?type=recovery conforme plano
+    const { error: supabaseError } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
 
-    if (error) {
-      setError(error.message);
+    if (supabaseError) {
+      setError(translateAuthError(supabaseError.message)); // ✅ Traduzindo mensagem
       setLoading(false);
     } else {
       setSuccess(true);
@@ -40,22 +42,22 @@ const ForgotPasswordPage = () => {
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
-              
+
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                 Email Enviado!
               </h2>
-              
+
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Enviamos um link para redefinir sua senha para <strong>{email}</strong>. 
                 Verifique sua caixa de entrada e siga as instruções.
               </p>
-              
+
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
                 <p className="text-sm text-blue-800 dark:text-blue-200">
                   <strong>Não recebeu o email?</strong> Verifique sua pasta de spam ou lixo eletrônico.
                 </p>
               </div>
-              
+
               <Link
                 to="/login"
                 className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 inline-flex items-center space-x-2"
