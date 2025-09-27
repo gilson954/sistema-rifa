@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Edit, Eye, CreditCard, TrendingUp, AlertCircle, ChevronLeft, ChevronRight, Copy, CheckCircle, QrCode, Loader2, Crown, Clock } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useCampaign, useCampaignWithRefetch } from '../hooks/useCampaigns';
+import { useCampaign } from '../hooks/useCampaigns';
 import { StripeAPI } from '../lib/api/stripe';
 import { STRIPE_PRODUCTS, formatPrice } from '../stripe-config';
+import { translateAuthError } from '../utils/errorTranslators';
 
 // Declare Stripe global variable
 declare global {
@@ -42,11 +43,11 @@ const CreateCampaignStep3Page = () => {
   const location = useLocation();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('pix');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [stripe, setStripe] = useState(null);
+  const [stripe, setStripe] = useState<any | null>(null);
   const [processing, setProcessing] = useState(false);
   const [paymentStatusMessage, setPaymentStatusMessage] = useState('');
-  const [qrCodeImage, setQrCodeImage] = useState(null);
-  const [pixCopyPasteCode, setPixCopyPasteCode] = useState(null);
+  const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
+  const [pixCopyPasteCode, setPixCopyPasteCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   
   // Extrai o ID da campanha da URL
@@ -112,31 +113,31 @@ const CreateCampaignStep3Page = () => {
 
     try {
       // Create Stripe checkout session
-      const { data: checkoutData, error } = await StripeAPI.createCheckoutSession({
+      const { data: checkoutData, error: stripeError } = await StripeAPI.createCheckoutSession({
         priceId: publicationProduct.priceId,
         campaignId: campaignId,
         successUrl: `${window.location.origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&campaign_id=${campaignId}`,
         cancelUrl: `${window.location.origin}/payment-cancelled`
       });
 
-      if (error || !checkoutData?.success) {
-        throw new Error(error?.message || checkoutData?.error || 'Erro ao criar checkout');
+      if (stripeError || !checkoutData?.success) {
+        throw new Error(translateAuthError(stripeError?.message || checkoutData?.error || 'Erro ao criar checkout'));
       }
 
       // Redirect to Stripe checkout
       if (checkoutData.checkout_url) {
         window.location.href = checkoutData.checkout_url;
       } else {
-        throw new Error('URL de checkout não encontrada');
+        throw new Error(translateAuthError('URL de checkout não encontrada'));
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing payment:', error);
       setPaymentStatusMessage('Falha no pagamento');
-      alert(error.message || 'Erro ao processar pagamento. Tente novamente.');
+      alert(translateAuthError(error?.message || 'Erro ao processar pagamento. Tente novamente.'));
       setProcessing(false);
     } finally {
-      // Don't set processing to false here since we're redirecting
+      // Não alteramos processing aqui porque normalmente redirecionamos para o Stripe
     }
   };
 
@@ -207,10 +208,10 @@ const CreateCampaignStep3Page = () => {
             }, 2000);
           }, 3000);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error processing payment:', error);
         setPaymentStatusMessage('Falha no pagamento');
-        alert('Erro ao processar pagamento. Tente novamente.');
+        alert(translateAuthError('Erro ao processar pagamento. Tente novamente.'));
       } finally {
         setProcessing(false);
       }
