@@ -1,3 +1,4 @@
+// src/components/Hero.tsx
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -10,24 +11,35 @@ const Hero = () => {
   };
 
   return (
-    <section className="pt-20 pb-16 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="relative pt-20 pb-16 bg-gradient-to-br from-purple-600 via-pink-500 to-indigo-600 dark:from-gray-800 dark:via-gray-900 dark:to-gray-950 transition-all duration-300">
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-600 animate-gradient"></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <div className="text-center lg:text-left">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight mb-6 transition-colors duration-300">
+            <motion.h1
+              className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6 transition-colors duration-300 animated-gradient"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1 }}
+            >
               Crie rifas online
               <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent"> do seu jeito</span>
-            </h1>
-            
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed transition-colors duration-300">
+            </motion.h1>
+
+            <motion.p
+              className="text-xl text-gray-200 dark:text-gray-300 mb-8 leading-relaxed transition-colors duration-300"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.2 }}
+            >
               Venda bilhetes, automatize pagamentos e sorteios. A plataforma completa para transformar suas rifas em um negócio profissional.
-            </p>
+            </motion.p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <button 
+              <button
                 onClick={handleGetStarted}
-                className="bg-purple-600 text-white px-8 py-4 rounded-lg hover:bg-purple-700 transition-all duration-200 font-semibold text-lg flex items-center justify-center group"
+                className="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-8 py-4 rounded-lg hover:bg-purple-700 transition-all duration-300 font-semibold text-lg flex items-center justify-center group"
               >
                 Comece Agora
                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-200" size={20} />
@@ -52,7 +64,7 @@ const Hero = () => {
                   <div className="text-white text-xs">750/1000 bilhetes vendidos</div>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-gray-50 dark:bg-gray-800 rounded p-3 text-center transition-colors duration-300">
                   <div className="text-2xl font-bold text-purple-600">R$ 37.5k</div>
