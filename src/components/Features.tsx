@@ -11,6 +11,7 @@ import {
   Tag,
   DollarSign
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Features = () => {
   const navigate = useNavigate();
@@ -66,9 +67,16 @@ const Features = () => {
     <section id="funcionalidades" className="py-20 bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 transition-colors duration-300">
-            Funcionalidades
-          </h2>
+          <motion.h2
+            className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, ease: 'easeOut' }}
+          >
+            <span className="bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
+              Funcionalidades
+            </span>
+          </motion.h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto transition-colors duration-300">
             Conheça o que o nosso sistema de rifas pode fazer por você
           </p>
@@ -78,24 +86,40 @@ const Features = () => {
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
-              <div 
+              <motion.div 
                 key={index} 
                 className="bg-white dark:bg-gray-900 rounded-2xl p-6 hover:shadow-xl dark:hover:shadow-none transition-all duration-300 group cursor-pointer"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: 'spring', stiffness: 300 }}
               >
                 <div className="mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <motion.div
+                    className="w-12 h-12 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-xl flex items-center justify-center"
+                    whileHover={{ scale: 1.2 }}
+                    transition={{ type: 'spring', stiffness: 200 }}
+                  >
                     <IconComponent className="text-purple-600 dark:text-purple-400" size={24} />
-                  </div>
+                  </motion.div>
                 </div>
                 
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
+                <motion.h3
+                  className="text-lg font-semibold text-gray-900 dark:text-white mb-3 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5, duration: 1 }}
+                >
                   {feature.title}
-                </h3>
+                </motion.h3>
                 
-                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed transition-colors duration-300">
+                <motion.p
+                  className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed transition-colors duration-300"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6, duration: 1 }}
+                >
                   {feature.description}
-                </p>
-              </div>
+                </motion.p>
+              </motion.div>
             );
           })}
         </div>
