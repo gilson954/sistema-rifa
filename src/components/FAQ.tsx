@@ -49,7 +49,7 @@ const FAQ = () => {
       id="duvidas"
       className="py-20 bg-white dark:bg-gray-950 transition-colors duration-300"
     >
-      {/* Largura maior para alinhar com outras seções */}
+      {/* Conteúdo centralizado com largura igual ao 'Como Funciona' */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 transition-colors duration-300">
