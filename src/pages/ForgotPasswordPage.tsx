@@ -1,8 +1,10 @@
+// src/pages/ForgotPasswordPage.tsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import AuthHeader from '../components/AuthHeader';
+import { translateAuthError } from '../utils/errorTranslators'; // ✅ Importando função de tradução
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -16,13 +18,13 @@ const ForgotPasswordPage = () => {
     setLoading(true);
     setError('');
 
-    // 🔹 Ajuste do plano do Bolt: remover ?type=recovery
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    // 🔹 Renomeando variável de erro e traduzindo
+    const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
 
-    if (error) {
-      setError(error.message);
+    if (authError) {
+      setError(translateAuthError(authError.message)); // ✅ Mensagem em português
       setLoading(false);
     } else {
       setSuccess(true);
