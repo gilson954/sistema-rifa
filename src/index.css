@@ -2,7 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* React DatePicker Styles - Clean and Modern */
+/* ==================== */
+/* React DatePicker CSS */
+/* ==================== */
+
 .react-datepicker-wrapper {
   width: 100%;
 }
@@ -12,7 +15,8 @@
   font-family: inherit;
   border: 1px solid rgb(229 231 235);
   border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06);
   background-color: white;
   overflow: hidden;
   position: static !important;
@@ -32,7 +36,8 @@
 .inline-datepicker {
   position: static !important;
   transform: none !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* Header Styling */
@@ -292,7 +297,7 @@
 .react-datepicker__time-box select:focus {
   outline: none;
   border-color: rgb(59 130 246);
-  box-shadow: 0 0 0 2px rgba(59, 130 246, 0.2);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 /* Time Separator */
@@ -311,12 +316,14 @@
   display: none;
 }
 
+/* Hide default time list */
+
 /* Input Field Enhancement */
 .react-datepicker__input-container input {
   width: 100%;
 }
 
-/* Responsive Design */
+/* Responsive Design for DatePicker */
 @media (max-width: 640px) {
   .react-datepicker {
     font-size: 0.875rem;
@@ -343,7 +350,9 @@
   }
 }
 
-/* Custom Scrollbar Styles */
+/* ===================== */
+/* Custom Scrollbar      */
+/* ===================== */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -355,21 +364,139 @@
 /* ===================== */
 /* Gradient Animation BG */
 /* ===================== */
+
+/* Provide two keyframe names for compatibility */
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 @keyframes gradientBackground {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
+/* Full-page animated gradient (light, colorful) */
+.bg-animated-gradient {
+  background: linear-gradient(-45deg, #f87171, #fb923c, #facc15, #34d399);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
+/* Dark variant (scoped inside .dark) */
+.dark .bg-animated-gradient-dark {
+  background: linear-gradient(-45deg, #0f172a, #1f2937, #111827, #0c0a09);
+  background-size: 400% 400%;
+  animation: gradientBG 20s ease infinite;
+}
+
+/* Generic animate-gradient (preferred by many pages) */
 .animate-gradient {
   background-size: 200% 200%;
   animation: gradientBackground 8s ease infinite;
 }
 
-/* Accessibility: respect user's reduced motion preference */
+/* Faster / alternative variants */
+.animate-gradient-preferred,
+.animate-gradient-8s,
+.animate-gradient-fast {
+  background-size: 200% 200%;
+  animation: gradientBackground 8s ease infinite;
+}
+
+/* Utility: animated gradient border (useful for buttons) */
+.animate-gradient-border {
+  background: linear-gradient(270deg, #9333ea, #ec4899, #6366f1);
+  background-size: 400% 400%;
+  animation: gradientBackground 6s ease infinite;
+  -webkit-background-clip: padding-box;
+}
+
+/* Utility to cover backgrounds nicely */
+.bg-animated-cover {
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+}
+
+/* Small helper to combine translucent card background with blurred backdrop */
+.bg-card-blur {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+}
+.dark .bg-card-blur {
+  background: rgba(17, 24, 39, 0.75);
+}
+
+/* ===================== */
+/* Buttons & Shadows     */
+/* ===================== */
+
+/* Example gradient button base (usable with utility classes) */
+.btn-gradient {
+  background: linear-gradient(90deg, #7c3aed 0%, #ec4899 50%, #6366f1 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.12), 0 6px 10px rgba(124, 58, 237, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.12s ease;
+}
+.btn-gradient:active { transform: translateY(1px); }
+.btn-gradient:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Optionally create bordered gradient button look */
+.btn-gradient-border {
+  position: relative;
+  padding: 2px;
+  border-radius: 10px;
+  display: inline-block;
+  background: linear-gradient(90deg, #7c3aed, #ec4899, #6366f1);
+}
+.btn-gradient-border > .btn-inner {
+  background: var(--inner-bg, white);
+  border-radius: 8px;
+  padding: 0.65rem 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===================== */
+/* Accessibility         */
+/* ===================== */
 @media (prefers-reduced-motion: reduce) {
-  .animate-gradient {
+  .animate-gradient,
+  .animate-gradient-preferred,
+  .animate-gradient-fast,
+  .bg-animated-gradient,
+  .bg-animated-gradient-dark,
+  .animate-gradient-border,
+  .btn-gradient {
     animation: none !important;
+    transition: none !important;
     background-size: auto !important;
   }
 }
+
+/* ===================== */
+/* Small responsive utils */
+/* ===================== */
+
+/* Slightly larger touch targets on mobile */
+@media (max-width: 480px) {
+  .btn-gradient,
+  .btn-gradient-border > .btn-inner {
+    padding: 0.9rem 1rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* End of file */
