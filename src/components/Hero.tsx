@@ -17,7 +17,10 @@ const Hero = () => {
           <div className="text-center lg:text-left">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight mb-6 transition-colors duration-300">
               Crie rifas online
-              <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent"> do seu jeito</span>
+              <span className="bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent animate-gradient-text">
+                {' '}
+                do seu jeito
+              </span>
             </h1>
             
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed transition-colors duration-300">
