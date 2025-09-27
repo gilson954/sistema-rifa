@@ -69,13 +69,11 @@ const Features = () => {
         <div className="text-center mb-16">
           <motion.h2
             className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, ease: 'easeOut' }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.5, ease: 'easeOut' }}
           >
-            <span className="bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
-              Funcionalidades
-            </span>
+            <span className="bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent animate-gradient">Funcionalidades</span>
           </motion.h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto transition-colors duration-300">
             Conheça o que o nosso sistema de rifas pode fazer por você
