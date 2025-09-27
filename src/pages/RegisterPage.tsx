@@ -35,11 +35,11 @@ const RegisterPage = () => {
       return
     }
 
-    // ✅ Ajuste automático do redirectTo
+    // ✅ Ajuste automático do redirectTo para a nova página de sucesso
     const redirectTo =
       process.env.NODE_ENV === 'development'
-        ? 'http://localhost:5173/login'
-        : 'https://rifaqui.netlify.app/login'
+        ? 'http://localhost:5173/email-confirmation-success'
+        : 'https://rifaqui.netlify.app/email-confirmation-success'
 
     const { error } = await signUp(email, password, name, redirectTo)
 
