@@ -1,3 +1,4 @@
+// src/components/HowItWorks.tsx
 import React from 'react';
 import { UserPlus, Settings, Share2 } from 'lucide-react';
 
@@ -32,7 +33,7 @@ const HowItWorks = () => {
   return (
     <section
       id="como-funciona"
-      className="py-20 bg-white dark:bg-gray-950 transition-colors duration-300"
+      className="py-20 bg-transparent dark:bg-transparent transition-colors duration-300"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
@@ -40,8 +41,7 @@ const HowItWorks = () => {
             Como Funciona
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Entenda em 3 passos simples como começar a vender suas rifas com
-            nossa plataforma
+            Entenda em 3 passos simples como começar a vender suas rifas com nossa plataforma
           </p>
         </div>
 
@@ -51,7 +51,8 @@ const HowItWorks = () => {
             return (
               <div
                 key={index}
-                className="relative p-8 hover:shadow-xl transition-all duration-300"
+                className="relative p-8 rounded-2xl transition-all duration-300 bg-transparent hover:shadow-xl"
+                aria-labelledby={`how-step-${index}`}
               >
                 {/* Step Number */}
                 <div className="absolute -top-4 left-8">
@@ -68,7 +69,7 @@ const HowItWorks = () => {
                 </div>
 
                 {/* Content */}
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <h3 id={`how-step-${index}`} className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                   {step.title}
                 </h3>
                 <p className="text-purple-600 dark:text-purple-400 font-semibold mb-4">
@@ -80,15 +81,15 @@ const HowItWorks = () => {
 
                 {/* Connector Line */}
                 {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-12 -right-4 w-8 h-0.5 bg-gradient-to-r from-purple-300 to-blue-300 dark:from-purple-600 dark:to-blue-600"></div>
+                  <div className="hidden md:block absolute top-12 -right-4 w-8 h-0.5 bg-gradient-to-r from-purple-300 to-blue-300 dark:from-purple-600 dark:to-blue-600" />
                 )}
               </div>
             );
           })}
         </div>
 
-        {/* Tips Section */}
-        <div className="mt-16 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-8 transition-colors duration-300">
+        {/* Tips Section (sem fundo) */}
+        <div className="mt-16 rounded-2xl p-8 bg-transparent">
           <div className="flex items-start">
             <div className="text-2xl mr-4">💡</div>
             <div>
@@ -96,9 +97,7 @@ const HowItWorks = () => {
                 Dica Profissional
               </h4>
               <p className="text-gray-600 dark:text-gray-300">
-                Use imagens de alta qualidade do seu prêmio e crie uma descrição
-                detalhada para aumentar a confiança dos compradores e melhorar
-                suas vendas.
+                Use imagens de alta qualidade do seu prêmio e crie uma descrição detalhada para aumentar a confiança dos compradores e melhorar suas vendas.
               </p>
             </div>
           </div>
