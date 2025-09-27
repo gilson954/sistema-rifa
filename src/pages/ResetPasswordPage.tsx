@@ -1,9 +1,11 @@
+// src/pages/ResetPasswordPage.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Lock, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import AuthHeader from '../components/AuthHeader';
+import { translateAuthError } from '../utils/errorTranslators'; // ✅ Importando função de tradução
 
 const ResetPasswordPage = () => {
   const [password, setPassword] = useState('');
@@ -20,7 +22,6 @@ const ResetPasswordPage = () => {
   // Check authentication state after component mounts
   useEffect(() => {
     if (!authLoading) {
-      // Agora lê do fragmento da URL (#) em vez de search (?)
       const urlParams = new URLSearchParams(window.location.hash.substring(1));
       const isRecoveryFlow = urlParams.get('type') === 'recovery';
       
@@ -28,11 +29,8 @@ const ResetPasswordPage = () => {
         setAuthError(true);
       } else if (!user && isRecoveryFlow) {
         const timeout = setTimeout(() => {
-          if (!user) {
-            setAuthError(true);
-          }
+          if (!user) setAuthError(true);
         }, 2000);
-        
         return () => clearTimeout(timeout);
       }
     }
@@ -56,12 +54,10 @@ const ResetPasswordPage = () => {
     }
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      });
+      const { error: authError } = await supabase.auth.updateUser({ password });
 
-      if (error) {
-        setError(error.message);
+      if (authError) {
+        setError(translateAuthError(authError.message)); // ✅ Mensagem em português
         setLoading(false);
       } else {
         setSuccess(true);
@@ -69,9 +65,9 @@ const ResetPasswordPage = () => {
           navigate('/login');
         }, 3000);
       }
-    } catch (error) {
-      console.error('Error updating password:', error);
-      setError('Erro inesperado. Tente novamente.');
+    } catch (err: any) {
+      console.error('Error updating password:', err);
+      setError(translateAuthError(err.message || 'Erro inesperado. Tente novamente.'));
       setLoading(false);
     }
   };
