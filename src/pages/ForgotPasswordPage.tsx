@@ -48,7 +48,7 @@ const ForgotPasswordPage = () => {
         <AuthHeader backTo="login" />
 
         <div className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden">
-          {/* Fundo animado */}
+          {/* Fundo com gradiente animado */}
           <div className="absolute inset-0 -z-10">
             <div className="w-full h-full bg-animated-gradient dark:bg-animated-gradient-dark" />
           </div>
@@ -68,7 +68,8 @@ const ForgotPasswordPage = () => {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Email Enviado!</h2>
 
               <p className="text-gray-700 dark:text-gray-300 mb-6">
-                Enviamos um link para redefinir sua senha para <strong>{email}</strong>. Verifique sua caixa de entrada e siga as instruções.
+                Enviamos um link para redefinir sua senha para <strong>{email}</strong>.  
+                Verifique sua caixa de entrada e siga as instruções.
               </p>
 
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
@@ -79,7 +80,7 @@ const ForgotPasswordPage = () => {
 
               <Link
                 to="/login"
-                className="inline-block w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:opacity-90 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center shadow-lg shadow-purple-500/30"
+                className="inline-block w-full animate-gradient bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:opacity-90 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center shadow-lg shadow-purple-500/30"
               >
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 Voltar para Login
@@ -96,7 +97,7 @@ const ForgotPasswordPage = () => {
       <AuthHeader backTo="login" />
 
       <div className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden">
-        {/* Fundo animado */}
+        {/* Fundo com gradiente animado */}
         <div className="absolute inset-0 -z-10">
           <div className="w-full h-full bg-animated-gradient dark:bg-animated-gradient-dark" />
         </div>
@@ -153,7 +154,9 @@ const ForgotPasswordPage = () => {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Email
+                </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
@@ -170,7 +173,7 @@ const ForgotPasswordPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:opacity-90 disabled:opacity-50 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center shadow-lg shadow-purple-500/30"
+                className="w-full animate-gradient bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:opacity-90 disabled:opacity-50 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center shadow-lg shadow-purple-500/30"
               >
                 {loading ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
