@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Plus, Share2, Calendar, Users, DollarSign, MoreVertical, CreditCard as Edit, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { 
+  Eye, 
+  EyeOff, 
+  Plus, 
+  Share2,
+  Calendar,
+  Users,
+  DollarSign,
+  MoreVertical,
+  CreditCard as Edit,
+  Clock,
+  AlertTriangle,
+  CheckCircle
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
@@ -8,9 +21,6 @@ import { CampaignAPI } from '../lib/api/campaigns';
 import SubscriptionStatus from '../components/SubscriptionStatus';
 import { supabase } from '../lib/supabase';
 
-/**
- * Utility function to calculate time remaining until expiration
- */
 const getTimeRemaining = (expiresAt: string) => {
   const now = new Date().getTime();
   const expiration = new Date(expiresAt).getTime();
@@ -234,7 +244,7 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
+    <div className="dashboard-page min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Top area */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -450,7 +460,7 @@ const DashboardPage = () => {
                     <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mt-4">
                       <button
                         onClick={() => handleViewCampaign(campaign.id)}
-                        className="px-3 py-2 rounded-lg border-2 border-transparent bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 hover:border-purple-500 hover:text-white hover:bg-purple-600/20 transition font-medium"
+                        className="px-3 py-2 rounded-lg border-2 border-transparent bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 hover:border-purple-500 hover:text-white hover:bg-purple-600/20 transition font-medium btn-gradient-text"
                         aria-label={`Visualizar ${campaign.title}`}
                       >
                         Visualizar
@@ -458,7 +468,7 @@ const DashboardPage = () => {
                       
                       <button
                         onClick={() => handleViewSalesHistory(campaign.id)}
-                        className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow transition flex items-center justify-center gap-1"
+                        className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow transition flex items-center justify-center gap-1 btn-solid"
                       >
                         <DollarSign className="h-4 w-4" /> Vendas
                       </button>
@@ -466,7 +476,7 @@ const DashboardPage = () => {
                       {campaign.status === 'draft' && !campaign.is_paid && (
                         <button
                           onClick={() => handlePublishCampaign(campaign.id)}
-                          className="px-3 py-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 animate-gradient-x text-white text-sm font-medium shadow transition"
+                          className="px-3 py-2 rounded-lg animate-gradient-x bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-medium shadow transition"
                         >
                           Publicar
                         </button>
@@ -476,7 +486,7 @@ const DashboardPage = () => {
                         onClick={() => handleEditCampaign(campaign.id)}
                         className="px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600"
                       >
-                        Editar
+                        <Edit className="h-4 w-4 inline-block mr-2" /> Editar
                       </button>
                     </div>
                   </div>
@@ -489,34 +499,15 @@ const DashboardPage = () => {
               <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-3">
                 <div className="text-sm text-gray-700 dark:text-gray-300">Mostrando {((currentPage - 1) * pageSize) + 1} a {Math.min(currentPage * pageSize, campaigns.length)} de {campaigns.length} campanhas</div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200/10 dark:border-gray-700/20 text-sm font-medium disabled:opacity-50">Anterior</button>
+                  <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="pagination-button px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200/10 dark:border-gray-700/20 text-sm font-medium disabled:opacity-50">Anterior</button>
                   <div className="px-4 py-2 bg-white/6 dark:bg-gray-800/30 rounded-lg">{currentPage} de {totalPages}</div>
-                  <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200/10 dark:border-gray-700/20 text-sm font-medium disabled:opacity-50">Próximo</button>
+                  <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="pagination-button px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200/10 dark:border-gray-700/20 text-sm font-medium disabled:opacity-50">Próximo</button>
                 </div>
               </div>
             )}
           </div>
         )}
       </main>
-
-      {/*
-        CSS recommendation: create a file named DashboardPage.css in the same folder and paste the following styles.
-        (I include it here as a comment so you can copy-paste.)
-
-        --- DashboardPage.css ---
-
-        @keyframes gradient-x {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-
-        .animate-gradient-x {
-          background-size: 200% 200%;
-          animation: gradient-x 6s linear infinite;
-        }
-
-      */}
     </div>
   );
 };
