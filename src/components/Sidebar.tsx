@@ -1,202 +1,203 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { 
-  LayoutGrid, 
-  CreditCard, 
-  Share2, 
-  BarChart3, 
-  Palette, 
-  User, 
-  HelpCircle, 
-  X,
+import React from "react";
+import {
+  LayoutDashboard,
+  CreditCard,
   Trophy,
-  Users,
-  Menu,
+  Share2,
+  BarChart2,
+  Sliders,
+  User,
+  HelpCircle,
   LogOut,
-} from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
-import SubscriptionStatus from './SubscriptionStatus';
+} from "lucide-react";
+import { NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-interface SidebarProps {
-  onClose?: () => void;
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
-  const navigate = useNavigate();
-  const { user, signOut } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [profile, setProfile] = useState<{ name: string; email: string } | null>(null);
-
-  useEffect(() => {
-    if (user) {
-      const fetchProfile = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('name, email')
-          .eq('id', user.id);
-        
-        if (data && data.length > 0) {
-          setProfile(data[0]);
-        }
-      };
-      fetchProfile();
-    }
-  }, [user]);
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/login');
-    onClose?.();
-    setIsMobileMenuOpen(false);
-  };
-
-  const handleNavClick = () => {
-    setIsMobileMenuOpen(false);
-    onClose?.();
-  };
-
-  const displayName = profile?.name || user?.user_metadata?.name || 'Usuário';
-  const displayEmail = profile?.email || user?.email || 'usuario@rifaqui.com';
-
-  const menuItems = [
-    { icon: LayoutGrid, label: 'Campanhas (Home)', path: '/dashboard' },
-    { icon: CreditCard, label: 'Métodos de pagamentos', path: '/dashboard/integrations' },
-    { icon: Trophy, label: 'Ranking', path: '/dashboard/ranking' },
-    { icon: Users, label: 'Afiliações', path: '/dashboard/affiliations' },
-    { icon: Share2, label: 'Redes sociais', path: '/dashboard/social-media' },
-    { icon: BarChart3, label: 'Pixels e Analytics', path: '/dashboard/analytics' },
-    { icon: Palette, label: 'Personalização', path: '/dashboard/customize' },
-    { icon: User, label: 'Minha conta', path: '/dashboard/account' },
-    { icon: HelpCircle, label: 'Tutoriais', path: '/dashboard/tutorials' },
-  ];
+const Sidebar: React.FC = () => {
+  const { logout, user } = useAuth();
 
   return (
-    <>
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsMobileMenuOpen(true)}
-        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg shadow-lg border border-gray-200 dark:border-gray-800"
-      >
-        <Menu className="h-6 w-6" />
-      </button>
-
-      {isMobileMenuOpen && (
-        <div 
-          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={`
-        w-64 bg-white dark:bg-gray-900 min-h-screen flex flex-col border-r border-gray-200 dark:border-gray-800
-        md:relative md:translate-x-0
-        fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
-        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-      `}>
-        {/* Mobile Close */}
-        <div className="md:hidden flex justify-end p-4">
-          <button
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
-          >
-            <X className="h-6 w-6" />
-          </button>
+    <aside
+      className="
+        w-64 min-h-screen flex flex-col gap-6
+        rounded-2xl p-4 shadow-sm border border-gray-200/20 
+        dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 
+        backdrop-blur-sm
+      "
+    >
+      {/* Logo */}
+      <div className="flex items-center gap-2 px-2">
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold">
+          R
         </div>
-
-        {/* Logo */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-800">
-          <div className="flex items-center">
-            <img 
-              src="/logo-chatgpt.png" 
-              alt="Rifaqui Logo" 
-              className="w-8 h-8 object-contain"
-            />
-            <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
-          </div>
-        </div>
-
-        {/* User Profile */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-800">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 animate-gradient-x rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0"
-              style={{
-                background: "linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5)",
-                backgroundSize: "200% 200%",
-                animation: "gradient-x 6s linear infinite",
-              }}
-            >
-              {displayName.charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-gray-900 dark:text-white font-medium truncate">
-                {displayName}
-              </p>
-              <p className="text-gray-600 dark:text-gray-400 text-sm truncate">
-                {displayEmail}
-              </p>
-            </div>
-          </div>
-          <div className="mt-4">
-            <SubscriptionStatus showDetails={false} />
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 p-4 overflow-y-auto">
-          <ul className="space-y-2">
-            {menuItems.map((item, index) => {
-              const IconComponent = item.icon;
-              return (
-                <li key={index}>
-                  <NavLink
-                    to={item.path}
-                    onClick={handleNavClick}
-                    end={item.path === '/dashboard'}
-                    className={({ isActive }) =>
-                      `w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left font-medium truncate transition-all duration-300
-                      ${isActive
-                        ? 'text-white shadow-lg scale-[1.02]'
-                        : 'text-gray-700 dark:text-gray-300'
-                      }`
-                    }
-                    style={({ isActive }) =>
-                      isActive
-                        ? {
-                            background: "linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5)",
-                            backgroundSize: "200% 200%",
-                            animation: "gradient-x 6s linear infinite",
-                          }
-                        : {}
-                    }
-                  >
-                    <IconComponent className="h-5 w-5 flex-shrink-0" />
-                    <span>{item.label}</span>
-                  </NavLink>
-                </li>
-              );
-            })}
-
-            {/* Logout Button */}
-            <li>
-              <button
-                onClick={handleSignOut}
-                className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left font-medium truncate transition-all duration-300 text-white shadow-lg"
-                style={{
-                  background: "linear-gradient(90deg, #FF0000, #FF4D4D, #CC0000, #FF1A1A)",
-                  backgroundSize: "200% 200%",
-                  animation: "gradient-x 6s linear infinite",
-                }}
-              >
-                <LogOut className="h-5 w-5 flex-shrink-0" />
-                <span>Sair</span>
-              </button>
-            </li>
-          </ul>
-        </nav>
+        <span className="text-lg font-semibold text-gray-900 dark:text-white">
+          Rifaqui
+        </span>
       </div>
-    </>
+
+      {/* User card */}
+      <div className="flex items-center gap-3 px-2 py-3 rounded-xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-800/40 shadow-sm">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-semibold">
+          {user?.email?.[0]?.toUpperCase() || "G"}
+        </div>
+        <div className="flex flex-col">
+          <span className="text-sm font-medium text-gray-900 dark:text-white">
+            {user?.email?.split("@")[0] || "Usuário"}
+          </span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            {user?.email || "email@exemplo.com"}
+          </span>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 space-y-2">
+        <NavLink
+          to="/dashboard"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition 
+             ${
+               isActive
+                 ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow"
+                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-200/40 dark:hover:bg-gray-700/40"
+             }`
+          }
+        >
+          <LayoutDashboard className="h-5 w-5" />
+          Campanhas (Home)
+        </NavLink>
+
+        <NavLink
+          to="/dashboard/payments"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition 
+             ${
+               isActive
+                 ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow"
+                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-200/40 dark:hover:bg-gray-700/40"
+             }`
+          }
+        >
+          <CreditCard className="h-5 w-5" />
+          Métodos de pagamento
+        </NavLink>
+
+        <NavLink
+          to="/dashboard/ranking"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition 
+             ${
+               isActive
+                 ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow"
+                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-200/40 dark:hover:bg-gray-700/40"
+             }`
+          }
+        >
+          <Trophy className="h-5 w-5" />
+          Ranking
+        </NavLink>
+
+        <NavLink
+          to="/dashboard/affiliations"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition 
+             ${
+               isActive
+                 ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow"
+                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-200/40 dark:hover:bg-gray-700/40"
+             }`
+          }
+        >
+          <Share2 className="h-5 w-5" />
+          Afiliações
+        </NavLink>
+
+        <NavLink
+          to="/dashboard/socials"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition 
+             ${
+               isActive
+                 ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow"
+                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-200/40 dark:hover:bg-gray-700/40"
+             }`
+          }
+        >
+          <BarChart2 className="h-5 w-5" />
+          Redes sociais
+        </NavLink>
+
+        <NavLink
+          to="/dashboard/pixels"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition 
+             ${
+               isActive
+                 ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow"
+                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-200/40 dark:hover:bg-gray-700/40"
+             }`
+          }
+        >
+          <BarChart2 className="h-5 w-5" />
+          Pixels e Analytics
+        </NavLink>
+
+        <NavLink
+          to="/dashboard/customization"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition 
+             ${
+               isActive
+                 ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow"
+                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-200/40 dark:hover:bg-gray-700/40"
+             }`
+          }
+        >
+          <Sliders className="h-5 w-5" />
+          Personalização
+        </NavLink>
+
+        <NavLink
+          to="/dashboard/account"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition 
+             ${
+               isActive
+                 ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow"
+                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-200/40 dark:hover:bg-gray-700/40"
+             }`
+          }
+        >
+          <User className="h-5 w-5" />
+          Minha conta
+        </NavLink>
+
+        <NavLink
+          to="/dashboard/tutorials"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition 
+             ${
+               isActive
+                 ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow"
+                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-200/40 dark:hover:bg-gray-700/40"
+             }`
+          }
+        >
+          <HelpCircle className="h-5 w-5" />
+          Tutoriais
+        </NavLink>
+      </nav>
+
+      {/* Logout */}
+      <button
+        onClick={logout}
+        className="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition text-white shadow
+                   bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+      >
+        <LogOut className="h-5 w-5" />
+        Sair
+      </button>
+    </aside>
   );
 };
 
