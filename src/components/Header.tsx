@@ -114,7 +114,9 @@ export default function Header() {
                 </button>
                 <button 
                   onClick={handleLoginClick}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium"
+                  className="relative px-6 py-2 rounded-lg font-medium text-white overflow-hidden
+                             bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 
+                             bg-[length:200%_200%] animate-gradient-x"
                 >
                   Entrar
                 </button>
@@ -184,7 +186,9 @@ export default function Header() {
                 </button>
                 <button 
                   onClick={handleLoginClick}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium text-left"
+                  className="relative px-6 py-2 rounded-lg font-medium text-white overflow-hidden
+                             bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 
+                             bg-[length:200%_200%] animate-gradient-x text-left"
                 >
                   Entrar
                 </button>
