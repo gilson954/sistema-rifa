@@ -69,9 +69,9 @@
 }
 
 .animate-gradient-button {
-  background: linear-gradient(45deg, #FF0066, #00A1FF, #9B4DE5, #FFD700);
+  background: linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5, #FFD700);
   background-size: 300% 300%;
-  animation: gradientMove 3s linear infinite;
+  animation: gradientMove 4s ease infinite;
   color: white;
   padding: 12px 24px;
   font-size: 16px;
@@ -79,11 +79,13 @@
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .animate-gradient-button:hover {
   transform: scale(1.05);
-  background-position: 100% 50%;
 }
 
 /* Cards */
