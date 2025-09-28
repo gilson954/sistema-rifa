@@ -61,7 +61,7 @@ const EmailConfirmationSuccessPage = () => {
 
             <Link
               to="/login"
-              className="inline-block w-full animate-gradient text-white py-3 rounded-lg font-semibold transition-shadow duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/30"
+              className="w-full animate-gradient-button text-white py-3 rounded-lg font-semibold transition-shadow duration-200 flex items-center justify-center space-x-2 shadow-lg"
             >
               <span>Ir para Login</span>
               <ArrowRight className="h-5 w-5" />
