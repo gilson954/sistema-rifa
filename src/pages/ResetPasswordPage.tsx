@@ -78,9 +78,9 @@ const ResetPasswordPage = () => {
     return (
       <>
         <AuthHeader />
-        <div className="min-h-screen bg-animated-gradient dark:bg-animated-gradient-dark animate-gradient flex items-center justify-center p-4 pt-20">
+        <div className="min-h-screen bg-animated-gradient flex items-center justify-center p-4 pt-20">
           <div className="max-w-md w-full text-center">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
+            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-gray-200/50 dark:border-gray-800/50">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 Verificando link de redefinição...
@@ -99,9 +99,9 @@ const ResetPasswordPage = () => {
     return (
       <>
         <AuthHeader />
-        <div className="min-h-screen bg-animated-gradient dark:bg-animated-gradient-dark animate-gradient flex items-center justify-center p-4 pt-20">
+        <div className="min-h-screen bg-animated-gradient flex items-center justify-center p-4 pt-20">
           <div className="max-w-md w-full text-center">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
+            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-gray-200/50 dark:border-gray-800/50">
               <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                 <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
               </div>
@@ -120,16 +120,16 @@ const ResetPasswordPage = () => {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link
                   to="/forgot-password"
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 text-center"
+                  className="flex-1 animate-gradient-button text-white px-6 py-3 rounded-lg font-semibold transition-shadow duration-200 text-center"
                 >
                   Solicitar Novo Link
                 </Link>
                 <Link
                   to="/login"
-                  className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 text-center flex items-center justify-center space-x-2"
+                  className="flex-1 bg-gray-200/80 dark:bg-gray-700/80 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 text-center flex items-center justify-center space-x-2"
                 >
                   <ArrowLeft className="h-5 w-5" />
-                  <span>Voltar para Login</span>
+                  <span>Voltar</span>
                 </Link>
               </div>
             </div>
@@ -143,9 +143,9 @@ const ResetPasswordPage = () => {
     return (
       <>
         <AuthHeader />
-        <div className="min-h-screen bg-animated-gradient dark:bg-animated-gradient-dark animate-gradient flex items-center justify-center p-4 pt-20">
+        <div className="min-h-screen bg-animated-gradient flex items-center justify-center p-4 pt-20">
           <div className="max-w-md w-full text-center">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
+            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-gray-200/50 dark:border-gray-800/50">
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
@@ -169,16 +169,14 @@ const ResetPasswordPage = () => {
   return (
     <>
       <AuthHeader />
-      <div className="min-h-screen bg-animated-gradient dark:bg-animated-gradient-dark animate-gradient flex items-center justify-center p-4 pt-20">
+      <div className="min-h-screen bg-animated-gradient flex items-center justify-center p-4 pt-20">
         <div className="max-w-md w-full">
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <img 
-                src="/logo-chatgpt.png" 
-                alt="Rifaqui Logo" 
-                className="w-20 h-20 object-contain"
-              />
-            </div>
+            <img 
+              src="/logo-chatgpt.png" 
+              alt="Rifaqui Logo" 
+              className="w-20 h-20 object-contain mx-auto mb-4 drop-shadow-xl"
+            />
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Redefinir Senha
             </h1>
@@ -187,7 +185,7 @@ const ResetPasswordPage = () => {
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
+          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-gray-200/50 dark:border-gray-800/50">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center space-x-2">
@@ -215,7 +213,7 @@ const ResetPasswordPage = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Digite sua nova senha"
-                    className="w-full pl-10 pr-12 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                    className="w-full pl-10 pr-12 py-3 bg-gray-50/80 dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                     required
                   />
                   <button
@@ -240,7 +238,7 @@ const ResetPasswordPage = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirme sua nova senha"
-                    className="w-full pl-10 pr-12 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                    className="w-full pl-10 pr-12 py-3 bg-gray-50/80 dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                     required
                   />
                   <button
@@ -254,7 +252,7 @@ const ResetPasswordPage = () => {
               </div>
 
               {/* Requisitos */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="bg-blue-50/80 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                 <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
                   Requisitos da senha:
                 </h4>
@@ -273,7 +271,7 @@ const ResetPasswordPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center"
+                className="w-full animate-gradient-button disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-shadow duration-200 flex items-center justify-center shadow-lg"
               >
                 {loading ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
