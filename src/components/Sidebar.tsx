@@ -13,7 +13,6 @@ import {
   Users,
   Menu,
   LogOut,
-  FileText
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -31,7 +30,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
 
   useEffect(() => {
     if (user) {
-      // Fetch user profile
       const fetchProfile = async () => {
         const { data } = await supabase
           .from('profiles')
@@ -42,7 +40,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           setProfile(data[0]);
         }
       };
-
       fetchProfile();
     }
   }, [user]);
@@ -63,66 +60,15 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const displayEmail = profile?.email || user?.email || 'usuario@rifaqui.com';
 
   const menuItems = [
-    {
-      icon: LayoutGrid,
-      label: 'Campanhas (Home)',
-      path: '/dashboard',
-      action: null
-    },
-    {
-      icon: CreditCard,
-      label: 'Métodos de pagamentos',
-      path: '/dashboard/integrations',
-      action: null
-    },
-    {
-      icon: Trophy,
-      label: 'Ranking',
-      path: '/dashboard/ranking',
-      action: null
-    },
-    {
-      icon: Users,
-      label: 'Afiliações',
-      path: '/dashboard/affiliations',
-      action: null
-    },
-    {
-      icon: Share2,
-      label: 'Redes sociais',
-      path: '/dashboard/social-media',
-      action: null
-    },
-    {
-      icon: BarChart3,
-      label: 'Pixels e Analytics',
-      path: '/dashboard/analytics',
-      action: null
-    },
-    {
-      icon: Palette,
-      label: 'Personalização',
-      path: '/dashboard/customize',
-      action: null
-    },
-    {
-      icon: User,
-      label: 'Minha conta',
-      path: '/dashboard/account',
-      action: null
-    },
-    {
-      icon: HelpCircle,
-      label: 'Tutoriais',
-      path: '/dashboard/tutorials',
-      action: null
-    },
-    {
-      icon: LogOut,
-      label: 'Sair',
-      path: '/logout',
-      action: handleSignOut
-    }
+    { icon: LayoutGrid, label: 'Campanhas (Home)', path: '/dashboard' },
+    { icon: CreditCard, label: 'Métodos de pagamentos', path: '/dashboard/integrations' },
+    { icon: Trophy, label: 'Ranking', path: '/dashboard/ranking' },
+    { icon: Users, label: 'Afiliações', path: '/dashboard/affiliations' },
+    { icon: Share2, label: 'Redes sociais', path: '/dashboard/social-media' },
+    { icon: BarChart3, label: 'Pixels e Analytics', path: '/dashboard/analytics' },
+    { icon: Palette, label: 'Personalização', path: '/dashboard/customize' },
+    { icon: User, label: 'Minha conta', path: '/dashboard/account' },
+    { icon: HelpCircle, label: 'Tutoriais', path: '/dashboard/tutorials' },
   ];
 
   return (
@@ -135,7 +81,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         <Menu className="h-6 w-6" />
       </button>
 
-      {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <div 
           className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -145,12 +90,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
 
       {/* Sidebar */}
       <div className={`
-        w-60 bg-white dark:bg-gray-900 min-h-screen flex flex-col border-r border-gray-200 dark:border-gray-800
+        w-64 bg-white dark:bg-gray-900 min-h-screen flex flex-col border-r border-gray-200 dark:border-gray-800
         md:relative md:translate-x-0
         fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
-        {/* Mobile Close Button */}
+        {/* Mobile Close */}
         <div className="md:hidden flex justify-end p-4">
           <button
             onClick={() => setIsMobileMenuOpen(false)}
@@ -187,38 +132,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
               </p>
             </div>
           </div>
-          
-          {/* Subscription Status */}
           <div className="mt-4">
             <SubscriptionStatus showDetails={false} />
           </div>
         </div>
 
-        {/* Navigation Menu */}
+        {/* Navigation */}
         <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-2">
             {menuItems.map((item, index) => {
               const IconComponent = item.icon;
-              
-              // Special handling for the Sign Out item
-              if (item.action) {
-                return (
-                  <li key={index}>
-                    <button
-                      onClick={() => {
-                        item.action();
-                        handleNavClick();
-                      }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-red-600 hover:text-white transition-colors duration-200"
-                    >
-                      <IconComponent className="h-5 w-5 flex-shrink-0" />
-                      <span className="font-medium truncate">{item.label}</span>
-                    </button>
-                  </li>
-                );
-              }
-
-              // Regular navigation items
               return (
                 <li key={index}>
                   <NavLink
@@ -226,19 +149,30 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                     onClick={handleNavClick}
                     end={item.path === '/dashboard'}
                     className={({ isActive }) =>
-                      `w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 ${
-                        isActive
-                          ? 'bg-purple-600 text-white'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                      `w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left font-medium truncate transition-all duration-300
+                      ${isActive
+                        ? 'bg-gradient-to-r from-purple-600 via-pink-500 to-blue-500 text-white shadow-lg scale-[1.02]'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:text-white'
                       }`
                     }
                   >
                     <IconComponent className="h-5 w-5 flex-shrink-0" />
-                    <span className="font-medium truncate">{item.label}</span>
+                    <span>{item.label}</span>
                   </NavLink>
                 </li>
               );
             })}
+
+            {/* Logout Button */}
+            <li>
+              <button
+                onClick={handleSignOut}
+                className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left font-medium truncate transition-all duration-300 bg-gradient-to-r from-red-500 to-red-700 text-white hover:scale-[1.02] shadow-lg"
+              >
+                <LogOut className="h-5 w-5 flex-shrink-0" />
+                <span>Sair</span>
+              </button>
+            </li>
           </ul>
         </nav>
       </div>
