@@ -47,12 +47,7 @@ const ForgotPasswordPage = () => {
       <>
         <AuthHeader backTo="login" />
 
-        <div className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden">
-          {/* Fundo com gradiente animado */}
-          <div className="absolute inset-0 -z-10">
-            <div className="w-full h-full bg-animated-gradient dark:bg-animated-gradient-dark" />
-          </div>
-
+        <div className="min-h-screen bg-animated-gradient dark:bg-animated-gradient-dark animate-gradient flex items-center justify-center p-6 pt-20">
           <motion.div
             initial="hidden"
             animate="visible"
@@ -60,7 +55,7 @@ const ForgotPasswordPage = () => {
             transition={{ duration: 0.6, ease: 'easeOut' }}
             className="max-w-md w-full"
           >
-            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-800 text-center">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800 text-center">
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
@@ -80,7 +75,7 @@ const ForgotPasswordPage = () => {
 
               <Link
                 to="/login"
-                className="inline-block w-full animate-gradient bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:opacity-90 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center shadow-lg shadow-purple-500/30"
+                className="inline-flex w-full animate-gradient bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:opacity-90 text-white py-3 rounded-lg font-semibold transition items-center justify-center shadow-lg shadow-purple-500/30"
               >
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 Voltar para Login
@@ -96,12 +91,7 @@ const ForgotPasswordPage = () => {
     <>
       <AuthHeader backTo="login" />
 
-      <div className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden">
-        {/* Fundo com gradiente animado */}
-        <div className="absolute inset-0 -z-10">
-          <div className="w-full h-full bg-animated-gradient dark:bg-animated-gradient-dark" />
-        </div>
-
+      <div className="min-h-screen bg-animated-gradient dark:bg-animated-gradient-dark animate-gradient flex items-center justify-center p-6 pt-20">
         <motion.div
           initial="hidden"
           animate="visible"
@@ -143,7 +133,7 @@ const ForgotPasswordPage = () => {
             animate="visible"
             variants={fadeInUp}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-800"
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800"
           >
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
@@ -192,7 +182,7 @@ const ForgotPasswordPage = () => {
             <div className="mt-4 text-center">
               <Link
                 to="/login"
-                className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition inline-flex items-center space-x-2 justify-center"
+                className="inline-flex text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition items-center space-x-2 justify-center"
               >
                 <ArrowLeft className="h-4 w-4" />
                 <span>Voltar para Login</span>
