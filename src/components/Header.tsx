@@ -1,108 +1,202 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Disclosure } from "@headlessui/react";
-import { MenuIcon, XIcon } from "@heroicons/react/outline";
-
-const navigation = [
-  { name: "Funcionalidades", href: "#features", current: false },
-  { name: "Como Funciona", href: "#howitworks", current: false },
-  { name: "Preços", href: "#pricing", current: false },
-  { name: "FAQ", href: "#faq", current: false },
-];
-
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(" ");
-}
+import React from 'react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function Header() {
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLoginClick = () => {
-    navigate("/login");
+    navigate('/login');
   };
 
+  const handleRegisterClick = () => {
+    navigate('/register');
+  };
+
+  const handleGoHome = () => {
+    if (location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      navigate('/');
+    }
+  };
+
+  const scrollToSection = (sectionId: string) => {
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+    setIsMenuOpen(false);
+  };
+
+  if (user && location.pathname === '/') {
+    return null;
+  }
+
   return (
-    <Disclosure as="nav" className="bg-white dark:bg-gray-900 shadow-md">
-      {({ open }) => (
-        <>
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 justify-between">
-              {/* Logo */}
-              <div className="flex items-center">
-                <span className="text-2xl font-extrabold animate-gradient-text">
-                  Do Seu Jeito
-                </span>
-              </div>
+    <header className="fixed top-0 left-0 w-full z-50 transition-all duration-300 bg-black/50 backdrop-blur-md">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <button 
+              onClick={handleGoHome}
+              className="flex items-center hover:opacity-80 transition-opacity duration-200"
+              aria-label="Ir para página inicial"
+            >
+              <img 
+                src="/logo-chatgpt.png" 
+                alt="Rifaqui Logo" 
+                className="w-14 h-14 object-contain"
+              />
+              <span className="ml-2 text-2xl font-bold text-white">Rifaqui</span>
+            </button>
+          </div>
 
-              {/* Desktop Menu */}
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8 items-center">
-                {navigation.map((item) => (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    className={classNames(
-                      item.current
-                        ? "border-indigo-500 text-gray-900 dark:text-gray-100"
-                        : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-300",
-                      "inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium"
-                    )}
-                  >
-                    {item.name}
-                  </a>
-                ))}
+          {/* Desktop Navigation */}
+          {!user && (
+            <nav className="hidden md:flex space-x-8">
+              <button 
+                onClick={() => scrollToSection('como-funciona')}
+                className="text-white hover:text-purple-400 transition-colors duration-300 font-medium"
+              >
+                Como Funciona
+              </button>
+              <button 
+                onClick={() => scrollToSection('funcionalidades')}
+                className="text-white hover:text-purple-400 transition-colors duration-300 font-medium"
+              >
+                Funcionalidades
+              </button>
+              <button 
+                onClick={() => scrollToSection('duvidas')}
+                className="text-white hover:text-purple-400 transition-colors duration-300 font-medium"
+              >
+                Dúvidas
+              </button>
+            </nav>
+          )}
 
-                {/* Botão Entrar */}
-                <button
+          {/* Theme Toggle and Action Buttons */}
+          <div className="hidden md:flex items-center space-x-4">
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-white hover:text-purple-400 transition-colors duration-200 rounded-lg"
+              aria-label="Alternar tema"
+            >
+              {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+            </button>
+            
+            {/* Action Buttons (login, register) */}
+            {!user && (
+              <>
+                <button 
+                  onClick={handleRegisterClick}
+                  className="text-white hover:text-purple-400 px-4 py-2 rounded-lg font-medium transition-colors duration-200 hover:bg-purple-600"
+                >
+                  Criar conta
+                </button>
+                <button 
                   onClick={handleLoginClick}
-                  className="animate-gradient-button font-medium"
+                  className="relative px-6 py-2 rounded-lg font-medium text-white overflow-hidden
+                             bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 
+                             bg-[length:200%_200%] animate-gradient-x"
+                >
+                  Entrar
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          {!user && (
+            <div className="md:hidden">
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="text-white hover:text-purple-400 transition-colors duration-200"
+              >
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Navigation */}
+        {!user && isMenuOpen && (
+          <div className="md:hidden py-4 border-t border-gray-100 dark:border-gray-800">
+            <div className="flex flex-col space-y-4">
+              <button 
+                onClick={() => scrollToSection('como-funciona')}
+                className="text-white hover:text-purple-400 transition-colors duration-200 font-medium text-left"
+              >
+                Como Funciona
+              </button>
+              <button 
+                onClick={() => scrollToSection('funcionalidades')}
+                className="text-white hover:text-purple-400 transition-colors duration-200 font-medium text-left"
+              >
+                Funcionalidades
+              </button>
+              <button 
+                onClick={() => scrollToSection('duvidas')}
+                className="text-white hover:text-purple-400 transition-colors duration-200 font-medium text-left"
+              >
+                Dúvidas
+              </button>
+              <div className="flex flex-col space-y-2 pt-4 border-t border-gray-100 dark:border-gray-800">
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={toggleTheme}
+                    className="p-2 text-white hover:text-purple-400 transition-colors duration-200 rounded-lg"
+                    aria-label="Alternar tema"
+                  >
+                    {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                  </button>
+                </div>
+                <button 
+                  onClick={() => {
+                    navigate('/my-tickets');
+                    setIsMenuOpen(false);
+                  }}
+                  className="text-white hover:text-purple-400 px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-left hover:bg-gray-800"
+                >
+                  Minhas cotas
+                </button>
+                <button 
+                  onClick={handleRegisterClick}
+                  className="text-white hover:text-purple-400 px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-left hover:bg-purple-600"
+                >
+                  Criar conta
+                </button>
+                <button 
+                  onClick={handleLoginClick}
+                  className="relative px-6 py-2 rounded-lg font-medium text-white overflow-hidden
+                             bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 
+                             bg-[length:200%_200%] animate-gradient-x text-left"
                 >
                   Entrar
                 </button>
               </div>
-
-              {/* Mobile Menu Button */}
-              <div className="flex items-center sm:hidden">
-                <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                  <span className="sr-only">Abrir menu</span>
-                  {open ? (
-                    <XIcon className="block h-6 w-6" aria-hidden="true" />
-                  ) : (
-                    <MenuIcon className="block h-6 w-6" aria-hidden="true" />
-                  )}
-                </Disclosure.Button>
-              </div>
             </div>
           </div>
-
-          {/* Mobile Menu */}
-          <Disclosure.Panel className="sm:hidden">
-            <div className="space-y-1 pt-2 pb-3">
-              {navigation.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className={classNames(
-                    item.current
-                      ? "bg-indigo-50 border-indigo-500 text-indigo-700"
-                      : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-300",
-                    "block border-l-4 py-2 pl-3 pr-4 text-base font-medium"
-                  )}
-                >
-                  {item.name}
-                </a>
-              ))}
-            </div>
-            <div className="border-t border-gray-200 p-4">
-              <button
-                onClick={handleLoginClick}
-                className="w-full animate-gradient-button font-medium"
-              >
-                Entrar
-              </button>
-            </div>
-          </Disclosure.Panel>
-        </>
-      )}
-    </Disclosure>
+        )}
+      </div>
+    </header>
   );
 }
