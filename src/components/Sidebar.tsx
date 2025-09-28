@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { 
-  LayoutGrid, 
-  CreditCard, 
-  Share2, 
-  BarChart3, 
-  Palette, 
-  User, 
-  HelpCircle, 
+import {
+  LayoutGrid,
+  CreditCard,
+  Share2,
+  BarChart3,
+  Palette,
+  User,
+  HelpCircle,
   X,
   Trophy,
   Users,
@@ -35,7 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           .from('profiles')
           .select('name, email')
           .eq('id', user.id);
-        
+
         if (data && data.length > 0) {
           setProfile(data[0]);
         }
@@ -81,20 +81,23 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         <Menu className="h-6 w-6" />
       </button>
 
+      {/* Mobile Overlay */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`
+      <div
+        className={`
         w-64 bg-white dark:bg-gray-900 min-h-screen flex flex-col border-r border-gray-200 dark:border-gray-800
         md:relative md:translate-x-0
         fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-      `}>
+      `}
+      >
         {/* Mobile Close */}
         <div className="md:hidden flex justify-end p-4">
           <button
@@ -108,38 +111,34 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         {/* Logo */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center">
-            <img 
-              src="/logo-chatgpt.png" 
-              alt="Rifaqui Logo" 
-              className="w-8 h-8 object-contain"
-            />
+            <img src="/logo-chatgpt.png" alt="Rifaqui Logo" className="w-8 h-8 object-contain" />
             <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
           </div>
         </div>
 
-        {/* User Profile Card (padrão dos cards de campanha) */}
+        {/* Profile Card — MESMO PADRÃO DOS CARDS DE CAMPANHA */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-800">
-          <div className="rounded-2xl p-4 border bg-white/60 dark:bg-gray-900/40 border-gray-200/10 dark:border-gray-700/20 transition-all duration-200">
+          <div className="rounded-2xl p-4 border bg-white/6 dark:bg-gray-900/40 border-gray-200/10 dark:border-gray-700/20 transition-all duration-200">
             <div className="flex items-start gap-4">
-              {/* Avatar */}
-              <div
-                className="w-12 h-12 animate-gradient-x rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0 shadow"
-                style={{
-                  background: "linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5)",
-                  backgroundSize: "200% 200%",
-                  animation: "gradient-x 6s linear infinite",
-                }}
-              >
-                {displayName.charAt(0).toUpperCase()}
+              {/* Avatar — moldura igual ao image do card (quadrada, rounded-lg) */}
+              <div className="w-16 h-16 flex-shrink-0">
+                <div
+                  className="w-16 h-16 rounded-lg shadow-sm border border-gray-200/10 dark:border-gray-700/20 flex items-center justify-center animate-gradient-x"
+                  style={{
+                    background: 'linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5)',
+                    backgroundSize: '200% 200%',
+                    animation: 'gradient-x 6s linear infinite',
+                  }}
+                >
+                  <span className="text-white font-semibold text-lg">{displayName.charAt(0).toUpperCase()}</span>
+                </div>
               </div>
+
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                  {displayName}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
-                  {displayEmail}
-                </p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{displayName}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">{displayEmail}</p>
+
                 <div className="mt-3">
                   <SubscriptionStatus showDetails={false} />
                 </div>
@@ -161,17 +160,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                     end={item.path === '/dashboard'}
                     className={({ isActive }) =>
                       `w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left font-medium truncate transition-all duration-300
-                      ${isActive
-                        ? 'text-white shadow-lg scale-[1.02]'
-                        : 'text-gray-700 dark:text-gray-300'
-                      }`
+                      ${isActive ? 'text-white shadow-lg scale-[1.02]' : 'text-gray-700 dark:text-gray-300'}`
                     }
                     style={({ isActive }) =>
                       isActive
                         ? {
-                            background: "linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5)",
-                            backgroundSize: "200% 200%",
-                            animation: "gradient-x 6s linear infinite",
+                            background: 'linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5)',
+                            backgroundSize: '200% 200%',
+                            animation: 'gradient-x 6s linear infinite',
                           }
                         : {}
                     }
@@ -189,9 +185,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                 onClick={handleSignOut}
                 className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left font-medium truncate transition-all duration-300 text-white shadow-lg"
                 style={{
-                  background: "linear-gradient(90deg, #FF0000, #FF4D4D, #CC0000, #FF1A1A)",
-                  backgroundSize: "200% 200%",
-                  animation: "gradient-x 6s linear infinite",
+                  background: 'linear-gradient(90deg, #FF0000, #FF4D4D, #CC0000, #FF1A1A)',
+                  backgroundSize: '200% 200%',
+                  animation: 'gradient-x 6s linear infinite',
                 }}
               >
                 <LogOut className="h-5 w-5 flex-shrink-0" />
