@@ -122,9 +122,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 animate-gradient-x rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0"
               style={{
-                background: "linear-gradient(90deg, #FF0000, #FF4D4D, #CC0000, #FF1A1A)",
-                backgroundSize: "200% 200%",
-                animation: "gradient-x 6s linear infinite",
+                background: "linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5, #FFD700)",
+                backgroundSize: "200% 200%"
               }}
             >
               {displayName.charAt(0).toUpperCase()}
@@ -164,7 +163,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                     style={({ isActive }) =>
                       isActive
                         ? {
-                            background: "linear-gradient(90deg, #FF0000, #FF4D4D, #CC0000, #FF1A1A)",
+                            background: "linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5, #FFD700)",
                             backgroundSize: "200% 200%",
                             animation: "gradient-x 6s linear infinite",
                           }
@@ -184,7 +183,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                 onClick={handleSignOut}
                 className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left font-medium truncate transition-all duration-300 text-white shadow-lg"
                 style={{
-                  background: "linear-gradient(90deg, #FF0000, #FF4D4D, #CC0000, #FF1A1A)",
+                  background: "linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5, #FFD700)",
                   backgroundSize: "200% 200%",
                   animation: "gradient-x 6s linear infinite",
                 }}
