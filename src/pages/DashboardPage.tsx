@@ -173,6 +173,7 @@ const DashboardPage: React.FC = () => {
 
     // Se public_id estiver faltando no estado local, refetch a campanha
     if (!campaignToView?.public_id) {
+      console.log(`Public ID missing for campaign ${campaignId} in local state. Refetching...`);
       const { data: fetchedCampaign, error: fetchError } = await CampaignAPI.getCampaignById(campaignId);
       if (fetchError) {
         console.error('Error refetching campaign for view:', fetchError);
@@ -183,9 +184,11 @@ const DashboardPage: React.FC = () => {
     }
 
     if (campaignToView?.public_id) {
+      console.log(`Navigating to /c/${campaignToView.public_id}`);
       // Abre em nova aba para visualizar como usuário final
       window.open(`/c/${campaignToView.public_id}`, '_blank');
     } else {
+      console.error(`Could not get public_id for campaign ${campaignId} even after refetch.`);
       alert('Não foi possível encontrar o ID público da campanha.');
     }
   };
@@ -245,41 +248,21 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="dashboard-page min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
-      {/* HEADER: agora usa o padrão visual dos cards das campanhas */}
+      {/* HEADER: card-style (mantive apenas o subtitle solicitado) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <div className="rounded-2xl p-4 shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Rifaqui</h1>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Visão geral das suas campanhas</p>
+        <div className="rounded-2xl p-4 shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/6 dark:bg-gray-900/50 backdrop-blur-sm flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm text-gray-600 dark:text-gray-300">Visão geral das suas campanhas</p>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={handleCreateCampaign}
-              className="inline-flex items-center gap-2 bg-gradient-to-br from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-4 py-2 rounded-full font-semibold shadow-sm transition transform hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white px-4 py-2 rounded-full font-semibold shadow-sm transition transform hover:-translate-y-0.5"
             >
               <Plus className="h-4 w-4" />
               <span>Criar campanha</span>
             </button>
-
-            {/* Notificações (ícone) */}
-            <button aria-label="Notificações" className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-white/5 transition">
-              <svg className="h-5 w-5 text-gray-700 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-            </button>
-
-            {/* Preferência de tema / placeholder */}
-            <button aria-label="Alternar tema" className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-white/5 transition">
-              <svg className="h-5 w-5 text-gray-700 dark:text-gray-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1M12 20v1M4.2 4.2l.7.7M18.1 18.1l.7.7M1 12h1M22 12h1M4.2 19.8l.7-.7M18.1 5.9l.7-.7" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            </button>
-
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white text-sm font-semibold">
-              {(user?.email && user.email[0]?.toUpperCase()) || 'G'}
-            </div>
           </div>
         </div>
       </div>
