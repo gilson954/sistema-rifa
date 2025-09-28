@@ -26,7 +26,7 @@
 }
 
 .animate-gradient-text {
-  background: linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5, #FFD700); /* Cores mais vivas e modernas */
+  background: linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5, #FFD700);
   background-size: 400% 400%;
   animation: gradientBackgroundText 6s ease infinite;
   -webkit-background-clip: text;
@@ -43,8 +43,6 @@
 /* ===================== */
 /* Button & Card Animations */
 /* ===================== */
-
-/* Botões */
 .button {
   padding: 12px 24px;
   font-size: 16px;
@@ -62,7 +60,7 @@
 }
 
 /* ===================== */
-/* Animated Gradient for "Comece Agora" Button */
+/* Animated Gradient for Buttons ("Comece Agora" & "Entrar") */
 /* ===================== */
 @keyframes gradientMove {
   0% { background-position: 0% 50%; }
@@ -71,8 +69,8 @@
 }
 
 .animate-gradient-button {
-  background: linear-gradient(45deg, #FF0066, #00A1FF);
-  background-size: 200% 200%;
+  background: linear-gradient(45deg, #FF0066, #00A1FF, #9B4DE5, #FFD700);
+  background-size: 300% 300%;
   animation: gradientMove 3s linear infinite;
   color: white;
   padding: 12px 24px;
@@ -270,4 +268,3 @@
 .dark .react-datepicker__day--outside-month {
   color: rgb(107 114 128);
 }
-
