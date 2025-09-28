@@ -117,29 +117,34 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* User Profile */}
+        {/* User Profile Card (padrão dos cards de campanha) */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-800">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 animate-gradient-x rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0"
-              style={{
-                background: "linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5)",
-                backgroundSize: "200% 200%",
-                animation: "gradient-x 6s linear infinite",
-              }}
-            >
-              {displayName.charAt(0).toUpperCase()}
+          <div className="rounded-2xl p-4 border bg-white/60 dark:bg-gray-900/40 border-gray-200/10 dark:border-gray-700/20 transition-all duration-200">
+            <div className="flex items-start gap-4">
+              {/* Avatar */}
+              <div
+                className="w-12 h-12 animate-gradient-x rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0 shadow"
+                style={{
+                  background: "linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5)",
+                  backgroundSize: "200% 200%",
+                  animation: "gradient-x 6s linear infinite",
+                }}
+              >
+                {displayName.charAt(0).toUpperCase()}
+              </div>
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                  {displayName}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
+                  {displayEmail}
+                </p>
+                <div className="mt-3">
+                  <SubscriptionStatus showDetails={false} />
+                </div>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-gray-900 dark:text-white font-medium truncate">
-                {displayName}
-              </p>
-              <p className="text-gray-600 dark:text-gray-400 text-sm truncate">
-                {displayEmail}
-              </p>
-            </div>
-          </div>
-          <div className="mt-4">
-            <SubscriptionStatus showDetails={false} />
           </div>
         </div>
 
