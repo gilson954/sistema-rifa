@@ -19,7 +19,7 @@ const DashboardHeader = () => {
           .from('profiles')
           .select('name')
           .eq('id', user.id);
-        
+
         if (data && data.length > 0) {
           setProfile(data[0]);
         }
@@ -37,9 +37,12 @@ const DashboardHeader = () => {
   const displayName = profile?.name || user?.user_metadata?.name || 'Usuário';
 
   return (
-    <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 transition-colors duration-300">
+    <div className="m-4 sm:m-6 rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm flex items-center justify-between transition-colors duration-300">
       <div className="flex items-center space-x-4 min-w-0">
-        {/* Removed h1 title completely */}
+        {/* Pode colocar o nome do app aqui se quiser */}
+        <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white truncate">
+          Rifaqui
+        </h1>
       </div>
       
       <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
@@ -62,11 +65,10 @@ const DashboardHeader = () => {
         >
           <LogOut className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>
-        
-        <div className="text-right hidden sm:block">
-          <p className="text-gray-900 dark:text-white font-medium transition-colors duration-300">
-            {theme === 'light' ? 'Claro' : 'Escuro'}
-          </p>
+
+        {/* Avatar / iniciais do usuário */}
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white text-sm font-semibold">
+          {(displayName && displayName[0]?.toUpperCase()) || 'U'}
         </div>
       </div>
     </div>
