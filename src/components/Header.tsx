@@ -1,3 +1,4 @@
+// src/components/Header.tsx
 import React from 'react';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -45,6 +46,7 @@ export default function Header() {
     setIsMenuOpen(false);
   };
 
+  // Se o usuário estiver logado, não mostra o header na página inicial
   if (user && location.pathname === '/') {
     return null;
   }
@@ -55,14 +57,14 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <button 
+            <button
               onClick={handleGoHome}
               className="flex items-center hover:opacity-80 transition-opacity duration-200"
               aria-label="Ir para página inicial"
             >
-              <img 
-                src="/logo-chatgpt.png" 
-                alt="Rifaqui Logo" 
+              <img
+                src="/logo-chatgpt.png"
+                alt="Rifaqui Logo"
                 className="w-14 h-14 object-contain"
               />
               <span className="ml-2 text-2xl font-bold text-white">Rifaqui</span>
@@ -72,19 +74,19 @@ export default function Header() {
           {/* Desktop Navigation */}
           {!user && (
             <nav className="hidden md:flex space-x-8">
-              <button 
+              <button
                 onClick={() => scrollToSection('como-funciona')}
                 className="text-white hover:text-purple-400 transition-colors duration-300 font-medium"
               >
                 Como Funciona
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('funcionalidades')}
                 className="text-white hover:text-purple-400 transition-colors duration-300 font-medium"
               >
                 Funcionalidades
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('duvidas')}
                 className="text-white hover:text-purple-400 transition-colors duration-300 font-medium"
               >
@@ -102,21 +104,23 @@ export default function Header() {
             >
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </button>
-            
+
             {/* Action Buttons (login, register) */}
             {!user && (
               <>
-                <button 
+                <button
                   onClick={handleRegisterClick}
                   className="text-white hover:text-purple-400 px-4 py-2 rounded-lg font-medium transition-colors duration-200 hover:bg-purple-600"
                 >
                   Criar conta
                 </button>
-                <button 
+
+                {/* Botão Entrar atualizado: usa a classe de gradiente animado */}
+                <button
                   onClick={handleLoginClick}
                   className="relative px-6 py-2 rounded-lg font-medium text-white overflow-hidden
-                             bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 
-                             bg-[length:200%_200%] animate-gradient-x"
+                             animate-gradient-button focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2"
+                  aria-label="Entrar"
                 >
                   Entrar
                 </button>
@@ -130,6 +134,7 @@ export default function Header() {
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="text-white hover:text-purple-400 transition-colors duration-200"
+                aria-label={isMenuOpen ? 'Fechar menu' : 'Abrir menu'}
               >
                 {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
@@ -141,19 +146,19 @@ export default function Header() {
         {!user && isMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-100 dark:border-gray-800">
             <div className="flex flex-col space-y-4">
-              <button 
+              <button
                 onClick={() => scrollToSection('como-funciona')}
                 className="text-white hover:text-purple-400 transition-colors duration-200 font-medium text-left"
               >
                 Como Funciona
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('funcionalidades')}
                 className="text-white hover:text-purple-400 transition-colors duration-200 font-medium text-left"
               >
                 Funcionalidades
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('duvidas')}
                 className="text-white hover:text-purple-400 transition-colors duration-200 font-medium text-left"
               >
@@ -169,7 +174,7 @@ export default function Header() {
                     {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                   </button>
                 </div>
-                <button 
+                <button
                   onClick={() => {
                     navigate('/my-tickets');
                     setIsMenuOpen(false);
@@ -178,17 +183,19 @@ export default function Header() {
                 >
                   Minhas cotas
                 </button>
-                <button 
+                <button
                   onClick={handleRegisterClick}
                   className="text-white hover:text-purple-400 px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-left hover:bg-purple-600"
                 >
                   Criar conta
                 </button>
-                <button 
+
+                {/* Entrar mobile (mesmo estilo animado) */}
+                <button
                   onClick={handleLoginClick}
                   className="relative px-6 py-2 rounded-lg font-medium text-white overflow-hidden
-                             bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 
-                             bg-[length:200%_200%] animate-gradient-x text-left"
+                             animate-gradient-button text-left"
+                  aria-label="Entrar"
                 >
                   Entrar
                 </button>
