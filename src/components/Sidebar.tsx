@@ -120,7 +120,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         {/* User Profile */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 animate-gradient-x rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+            <div className="w-12 h-12 animate-gradient-x rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0"
+              style={{
+                background: "linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5, #FFD700)",
+                backgroundSize: "200% 200%"
+              }}
+            >
               {displayName.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
@@ -151,9 +156,18 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                     className={({ isActive }) =>
                       `w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left font-medium truncate transition-all duration-300
                       ${isActive
-                        ? 'bg-gradient-to-r from-purple-600 via-pink-500 to-blue-500 animate-gradient-x text-white shadow-lg scale-[1.02]'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-500 hover:via-pink-500 hover:to-blue-500 hover:animate-gradient-x hover:text-white'
+                        ? 'text-white shadow-lg scale-[1.02]'
+                        : 'text-gray-700 dark:text-gray-300'
                       }`
+                    }
+                    style={({ isActive }) =>
+                      isActive
+                        ? {
+                            background: "linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5, #FFD700)",
+                            backgroundSize: "200% 200%",
+                            animation: "gradient-x 6s linear infinite",
+                          }
+                        : {}
                     }
                   >
                     <IconComponent className="h-5 w-5 flex-shrink-0" />
@@ -167,7 +181,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
             <li>
               <button
                 onClick={handleSignOut}
-                className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left font-medium truncate transition-all duration-300 bg-gradient-to-r from-red-500 via-pink-600 to-red-700 animate-gradient-x text-white hover:scale-[1.03] shadow-lg"
+                className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left font-medium truncate transition-all duration-300 text-white shadow-lg"
+                style={{
+                  background: "linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5, #FFD700)",
+                  backgroundSize: "200% 200%",
+                  animation: "gradient-x 6s linear infinite",
+                }}
               >
                 <LogOut className="h-5 w-5 flex-shrink-0" />
                 <span>Sair</span>
