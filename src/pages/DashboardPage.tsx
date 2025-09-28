@@ -21,6 +21,12 @@ import { CampaignAPI } from '../lib/api/campaigns';
 import SubscriptionStatus from '../components/SubscriptionStatus';
 import { supabase } from '../lib/supabase';
 
+/* Helper to strip HTML tags from strings (defensive: avoids showing raw HTML) */
+const stripHtml = (input?: string) => {
+  if (!input) return '';
+  return input.replace(/<[^>]*>/g, '').trim();
+};
+
 const getTimeRemaining = (expiresAt: string) => {
   const now = new Date().getTime();
   const expiration = new Date(expiresAt).getTime();
@@ -43,7 +49,7 @@ const getTimeRemaining = (expiresAt: string) => {
   }
 };
 
-const DashboardPage = () => {
+const DashboardPage: React.FC = () => {
   const [showRevenue, setShowRevenue] = useState(false);
   const [displayPaymentSetupCard, setDisplayPaymentSetupCard] = useState(true);
   const navigate = useNavigate();
@@ -106,8 +112,6 @@ const DashboardPage = () => {
   useEffect(() => {
     if (!user) return;
 
-    console.log('🔄 Setting up real-time subscription for campaigns...');
-
     const channel = supabase
       .channel(`campaigns_${user.id}`)
       .on(
@@ -119,7 +123,6 @@ const DashboardPage = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('📡 Campaign update detected:', payload);
           // Refresh campaigns list when any campaign is updated
           refreshCampaigns();
         }
@@ -127,7 +130,6 @@ const DashboardPage = () => {
       .subscribe();
 
     return () => {
-      console.log('🔌 Unsubscribing from campaign updates');
       supabase.removeChannel(channel);
     };
   }, [user]);
@@ -135,8 +137,9 @@ const DashboardPage = () => {
   const refreshCampaigns = async () => {
     setRefreshingCampaigns(true);
     try {
-      // Force refresh campaigns by calling the API directly
-      window.location.reload(); // Simple but effective way to refresh all data
+      // Force refresh campaigns by reloading or re-fetching
+      // Keep simple and reliable (you can replace with a smarter refresh later)
+      window.location.reload();
     } catch (error) {
       console.error('Error refreshing campaigns:', error);
     } finally {
@@ -170,7 +173,6 @@ const DashboardPage = () => {
 
     // Se public_id estiver faltando no estado local, refetch a campanha
     if (!campaignToView?.public_id) {
-      console.log(`Public ID missing for campaign ${campaignId} in local state. Refetching...`);
       const { data: fetchedCampaign, error: fetchError } = await CampaignAPI.getCampaignById(campaignId);
       if (fetchError) {
         console.error('Error refetching campaign for view:', fetchError);
@@ -181,11 +183,9 @@ const DashboardPage = () => {
     }
 
     if (campaignToView?.public_id) {
-      console.log(`Navigating to /c/${campaignToView.public_id}`);
       // Abre em nova aba para visualizar como usuário final
       window.open(`/c/${campaignToView.public_id}`, '_blank');
     } else {
-      console.error(`Could not get public_id for campaign ${campaignId} even after refetch.`);
       alert('Não foi possível encontrar o ID público da campanha.');
     }
   };
@@ -346,14 +346,16 @@ const DashboardPage = () => {
                   {/* Image (top on mobile, left on desktop) */}
                   <img
                     src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1'}
-                    alt={campaign.title}
+                    alt={stripHtml(campaign.title) || 'Prêmio'}
                     className="w-full sm:w-28 h-40 sm:h-28 object-cover rounded-lg shadow-sm border border-gray-200/10 dark:border-gray-700/20 flex-shrink-0"
                   />
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-2">
                       <div className="min-w-0 pr-4">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">{campaign.title}</h3>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
+                          {stripHtml(campaign.title)}
+                        </h3>
                       </div>
 
                       <div className="flex flex-col items-end gap-2">
@@ -456,37 +458,51 @@ const DashboardPage = () => {
                       </div>
                     </div>
 
-                    {/* Actions: grid on mobile, inline on desktop */}
+                    {/* Actions: grid on mobile, inline on desktop
+                        - Visualizar: gradient background + icon (icon-only on xs)
+                        - Vendas: blue gradient
+                        - Publicar: green gradient (if draft & unpaid)
+                        - Editar: animated gradient
+                    */}
                     <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mt-4">
+                      {/* Visualizar - gradient background + icon */}
                       <button
                         onClick={() => handleViewCampaign(campaign.id)}
-                        className="px-3 py-2 rounded-lg border-2 border-transparent bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 hover:border-purple-500 hover:text-white hover:bg-purple-600/20 transition font-medium btn-gradient-text"
-                        aria-label={`Visualizar ${campaign.title}`}
+                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition transform hover:-translate-y-0.5
+                                   animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600"
+                        aria-label={`Visualizar ${stripHtml(campaign.title)}`}
                       >
-                        Visualizar
+                        <Eye className="h-4 w-4" />
+                        <span className="hidden sm:inline">Visualizar</span>
                       </button>
                       
+                      {/* Vendas */}
                       <button
                         onClick={() => handleViewSalesHistory(campaign.id)}
-                        className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow transition flex items-center justify-center gap-1 btn-solid"
+                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition transform hover:-translate-y-0.5
+                                   bg-gradient-to-r from-blue-500 to-indigo-600"
+                        aria-label={`Vendas ${stripHtml(campaign.title)}`}
                       >
-                        <DollarSign className="h-4 w-4" /> Vendas
+                        <DollarSign className="h-4 w-4" /> <span className="hidden sm:inline">Vendas</span>
                       </button>
                       
+                      {/* Publish (draft/unpaid) */}
                       {campaign.status === 'draft' && !campaign.is_paid && (
                         <button
                           onClick={() => handlePublishCampaign(campaign.id)}
-                          className="px-3 py-2 rounded-lg animate-gradient-x bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-medium shadow transition"
+                          className="px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition animate-gradient-x bg-gradient-to-r from-green-500 to-emerald-600"
                         >
                           Publicar
                         </button>
                       )}
                       
+                      {/* Edit */}
                       <button
                         onClick={() => handleEditCampaign(campaign.id)}
-                        className="px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600"
+                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600"
                       >
-                        <Edit className="h-4 w-4 inline-block mr-2" /> Editar
+                        <Edit className="h-4 w-4 inline-block mr-0 sm:mr-2" />
+                        <span className="hidden sm:inline">Editar</span>
                       </button>
                     </div>
                   </div>
