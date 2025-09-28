@@ -112,6 +112,8 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     if (!user) return;
 
+    console.log('🔄 Setting up real-time subscription for campaigns...');
+
     const channel = supabase
       .channel(`campaigns_${user.id}`)
       .on(
@@ -123,6 +125,7 @@ const DashboardPage: React.FC = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
+          console.log('📡 Campaign update detected:', payload);
           // Refresh campaigns list when any campaign is updated
           refreshCampaigns();
         }
@@ -130,6 +133,7 @@ const DashboardPage: React.FC = () => {
       .subscribe();
 
     return () => {
+      console.log('🔌 Unsubscribing from campaign updates');
       supabase.removeChannel(channel);
     };
   }, [user]);
@@ -137,9 +141,8 @@ const DashboardPage: React.FC = () => {
   const refreshCampaigns = async () => {
     setRefreshingCampaigns(true);
     try {
-      // Force refresh campaigns by reloading or re-fetching
-      // Keep simple and reliable (you can replace with a smarter refresh later)
-      window.location.reload();
+      // Force refresh campaigns by calling the API directly
+      window.location.reload(); // Simple but effective way to refresh all data
     } catch (error) {
       console.error('Error refreshing campaigns:', error);
     } finally {
@@ -173,6 +176,7 @@ const DashboardPage: React.FC = () => {
 
     // Se public_id estiver faltando no estado local, refetch a campanha
     if (!campaignToView?.public_id) {
+      console.log(`Public ID missing for campaign ${campaignId} in local state. Refetching...`);
       const { data: fetchedCampaign, error: fetchError } = await CampaignAPI.getCampaignById(campaignId);
       if (fetchError) {
         console.error('Error refetching campaign for view:', fetchError);
@@ -183,9 +187,11 @@ const DashboardPage: React.FC = () => {
     }
 
     if (campaignToView?.public_id) {
+      console.log(`Navigating to /c/${campaignToView.public_id}`);
       // Abre em nova aba para visualizar como usuário final
       window.open(`/c/${campaignToView.public_id}`, '_blank');
     } else {
+      console.error(`Could not get public_id for campaign ${campaignId} even after refetch.`);
       alert('Não foi possível encontrar o ID público da campanha.');
     }
   };
@@ -245,9 +251,10 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="dashboard-page min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Top area */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      {/* Cabeçalho com mesmo padrão visual dos cards */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="sticky top-4 z-10 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4
+                        shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Rifaqui</h1>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Visão geral das suas campanhas</p>
@@ -275,7 +282,9 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
 
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Payment Setup Card */}
         {displayPaymentSetupCard && (
           <div className="mb-6">
@@ -353,9 +362,7 @@ const DashboardPage: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-2">
                       <div className="min-w-0 pr-4">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
-                          {stripHtml(campaign.title)}
-                        </h3>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">{stripHtml(campaign.title)}</h3>
                       </div>
 
                       <div className="flex flex-col items-end gap-2">
@@ -458,14 +465,8 @@ const DashboardPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Actions: grid on mobile, inline on desktop
-                        - Visualizar: gradient background + icon (icon-only on xs)
-                        - Vendas: blue gradient
-                        - Publicar: green gradient (if draft & unpaid)
-                        - Editar: animated gradient
-                    */}
+                    {/* Actions: grid on mobile, inline on desktop */}
                     <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mt-4">
-                      {/* Visualizar - gradient background + icon */}
                       <button
                         onClick={() => handleViewCampaign(campaign.id)}
                         className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition transform hover:-translate-y-0.5
@@ -476,33 +477,27 @@ const DashboardPage: React.FC = () => {
                         <span className="hidden sm:inline">Visualizar</span>
                       </button>
                       
-                      {/* Vendas */}
                       <button
                         onClick={() => handleViewSalesHistory(campaign.id)}
-                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition transform hover:-translate-y-0.5
-                                   bg-gradient-to-r from-blue-500 to-indigo-600"
-                        aria-label={`Vendas ${stripHtml(campaign.title)}`}
+                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow transition flex items-center justify-center gap-1"
                       >
-                        <DollarSign className="h-4 w-4" /> <span className="hidden sm:inline">Vendas</span>
+                        <DollarSign className="h-4 w-4" /> Vendas
                       </button>
                       
-                      {/* Publish (draft/unpaid) */}
                       {campaign.status === 'draft' && !campaign.is_paid && (
                         <button
                           onClick={() => handlePublishCampaign(campaign.id)}
-                          className="px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition animate-gradient-x bg-gradient-to-r from-green-500 to-emerald-600"
+                          className="px-3 py-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 animate-gradient-x text-white text-sm font-medium shadow transition"
                         >
                           Publicar
                         </button>
                       )}
                       
-                      {/* Edit */}
                       <button
                         onClick={() => handleEditCampaign(campaign.id)}
-                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600"
+                        className="px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600"
                       >
-                        <Edit className="h-4 w-4 inline-block mr-0 sm:mr-2" />
-                        <span className="hidden sm:inline">Editar</span>
+                        <Edit className="h-4 w-4 inline-block mr-2" /> Editar
                       </button>
                     </div>
                   </div>
