@@ -270,3 +270,82 @@
 .dark .react-datepicker__day--outside-month {
   color: rgb(107 114 128);
 }
+
+/* ===================== */
+/* DashboardPage Styles  */
+/* ===================== */
+
+/* Gradiente animado contínuo */
+@keyframes gradient-x {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 6s linear infinite;
+}
+
+/* Fallback p/ texto gradiente quando Tailwind não aplica */
+.bg-clip-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.text-transparent {
+  color: transparent !important;
+}
+
+/* Escopo do Dashboard */
+.dashboard-page button {
+  transition: transform 0.22s ease, filter 0.22s ease, box-shadow 0.22s ease;
+  will-change: transform, filter;
+}
+
+.dashboard-page button:hover {
+  filter: brightness(1.03);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+/* Botão com texto gradiente (Visualizar) */
+.dashboard-page .btn-gradient-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Botão sólido (ex: Vendas) */
+.dashboard-page .btn-solid {
+  box-shadow: 0 4px 10px rgba(2,6,23,0.06);
+}
+
+/* Paginação */
+.dashboard-page .pagination-button {
+  padding: 0.45rem 0.8rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(148,163,184,0.12);
+  background: rgba(255,255,255,0.03);
+  color: inherit;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.dashboard-page .pagination-button:hover {
+  background: rgba(148,163,184,0.1);
+}
+.dashboard-page .pagination-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  .animate-gradient-x {
+    animation: none;
+    background-size: auto;
+  }
+  .dashboard-page button {
+    transition: none;
+    transform: none;
+  }
+}
