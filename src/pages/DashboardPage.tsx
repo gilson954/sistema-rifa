@@ -1,18 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Eye, 
-  EyeOff, 
-  Plus, 
-  Share2,
-  Calendar,
-  Users,
-  DollarSign,
-  MoreVertical,
-  Edit,
-  Clock,
-  AlertTriangle,
-  CheckCircle
-} from 'lucide-react';
+import { Eye, EyeOff, Plus, Share2, Calendar, Users, DollarSign, MoreVertical, CreditCard as Edit, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
