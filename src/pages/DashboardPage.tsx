@@ -20,7 +20,6 @@ import { useAuth } from '../context/AuthContext';
 import { CampaignAPI } from '../lib/api/campaigns';
 import SubscriptionStatus from '../components/SubscriptionStatus';
 import { supabase } from '../lib/supabase';
-import './DashboardPage.css';
 
 /**
  * Utility function to calculate time remaining until expiration
