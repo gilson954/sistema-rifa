@@ -46,6 +46,13 @@ const getTimeRemaining = (expiresAt: string) => {
   }
 };
 
+/** Strip basic HTML tags from string so we render plain text */
+const stripHtml = (input?: string) => {
+  if (!input) return '';
+  // remove tags and collapse whitespace
+  return input.replace(/<\/?[^>]+(>|$)/g, ' ').replace(/\s+/g, ' ').trim();
+};
+
 const DashboardPage = () => {
   const [showRevenue, setShowRevenue] = useState(false);
   const [displayPaymentSetupCard, setDisplayPaymentSetupCard] = useState(true);
@@ -247,11 +254,10 @@ const DashboardPage = () => {
   };
 
   return (
-    // NOTE: This component intentionally avoids rendering a global header/left sidebar so it
-    // integrates with apps that already have an outer layout (fixes the duplicated layout bug).
+    // This component is layout-friendly (no global header/sidebar duplicated)
     <div className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Top area: title + actions (keeps layout compact so it fits inside existing global header/sidebar) */}
+        {/* Top area */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Rifaqui</h1>
@@ -340,23 +346,28 @@ const DashboardPage = () => {
 
             <div className="grid gap-4">
               {paginatedCampaigns.map((campaign: Campaign) => (
-                <article key={campaign.id} className={`rounded-2xl p-4 border transition-all duration-200 flex flex-col sm:flex-row gap-4 items-start ${
-                  campaign.status === 'draft' && campaign.expires_at && getTimeRemaining(campaign.expires_at).expired
-                    ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                    : 'bg-white/6 dark:bg-gray-900/40 border-gray-200/10 dark:border-gray-700/20'
-                }`}>
-
+                <article
+                  key={campaign.id}
+                  className={`rounded-2xl p-4 border transition-all duration-200 flex flex-col sm:flex-row gap-4 items-start ${
+                    campaign.status === 'draft' && campaign.expires_at && getTimeRemaining(campaign.expires_at).expired
+                      ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                      : 'bg-white/6 dark:bg-gray-900/40 border-gray-200/10 dark:border-gray-700/20'
+                  }`}
+                >
+                  {/* Image (top on mobile, left on desktop) */}
                   <img
                     src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1'}
                     alt={campaign.title}
-                    className="w-full sm:w-28 h-28 object-cover rounded-lg shadow-sm border border-gray-200/10 dark:border-gray-700/20 flex-shrink-0"
+                    className="w-full sm:w-28 h-40 sm:h-28 object-cover rounded-lg shadow-sm border border-gray-200/10 dark:border-gray-700/20 flex-shrink-0"
                   />
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-2">
                       <div className="min-w-0 pr-4">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">{campaign.title}</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">{campaign.description || ''}</p>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">{campaign.title}</h3>
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                          {stripHtml(campaign.description) || 'Sem descrição'}
+                        </p>
                       </div>
 
                       <div className="flex flex-col items-end gap-2">
@@ -369,10 +380,61 @@ const DashboardPage = () => {
                             <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Processando</span>
                           )}
 
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>{getStatusText(campaign.status)}</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+                            {getStatusText(campaign.status)}
+                          </span>
                         </div>
                       </div>
                     </div>
+
+                    {/* Expiration / Payment Alerts */}
+                    {campaign.status === 'draft' && campaign.expires_at && !campaign.is_paid && (
+                      <div className="mb-3">
+                        {(() => {
+                          const timeRemaining = getTimeRemaining(campaign.expires_at);
+                          const isUrgent = !timeRemaining.expired && campaign.expires_at &&
+                            new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000; // Less than 24 hours
+                          
+                          return (
+                            <div className={`flex items-center space-x-2 p-2 rounded-lg text-sm ${
+                              timeRemaining.expired
+                                ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
+                                : isUrgent
+                                ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300'
+                                : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
+                            }`}>
+                              <Clock className="h-4 w-4" />
+                              <span>
+                                {timeRemaining.expired 
+                                  ? 'Campanha expirada - Faça o pagamento para reativar'
+                                  : `Faça o pagamento em até ${timeRemaining.text} ou ela vai expirar`
+                                }
+                              </span>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
+
+                    {campaign.status === 'draft' && campaign.is_paid && (
+                      <div className="mb-3">
+                        <div className="flex items-center space-x-2 p-2 rounded-lg text-sm bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                          <CheckCircle className="h-4 w-4" />
+                          <span>
+                            Taxa paga - {campaign.status === 'active' ? 'Campanha ativa!' : 'Ativando campanha...'}
+                          </span>
+                          {campaign.status !== 'active' && (
+                            <button
+                              onClick={refreshCampaigns}
+                              disabled={refreshingCampaigns}
+                              className="ml-2 text-xs bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded"
+                            >
+                              {refreshingCampaigns ? 'Atualizando...' : 'Atualizar'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Progress */}
                     <div className="mb-3">
@@ -380,42 +442,66 @@ const DashboardPage = () => {
                         <span className="text-sm text-gray-600 dark:text-gray-400">Progresso</span>
                         <span className="text-sm font-medium text-gray-900 dark:text-white">{calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                        <div className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%` }} />
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 sm:h-2">
+                        <div className="bg-gradient-to-r from-purple-600 to-blue-600 h-1.5 sm:h-2 rounded-full transition-all duration-300" style={{ width: `${calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%` }} />
                       </div>
                     </div>
 
+                    {/* Compact info grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm text-gray-600 dark:text-gray-300">
                       <div className="flex items-center gap-2 truncate">
                         <Users className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                         <span className="truncate">{campaign.sold_tickets}/{campaign.total_tickets} cotas</span>
                       </div>
-
+                      
                       <div className="flex items-center gap-2 truncate">
                         <DollarSign className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                         <span className="truncate">{formatCurrency(campaign.ticket_price)}</span>
                       </div>
-
+                      
                       <div className="flex items-center gap-2 truncate">
                         <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                         <span className="truncate">{formatDate(campaign.created_at)}</span>
                       </div>
-
+                      
                       <div className="flex items-center gap-2 truncate">
                         <DollarSign className="h-4 w-4 text-green-500" />
                         <span className="text-green-600 dark:text-green-400 font-medium truncate">{formatCurrency(campaign.ticket_price * campaign.sold_tickets)}</span>
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 mt-4">
-                      <button onClick={() => handleViewCampaign(campaign.id)} className="px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200/10 dark:border-gray-700/20 text-sm font-medium hover:shadow transition">Visualizar</button>
-                      <button onClick={() => handleViewSalesHistory(campaign.id)} className="px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200/10 dark:border-gray-700/20 text-sm font-medium hover:shadow transition">Vendas</button>
-
+                    {/* Actions: grid on mobile, inline on desktop */}
+                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mt-4">
+                      <button
+                        onClick={() => handleViewCampaign(campaign.id)}
+                        className="px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200/10 dark:border-gray-700/20 text-sm font-medium hover:shadow transition"
+                        aria-label={`Visualizar ${campaign.title}`}
+                      >
+                        Visualizar
+                      </button>
+                      
+                      <button
+                        onClick={() => handleViewSalesHistory(campaign.id)}
+                        className="px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200/10 dark:border-gray-700/20 text-sm font-medium hover:shadow transition"
+                      >
+                        Vendas
+                      </button>
+                      
                       {campaign.status === 'draft' && !campaign.is_paid && (
-                        <button onClick={() => handlePublishCampaign(campaign.id)} className="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition">Publicar</button>
+                        <button
+                          onClick={() => handlePublishCampaign(campaign.id)}
+                          className="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition"
+                        >
+                          Publicar
+                        </button>
                       )}
-
-                      <button onClick={() => handleEditCampaign(campaign.id)} className="px-3 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium transition">Editar</button>
+                      
+                      <button
+                        onClick={() => handleEditCampaign(campaign.id)}
+                        className="px-3 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium transition"
+                      >
+                        Editar
+                      </button>
                     </div>
                   </div>
                 </article>
