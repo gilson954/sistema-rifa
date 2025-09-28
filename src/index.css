@@ -16,6 +16,14 @@
   animation: gradientBackground 8s ease infinite;
 }
 
+/* Gradiente animado exclusivo p/ Sidebar ativo */
+.animate-gradient-sidebar {
+  background: linear-gradient(90deg, #7e22ce, #ec4899, #3b82f6);
+  background-size: 200% 200%;
+  animation: gradientBackground 6s linear infinite;
+  color: white !important;
+}
+
 /* ===================== */
 /* Animated Gradient for Titles */
 /* ===================== */
