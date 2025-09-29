@@ -1,3 +1,4 @@
+// src/components/DashboardHeader.tsx
 import React, { useState, useEffect } from 'react';
 import { Bell, Sun, Moon, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -5,7 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
-const DashboardHeader = () => {
+const DashboardHeader: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -15,13 +16,18 @@ const DashboardHeader = () => {
   useEffect(() => {
     if (user) {
       const fetchProfile = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('name')
-          .eq('id', user.id);
+        try {
+          const { data } = await supabase
+            .from('profiles')
+            .select('name')
+            .eq('id', user.id);
 
-        if (data && data.length > 0) {
-          setProfile(data[0]);
+          if (data && data.length > 0) {
+            setProfile(data[0]);
+          }
+        } catch (err) {
+          // fail silently — não é crítico para o título
+          console.error('Erro ao buscar profile no header', err);
         }
       };
 
@@ -34,46 +40,58 @@ const DashboardHeader = () => {
     navigate('/login');
   };
 
-  // Definir título com base na rota atual
-  const getTitle = () => {
-    if (location.pathname.includes('campanhas')) return 'Visão geral das suas campanhas';
-    if (location.pathname.includes('pagamento')) return 'Gerenciar métodos de pagamento';
-    if (location.pathname.includes('ranking')) return 'Ranking de vendedores';
-    if (location.pathname.includes('afiliacoes')) return 'Programa de afiliações';
-    if (location.pathname.includes('redes-sociais')) return 'Conexões com redes sociais';
-    if (location.pathname.includes('pixels')) return 'Pixels e Analytics';
-    if (location.pathname.includes('personalizacao')) return 'Personalização da página';
-    if (location.pathname.includes('conta')) return 'Minha conta';
-    if (location.pathname.includes('tutoriais')) return 'Tutoriais e ajuda';
+  // Títulos baseados nas rotas do sidebar (verifique se as rotas no Sidebar são exatamente essas)
+  const getTitle = (): string => {
+    const p = location.pathname;
+
+    // rotas específicas primeiro
+    if (p.startsWith('/dashboard/integrations')) return 'Métodos de pagamento';
+    if (p.startsWith('/dashboard/ranking')) return 'Ranking';
+    if (p.startsWith('/dashboard/affiliations')) return 'Afiliações';
+    if (p.startsWith('/dashboard/social-media')) return 'Redes sociais';
+    if (p.startsWith('/dashboard/analytics')) return 'Pixels e Analytics';
+    if (p.startsWith('/dashboard/customize')) return 'Personalização';
+    if (p.startsWith('/dashboard/account')) return 'Minha conta';
+    if (p.startsWith('/dashboard/tutorials')) return 'Tutoriais';
+
+    // páginas relacionadas a campanhas (criação, detalhe, vendas, etc.)
+    if (p.startsWith('/dashboard/create-campaign')) return 'Criar campanha';
+    if (p.startsWith('/dashboard/campaigns')) return 'Campanhas';
+
+    // rota principal do dashboard
+    if (p === '/dashboard' || p === '/dashboard/') return 'Visão geral das suas campanhas';
+
+    // fallback
     return 'Painel';
   };
 
   return (
     <div className="m-4 sm:m-6 rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm flex items-center justify-between transition-colors duration-300">
-      {/* Título dinâmico */}
+      {/* Título dinâmico conforme rota */}
       <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white truncate">
         {getTitle()}
       </h1>
-      
-      {/* Ações */}
+
+      {/* Ações (sem avatar "G") */}
       <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
-        <button className="relative p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors duration-200">
-          <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-purple-600 rounded-full"></span>
-        </button>
-        
         <button
-          onClick={toggleTheme}
-          className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors duration-200"
+          aria-label="Notificações"
+          className="relative p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors duration-200"
         >
-          {theme === 'light' ? (
-            <Moon className="h-5 w-5 sm:h-6 sm:w-6" />
-          ) : (
-            <Sun className="h-5 w-5 sm:h-6 sm:w-6" />
-          )}
+          <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
+          <span className="absolute -top-1 -right-1 w-3 h-3 bg-purple-600 rounded-full" />
         </button>
 
         <button
+          aria-label="Alternar tema"
+          onClick={toggleTheme}
+          className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors duration-200"
+        >
+          {theme === 'light' ? <Moon className="h-5 w-5 sm:h-6 sm:w-6" /> : <Sun className="h-5 w-5 sm:h-6 sm:w-6" />}
+        </button>
+
+        <button
+          aria-label="Sair"
           onClick={handleSignOut}
           className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200"
           title="Sair"
