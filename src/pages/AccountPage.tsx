@@ -7,7 +7,8 @@ import {
   X,
   ArrowRight,
   ChevronDown,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -57,6 +58,8 @@ const AccountPage: React.FC = () => {
     flag: '🇧🇷'
   });
   const [loading, setLoading] = useState(true);
+  const [sendingResetLink, setSendingResetLink] = useState(false);
+  const [resetLinkSent, setResetLinkSent] = useState(false);
 
   // Fetch user profile data
   useEffect(() => {
@@ -268,10 +271,33 @@ const AccountPage: React.FC = () => {
     }
   };
 
-  const handleSendResetLink = () => {
-    // lógica real pode ser integrada com backend -> por enquanto placeholder
-    console.log('Sending password reset link');
-    alert('Link de redefinição enviado (placeholder).');
+  const handleSendResetLink = async () => {
+    if (!user?.email) {
+      alert('Email do usuário não encontrado');
+      return;
+    }
+
+    setSendingResetLink(true);
+    setResetLinkSent(false);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        console.error('Error sending reset link:', error);
+        alert(translateAuthError(error.message));
+      } else {
+        setResetLinkSent(true);
+        alert(`✅ Link de redefinição enviado para ${user.email}!\n\nVerifique sua caixa de entrada (e também a pasta de spam).`);
+      }
+    } catch (err: any) {
+      console.error('Error sending reset link:', err);
+      alert(translateAuthError(err.message || 'Erro ao enviar link de redefinição. Tente novamente.'));
+    } finally {
+      setSendingResetLink(false);
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -407,11 +433,26 @@ const AccountPage: React.FC = () => {
                 <div className="mt-4">
                   <button
                     onClick={handleSendResetLink}
-                    className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition transform hover:-translate-y-0.5
+                    disabled={sendingResetLink}
+                    className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
                                animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-pink-500 to-indigo-600"
                   >
-                    <span>Enviar link</span>
-                    <Link className="h-4 w-4" />
+                    {sendingResetLink ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Enviando...</span>
+                      </>
+                    ) : resetLinkSent ? (
+                      <>
+                        <span>Link enviado!</span>
+                        <CheckCircle className="h-4 w-4" />
+                      </>
+                    ) : (
+                      <>
+                        <span>Enviar link</span>
+                        <Link className="h-4 w-4" />
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
