@@ -164,7 +164,7 @@ const DashboardPage: React.FC = () => {
           table: 'campaigns',
           filter: `user_id=eq.${user.id}`
         },
-        (payload) => {
+        () => {
           // Refresh campaigns list when any campaign is updated
           refreshCampaigns();
         }
@@ -179,7 +179,8 @@ const DashboardPage: React.FC = () => {
   const refreshCampaigns = async () => {
     setRefreshingCampaigns(true);
     try {
-      // Force refresh campaigns by reloading ou re-fetching
+      // Force refresh campaigns by reloading or re-fetching
+      // Keep simple and reliable (you can replace with a smarter refresh later)
       window.location.reload();
     } catch (error) {
       console.error('Error refreshing campaigns:', error);
@@ -231,7 +232,6 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  // Paginação handler
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -266,25 +266,24 @@ const DashboardPage: React.FC = () => {
           </div>
         )}
 
-        {/* 2) "Visão geral das suas campanhas" - barra com botão "+ Criar campanha" dentro */}
-        <div className="mb-6">
-          <div className="w-full rounded-2xl p-4 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40 flex items-center justify-between">
-            <div className="min-w-0">
-              <p className="text-sm text-gray-600 dark:text-gray-300 truncate">Visão geral das suas campanhas</p>
-            </div>
-
-            {/* Botão dentro da barra (lado direito) */}
-            <div className="flex-shrink-0">
-              <button
-                onClick={handleCreateCampaign}
-                className="inline-flex items-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white px-4 py-2 rounded-full font-semibold shadow-sm transition transform hover:-translate-y-0.5"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Criar campanha</span>
-              </button>
-            </div>
-          </div>
+        {/* Botão Criar campanha centralizado (remoção da barra duplicada de "Visão geral") */}
+        <div className="mb-6 flex justify-center">
+          <button
+            onClick={handleCreateCampaign}
+            className="inline-flex items-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white px-6 py-3 rounded-full font-semibold shadow-md transition transform hover:-translate-y-0.5"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Criar campanha</span>
+          </button>
         </div>
+
+        {/* Subscription Status (mantido caso você queira) */}
+        {/* Se não quiser exibir a caixa de SubscriptionStatus aqui, remova este bloco */}
+        {/* <div className="mb-6">
+          <div className="rounded-2xl p-4 shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm">
+            <SubscriptionStatus />
+          </div>
+        </div> */}
 
         {/* Campaigns header */}
         <div className="flex items-center justify-between mb-4">
@@ -358,7 +357,7 @@ const DashboardPage: React.FC = () => {
                       <div className="mb-3">
                         {(() => {
                           const timeRemaining = getTimeRemaining(campaign.expires_at);
-                          const isUrgent = !timeRemaining.expired && campaign.expires_at && 
+                          const isUrgent = !timeRemaining.expired && campaign.expires_at &&
                             new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000; // Less than 24 hours
                           
                           return (
@@ -450,9 +449,9 @@ const DashboardPage: React.FC = () => {
                       
                       <button
                         onClick={() => handleViewSalesHistory(campaign.id)}
-                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow transition flex items-center justify-center gap-1"
+                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow transition"
                       >
-                        <DollarSign className="h-4 w-4" /> Vendas
+                        <DollarSign className="h-4 w-4" /> <span className="hidden sm:inline">Vendas</span>
                       </button>
                       
                       {campaign.status === 'draft' && !campaign.is_paid && (
@@ -468,7 +467,7 @@ const DashboardPage: React.FC = () => {
                         onClick={() => handleEditCampaign(campaign.id)}
                         className="px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600"
                       >
-                        <Edit className="h-4 w-4 inline-block mr-2" /> Editar
+                        <Edit className="h-4 w-4 inline-block mr-2" /> <span className="hidden sm:inline">Editar</span>
                       </button>
                     </div>
                   </div>
