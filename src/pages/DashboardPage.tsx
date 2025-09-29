@@ -1,24 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Eye, 
-  EyeOff, 
-  Plus, 
+import {
+  Eye,
+  Plus,
   Share2,
   Calendar,
   Users,
   DollarSign,
-  MoreVertical,
-  CreditCard as Edit,
   Clock,
-  AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  CreditCard as Edit,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
 import { useAuth } from '../context/AuthContext';
 import { CampaignAPI } from '../lib/api/campaigns';
-import SubscriptionStatus from '../components/SubscriptionStatus';
 import { supabase } from '../lib/supabase';
 
 /* Helper to strip HTML tags from strings (defensive: avoids showing raw HTML) */
@@ -46,6 +42,52 @@ const getTimeRemaining = (expiresAt: string) => {
     return { expired: false, text: `${hours}h ${minutes}m` };
   } else {
     return { expired: false, text: `${minutes}m` };
+  }
+};
+
+const calculateProgressPercentage = (soldTickets: number, totalTickets: number): number => {
+  if (totalTickets === 0) return 0;
+  return Math.round((soldTickets / totalTickets) * 100);
+};
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(value);
+};
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('pt-BR');
+};
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'active':
+      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+    case 'draft':
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+    case 'completed':
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+    case 'cancelled':
+      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+    default:
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+  }
+};
+
+const getStatusText = (status: string) => {
+  switch (status) {
+    case 'active':
+      return 'Ativa';
+    case 'draft':
+      return 'Rascunho';
+    case 'completed':
+      return 'Finalizada';
+    case 'cancelled':
+      return 'Cancelada';
+    default:
+      return status;
   }
 };
 
@@ -189,52 +231,6 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  const calculateProgressPercentage = (soldTickets: number, totalTickets: number): number => {
-    if (totalTickets === 0) return 0;
-    return Math.round((soldTickets / totalTickets) * 100);
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-      case 'draft':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'Ativa';
-      case 'draft':
-        return 'Rascunho';
-      case 'completed':
-        return 'Finalizada';
-      case 'cancelled':
-        return 'Cancelada';
-      default:
-        return status;
-    }
-  };
-
   // Paginação handler
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -277,7 +273,7 @@ const DashboardPage: React.FC = () => {
               <p className="text-sm text-gray-600 dark:text-gray-300 truncate">Visão geral das suas campanhas</p>
             </div>
 
-            {/* Botão no interior da barra (lado direito, centralizado verticalmente) */}
+            {/* Botão dentro da barra (lado direito) */}
             <div className="flex-shrink-0">
               <button
                 onClick={handleCreateCampaign}
@@ -287,13 +283,6 @@ const DashboardPage: React.FC = () => {
                 <span>Criar campanha</span>
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Subscription Status (mantido) */}
-        <div className="mb-6">
-          <div className="rounded-2xl p-4 shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm">
-            <SubscriptionStatus />
           </div>
         </div>
 
