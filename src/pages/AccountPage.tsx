@@ -1,11 +1,11 @@
 // src/pages/AccountPage.tsx
 import React, { useState, useEffect } from 'react';
-import { Pencil, Link, Trash2, X, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Pencil, Upload, Link, Trash2, X, ArrowRight, ChevronDown, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import CountryPhoneSelect from '../components/CountryPhoneSelect';
 import { useStripe } from '../hooks/useStripe';
-import { translateAuthError } from '../utils/errorTranslators';
+import { translateAuthError } from '../utils/errorTranslators'; // ✅ import adicionado
 
 interface Country {
   code: string;
@@ -16,10 +16,14 @@ interface Country {
 
 const AccountPage = () => {
   const { user, signOut } = useAuth();
-  const { getCompletedOrders } = useStripe();
+  const { orders, getCompletedOrders } = useStripe();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [userData, setUserData] = useState({
@@ -27,13 +31,13 @@ const AccountPage = () => {
     email: '',
     cpf: '',
   });
-  const [selectedCountry] = useState<Country>({
+  const [selectedCountry, setSelectedCountry] = useState<Country>({
     code: 'BR',
     name: 'Brasil',
     dialCode: '+55',
     flag: '🇧🇷'
   });
-  const [phoneNumberInput] = useState('');
+  const [phoneNumberInput, setPhoneNumberInput] = useState('');
   const [loading, setLoading] = useState(true);
 
   // Fetch user profile data
@@ -87,6 +91,24 @@ const AccountPage = () => {
       newErrors.email = 'Email é obrigatório';
     } else if (!/\S+@\S+\.\S+/.test(userData.email)) {
       newErrors.email = 'Email inválido';
+    }
+
+    if (userData.cpf.trim()) {
+      const cpfNumbers = userData.cpf.replace(/\D/g, '');
+      if (cpfNumbers.length !== 11) {
+        newErrors.cpf = 'CPF deve ter 11 dígitos';
+      }
+    }
+
+    if (phoneNumberInput.trim()) {
+      const phoneNumbers = phoneNumberInput.replace(/\D/g, '');
+      if (selectedCountry.code === 'BR' && phoneNumbers.length !== 11) {
+        newErrors.phoneNumber = 'Número de celular deve ter 11 dígitos';
+      } else if ((selectedCountry.code === 'US' || selectedCountry.code === 'CA') && phoneNumbers.length !== 10) {
+        newErrors.phoneNumber = 'Número de telefone deve ter 10 dígitos';
+      } else if (phoneNumbers.length < 7) {
+        newErrors.phoneNumber = 'Número de telefone inválido';
+      }
     }
 
     setErrors(newErrors);
@@ -180,14 +202,14 @@ const AccountPage = () => {
       {/* Histórico de Compras */}
       {getCompletedOrders().length > 0 && (
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">
             Histórico de Compras
           </h2>
           <div className="space-y-3">
             {getCompletedOrders().slice(0, 5).map((order) => (
               <div
                 key={order.id}
-                className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 flex items-center justify-between shadow-sm"
+                className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 flex items-center justify-between"
               >
                 <div>
                   <div className="font-medium text-gray-900 dark:text-white">
@@ -214,7 +236,7 @@ const AccountPage = () => {
       {/* Dados principais */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-medium text-gray-900 dark:text-white">
             Dados principais
           </h2>
           <button
@@ -239,7 +261,7 @@ const AccountPage = () => {
 
       {/* Reset Password Section */}
       <div className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
           Resetar senha
         </h3>
         <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
@@ -248,10 +270,7 @@ const AccountPage = () => {
 
         <button
           onClick={handleSendResetLink}
-          className="w-full relative bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 bg-size-200 bg-pos-0 hover:bg-pos-100 text-white py-3 rounded-lg font-semibold transition-all duration-500 flex items-center justify-center space-x-2"
-          style={{
-            backgroundSize: '200% 200%',
-          }}
+          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
         >
           <span>Enviar link</span>
           <Link className="h-4 w-4" />
@@ -260,7 +279,7 @@ const AccountPage = () => {
 
       {/* Delete Account Section */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
           Excluir minha conta
         </h3>
         <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 leading-relaxed">
@@ -281,7 +300,7 @@ const AccountPage = () => {
       {/* Edit Data Modal */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-lg">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Editar dados pessoais
@@ -345,7 +364,7 @@ const AccountPage = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-lg">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Excluir
