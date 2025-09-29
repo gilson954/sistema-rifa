@@ -29,7 +29,7 @@ const SocialMediaPage = () => {
     }))
   );
 
-  // Carregar links ao montar
+  // Load social media links when component mounts
   useEffect(() => {
     const loadSocialMediaLinks = async () => {
       if (!user) return;
@@ -91,7 +91,7 @@ const SocialMediaPage = () => {
 
       if (fetchError) {
         if (fetchError.code === '42703') {
-          alert('A coluna social_media_links ainda não foi criada no banco de dados.');
+          alert('A coluna social_media_links ainda não foi criada no banco de dados. Entre em contato com o suporte.');
           return;
         }
         console.error('Error fetching current links:', fetchError);
@@ -111,6 +111,10 @@ const SocialMediaPage = () => {
         .eq('id', user.id);
 
       if (updateError) {
+        if (updateError.code === '42703') {
+          alert('A coluna social_media_links ainda não foi criada no banco de dados. Entre em contato com o suporte.');
+          return;
+        }
         console.error('Error updating social media links:', updateError);
         alert('Erro ao salvar link. Tente novamente.');
         return;
@@ -147,6 +151,11 @@ const SocialMediaPage = () => {
         .single();
 
       if (fetchError) {
+        if (fetchError.code === '42703') {
+          alert('A coluna social_media_links ainda não foi criada no banco de dados. Entre em contato com o suporte.');
+          return;
+        }
+        console.error('Error fetching current links:', fetchError);
         alert('Erro ao carregar dados. Tente novamente.');
         return;
       }
@@ -161,6 +170,11 @@ const SocialMediaPage = () => {
         .eq('id', user.id);
 
       if (updateError) {
+        if (updateError.code === '42703') {
+          alert('A coluna social_media_links ainda não foi criada no banco de dados. Entre em contato com o suporte.');
+          return;
+        }
+        console.error('Error deleting social media link:', updateError);
         alert('Erro ao excluir link. Tente novamente.');
         return;
       }
@@ -191,66 +205,64 @@ const SocialMediaPage = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={handleGoBack}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-          </button>
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Redes sociais
-          </h1>
-        </div>
+      <div className="flex items-center space-x-4 p-6 border-b border-gray-200 dark:border-gray-800">
+        <button
+          onClick={handleGoBack}
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
+        >
+          <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+        </button>
+        <h1 className="text-xl font-medium text-gray-900 dark:text-white">
+          Redes sociais
+        </h1>
       </div>
 
-      {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {socialNetworks.map((network) => {
-          const config = socialMediaConfig[network.id as keyof typeof socialMediaConfig];
-          const IconComponent = config?.icon;
+      {/* Social Networks Grid */}
+      <div className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {socialNetworks.map((network) => {
+            const config = socialMediaConfig[network.id as keyof typeof socialMediaConfig];
+            const IconComponent = config?.icon;
 
-          return (
-            <div
-              key={network.id}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-between transition hover:shadow-md"
-            >
-              <div className="flex items-center space-x-4">
-                <div
-                  className="w-10 h-10 flex items-center justify-center rounded-full text-white"
-                  style={{ backgroundColor: config?.color || '#6B7280' }}
-                >
-                  {IconComponent && <IconComponent size={20} />}
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {network.name}
-                  </h3>
-                  <p
-                    className={`text-sm ${
-                      network.connected
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-gray-500 dark:text-gray-400'
-                    }`}
+            return (
+              <div
+                key={network.id}
+                className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200"
+              >
+                <div className="flex items-center space-x-4">
+                  <div
+                    className="w-8 h-8 flex items-center justify-center rounded-full text-white"
+                    style={{ backgroundColor: config?.color || '#6B7280' }}
                   >
-                    {network.connected ? 'Conectado' : 'Não conectado'}
-                  </p>
+                    {IconComponent && <IconComponent size={16} />}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                      {network.name}
+                    </h3>
+                    <p
+                      className={`text-sm ${
+                        network.connected
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-gray-600 dark:text-gray-400'
+                      }`}
+                    >
+                      {network.connected ? 'Conectado' : 'Não conectado'}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-4 flex justify-end">
                 <button
                   onClick={() => handleAddSocialNetwork(network)}
-                  className="px-4 py-2 text-sm font-medium rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-colors"
+                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
                 >
-                  {network.connected ? 'Editar' : 'Conectar'}
+                  <Plus className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                 </button>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Modal */}
@@ -263,7 +275,7 @@ const SocialMediaPage = () => {
               </h2>
               <button
                 onClick={handleCloseModal}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
               >
                 <X className="h-5 w-5 text-gray-400" />
               </button>
@@ -274,12 +286,15 @@ const SocialMediaPage = () => {
             </p>
 
             <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Cole o link aqui
+              </label>
               <input
                 type="url"
                 value={linkInput}
                 onChange={(e) => setLinkInput(e.target.value)}
                 placeholder="Cole o link aqui"
-                className="w-full bg-white dark:bg-gray-700 border border-purple-500 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full bg-white dark:bg-gray-700 border border-purple-500 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
               />
             </div>
 
@@ -288,7 +303,7 @@ const SocialMediaPage = () => {
                 <button
                   onClick={handleDeleteLink}
                   disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-3 rounded-lg font-medium flex items-center justify-center space-x-2"
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
                 >
                   {deleting ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -304,7 +319,7 @@ const SocialMediaPage = () => {
               <button
                 onClick={handleSaveLink}
                 disabled={!linkInput.trim() || loading || deleting}
-                className={`bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white py-3 rounded-lg font-medium flex items-center justify-center space-x-2 ${
+                className={`bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 ${
                   selectedNetwork?.connected ? 'flex-1' : 'w-full'
                 }`}
               >
