@@ -15,6 +15,7 @@ import { useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
 import { useAuth } from '../context/AuthContext';
 import { CampaignAPI } from '../lib/api/campaigns';
+import SubscriptionStatus from '../components/SubscriptionStatus';
 import { supabase } from '../lib/supabase';
 
 /* Helper to strip HTML tags from strings (defensive: avoids showing raw HTML) */
@@ -243,7 +244,7 @@ const DashboardPage: React.FC = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 1) Payment Setup Card - permanece primeiro */}
         {displayPaymentSetupCard && (
-          <div className="mb-4">
+          <div className="mb-6">
             <div className="w-full rounded-2xl p-4 shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-start sm:items-center space-x-4 flex-1 min-w-0">
@@ -283,6 +284,13 @@ const DashboardPage: React.FC = () => {
                 <span>Criar campanha</span>
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Subscription Status */}
+        <div className="mb-6">
+          <div className="rounded-2xl p-4 shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm">
+            <SubscriptionStatus />
           </div>
         </div>
 
@@ -450,9 +458,9 @@ const DashboardPage: React.FC = () => {
                       
                       <button
                         onClick={() => handleViewSalesHistory(campaign.id)}
-                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow transition flex items-center justify-center gap-1"
+                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow transition"
                       >
-                        <DollarSign className="h-4 w-4" /> Vendas
+                        <DollarSign className="h-4 w-4" /> <span className="hidden sm:inline">Vendas</span>
                       </button>
                       
                       {campaign.status === 'draft' && !campaign.is_paid && (
@@ -468,7 +476,7 @@ const DashboardPage: React.FC = () => {
                         onClick={() => handleEditCampaign(campaign.id)}
                         className="px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600"
                       >
-                        <Edit className="h-4 w-4 inline-block mr-2" /> Editar
+                        <Edit className="h-4 w-4 inline-block mr-2" /> <span className="hidden sm:inline">Editar</span>
                       </button>
                     </div>
                   </div>
