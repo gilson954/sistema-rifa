@@ -173,7 +173,6 @@ const DashboardPage: React.FC = () => {
 
     // Se public_id estiver faltando no estado local, refetch a campanha
     if (!campaignToView?.public_id) {
-      console.log(`Public ID missing for campaign ${campaignId} in local state. Refetching...`);
       const { data: fetchedCampaign, error: fetchError } = await CampaignAPI.getCampaignById(campaignId);
       if (fetchError) {
         console.error('Error refetching campaign for view:', fetchError);
@@ -184,11 +183,9 @@ const DashboardPage: React.FC = () => {
     }
 
     if (campaignToView?.public_id) {
-      console.log(`Navigating to /c/${campaignToView.public_id}`);
       // Abre em nova aba para visualizar como usuário final
       window.open(`/c/${campaignToView.public_id}`, '_blank');
     } else {
-      console.error(`Could not get public_id for campaign ${campaignId} even after refetch.`);
       alert('Não foi possível encontrar o ID público da campanha.');
     }
   };
@@ -248,21 +245,21 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="dashboard-page min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
-      {/* HEADER: card-style (mantive apenas o subtitle solicitado) */}
+      {/* Top action row (apenas botão criar + avatar pequeno) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <div className="rounded-2xl p-4 shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/6 dark:bg-gray-900/50 backdrop-blur-sm flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-sm text-gray-600 dark:text-gray-300">Visão geral das suas campanhas</p>
-          </div>
+        <div className="flex items-center justify-end gap-3">
+          <button
+            onClick={handleCreateCampaign}
+            className="inline-flex items-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white px-4 py-2 rounded-full font-semibold shadow-sm transition transform hover:-translate-y-0.5"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Criar campanha</span>
+          </button>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleCreateCampaign}
-              className="inline-flex items-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white px-4 py-2 rounded-full font-semibold shadow-sm transition transform hover:-translate-y-0.5"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Criar campanha</span>
-            </button>
+          <div className="hidden sm:flex items-center space-x-3">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white text-sm font-semibold">
+              {(user?.email && user.email[0]?.toUpperCase()) || 'G'}
+            </div>
           </div>
         </div>
       </div>
@@ -270,7 +267,7 @@ const DashboardPage: React.FC = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Payment Setup Card */}
         {displayPaymentSetupCard && (
-          <div className="mb-6">
+          <div className="mb-4">
             <div className="w-full rounded-2xl p-4 shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-start sm:items-center space-x-4 flex-1 min-w-0">
@@ -292,6 +289,13 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Subtitle BAR: "Visão geral das suas campanhas" - REPOSICIONADA abaixo do Payment Setup */}
+        <div className="mb-6">
+          <div className="w-full rounded-2xl p-4 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
+            <p className="text-sm text-gray-600 dark:text-gray-300">Visão geral das suas campanhas</p>
+          </div>
+        </div>
 
         {/* Subscription Status */}
         <div className="mb-6">
