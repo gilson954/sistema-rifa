@@ -137,8 +137,7 @@ const DashboardPage: React.FC = () => {
   const refreshCampaigns = async () => {
     setRefreshingCampaigns(true);
     try {
-      // Force refresh campaigns by reloading or re-fetching
-      // Keep simple and reliable (you can replace with a smarter refresh later)
+      // Force refresh campaigns by reloading ou re-fetching
       window.location.reload();
     } catch (error) {
       console.error('Error refreshing campaigns:', error);
@@ -245,27 +244,8 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="dashboard-page min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
-      {/* Top action row (apenas botão criar + avatar pequeno) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <div className="flex items-center justify-end gap-3">
-          <button
-            onClick={handleCreateCampaign}
-            className="inline-flex items-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white px-4 py-2 rounded-full font-semibold shadow-sm transition transform hover:-translate-y-0.5"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Criar campanha</span>
-          </button>
-
-          <div className="hidden sm:flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white text-sm font-semibold">
-              {(user?.email && user.email[0]?.toUpperCase()) || 'G'}
-            </div>
-          </div>
-        </div>
-      </div>
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Payment Setup Card */}
+        {/* 1) Payment Setup Card - permanece primeiro */}
         {displayPaymentSetupCard && (
           <div className="mb-4">
             <div className="w-full rounded-2xl p-4 shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm">
@@ -290,14 +270,27 @@ const DashboardPage: React.FC = () => {
           </div>
         )}
 
-        {/* Subtitle BAR: "Visão geral das suas campanhas" - REPOSICIONADA abaixo do Payment Setup */}
+        {/* 2) "Visão geral das suas campanhas" - barra com botão "+ Criar campanha" dentro */}
         <div className="mb-6">
-          <div className="w-full rounded-2xl p-4 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
-            <p className="text-sm text-gray-600 dark:text-gray-300">Visão geral das suas campanhas</p>
+          <div className="w-full rounded-2xl p-4 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40 flex items-center justify-between">
+            <div className="min-w-0">
+              <p className="text-sm text-gray-600 dark:text-gray-300 truncate">Visão geral das suas campanhas</p>
+            </div>
+
+            {/* Botão no interior da barra (lado direito, centralizado verticalmente) */}
+            <div className="flex-shrink-0">
+              <button
+                onClick={handleCreateCampaign}
+                className="inline-flex items-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white px-4 py-2 rounded-full font-semibold shadow-sm transition transform hover:-translate-y-0.5"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Criar campanha</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Subscription Status */}
+        {/* Subscription Status (mantido) */}
         <div className="mb-6">
           <div className="rounded-2xl p-4 shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm">
             <SubscriptionStatus />
