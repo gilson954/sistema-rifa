@@ -393,23 +393,12 @@ const AccountPage: React.FC = () => {
 
               <div>
                 <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Telefone (opcional)</label>
-                <div className="flex gap-2">
-                  <div className="w-36">
-                    <CountryPhoneSelect
-                      value={selectedCountry}
-                      onChange={(c: Country) => setSelectedCountry(c)}
-                    />
-                  </div>
-                  <input
-                    type="tel"
-                    value={phoneNumberInput}
-                    onChange={(e) => setPhoneNumberInput(e.target.value)}
-                    className={`flex-1 px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                      errors.phoneNumber ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    }`}
-                    placeholder="Número de telefone"
-                  />
-                </div>
+                <CountryPhoneSelect
+                  selectedCountry={selectedCountry}
+                  onCountryChange={(c: Country) => setSelectedCountry(c)}
+                  phoneNumber={phoneNumberInput}
+                  onPhoneChange={(value: string) => setPhoneNumberInput(value)}
+                />
                 {errors.phoneNumber && <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>}
               </div>
 
