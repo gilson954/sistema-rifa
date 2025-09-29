@@ -22,6 +22,20 @@ interface Country {
   flag: string;
 }
 
+// Add countries array at the top of the file (after imports)
+const countries: Country[] = [
+  { code: 'BR', name: 'Brasil', dialCode: '+55', flag: '🇧🇷' },
+  { code: 'US', name: 'Estados Unidos', dialCode: '+1', flag: '🇺🇸' },
+  { code: 'CA', name: 'Canadá', dialCode: '+1', flag: '🇨🇦' },
+  { code: 'AR', name: 'Argentina', dialCode: '+54', flag: '🇦🇷' },
+  { code: 'CL', name: 'Chile', dialCode: '+56', flag: '🇨🇱' },
+  { code: 'CO', name: 'Colômbia', dialCode: '+57', flag: '🇨🇴' },
+  { code: 'PE', name: 'Peru', dialCode: '+51', flag: '🇵🇪' },
+  { code: 'UY', name: 'Uruguai', dialCode: '+598', flag: '🇺🇾' },
+  { code: 'PY', name: 'Paraguai', dialCode: '+595', flag: '🇵🇾' },
+  { code: 'PT', name: 'Portugal', dialCode: '+351', flag: '🇵🇹' },
+];
+
 const AccountPage: React.FC = () => {
   const { user, signOut } = useAuth();
   const { orders, getCompletedOrders } = useStripe();
@@ -34,6 +48,7 @@ const AccountPage: React.FC = () => {
     name: '',
     email: '',
     cpf: '',
+    phoneNumber: ''
   });
   const [selectedCountry, setSelectedCountry] = useState<Country>({
     code: 'BR',
@@ -41,7 +56,6 @@ const AccountPage: React.FC = () => {
     dialCode: '+55',
     flag: '🇧🇷'
   });
-  const [phoneNumberInput, setPhoneNumberInput] = useState('');
   const [loading, setLoading] = useState(true);
 
   // Fetch user profile data
@@ -55,7 +69,7 @@ const AccountPage: React.FC = () => {
       try {
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('name, email, avatar_url')
+          .select('name, email, avatar_url, cpf, phone_number')
           .eq('id', user.id)
           .maybeSingle();
 
@@ -65,20 +79,44 @@ const AccountPage: React.FC = () => {
           setUserData(prev => ({
             ...prev,
             name: prev.name || '',
-            email: user.email || ''
+            email: user.email || '',
+            cpf: '',
+            phoneNumber: ''
           }));
         } else if (profile) {
+          // Parse phone number to extract country and number
+          let countryCode = '+55';
+          let phoneOnly = '';
+          
+          if (profile.phone_number) {
+            const phoneMatch = profile.phone_number.match(/^(\+\d+)\s(.+)$/);
+            if (phoneMatch) {
+              countryCode = phoneMatch[1];
+              phoneOnly = phoneMatch[2];
+            } else {
+              phoneOnly = profile.phone_number;
+            }
+          }
+          
+          // Find matching country
+          const matchingCountry = countries.find(c => c.dialCode === countryCode) || selectedCountry;
+          setSelectedCountry(matchingCountry);
+          
           setUserData(prev => ({
             ...prev,
             name: profile.name || '',
-            email: profile.email || ''
+            email: profile.email || '',
+            cpf: profile.cpf || '',
+            phoneNumber: phoneOnly
           }));
           setProfileImageUrl(profile.avatar_url || null);
         } else {
           setUserData(prev => ({
             ...prev,
             name: prev.name || '',
-            email: user.email || ''
+            email: user.email || '',
+            cpf: '',
+            phoneNumber: ''
           }));
         }
       } catch (err) {
@@ -97,11 +135,13 @@ const AccountPage: React.FC = () => {
 
     if (!userData.name.trim()) {
       newErrors.name = 'Nome é obrigatório';
+    } else if (userData.name.trim().length < 2) {
+      newErrors.name = 'Nome deve ter pelo menos 2 caracteres';
     }
 
     if (!userData.email.trim()) {
       newErrors.email = 'Email é obrigatório';
-    } else if (!/\S+@\S+\.\S+/.test(userData.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email.trim())) {
       newErrors.email = 'Email inválido';
     }
 
@@ -109,11 +149,13 @@ const AccountPage: React.FC = () => {
       const cpfNumbers = userData.cpf.replace(/\D/g, '');
       if (cpfNumbers.length !== 11) {
         newErrors.cpf = 'CPF deve ter 11 dígitos';
+      } else if (!isValidCPF(cpfNumbers)) {
+        newErrors.cpf = 'CPF inválido';
       }
     }
 
-    if (phoneNumberInput.trim()) {
-      const phoneNumbers = phoneNumberInput.replace(/\D/g, '');
+    if (userData.phoneNumber.trim()) {
+      const phoneNumbers = userData.phoneNumber.replace(/\D/g, '');
       if (selectedCountry.code === 'BR' && phoneNumbers.length !== 11) {
         newErrors.phoneNumber = 'Número de celular deve ter 11 dígitos';
       } else if ((selectedCountry.code === 'US' || selectedCountry.code === 'CA') && phoneNumbers.length !== 10) {
@@ -127,6 +169,62 @@ const AccountPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // CPF validation function
+  const isValidCPF = (cpf: string): boolean => {
+    // Remove any non-numeric characters
+    const cleanCPF = cpf.replace(/\D/g, '');
+    
+    // Check if CPF has 11 digits
+    if (cleanCPF.length !== 11) return false;
+    
+    // Check for known invalid CPFs (all same digits)
+    if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
+    
+    // Validate CPF algorithm
+    let sum = 0;
+    let remainder;
+    
+    // Validate first digit
+    for (let i = 1; i <= 9; i++) {
+      sum += parseInt(cleanCPF.substring(i - 1, i)) * (11 - i);
+    }
+    remainder = (sum * 10) % 11;
+    if (remainder === 10 || remainder === 11) remainder = 0;
+    if (remainder !== parseInt(cleanCPF.substring(9, 10))) return false;
+    
+    // Validate second digit
+    sum = 0;
+    for (let i = 1; i <= 10; i++) {
+      sum += parseInt(cleanCPF.substring(i - 1, i)) * (12 - i);
+    }
+    remainder = (sum * 10) % 11;
+    if (remainder === 10 || remainder === 11) remainder = 0;
+    if (remainder !== parseInt(cleanCPF.substring(10, 11))) return false;
+    
+    return true;
+  };
+
+  // Format CPF for display
+  const formatCPF = (value: string): string => {
+    const numbers = value.replace(/\D/g, '');
+    const limitedNumbers = numbers.slice(0, 11);
+    
+    if (limitedNumbers.length <= 3) {
+      return limitedNumbers;
+    } else if (limitedNumbers.length <= 6) {
+      return `${limitedNumbers.slice(0, 3)}.${limitedNumbers.slice(3)}`;
+    } else if (limitedNumbers.length <= 9) {
+      return `${limitedNumbers.slice(0, 3)}.${limitedNumbers.slice(3, 6)}.${limitedNumbers.slice(6)}`;
+    } else {
+      return `${limitedNumbers.slice(0, 3)}.${limitedNumbers.slice(3, 6)}.${limitedNumbers.slice(6, 9)}-${limitedNumbers.slice(9)}`;
+    }
+  };
+
+  const handleCPFChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedCPF = formatCPF(e.target.value);
+    setUserData({ ...userData, cpf: formattedCPF });
+  };
+
   const handleEditData = () => {
     setErrors({});
     setShowEditModal(true);
@@ -137,12 +235,23 @@ const AccountPage: React.FC = () => {
     if (!user) return;
 
     try {
+      // Prepare phone number for storage (combine country code and number)
+      const fullPhoneNumber = userData.phoneNumber.trim() 
+        ? `${selectedCountry.dialCode} ${userData.phoneNumber.trim()}`
+        : null;
+      
+      // Prepare CPF for storage (only numbers)
+      const cleanCPF = userData.cpf.trim() 
+        ? userData.cpf.replace(/\D/g, '')
+        : null;
+
       const { error } = await supabase
         .from('profiles')
         .update({
           name: userData.name,
-          email: userData.email
-          // intencional: mantive atualização somente de name/email como no original
+          email: userData.email,
+          cpf: cleanCPF,
+          phone_number: fullPhoneNumber
         })
         .eq('id', user.id);
 
@@ -151,6 +260,7 @@ const AccountPage: React.FC = () => {
         alert(translateAuthError(error.message || 'Erro ao salvar dados. Tente novamente.'));
       } else {
         setShowEditModal(false);
+        alert('Dados salvos com sucesso!');
       }
     } catch (err: any) {
       console.error('Error saving user data:', err);
@@ -277,6 +387,16 @@ const AccountPage: React.FC = () => {
                   <label className="block text-sm text-gray-400">Email</label>
                   <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.email || '-'}</div>
                 </div>
+                <div>
+                  <label className="block text-sm text-gray-400">CPF</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.cpf || '-'}</div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400">Telefone</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">
+                    {userData.phoneNumber ? `${selectedCountry.dialCode} ${userData.phoneNumber}` : '-'}
+                  </div>
+                </div>
               </div>
 
               {/* Reset password */}
@@ -383,7 +503,8 @@ const AccountPage: React.FC = () => {
                 <input
                   type="text"
                   value={userData.cpf}
-                  onChange={(e) => setUserData({ ...userData, cpf: e.target.value })}
+                  onChange={handleCPFChange}
+                  placeholder="000.000.000-00"
                   className={`w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                     errors.cpf ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
@@ -392,14 +513,14 @@ const AccountPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Telefone (opcional)</label>
                 <CountryPhoneSelect
                   selectedCountry={selectedCountry}
                   onCountryChange={(c: Country) => setSelectedCountry(c)}
-                  phoneNumber={phoneNumberInput}
-                  onPhoneChange={(value: string) => setPhoneNumberInput(value)}
+                  phoneNumber={userData.phoneNumber}
+                  onPhoneChange={(value: string) => setUserData({ ...userData, phoneNumber: value })}
+                  placeholder="Número de telefone"
+                  error={errors.phoneNumber}
                 />
-                {errors.phoneNumber && <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>}
               </div>
 
               <button
