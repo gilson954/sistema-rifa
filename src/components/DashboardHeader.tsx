@@ -45,14 +45,14 @@ const DashboardHeader: React.FC = () => {
     const p = location.pathname;
 
     // rotas específicas primeiro
-    if (p.startsWith('/dashboard/integrations')) return 'Métodos de pagamento';
+    if (p.startsWith('/dashboard/integrations')) return 'Gerenciar métodos de pagamento';
     if (p.startsWith('/dashboard/ranking')) return 'Ranking';
-    if (p.startsWith('/dashboard/affiliations')) return 'Afiliações';
-    if (p.startsWith('/dashboard/social-media')) return 'Redes sociais';
+    if (p.startsWith('/dashboard/affiliations')) return 'Programa de afiliações';
+    if (p.startsWith('/dashboard/social-media')) return 'Conexões com redes sociais';
     if (p.startsWith('/dashboard/analytics')) return 'Pixels e Analytics';
-    if (p.startsWith('/dashboard/customize')) return 'Personalização';
+    if (p.startsWith('/dashboard/customize')) return 'Personalização da página';
     if (p.startsWith('/dashboard/account')) return 'Minha conta';
-    if (p.startsWith('/dashboard/tutorials')) return 'Tutoriais';
+    if (p.startsWith('/dashboard/tutorials')) return 'Tutoriais e ajuda';
 
     // páginas relacionadas a campanhas (criação, detalhe, vendas, etc.)
     if (p.startsWith('/dashboard/create-campaign')) return 'Criar campanha';
