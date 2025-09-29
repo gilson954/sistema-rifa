@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Pencil,
-  Upload,
   Link,
   Trash2,
   X,
@@ -14,7 +13,7 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import CountryPhoneSelect from '../components/CountryPhoneSelect';
 import { useStripe } from '../hooks/useStripe';
-import { translateAuthError } from '../utils/errorTranslators'; // ✅ import adicionado
+import { translateAuthError } from '../utils/errorTranslators';
 
 interface Country {
   code: string;
@@ -28,11 +27,7 @@ const AccountPage: React.FC = () => {
   const { orders, getCompletedOrders } = useStripe();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
-  const [showPhotoModal, setShowPhotoModal] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [userData, setUserData] = useState({
@@ -52,7 +47,10 @@ const AccountPage: React.FC = () => {
   // Fetch user profile data
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const { data: profile, error } = await supabase
@@ -63,6 +61,12 @@ const AccountPage: React.FC = () => {
 
         if (error) {
           console.error('Error fetching profile:', error);
+          // fallback to auth email
+          setUserData(prev => ({
+            ...prev,
+            name: prev.name || '',
+            email: user.email || ''
+          }));
         } else if (profile) {
           setUserData(prev => ({
             ...prev,
@@ -73,7 +77,7 @@ const AccountPage: React.FC = () => {
         } else {
           setUserData(prev => ({
             ...prev,
-            name: '',
+            name: prev.name || '',
             email: user.email || ''
           }));
         }
@@ -130,7 +134,6 @@ const AccountPage: React.FC = () => {
 
   const handleSaveData = async () => {
     if (!validateForm()) return;
-
     if (!user) return;
 
     try {
@@ -156,9 +159,8 @@ const AccountPage: React.FC = () => {
   };
 
   const handleSendResetLink = () => {
-    // lógica real pode ser integrada com backend -> por enquanto mantive placeholder
+    // lógica real pode ser integrada com backend -> por enquanto placeholder
     console.log('Sending password reset link');
-    // Você pode adicionar aqui a chamada que envia o e-mail de redefinição
     alert('Link de redefinição enviado (placeholder).');
   };
 
@@ -233,15 +235,7 @@ const AccountPage: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-3">
-              {/* Alterar foto */}
-              <button
-                onClick={() => setShowPhotoModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-white transition transform hover:-translate-y-0.5
-                           animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600"
-              >
-                <Upload className="h-4 w-4" />
-                <span className="text-sm">Alterar foto</span>
-              </button>
+              {/* Removed "Alterar foto" button as requested */}
 
               {/* Small edit icon */}
               <button
@@ -258,11 +252,11 @@ const AccountPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Avatar / basic info */}
             <div className="col-span-1 flex items-center gap-4 p-4 rounded-xl bg-white/3 dark:bg-black/10">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-400 flex items-center justify-center text-white text-lg font-semibold shadow">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-400 flex items-center justify-center text-white text-lg font-semibold shadow overflow-hidden">
                 {profileImageUrl ? (
                   <img src={profileImageUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
                 ) : (
-                  avatarInitial(userData.name || user?.email)
+                  <span>{avatarInitial(userData.name || user?.email)}</span>
                 )}
               </div>
               <div>
@@ -471,75 +465,6 @@ const AccountPage: React.FC = () => {
                   <span>Confirmar</span>
                 )}
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Photo Modal (placeholder) */}
-      {showPhotoModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Alterar foto</h2>
-              <button onClick={() => setShowPhotoModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            </div>
-
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Faça upload de uma nova foto de perfil.</p>
-
-            <div className="space-y-4">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const f = e.target.files?.[0] || null;
-                  setSelectedImage(f);
-                  if (f) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
-                    reader.readAsDataURL(f);
-                  } else {
-                    setImagePreview(null);
-                  }
-                }}
-              />
-
-              {imagePreview && (
-                <div className="w-32 h-32 rounded-full overflow-hidden">
-                  <img src={imagePreview} alt="preview" className="w-full h-full object-cover" />
-                </div>
-              )}
-
-              <div className="flex gap-3">
-                <button
-                  onClick={async () => {
-                    // Placeholder: upload logic goes here.
-                    if (!selectedImage) {
-                      alert('Selecione uma imagem.');
-                      return;
-                    }
-                    setUploading(true);
-                    try {
-                      // Exemplo: enviar para storage e atualizar profile.avatar_url
-                      alert('Função de upload não implementada no placeholder.');
-                      setShowPhotoModal(false);
-                    } catch (err) {
-                      console.error('Erro ao enviar foto:', err);
-                    } finally {
-                      setUploading(false);
-                    }
-                  }}
-                  className="flex-1 bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white py-2 rounded-lg"
-                >
-                  {uploading ? 'Enviando...' : 'Salvar foto'}
-                </button>
-
-                <button onClick={() => { setSelectedImage(null); setImagePreview(null); setShowPhotoModal(false); }} className="flex-1 bg-gray-200 dark:bg-gray-700 py-2 rounded-lg">
-                  Cancelar
-                </button>
-              </div>
             </div>
           </div>
         </div>
