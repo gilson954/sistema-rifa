@@ -270,7 +270,7 @@ const DashboardPage: React.FC = () => {
         <div className="mb-6 flex justify-center">
           <button
             onClick={handleCreateCampaign}
-            className="inline-flex items-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white px-6 py-3 rounded-full font-semibold shadow-md transition transform hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white px-6 py-3 rounded-full font-semibold shadow-md transition transform hover:-translate-y-0.5"
           >
             <Plus className="h-5 w-5" />
             <span>Criar campanha</span>
