@@ -7,14 +7,13 @@ import {
   Trash2,
   X,
   ArrowRight,
-  ChevronDown,
   AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import CountryPhoneSelect from '../components/CountryPhoneSelect';
 import { useStripe } from '../hooks/useStripe';
-import { translateAuthError } from '../utils/errorTranslators'; // ✅ import adicionado
+import { translateAuthError } from '../utils/errorTranslators';
 
 interface Country {
   code: string;
@@ -26,20 +25,26 @@ interface Country {
 const AccountPage: React.FC = () => {
   const { user, signOut } = useAuth();
   const { orders, getCompletedOrders } = useStripe();
+
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [userData, setUserData] = useState({
     name: '',
     email: '',
     cpf: '',
   });
+
   const [selectedCountry, setSelectedCountry] = useState<Country>({
     code: 'BR',
     name: 'Brasil',
@@ -47,9 +52,8 @@ const AccountPage: React.FC = () => {
     flag: '🇧🇷'
   });
   const [phoneNumberInput, setPhoneNumberInput] = useState('');
-  const [loading, setLoading] = useState(true);
 
-  // Fetch user profile data
+  // Busca os dados do usuário
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!user) return;
@@ -57,28 +61,23 @@ const AccountPage: React.FC = () => {
       try {
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('name, email, avatar_url')
+          .select('name, email, cpf, phone, avatar_url')
           .eq('id', user.id)
           .maybeSingle();
 
         if (error) {
-          console.error('Error fetching profile:', error);
+          console.error('Erro ao buscar perfil:', error);
         } else if (profile) {
-          setUserData(prev => ({
-            ...prev,
+          setUserData({
             name: profile.name || '',
-            email: profile.email || ''
-          }));
+            email: profile.email || '',
+            cpf: profile.cpf || '',
+          });
+          setPhoneNumberInput(profile.phone || '');
           setProfileImageUrl(profile.avatar_url || null);
-        } else {
-          setUserData(prev => ({
-            ...prev,
-            name: '',
-            email: user.email || ''
-          }));
         }
       } catch (err) {
-        console.error('Error fetching user profile:', err);
+        console.error('Erro ao buscar perfil:', err);
       } finally {
         setLoading(false);
       }
@@ -87,13 +86,11 @@ const AccountPage: React.FC = () => {
     fetchUserProfile();
   }, [user]);
 
-  // Validate form data
+  // Validação do formulário
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!userData.name.trim()) {
-      newErrors.name = 'Nome é obrigatório';
-    }
+    if (!userData.name.trim()) newErrors.name = 'Nome é obrigatório';
 
     if (!userData.email.trim()) {
       newErrors.email = 'Email é obrigatório';
@@ -111,11 +108,7 @@ const AccountPage: React.FC = () => {
     if (phoneNumberInput.trim()) {
       const phoneNumbers = phoneNumberInput.replace(/\D/g, '');
       if (selectedCountry.code === 'BR' && phoneNumbers.length !== 11) {
-        newErrors.phoneNumber = 'Número de celular deve ter 11 dígitos';
-      } else if ((selectedCountry.code === 'US' || selectedCountry.code === 'CA') && phoneNumbers.length !== 10) {
-        newErrors.phoneNumber = 'Número de telefone deve ter 10 dígitos';
-      } else if (phoneNumbers.length < 7) {
-        newErrors.phoneNumber = 'Número de telefone inválido';
+        newErrors.phoneNumber = 'Celular deve ter 11 dígitos';
       }
     }
 
@@ -123,14 +116,9 @@ const AccountPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleEditData = () => {
-    setErrors({});
-    setShowEditModal(true);
-  };
-
+  // Salvar edição
   const handleSaveData = async () => {
     if (!validateForm()) return;
-
     if (!user) return;
 
     try {
@@ -138,37 +126,61 @@ const AccountPage: React.FC = () => {
         .from('profiles')
         .update({
           name: userData.name,
-          email: userData.email
-          // intencional: mantive atualização somente de name/email como no original
+          email: userData.email,
+          cpf: userData.cpf,
+          phone: phoneNumberInput,
         })
         .eq('id', user.id);
 
       if (error) {
-        console.error('Error updating profile:', error);
-        alert(translateAuthError(error.message || 'Erro ao salvar dados. Tente novamente.'));
-      } else {
-        setShowEditModal(false);
+        throw new Error(error.message);
       }
+
+      setShowEditModal(false);
     } catch (err: any) {
-      console.error('Error saving user data:', err);
-      alert(translateAuthError(err.message || 'Erro ao salvar dados. Tente novamente.'));
+      alert(translateAuthError(err.message || 'Erro ao salvar dados.'));
     }
   };
 
-  const handleSendResetLink = () => {
-    // lógica real pode ser integrada com backend -> por enquanto mantive placeholder
-    console.log('Sending password reset link');
-    // Você pode adicionar aqui a chamada que envia o e-mail de redefinição
-    alert('Link de redefinição enviado (placeholder).');
+  // Upload da foto
+  const handleUploadPhoto = async () => {
+    if (!selectedImage || !user) {
+      alert('Selecione uma imagem.');
+      return;
+    }
+    setUploading(true);
+    try {
+      const fileExt = selectedImage.name.split('.').pop();
+      const fileName = `${user.id}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, selectedImage, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: data.publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setProfileImageUrl(data.publicUrl);
+      setShowPhotoModal(false);
+    } catch (err: any) {
+      alert(translateAuthError(err.message || 'Erro ao enviar foto.'));
+    } finally {
+      setUploading(false);
+    }
   };
 
-  const handleDeleteAccount = () => {
-    setShowDeleteConfirmModal(true);
-  };
-
+  // Excluir conta
   const confirmDeleteAccount = async () => {
     if (!user) return;
-
     setDeleting(true);
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -182,71 +194,62 @@ const AccountPage: React.FC = () => {
       });
 
       const result = await response.json();
-
       if (!response.ok || !result.success) {
-        throw new Error(translateAuthError(result.message || 'Erro ao excluir conta'));
+        throw new Error(result.message);
       }
 
       alert('Conta excluída com sucesso');
       await signOut();
       window.location.href = '/login';
     } catch (err: any) {
-      console.error('Error deleting account:', err);
-      alert(translateAuthError(err.message || 'Erro ao excluir conta. Tente novamente.'));
+      alert(translateAuthError(err.message || 'Erro ao excluir conta.'));
     } finally {
       setDeleting(false);
       setShowDeleteConfirmModal(false);
     }
   };
 
+  // Resetar senha
+  const handleSendResetLink = () => {
+    alert('Link de redefinição enviado (placeholder).');
+  };
+
+  // Inicial do avatar
+  const avatarInitial = (nameOrEmail: string | undefined) => {
+    const source = nameOrEmail || user?.email || '';
+    return source ? source.trim()[0].toUpperCase() : 'U';
+  };
+
   if (loading) {
     return (
-      <div className="bg-transparent">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="rounded-2xl p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
-            </div>
-          </div>
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
       </div>
     );
   }
 
-  // Helper to display initials if no avatar url
-  const avatarInitial = (nameOrEmail: string | undefined) => {
-    const source = nameOrEmail || user?.email || '';
-    if (!source) return 'U';
-    return source.trim()[0].toUpperCase();
-  };
-
   return (
     <div className="bg-transparent min-h-screen">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Card wrapper */}
         <div className="rounded-2xl p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
-          {/* Top header of card */}
+          {/* Cabeçalho */}
           <div className="flex items-start justify-between mb-6">
             <div>
               <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Minha conta</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Gerencie seus dados pessoais, redefina senha ou exclua sua conta.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Gerencie seus dados pessoais, redefina senha ou exclua sua conta.
+              </p>
             </div>
-
             <div className="flex items-center space-x-3">
-              {/* Alterar foto */}
               <button
                 onClick={() => setShowPhotoModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-white transition transform hover:-translate-y-0.5
-                           animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-white animate-gradient-x bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600"
               >
                 <Upload className="h-4 w-4" />
-                <span className="text-sm">Alterar foto</span>
+                Alterar foto
               </button>
-
-              {/* Small edit icon */}
               <button
-                onClick={handleEditData}
-                title="Editar"
+                onClick={() => setShowEditModal(true)}
                 className="p-2 rounded-lg bg-gray-800/40 hover:bg-gray-800/30 transition"
               >
                 <Pencil className="h-4 w-4 text-white" />
@@ -254,9 +257,8 @@ const AccountPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Content grid */}
+          {/* Info principal */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Avatar / basic info */}
             <div className="col-span-1 flex items-center gap-4 p-4 rounded-xl bg-white/3 dark:bg-black/10">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-400 flex items-center justify-center text-white text-lg font-semibold shadow">
                 {profileImageUrl ? (
@@ -266,281 +268,141 @@ const AccountPage: React.FC = () => {
                 )}
               </div>
               <div>
-                <div className="text-sm text-gray-400">Usuário</div>
                 <div className="font-medium text-gray-900 dark:text-white">{userData.name || '-'}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">{userData.email || '-'}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">{userData.email || '-'}</div>
               </div>
             </div>
 
-            {/* Main fields */}
             <div className="col-span-2 p-4 rounded-xl bg-white/3 dark:bg-black/10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-gray-400">Nome</label>
-                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.name || '-'}</div>
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-400">Email</label>
-                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.email || '-'}</div>
-                </div>
-              </div>
-
-              {/* Reset password */}
-              <div className="mt-6">
-                <h3 className="text-base font-semibold text-gray-900 dark:text-white">Resetar senha</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Você receberá um link via e-mail para redefinir a sua senha.</p>
-
-                <div className="mt-4">
-                  <button
-                    onClick={handleSendResetLink}
-                    className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition transform hover:-translate-y-0.5
-                               animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-pink-500 to-indigo-600"
-                  >
-                    <span>Enviar link</span>
-                    <Link className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Delete account */}
-              <div className="mt-6">
-                <h3 className="text-base font-semibold text-gray-900 dark:text-white">Excluir minha conta</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
-                  Lembre-se de que esta ação é irreversível e removerá permanentemente todas as suas informações e dados pessoais de nossa plataforma; você não pode ter rifas em andamento.
-                </p>
-
-                <div className="mt-4">
-                  <button
-                    onClick={handleDeleteAccount}
-                    disabled={deleting}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-rose-500 text-white font-medium hover:opacity-95 transition disabled:opacity-50"
-                  >
-                    <span>{deleting ? 'Excluindo...' : 'Quero excluir'}</span>
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
+                <div><span className="text-sm text-gray-400">Nome:</span> {userData.name || '-'}</div>
+                <div><span className="text-sm text-gray-400">Email:</span> {userData.email || '-'}</div>
+                <div><span className="text-sm text-gray-400">CPF:</span> {userData.cpf || '-'}</div>
+                <div><span className="text-sm text-gray-400">Telefone:</span> {phoneNumberInput || '-'}</div>
               </div>
             </div>
           </div>
 
-          {/* Optional purchase history (kept smaller / below) */}
-          {getCompletedOrders().length > 0 && (
-            <div className="mt-6">
-              <h4 className="text-sm font-semibold text-gray-400 mb-3">Histórico de Compras recentes</h4>
-              <div className="space-y-3">
-                {getCompletedOrders().slice(0, 3).map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-3 rounded-lg bg-white/3 dark:bg-black/10">
-                    <div>
-                      <div className="font-medium text-gray-900 dark:text-white">Rifaqui - Taxa de Publicação</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{new Date(order.created_at).toLocaleDateString('pt-BR')}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium text-gray-900 dark:text-white">R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}</div>
-                      <div className="text-sm text-green-600 dark:text-green-400">Pago</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Reset senha */}
+          <div className="mt-6">
+            <h3 className="font-semibold text-gray-900 dark:text-white">Resetar senha</h3>
+            <button
+              onClick={handleSendResetLink}
+              className="mt-3 w-full px-6 py-3 rounded-lg text-white font-semibold animate-gradient-x bg-gradient-to-br from-purple-600 via-pink-500 to-indigo-600"
+            >
+              Enviar link
+            </button>
+          </div>
+
+          {/* Excluir conta */}
+          <div className="mt-6">
+            <h3 className="font-semibold text-gray-900 dark:text-white">Excluir conta</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Esta ação é irreversível.
+            </p>
+            <button
+              onClick={() => setShowDeleteConfirmModal(true)}
+              disabled={deleting}
+              className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-rose-500 text-white"
+            >
+              {deleting ? 'Excluindo...' : 'Quero excluir'}
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </main>
 
-      {/* Edit Data Modal */}
+      {/* Modal edição */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Editar dados pessoais</h2>
-              <button onClick={() => setShowEditModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            </div>
-
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Preencha os campos abaixo para editar seus dados pessoais.</p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Nome completo</label>
-                <input
-                  type="text"
-                  value={userData.name}
-                  onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-purple-500 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Email</label>
-                <input
-                  type="email"
-                  value={userData.email}
-                  onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                  className={`w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                    errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  }`}
-                />
-                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">CPF (opcional)</label>
-                <input
-                  type="text"
-                  value={userData.cpf}
-                  onChange={(e) => setUserData({ ...userData, cpf: e.target.value })}
-                  className={`w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                    errors.cpf ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  }`}
-                />
-                {errors.cpf && <p className="text-red-500 text-sm mt-1">{errors.cpf}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Telefone (opcional)</label>
-                <div className="flex gap-2">
-                  <div className="w-36">
-                    <CountryPhoneSelect
-                      value={selectedCountry}
-                      onChange={(c: Country) => setSelectedCountry(c)}
-                    />
-                  </div>
-                  <input
-                    type="tel"
-                    value={phoneNumberInput}
-                    onChange={(e) => setPhoneNumberInput(e.target.value)}
-                    className={`flex-1 px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                      errors.phoneNumber ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    }`}
-                    placeholder="Número de telefone"
-                  />
-                </div>
-                {errors.phoneNumber && <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>}
-              </div>
-
-              <button
-                onClick={handleSaveData}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white font-semibold"
-              >
-                <span>Salvar</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md bg-white dark:bg-gray-800 p-6 rounded-lg">
+            <h2 className="text-lg font-semibold mb-4">Editar dados</h2>
+            <input
+              type="text"
+              value={userData.name}
+              onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+              placeholder="Nome"
+              className="w-full mb-3 p-2 rounded border"
+            />
+            <input
+              type="email"
+              value={userData.email}
+              onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+              placeholder="Email"
+              className="w-full mb-3 p-2 rounded border"
+            />
+            <input
+              type="text"
+              value={userData.cpf}
+              onChange={(e) => setUserData({ ...userData, cpf: e.target.value })}
+              placeholder="CPF"
+              className="w-full mb-3 p-2 rounded border"
+            />
+            <input
+              type="tel"
+              value={phoneNumberInput}
+              onChange={(e) => setPhoneNumberInput(e.target.value)}
+              placeholder="Telefone"
+              className="w-full mb-3 p-2 rounded border"
+            />
+            <button
+              onClick={handleSaveData}
+              className="w-full px-4 py-2 bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white rounded-lg"
+            >
+              Salvar
+            </button>
           </div>
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Modal excluir conta */}
       {showDeleteConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Excluir</h2>
-              <button onClick={() => setShowDeleteConfirmModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            </div>
-
-            <div className="mb-6">
-              <div className="flex items-start space-x-3 mb-4">
-                <AlertTriangle className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" />
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  Você tem certeza de que quer excluir sua conta de forma permanente? Essa ação não pode ser desfeita e seu e-mail não poderá ser reutilizado.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirmModal(false)}
-                disabled={deleting}
-                className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 text-gray-900 dark:text-white py-3 rounded-lg font-medium transition"
-              >
-                Cancelar
-              </button>
-
-              <button
-                onClick={confirmDeleteAccount}
-                disabled={deleting}
-                className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-3 rounded-lg font-medium transition"
-              >
-                {deleting ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                ) : (
-                  <span>Confirmar</span>
-                )}
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md bg-white dark:bg-gray-800 p-6 rounded-lg">
+            <h2 className="text-lg font-semibold mb-4">Excluir conta</h2>
+            <p className="mb-4">Tem certeza? Esta ação é irreversível.</p>
+            <button
+              onClick={confirmDeleteAccount}
+              className="w-full px-4 py-2 bg-red-600 text-white rounded-lg"
+            >
+              Confirmar
+            </button>
           </div>
         </div>
       )}
 
-      {/* Photo Modal (placeholder) */}
+      {/* Modal foto */}
       {showPhotoModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Alterar foto</h2>
-              <button onClick={() => setShowPhotoModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            </div>
-
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Faça upload de uma nova foto de perfil.</p>
-
-            <div className="space-y-4">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const f = e.target.files?.[0] || null;
-                  setSelectedImage(f);
-                  if (f) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
-                    reader.readAsDataURL(f);
-                  } else {
-                    setImagePreview(null);
-                  }
-                }}
-              />
-
-              {imagePreview && (
-                <div className="w-32 h-32 rounded-full overflow-hidden">
-                  <img src={imagePreview} alt="preview" className="w-full h-full object-cover" />
-                </div>
-              )}
-
-              <div className="flex gap-3">
-                <button
-                  onClick={async () => {
-                    // Placeholder: upload logic goes here.
-                    if (!selectedImage) {
-                      alert('Selecione uma imagem.');
-                      return;
-                    }
-                    setUploading(true);
-                    try {
-                      // Exemplo: enviar para storage e atualizar profile.avatar_url
-                      alert('Função de upload não implementada no placeholder.');
-                      setShowPhotoModal(false);
-                    } catch (err) {
-                      console.error('Erro ao enviar foto:', err);
-                    } finally {
-                      setUploading(false);
-                    }
-                  }}
-                  className="flex-1 bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white py-2 rounded-lg"
-                >
-                  {uploading ? 'Enviando...' : 'Salvar foto'}
-                </button>
-
-                <button onClick={() => { setSelectedImage(null); setImagePreview(null); setShowPhotoModal(false); }} className="flex-1 bg-gray-200 dark:bg-gray-700 py-2 rounded-lg">
-                  Cancelar
-                </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md bg-white dark:bg-gray-800 p-6 rounded-lg">
+            <h2 className="text-lg font-semibold mb-4">Alterar foto</h2>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const f = e.target.files?.[0] || null;
+                setSelectedImage(f);
+                if (f) {
+                  const reader = new FileReader();
+                  reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+                  reader.readAsDataURL(f);
+                } else {
+                  setImagePreview(null);
+                }
+              }}
+            />
+            {imagePreview && (
+              <div className="w-32 h-32 rounded-full overflow-hidden mt-4">
+                <img src={imagePreview} alt="preview" className="w-full h-full object-cover" />
               </div>
-            </div>
+            )}
+            <button
+              onClick={handleUploadPhoto}
+              disabled={uploading}
+              className="mt-4 w-full px-4 py-2 bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white rounded-lg"
+            >
+              {uploading ? 'Enviando...' : 'Salvar foto'}
+            </button>
           </div>
         </div>
       )}
