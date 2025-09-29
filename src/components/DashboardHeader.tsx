@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Sun, Moon, LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -9,11 +9,11 @@ const DashboardHeader = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [profile, setProfile] = useState<{ name: string } | null>(null);
 
   useEffect(() => {
     if (user) {
-      // Fetch user profile
       const fetchProfile = async () => {
         const { data } = await supabase
           .from('profiles')
@@ -34,11 +34,25 @@ const DashboardHeader = () => {
     navigate('/login');
   };
 
+  // Definir título com base na rota atual
+  const getTitle = () => {
+    if (location.pathname.includes('campanhas')) return 'Visão geral das suas campanhas';
+    if (location.pathname.includes('pagamento')) return 'Gerenciar métodos de pagamento';
+    if (location.pathname.includes('ranking')) return 'Ranking de vendedores';
+    if (location.pathname.includes('afiliacoes')) return 'Programa de afiliações';
+    if (location.pathname.includes('redes-sociais')) return 'Conexões com redes sociais';
+    if (location.pathname.includes('pixels')) return 'Pixels e Analytics';
+    if (location.pathname.includes('personalizacao')) return 'Personalização da página';
+    if (location.pathname.includes('conta')) return 'Minha conta';
+    if (location.pathname.includes('tutoriais')) return 'Tutoriais e ajuda';
+    return 'Painel';
+  };
+
   return (
     <div className="m-4 sm:m-6 rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm flex items-center justify-between transition-colors duration-300">
-      {/* Título fixo */}
+      {/* Título dinâmico */}
       <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white truncate">
-        Visão geral das suas campanhas
+        {getTitle()}
       </h1>
       
       {/* Ações */}
