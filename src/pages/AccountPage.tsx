@@ -564,6 +564,128 @@ const AccountPage: React.FC = () => {
             <div className="space-y-5">
               <div>
                 <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  <Mail className="h-4 w-4" />
+                  <span>Email</span>
+                </label>
+                <input
+                  type="email"
+                  value={userData.email}
+                  onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+                  className={`w-full bg-gray-50 dark:bg-gray-900 border-2 rounded-xl px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all duration-200 ${
+                    errors.email ? 'border-red-500 focus:border-red-500' : 'border-purple-200 dark:border-purple-800 focus:border-purple-500'
+                  }`}
+                  placeholder="seu@email.com"
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-2 flex items-center space-x-1">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>{errors.email}</span>
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  <CreditCard className="h-4 w-4" />
+                  <span>CPF (opcional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={userData.cpf}
+                  onChange={handleCPFChange}
+                  placeholder="000.000.000-00"
+                  className={`w-full bg-gray-50 dark:bg-gray-900 border-2 rounded-xl px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all duration-200 ${
+                    errors.cpf ? 'border-red-500 focus:border-red-500' : 'border-purple-200 dark:border-purple-800 focus:border-purple-500'
+                  }`}
+                />
+                {errors.cpf && (
+                  <p className="text-red-500 text-sm mt-2 flex items-center space-x-1">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>{errors.cpf}</span>
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <CountryPhoneSelect
+                  selectedCountry={selectedCountry}
+                  onCountryChange={(c: Country) => setSelectedCountry(c)}
+                  phoneNumber={userData.phoneNumber}
+                  onPhoneChange={(value: string) => setUserData({ ...userData, phoneNumber: value })}
+                  placeholder="Número de telefone"
+                  error={errors.phoneNumber}
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={handleSaveData}
+              className="group w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 mt-8 shadow-lg hover:shadow-xl hover:scale-[1.02]"
+            >
+              <span>Salvar Alterações</span>
+              <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirmModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 w-full max-w-md shadow-2xl transform transition-all duration-300 animate-in slide-in-from-bottom-4">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Confirmar Exclusão
+              </h2>
+              <button
+                onClick={() => setShowDeleteConfirmModal(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-200 hover:rotate-90"
+              >
+                <X className="h-6 w-6 text-gray-400" />
+              </button>
+            </div>
+            
+            <div className="mb-8">
+              <div className="flex items-start space-x-4 p-5 bg-red-50 dark:bg-red-900/20 rounded-2xl border-2 border-red-200 dark:border-red-800">
+                <AlertTriangle className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" />
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  Você tem certeza de que quer excluir sua conta de forma permanente? Essa ação não pode ser desfeita e seu e-mail não poderá ser reutilizado.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowDeleteConfirmModal(false)}
+                disabled={deleting}
+                className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 dark:text-white py-3.5 rounded-xl font-semibold transition-all duration-200 hover:scale-[1.02]"
+              >
+                Cancelar
+              </button>
+              
+              <button
+                onClick={confirmDeleteAccount}
+                disabled={deleting}
+                className="flex-1 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 disabled:from-red-400 disabled:to-pink-400 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl hover:scale-[1.02]"
+              >
+                {deleting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                    <span>Excluindo...</span>
+                  </>
+                ) : (
+                  <span>Confirmar Exclusão</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AccountPage;ibold text-gray-700 dark:text-gray-300 mb-3">
                   <User className="h-4 w-4" />
                   <span>Nome Completo</span>
                 </label>
