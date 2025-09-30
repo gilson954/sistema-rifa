@@ -640,4 +640,4 @@ const AccountPage: React.FC = () => {
               <button
                 onClick={confirmDeleteAccount}
                 disabled={deleting}
-                className="flex-1 bg-gradient-to-r from-re
+                className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2"
