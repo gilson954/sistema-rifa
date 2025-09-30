@@ -1,11 +1,11 @@
 // src/pages/AccountPage.tsx
 import React, { useState, useEffect } from 'react';
-import { Pencil, Upload, Link, Trash2, X, ArrowRight, ChevronDown, AlertTriangle, ShoppingBag, Mail, User, Lock } from 'lucide-react';
+import { Pencil, Upload, Link, Trash2, X, ArrowRight, ChevronDown, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import CountryPhoneSelect from '../components/CountryPhoneSelect';
 import { useStripe } from '../hooks/useStripe';
-import { translateAuthError } from '../utils/errorTranslators';
+import { translateAuthError } from '../utils/errorTranslators'; // âœ… import adicionado
 
 interface Country {
   code: string;
@@ -35,7 +35,7 @@ const AccountPage = () => {
     code: 'BR',
     name: 'Brasil',
     dialCode: '+55',
-    flag: '🇧🇷'
+    flag: 'ðŸ‡§ðŸ‡·'
   });
   const [phoneNumberInput, setPhoneNumberInput] = useState('');
   const [loading, setLoading] = useState(true);
@@ -84,30 +84,30 @@ const AccountPage = () => {
     const newErrors: Record<string, string> = {};
 
     if (!userData.name.trim()) {
-      newErrors.name = 'Nome é obrigatório';
+      newErrors.name = 'Nome Ã© obrigatÃ³rio';
     }
 
     if (!userData.email.trim()) {
-      newErrors.email = 'Email é obrigatório';
+      newErrors.email = 'Email Ã© obrigatÃ³rio';
     } else if (!/\S+@\S+\.\S+/.test(userData.email)) {
-      newErrors.email = 'Email inválido';
+      newErrors.email = 'Email invÃ¡lido';
     }
 
     if (userData.cpf.trim()) {
       const cpfNumbers = userData.cpf.replace(/\D/g, '');
       if (cpfNumbers.length !== 11) {
-        newErrors.cpf = 'CPF deve ter 11 dígitos';
+        newErrors.cpf = 'CPF deve ter 11 dÃ­gitos';
       }
     }
 
     if (phoneNumberInput.trim()) {
       const phoneNumbers = phoneNumberInput.replace(/\D/g, '');
       if (selectedCountry.code === 'BR' && phoneNumbers.length !== 11) {
-        newErrors.phoneNumber = 'Número de celular deve ter 11 dígitos';
+        newErrors.phoneNumber = 'NÃºmero de celular deve ter 11 dÃ­gitos';
       } else if ((selectedCountry.code === 'US' || selectedCountry.code === 'CA') && phoneNumbers.length !== 10) {
-        newErrors.phoneNumber = 'Número de telefone deve ter 10 dígitos';
+        newErrors.phoneNumber = 'NÃºmero de telefone deve ter 10 dÃ­gitos';
       } else if (phoneNumbers.length < 7) {
-        newErrors.phoneNumber = 'Número de telefone inválido';
+        newErrors.phoneNumber = 'NÃºmero de telefone invÃ¡lido';
       }
     }
 
@@ -172,14 +172,16 @@ const AccountPage = () => {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
+        // âœ… traduzir mensagem de erro
         throw new Error(translateAuthError(result.message || 'Erro ao excluir conta'));
       }
 
-      alert('Conta excluída com sucesso');
+      alert('Conta excluÃ­da com sucesso');
       await signOut();
       window.location.href = '/login';
     } catch (error: any) {
       console.error('Error deleting account:', error);
+      // âœ… traduzir mensagem de erro
       alert(translateAuthError(error.message || 'Erro ao excluir conta. Tente novamente.'));
     } finally {
       setDeleting(false);
@@ -189,244 +191,173 @@ const AccountPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/20 p-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-2xl p-12">
-            <div className="flex items-center justify-center">
-              <div className="relative">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-200 dark:border-purple-900"></div>
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-transparent border-t-purple-600 absolute top-0 left-0"></div>
-              </div>
-            </div>
-          </div>
+      <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/20 p-4 md:p-6 lg:p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
-        
-        {/* Header Section */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-700 dark:to-pink-700 rounded-3xl p-8 shadow-2xl text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full -ml-32 -mb-32 blur-3xl"></div>
-          <div className="relative">
-            <div className="flex items-center space-x-4 mb-2">
-              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl font-bold">
-                {userData.name ? userData.name.charAt(0).toUpperCase() : '?'}
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold">Minha Conta</h1>
-                <p className="text-white/80 text-sm mt-1">Gerencie suas informações pessoais</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Purchase History */}
-        {getCompletedOrders().length > 0 && (
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-6 md:p-8 transition-all duration-300 hover:shadow-2xl">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
-                <ShoppingBag className="h-5 w-5 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Histórico de Compras
-              </h2>
-            </div>
-            <div className="space-y-3">
-              {getCompletedOrders().slice(0, 5).map((order, index) => (
-                <div
-                  key={order.id}
-                  className="group bg-gradient-to-r from-gray-50 to-purple-50/30 dark:from-gray-900/50 dark:to-purple-900/20 rounded-2xl p-5 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border border-gray-200/50 dark:border-gray-700/50"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="font-semibold text-gray-900 dark:text-white mb-1">
-                        Rifaqui - Taxa de Publicação
-                      </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {new Date(order.created_at).toLocaleDateString('pt-BR')}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-xl text-gray-900 dark:text-white mb-1">
-                        R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}
-                      </div>
-                      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
-                        ✓ Pago
-                      </div>
-                    </div>
+    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+      {/* HistÃ³rico de Compras */}
+      {getCompletedOrders().length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">
+            HistÃ³rico de Compras
+          </h2>
+          <div className="space-y-3">
+            {getCompletedOrders().slice(0, 5).map((order) => (
+              <div
+                key={order.id}
+                className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 flex items-center justify-between"
+              >
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">
+                    Rifaqui - Taxa de PublicaÃ§Ã£o
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    {new Date(order.created_at).toLocaleDateString('pt-BR')}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Main Data Section */}
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-6 md:p-8 transition-all duration-300 hover:shadow-2xl">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
-                <User className="h-5 w-5 text-white" />
+                <div className="text-right">
+                  <div className="font-medium text-gray-900 dark:text-white">
+                    R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}
+                  </div>
+                  <div className="text-sm text-green-600 dark:text-green-400">
+                    Pago
+                  </div>
+                </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Dados Principais
-              </h2>
-            </div>
-            <button
-              onClick={handleEditData}
-              className="group flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-            >
-              <Pencil className="h-4 w-4 text-white group-hover:rotate-12 transition-transform duration-300" />
-              <span className="text-white font-medium">Editar</span>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="group p-5 bg-gradient-to-br from-gray-50 to-purple-50/30 dark:from-gray-900/50 dark:to-purple-900/20 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 hover:shadow-md">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                <User className="h-4 w-4" />
-                <span>Nome Completo</span>
-              </label>
-              <p className="text-lg text-gray-900 dark:text-white font-semibold">{userData.name || '-'}</p>
-            </div>
-            <div className="group p-5 bg-gradient-to-br from-gray-50 to-pink-50/30 dark:from-gray-900/50 dark:to-pink-900/20 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 hover:shadow-md">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                <Mail className="h-4 w-4" />
-                <span>Email</span>
-              </label>
-              <p className="text-lg text-gray-900 dark:text-white font-semibold break-all">{userData.email || '-'}</p>
-            </div>
+            ))}
           </div>
         </div>
+      )}
 
-        {/* Reset Password Section */}
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-6 md:p-8 transition-all duration-300 hover:shadow-2xl">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl">
-              <Lock className="h-5 w-5 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Resetar Senha
-            </h3>
-          </div>
-          <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-            Você receberá um link via email para redefinir a sua senha
-          </p>
-
+      {/* Dados principais */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-medium text-gray-900 dark:text-white">
+            Dados principais
+          </h2>
           <button
-            onClick={handleSendResetLink}
-            className="group w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white py-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl hover:scale-[1.02]"
+            onClick={handleEditData}
+            className="p-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors duration-200"
           >
-            <span>Enviar Link de Redefinição</span>
-            <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+            <Pencil className="h-4 w-4 text-white" />
           </button>
         </div>
 
-        {/* Delete Account Section */}
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-red-200/50 dark:border-red-900/50 shadow-xl p-6 md:p-8 transition-all duration-300 hover:shadow-2xl">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-gradient-to-br from-red-500 to-pink-500 rounded-xl">
-              <AlertTriangle className="h-5 w-5 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Zona de Perigo
-            </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">Nome</label>
+            <p className="text-gray-900 dark:text-white font-medium">{userData.name || '-'}</p>
           </div>
-          <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-            Lembre-se de que esta ação é irreversível e removerá permanentemente todas as suas informações e dados pessoais 
-            de nossa plataforma, você não pode ter rifas em andamento
-          </p>
-
-          <button
-            onClick={handleDeleteAccount}
-            disabled={deleting}
-            className="group bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl hover:scale-[1.02]"
-          >
-            <Trash2 className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
-            <span>{deleting ? 'Excluindo...' : 'Excluir Minha Conta'}</span>
-          </button>
+          <div>
+            <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">Email</label>
+            <p className="text-gray-900 dark:text-white font-medium">{userData.email || '-'}</p>
+          </div>
         </div>
+      </div>
+
+      {/* Reset Password Section */}
+      <div className="mb-8">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+          Resetar senha
+        </h3>
+        <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+          VocÃª receberÃ¡ um link via email para redefinir a sua senha
+        </p>
+
+        <button
+          onClick={handleSendResetLink}
+          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+        >
+          <span>Enviar link</span>
+          <Link className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Delete Account Section */}
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+          Excluir minha conta
+        </h3>
+        <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 leading-relaxed">
+          Lembre-se de que esta aÃ§Ã£o Ã© irreversÃ­vel e removerÃ¡ permanentemente todas as suas informaÃ§Ãµes e dados pessoais 
+          de nossa plataforma, vocÃª nÃ£o pode ter rifas em andamento
+        </p>
+
+        <button
+          onClick={handleDeleteAccount}
+          disabled={deleting}
+          className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+        >
+          <span>{deleting ? 'Excluindo...' : 'Quero excluir'}</span>
+          <Trash2 className="h-4 w-4" />
+        </button>
       </div>
 
       {/* Edit Data Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 w-full max-w-lg shadow-2xl transform transition-all duration-300 animate-in slide-in-from-bottom-4">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Editar Dados Pessoais
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Atualize suas informações
-                </p>
-              </div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Editar dados pessoais
+              </h2>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-200 hover:rotate-90"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
               >
-                <X className="h-6 w-6 text-gray-400" />
+                <X className="h-5 w-5 text-gray-400" />
               </button>
             </div>
+            
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              Preencha os campos abaixo para editar seus dados pessoais
+            </p>
 
-            <div className="space-y-5">
+            <div className="space-y-4">
               {/* Nome completo */}
               <div>
-                <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                  <User className="h-4 w-4" />
-                  <span>Nome Completo</span>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Nome completo
                 </label>
                 <input
                   type="text"
                   value={userData.name}
                   onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-                  className="w-full bg-gray-50 dark:bg-gray-900 border-2 border-purple-200 dark:border-purple-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200"
-                  placeholder="Seu nome completo"
+                  className="w-full bg-white dark:bg-gray-700 border border-purple-500 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
                 />
-                {errors.name && (
-                  <p className="text-red-500 text-sm mt-2 flex items-center space-x-1">
-                    <AlertTriangle className="h-4 w-4" />
-                    <span>{errors.name}</span>
-                  </p>
-                )}
               </div>
 
               {/* Email */}
               <div>
-                <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                  <Mail className="h-4 w-4" />
-                  <span>Email</span>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Email
                 </label>
                 <input
                   type="email"
                   value={userData.email}
                   onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                  className={`w-full bg-gray-50 dark:bg-gray-900 border-2 rounded-xl px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all duration-200 ${
-                    errors.email ? 'border-red-500 focus:border-red-500' : 'border-purple-200 dark:border-purple-800 focus:border-purple-500'
+                  className={`w-full bg-white dark:bg-gray-700 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
+                    errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
-                  placeholder="seu@email.com"
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-sm mt-2 flex items-center space-x-1">
-                    <AlertTriangle className="h-4 w-4" />
-                    <span>{errors.email}</span>
-                  </p>
+                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
                 )}
               </div>
             </div>
 
             <button
               onClick={handleSaveData}
-              className="group w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 mt-8 shadow-lg hover:shadow-xl hover:scale-[1.02]"
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 mt-6"
             >
-              <span>Salvar Alterações</span>
-              <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+              <span>Salvar</span>
+              <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -434,25 +365,25 @@ const AccountPage = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirmModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 w-full max-w-md shadow-2xl transform transition-all duration-300 animate-in slide-in-from-bottom-4">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Confirmar Exclusão
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Excluir
               </h2>
               <button
                 onClick={() => setShowDeleteConfirmModal(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-200 hover:rotate-90"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
               >
-                <X className="h-6 w-6 text-gray-400" />
+                <X className="h-5 w-5 text-gray-400" />
               </button>
             </div>
             
-            <div className="mb-8">
-              <div className="flex items-start space-x-4 p-5 bg-red-50 dark:bg-red-900/20 rounded-2xl border-2 border-red-200 dark:border-red-800">
+            <div className="mb-6">
+              <div className="flex items-start space-x-3 mb-4">
                 <AlertTriangle className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" />
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  Você tem certeza de que quer excluir sua conta de forma permanente? Essa ação não pode ser desfeita e seu e-mail não poderá ser reutilizado.
+                  VocÃª tem certeza de que quer excluir sua conta de forma permanente? Essa aÃ§Ã£o nÃ£o pode ser desfeita e seu e-mail nÃ£o poderÃ¡ ser reutilizado.
                 </p>
               </div>
             </div>
@@ -461,7 +392,7 @@ const AccountPage = () => {
               <button
                 onClick={() => setShowDeleteConfirmModal(false)}
                 disabled={deleting}
-                className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 dark:text-white py-3.5 rounded-xl font-semibold transition-all duration-200 hover:scale-[1.02]"
+                className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 dark:text-white py-3 rounded-lg font-medium transition-colors duration-200"
               >
                 Cancelar
               </button>
@@ -469,15 +400,12 @@ const AccountPage = () => {
               <button
                 onClick={confirmDeleteAccount}
                 disabled={deleting}
-                className="flex-1 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 disabled:from-red-400 disabled:to-pink-400 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl hover:scale-[1.02]"
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
               >
                 {deleting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                    <span>Excluindo...</span>
-                  </>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                 ) : (
-                  <span>Confirmar Exclusão</span>
+                  <span>Confirmar</span>
                 )}
               </button>
             </div>
