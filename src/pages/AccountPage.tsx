@@ -1,26 +1,11 @@
+// src/pages/AccountPage.tsx
 import React, { useState, useEffect } from 'react';
 import { Pencil, Upload, Link, Trash2, X, ArrowRight, ChevronDown, AlertTriangle, ShoppingBag, Mail, User, Lock } from 'lucide-react';
-
-// Mock hooks e funções
-const useAuth = () => ({
-  user: { id: '123', email: 'usuario@exemplo.com' },
-  signOut: async () => console.log('Sign out')
-});
-
-const useStripe = () => ({
-  orders: [
-    { id: '1', created_at: '2024-01-15', amount_total: 9900, status: 'complete' },
-    { id: '2', created_at: '2024-02-20', amount_total: 4900, status: 'complete' },
-    { id: '3', created_at: '2024-03-10', amount_total: 9900, status: 'complete' },
-  ],
-  getCompletedOrders: () => [
-    { id: '1', created_at: '2024-01-15', amount_total: 9900, status: 'complete' },
-    { id: '2', created_at: '2024-02-20', amount_total: 4900, status: 'complete' },
-    { id: '3', created_at: '2024-03-10', amount_total: 9900, status: 'complete' },
-  ]
-});
-
-const translateAuthError = (message: string) => message;
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
+import CountryPhoneSelect from '../components/CountryPhoneSelect';
+import { useStripe } from '../hooks/useStripe';
+import { translateAuthError } from '../utils/errorTranslators';
 
 interface Country {
   code: string;
@@ -42,8 +27,8 @@ const AccountPage = () => {
   const [deleting, setDeleting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [userData, setUserData] = useState({
-    name: 'João da Silva',
-    email: 'joao.silva@exemplo.com',
+    name: '',
+    email: '',
     cpf: '',
   });
   const [selectedCountry, setSelectedCountry] = useState<Country>({
@@ -53,7 +38,46 @@ const AccountPage = () => {
     flag: '🇧🇷'
   });
   const [phoneNumberInput, setPhoneNumberInput] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user profile data
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user) {
+        setLoading(true);
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('name, email, avatar_url')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (error) {
+            console.error('Error fetching profile:', error);
+          } else if (profile) {
+            setUserData(prev => ({
+              ...prev,
+              name: profile.name || '',
+              email: profile.email || ''
+            }));
+            setProfileImageUrl(profile.avatar_url);
+          } else {
+            setUserData(prev => ({
+              ...prev,
+              name: '',
+              email: user.email || ''
+            }));
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
 
   // Validate form data
   const validateForm = () => {
@@ -98,16 +122,32 @@ const AccountPage = () => {
 
   const handleSaveData = async () => {
     if (!validateForm()) return;
-    
-    // Simula salvamento
-    setTimeout(() => {
-      setShowEditModal(false);
-      alert('Dados salvos com sucesso!');
-    }, 500);
+
+    if (user) {
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            name: userData.name,
+            email: userData.email
+          })
+          .eq('id', user.id);
+
+        if (error) {
+          console.error('Error updating profile:', error);
+          alert(translateAuthError(error.message || 'Erro ao salvar dados. Tente novamente.'));
+        } else {
+          setShowEditModal(false);
+        }
+      } catch (error: any) {
+        console.error('Error saving user data:', error);
+        alert(translateAuthError(error.message || 'Erro ao salvar dados. Tente novamente.'));
+      }
+    }
   };
 
   const handleSendResetLink = () => {
-    alert('Link de redefinição enviado para seu email!');
+    console.log('Sending password reset link');
   };
 
   const handleDeleteAccount = () => {
@@ -115,14 +155,36 @@ const AccountPage = () => {
   };
 
   const confirmDeleteAccount = async () => {
+    if (!user) return;
+
     setDeleting(true);
-    
-    // Simula exclusão
-    setTimeout(() => {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/delete-user-account`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: user.id })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(translateAuthError(result.message || 'Erro ao excluir conta'));
+      }
+
+      alert('Conta excluída com sucesso');
+      await signOut();
+      window.location.href = '/login';
+    } catch (error: any) {
+      console.error('Error deleting account:', error);
+      alert(translateAuthError(error.message || 'Erro ao excluir conta. Tente novamente.'));
+    } finally {
       setDeleting(false);
       setShowDeleteConfirmModal(false);
-      alert('Conta excluída com sucesso!');
-    }, 2000);
+    }
   };
 
   if (loading) {
