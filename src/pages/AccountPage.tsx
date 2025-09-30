@@ -1,11 +1,20 @@
 // src/pages/AccountPage.tsx
 import React, { useState, useEffect } from 'react';
-import { Pencil, Upload, Link, Trash2, X, ArrowRight, ChevronDown, AlertTriangle } from 'lucide-react';
+import {
+  Pencil,
+  Link,
+  Trash2,
+  X,
+  ArrowRight,
+  ChevronDown,
+  AlertTriangle,
+  CheckCircle
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import CountryPhoneSelect from '../components/CountryPhoneSelect';
 import { useStripe } from '../hooks/useStripe';
-import { translateAuthError } from '../utils/errorTranslators'; // âœ… import adicionado
+import { translateAuthError } from '../utils/errorTranslators';
 
 interface Country {
   code: string;
@@ -14,65 +23,109 @@ interface Country {
   flag: string;
 }
 
-const AccountPage = () => {
+// Add countries array at the top of the file (after imports)
+const countries: Country[] = [
+  { code: 'BR', name: 'Brasil', dialCode: '+55', flag: '🇧🇷' },
+  { code: 'US', name: 'Estados Unidos', dialCode: '+1', flag: '🇺🇸' },
+  { code: 'CA', name: 'Canadá', dialCode: '+1', flag: '🇨🇦' },
+  { code: 'AR', name: 'Argentina', dialCode: '+54', flag: '🇦🇷' },
+  { code: 'CL', name: 'Chile', dialCode: '+56', flag: '🇨🇱' },
+  { code: 'CO', name: 'Colômbia', dialCode: '+57', flag: '🇨🇴' },
+  { code: 'PE', name: 'Peru', dialCode: '+51', flag: '🇵🇪' },
+  { code: 'UY', name: 'Uruguai', dialCode: '+598', flag: '🇺🇾' },
+  { code: 'PY', name: 'Paraguai', dialCode: '+595', flag: '🇵🇾' },
+  { code: 'PT', name: 'Portugal', dialCode: '+351', flag: '🇵🇹' },
+];
+
+const AccountPage: React.FC = () => {
   const { user, signOut } = useAuth();
   const { orders, getCompletedOrders } = useStripe();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
-  const [showPhotoModal, setShowPhotoModal] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [userData, setUserData] = useState({
     name: '',
     email: '',
     cpf: '',
+    phoneNumber: ''
   });
   const [selectedCountry, setSelectedCountry] = useState<Country>({
     code: 'BR',
     name: 'Brasil',
     dialCode: '+55',
-    flag: 'ðŸ‡§ðŸ‡·'
+    flag: '🇧🇷'
   });
-  const [phoneNumberInput, setPhoneNumberInput] = useState('');
   const [loading, setLoading] = useState(true);
+  const [sendingResetLink, setSendingResetLink] = useState(false);
+  const [resetLinkSent, setResetLinkSent] = useState(false);
 
   // Fetch user profile data
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (user) {
-        setLoading(true);
-        try {
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('name, email, avatar_url')
-            .eq('id', user.id)
-            .maybeSingle();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('name, email, avatar_url, cpf, phone_number')
+          .eq('id', user.id)
+          .maybeSingle();
 
-          if (error) {
-            console.error('Error fetching profile:', error);
-          } else if (profile) {
-            setUserData(prev => ({
-              ...prev,
-              name: profile.name || '',
-              email: profile.email || ''
-            }));
-            setProfileImageUrl(profile.avatar_url);
-          } else {
-            setUserData(prev => ({
-              ...prev,
-              name: '',
-              email: user.email || ''
-            }));
+        if (error) {
+          console.error('Error fetching profile:', error);
+          // fallback to auth email
+          setUserData(prev => ({
+            ...prev,
+            name: prev.name || '',
+            email: user.email || '',
+            cpf: '',
+            phoneNumber: ''
+          }));
+        } else if (profile) {
+          // Parse phone number to extract country and number
+          let countryCode = '+55';
+          let phoneOnly = '';
+          
+          if (profile.phone_number) {
+            const phoneMatch = profile.phone_number.match(/^(\+\d+)\s(.+)$/);
+            if (phoneMatch) {
+              countryCode = phoneMatch[1];
+              phoneOnly = phoneMatch[2];
+            } else {
+              phoneOnly = profile.phone_number;
+            }
           }
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-        } finally {
-          setLoading(false);
+          
+          // Find matching country
+          const matchingCountry = countries.find(c => c.dialCode === countryCode) || selectedCountry;
+          setSelectedCountry(matchingCountry);
+          
+          setUserData(prev => ({
+            ...prev,
+            name: profile.name || '',
+            email: profile.email || '',
+            cpf: profile.cpf || '',
+            phoneNumber: phoneOnly
+          }));
+          setProfileImageUrl(profile.avatar_url || null);
+        } else {
+          setUserData(prev => ({
+            ...prev,
+            name: prev.name || '',
+            email: user.email || '',
+            cpf: '',
+            phoneNumber: ''
+          }));
         }
+      } catch (err) {
+        console.error('Error fetching user profile:', err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -84,35 +137,95 @@ const AccountPage = () => {
     const newErrors: Record<string, string> = {};
 
     if (!userData.name.trim()) {
-      newErrors.name = 'Nome Ã© obrigatÃ³rio';
+      newErrors.name = 'Nome é obrigatório';
+    } else if (userData.name.trim().length < 2) {
+      newErrors.name = 'Nome deve ter pelo menos 2 caracteres';
     }
 
     if (!userData.email.trim()) {
-      newErrors.email = 'Email Ã© obrigatÃ³rio';
-    } else if (!/\S+@\S+\.\S+/.test(userData.email)) {
-      newErrors.email = 'Email invÃ¡lido';
+      newErrors.email = 'Email é obrigatório';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email.trim())) {
+      newErrors.email = 'Email inválido';
     }
 
     if (userData.cpf.trim()) {
       const cpfNumbers = userData.cpf.replace(/\D/g, '');
       if (cpfNumbers.length !== 11) {
-        newErrors.cpf = 'CPF deve ter 11 dÃ­gitos';
+        newErrors.cpf = 'CPF deve ter 11 dígitos';
+      } else if (!isValidCPF(cpfNumbers)) {
+        newErrors.cpf = 'CPF inválido';
       }
     }
 
-    if (phoneNumberInput.trim()) {
-      const phoneNumbers = phoneNumberInput.replace(/\D/g, '');
+    if (userData.phoneNumber.trim()) {
+      const phoneNumbers = userData.phoneNumber.replace(/\D/g, '');
       if (selectedCountry.code === 'BR' && phoneNumbers.length !== 11) {
-        newErrors.phoneNumber = 'NÃºmero de celular deve ter 11 dÃ­gitos';
+        newErrors.phoneNumber = 'Número de celular deve ter 11 dígitos';
       } else if ((selectedCountry.code === 'US' || selectedCountry.code === 'CA') && phoneNumbers.length !== 10) {
-        newErrors.phoneNumber = 'NÃºmero de telefone deve ter 10 dÃ­gitos';
+        newErrors.phoneNumber = 'Número de telefone deve ter 10 dígitos';
       } else if (phoneNumbers.length < 7) {
-        newErrors.phoneNumber = 'NÃºmero de telefone invÃ¡lido';
+        newErrors.phoneNumber = 'Número de telefone inválido';
       }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // CPF validation function
+  const isValidCPF = (cpf: string): boolean => {
+    // Remove any non-numeric characters
+    const cleanCPF = cpf.replace(/\D/g, '');
+    
+    // Check if CPF has 11 digits
+    if (cleanCPF.length !== 11) return false;
+    
+    // Check for known invalid CPFs (all same digits)
+    if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
+    
+    // Validate CPF algorithm
+    let sum = 0;
+    let remainder;
+    
+    // Validate first digit
+    for (let i = 1; i <= 9; i++) {
+      sum += parseInt(cleanCPF.substring(i - 1, i)) * (11 - i);
+    }
+    remainder = (sum * 10) % 11;
+    if (remainder === 10 || remainder === 11) remainder = 0;
+    if (remainder !== parseInt(cleanCPF.substring(9, 10))) return false;
+    
+    // Validate second digit
+    sum = 0;
+    for (let i = 1; i <= 10; i++) {
+      sum += parseInt(cleanCPF.substring(i - 1, i)) * (12 - i);
+    }
+    remainder = (sum * 10) % 11;
+    if (remainder === 10 || remainder === 11) remainder = 0;
+    if (remainder !== parseInt(cleanCPF.substring(10, 11))) return false;
+    
+    return true;
+  };
+
+  // Format CPF for display
+  const formatCPF = (value: string): string => {
+    const numbers = value.replace(/\D/g, '');
+    const limitedNumbers = numbers.slice(0, 11);
+    
+    if (limitedNumbers.length <= 3) {
+      return limitedNumbers;
+    } else if (limitedNumbers.length <= 6) {
+      return `${limitedNumbers.slice(0, 3)}.${limitedNumbers.slice(3)}`;
+    } else if (limitedNumbers.length <= 9) {
+      return `${limitedNumbers.slice(0, 3)}.${limitedNumbers.slice(3, 6)}.${limitedNumbers.slice(6)}`;
+    } else {
+      return `${limitedNumbers.slice(0, 3)}.${limitedNumbers.slice(3, 6)}.${limitedNumbers.slice(6, 9)}-${limitedNumbers.slice(9)}`;
+    }
+  };
+
+  const handleCPFChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedCPF = formatCPF(e.target.value);
+    setUserData({ ...userData, cpf: formattedCPF });
   };
 
   const handleEditData = () => {
@@ -122,32 +235,69 @@ const AccountPage = () => {
 
   const handleSaveData = async () => {
     if (!validateForm()) return;
+    if (!user) return;
 
-    if (user) {
-      try {
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            name: userData.name,
-            email: userData.email
-          })
-          .eq('id', user.id);
+    try {
+      // Prepare phone number for storage (combine country code and number)
+      const fullPhoneNumber = userData.phoneNumber.trim() 
+        ? `${selectedCountry.dialCode} ${userData.phoneNumber.trim()}`
+        : null;
+      
+      // Prepare CPF for storage (only numbers)
+      const cleanCPF = userData.cpf.trim() 
+        ? userData.cpf.replace(/\D/g, '')
+        : null;
 
-        if (error) {
-          console.error('Error updating profile:', error);
-          alert(translateAuthError(error.message || 'Erro ao salvar dados. Tente novamente.'));
-        } else {
-          setShowEditModal(false);
-        }
-      } catch (error: any) {
-        console.error('Error saving user data:', error);
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: userData.name,
+          email: userData.email,
+          cpf: cleanCPF,
+          phone_number: fullPhoneNumber
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error updating profile:', error);
         alert(translateAuthError(error.message || 'Erro ao salvar dados. Tente novamente.'));
+      } else {
+        setShowEditModal(false);
+        alert('Dados salvos com sucesso!');
       }
+    } catch (err: any) {
+      console.error('Error saving user data:', err);
+      alert(translateAuthError(err.message || 'Erro ao salvar dados. Tente novamente.'));
     }
   };
 
-  const handleSendResetLink = () => {
-    console.log('Sending password reset link');
+  const handleSendResetLink = async () => {
+    if (!user?.email) {
+      alert('Email do usuário não encontrado');
+      return;
+    }
+
+    setSendingResetLink(true);
+    setResetLinkSent(false);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        console.error('Error sending reset link:', error);
+        alert(translateAuthError(error.message));
+      } else {
+        setResetLinkSent(true);
+        alert(`✅ Link de redefinição enviado para ${user.email}!\n\nVerifique sua caixa de entrada (e também a pasta de spam).`);
+      }
+    } catch (err: any) {
+      console.error('Error sending reset link:', err);
+      alert(translateAuthError(err.message || 'Erro ao enviar link de redefinição. Tente novamente.'));
+    } finally {
+      setSendingResetLink(false);
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -172,17 +322,15 @@ const AccountPage = () => {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        // âœ… traduzir mensagem de erro
         throw new Error(translateAuthError(result.message || 'Erro ao excluir conta'));
       }
 
-      alert('Conta excluÃ­da com sucesso');
+      alert('Conta excluída com sucesso');
       await signOut();
       window.location.href = '/login';
-    } catch (error: any) {
-      console.error('Error deleting account:', error);
-      // âœ… traduzir mensagem de erro
-      alert(translateAuthError(error.message || 'Erro ao excluir conta. Tente novamente.'));
+    } catch (err: any) {
+      console.error('Error deleting account:', err);
+      alert(translateAuthError(err.message || 'Erro ao excluir conta. Tente novamente.'));
     } finally {
       setDeleting(false);
       setShowDeleteConfirmModal(false);
@@ -191,219 +339,279 @@ const AccountPage = () => {
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      <div className="bg-transparent">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="rounded-2xl p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
+  // Helper to display initials if no avatar url
+  const avatarInitial = (nameOrEmail: string | undefined) => {
+    const source = nameOrEmail || user?.email || '';
+    if (!source) return 'U';
+    return source.trim()[0].toUpperCase();
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
-      {/* HistÃ³rico de Compras */}
-      {getCompletedOrders().length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">
-            HistÃ³rico de Compras
-          </h2>
-          <div className="space-y-3">
-            {getCompletedOrders().slice(0, 5).map((order) => (
-              <div
-                key={order.id}
-                className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 flex items-center justify-between"
+    <div className="bg-transparent min-h-screen">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Card wrapper */}
+        <div className="rounded-2xl p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
+          {/* Top header of card */}
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Minha conta</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Gerencie seus dados pessoais, redefina senha ou exclua sua conta.</p>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              {/* Removed "Alterar foto" button as requested */}
+
+              {/* Small edit icon */}
+              <button
+                onClick={handleEditData}
+                title="Editar"
+                className="p-2 rounded-lg bg-gray-800/40 hover:bg-gray-800/30 transition"
               >
+                <Pencil className="h-4 w-4 text-white" />
+              </button>
+            </div>
+          </div>
+
+          {/* Content grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Avatar / basic info */}
+            <div className="col-span-1 flex items-center gap-4 p-4 rounded-xl bg-white/3 dark:bg-black/10">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-400 flex items-center justify-center text-white text-lg font-semibold shadow overflow-hidden">
+                {profileImageUrl ? (
+                  <img src={profileImageUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
+                ) : (
+                  <span>{avatarInitial(userData.name || user?.email)}</span>
+                )}
+              </div>
+              <div>
+                <div className="text-sm text-gray-400">Usuário</div>
+                <div className="font-medium text-gray-900 dark:text-white">{userData.name || '-'}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">{userData.email || '-'}</div>
+              </div>
+            </div>
+
+            {/* Main fields */}
+            <div className="col-span-2 p-4 rounded-xl bg-white/3 dark:bg-black/10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">
-                    Rifaqui - Taxa de PublicaÃ§Ã£o
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    {new Date(order.created_at).toLocaleDateString('pt-BR')}
-                  </div>
+                  <label className="block text-sm text-gray-400">Nome</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.name || '-'}</div>
                 </div>
-                <div className="text-right">
-                  <div className="font-medium text-gray-900 dark:text-white">
-                    R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}
-                  </div>
-                  <div className="text-sm text-green-600 dark:text-green-400">
-                    Pago
+                <div>
+                  <label className="block text-sm text-gray-400">Email</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.email || '-'}</div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400">CPF</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.cpf || '-'}</div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400">Telefone</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">
+                    {userData.phoneNumber ? `${selectedCountry.dialCode} ${userData.phoneNumber}` : '-'}
                   </div>
                 </div>
               </div>
-            ))}
+
+              {/* Reset password */}
+              <div className="mt-6">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">Resetar senha</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Você receberá um link via e-mail para redefinir a sua senha.</p>
+
+                <div className="mt-4">
+                  <button
+                    onClick={handleSendResetLink}
+                    disabled={sendingResetLink}
+                    className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+                               animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-pink-500 to-indigo-600"
+                  >
+                    {sendingResetLink ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Enviando...</span>
+                      </>
+                    ) : resetLinkSent ? (
+                      <>
+                        <span>Link enviado!</span>
+                        <CheckCircle className="h-4 w-4" />
+                      </>
+                    ) : (
+                      <>
+                        <span>Enviar link</span>
+                        <Link className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Delete account */}
+              <div className="mt-6">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">Excluir minha conta</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                  Lembre-se de que esta ação é irreversível e removerá permanentemente todas as suas informações e dados pessoais de nossa plataforma; você não pode ter rifas em andamento.
+                </p>
+
+                <div className="mt-4">
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleting}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-rose-500 text-white font-medium hover:opacity-95 transition disabled:opacity-50"
+                  >
+                    <span>{deleting ? 'Excluindo...' : 'Quero excluir'}</span>
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
+
+          {/* Optional purchase history (kept smaller / below) */}
+          {getCompletedOrders().length > 0 && (
+            <div className="mt-6">
+              <h4 className="text-sm font-semibold text-gray-400 mb-3">Histórico de Compras recentes</h4>
+              <div className="space-y-3">
+                {getCompletedOrders().slice(0, 3).map((order) => (
+                  <div key={order.id} className="flex items-center justify-between p-3 rounded-lg bg-white/3 dark:bg-black/10">
+                    <div>
+                      <div className="font-medium text-gray-900 dark:text-white">Rifaqui - Taxa de Publicação</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{new Date(order.created_at).toLocaleDateString('pt-BR')}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium text-gray-900 dark:text-white">R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}</div>
+                      <div className="text-sm text-green-600 dark:text-green-400">Pago</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      )}
-
-      {/* Dados principais */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-medium text-gray-900 dark:text-white">
-            Dados principais
-          </h2>
-          <button
-            onClick={handleEditData}
-            className="p-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors duration-200"
-          >
-            <Pencil className="h-4 w-4 text-white" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">Nome</label>
-            <p className="text-gray-900 dark:text-white font-medium">{userData.name || '-'}</p>
-          </div>
-          <div>
-            <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">Email</label>
-            <p className="text-gray-900 dark:text-white font-medium">{userData.email || '-'}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Reset Password Section */}
-      <div className="mb-8">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-          Resetar senha
-        </h3>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-          VocÃª receberÃ¡ um link via email para redefinir a sua senha
-        </p>
-
-        <button
-          onClick={handleSendResetLink}
-          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
-        >
-          <span>Enviar link</span>
-          <Link className="h-4 w-4" />
-        </button>
-      </div>
-
-      {/* Delete Account Section */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-          Excluir minha conta
-        </h3>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 leading-relaxed">
-          Lembre-se de que esta aÃ§Ã£o Ã© irreversÃ­vel e removerÃ¡ permanentemente todas as suas informaÃ§Ãµes e dados pessoais 
-          de nossa plataforma, vocÃª nÃ£o pode ter rifas em andamento
-        </p>
-
-        <button
-          onClick={handleDeleteAccount}
-          disabled={deleting}
-          className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
-        >
-          <span>{deleting ? 'Excluindo...' : 'Quero excluir'}</span>
-          <Trash2 className="h-4 w-4" />
-        </button>
-      </div>
+      </main>
 
       {/* Edit Data Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Editar dados pessoais
-              </h2>
-              <button
-                onClick={() => setShowEditModal(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
-              >
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Editar dados pessoais</h2>
+              <button onClick={() => setShowEditModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
                 <X className="h-5 w-5 text-gray-400" />
               </button>
             </div>
-            
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-              Preencha os campos abaixo para editar seus dados pessoais
-            </p>
+
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Preencha os campos abaixo para editar seus dados pessoais.</p>
 
             <div className="space-y-4">
-              {/* Nome completo */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Nome completo
-                </label>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Nome completo</label>
                 <input
                   type="text"
                   value={userData.name}
                   onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-                  className="w-full bg-white dark:bg-gray-700 border border-purple-500 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-purple-500 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
+                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
               </div>
 
-              {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Email
-                </label>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Email</label>
                 <input
                   type="email"
                   value={userData.email}
                   onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                  className={`w-full bg-white dark:bg-gray-700 border rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
+                  className={`w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                     errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                 />
-                {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                )}
+                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
               </div>
-            </div>
 
-            <button
-              onClick={handleSaveData}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 mt-6"
-            >
-              <span>Salvar</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
+              <div>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">CPF (opcional)</label>
+                <input
+                  type="text"
+                  value={userData.cpf}
+                  onChange={handleCPFChange}
+                  placeholder="000.000.000-00"
+                  className={`w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                    errors.cpf ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                />
+                {errors.cpf && <p className="text-red-500 text-sm mt-1">{errors.cpf}</p>}
+              </div>
+
+              <div>
+                <CountryPhoneSelect
+                  selectedCountry={selectedCountry}
+                  onCountryChange={(c: Country) => setSelectedCountry(c)}
+                  phoneNumber={userData.phoneNumber}
+                  onPhoneChange={(value: string) => setUserData({ ...userData, phoneNumber: value })}
+                  placeholder="Número de telefone"
+                  error={errors.phoneNumber}
+                />
+              </div>
+
+              <button
+                onClick={handleSaveData}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white font-semibold"
+              >
+                <span>Salvar</span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirmModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Excluir
-              </h2>
-              <button
-                onClick={() => setShowDeleteConfirmModal(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
-              >
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Excluir</h2>
+              <button onClick={() => setShowDeleteConfirmModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
                 <X className="h-5 w-5 text-gray-400" />
               </button>
             </div>
-            
+
             <div className="mb-6">
               <div className="flex items-start space-x-3 mb-4">
                 <AlertTriangle className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" />
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  VocÃª tem certeza de que quer excluir sua conta de forma permanente? Essa aÃ§Ã£o nÃ£o pode ser desfeita e seu e-mail nÃ£o poderÃ¡ ser reutilizado.
+                  Você tem certeza de que quer excluir sua conta de forma permanente? Essa ação não pode ser desfeita e seu e-mail não poderá ser reutilizado.
                 </p>
               </div>
             </div>
 
-            <div className="flex space-x-3">
+            <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirmModal(false)}
                 disabled={deleting}
-                className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 dark:text-white py-3 rounded-lg font-medium transition-colors duration-200"
+                className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 text-gray-900 dark:text-white py-3 rounded-lg font-medium transition"
               >
                 Cancelar
               </button>
-              
+
               <button
                 onClick={confirmDeleteAccount}
                 disabled={deleting}
-                className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-3 rounded-lg font-medium transition"
               >
                 {deleting ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                 ) : (
                   <span>Confirmar</span>
                 )}
