@@ -15,61 +15,11 @@ import {
   Phone,
   CreditCard
 } from 'lucide-react';
-
-// Mock components and hooks for demo
-const useAuth = () => ({
-  user: { id: '123', email: 'usuario@email.com' },
-  signOut: async () => console.log('Sign out')
-});
-
-const useStripe = () => ({
-  orders: [],
-  getCompletedOrders: () => []
-});
-
-const supabase = {
-  from: () => ({
-    select: () => ({
-      eq: () => ({
-        maybeSingle: async () => ({ data: null, error: null })
-      })
-    }),
-    update: () => ({
-      eq: async () => ({ error: null })
-    })
-  }),
-  auth: {
-    resetPasswordForEmail: async () => ({ error: null })
-  }
-};
-
-const CountryPhoneSelect = ({ selectedCountry, onCountryChange, phoneNumber, onPhoneChange, error }: any) => (
-  <div>
-    <label className="flex items-center space-x-2 text-sm font-medium text-gray-400 mb-2">
-      <Phone className="h-4 w-4" />
-      <span>Telefone (opcional)</span>
-    </label>
-    <div className="flex gap-2">
-      <input
-        type="text"
-        value={`${selectedCountry.dialCode} ${phoneNumber}`}
-        onChange={(e) => onPhoneChange(e.target.value.replace(selectedCountry.dialCode, '').trim())}
-        className={`flex-1 px-4 py-3 rounded-lg bg-[#1a1a2e] border ${
-          error ? 'border-red-500/50' : 'border-gray-700'
-        } text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors`}
-        placeholder="Número de telefone"
-      />
-    </div>
-    {error && (
-      <p className="text-red-400 text-sm mt-2 flex items-center space-x-1">
-        <AlertTriangle className="h-4 w-4" />
-        <span>{error}</span>
-      </p>
-    )}
-  </div>
-);
-
-const translateAuthError = (msg: string) => msg;
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
+import CountryPhoneSelect from '../components/CountryPhoneSelect';
+import { useStripe } from '../hooks/useStripe';
+import { translateAuthError } from '../utils/errorTranslators';
 
 interface Country {
   code: string;
@@ -100,10 +50,10 @@ const AccountPage: React.FC = () => {
   const [deleting, setDeleting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [userData, setUserData] = useState({
-    name: 'Gilson Rezende',
-    email: 'g@gmail.com',
-    cpf: '123.456.789-00',
-    phoneNumber: '11987654321'
+    name: '',
+    email: '',
+    cpf: '',
+    phoneNumber: ''
   });
   const [selectedCountry, setSelectedCountry] = useState<Country>({
     code: 'BR',
@@ -111,7 +61,7 @@ const AccountPage: React.FC = () => {
     dialCode: '+55',
     flag: '🇧🇷'
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [sendingResetLink, setSendingResetLink] = useState(false);
   const [resetLinkSent, setResetLinkSent] = useState(false);
 
@@ -156,22 +106,20 @@ const AccountPage: React.FC = () => {
           const matchingCountry = countries.find(c => c.dialCode === countryCode) || selectedCountry;
           setSelectedCountry(matchingCountry);
           
-          setUserData(prev => ({
-            ...prev,
+          setUserData({
             name: profile.name || '',
-            email: profile.email || '',
+            email: profile.email || user.email || '',
             cpf: profile.cpf || '',
             phoneNumber: phoneOnly
-          }));
+          });
           setProfileImageUrl(profile.avatar_url || null);
         } else {
-          setUserData(prev => ({
-            ...prev,
-            name: prev.name || '',
+          setUserData({
+            name: '',
             email: user.email || '',
             cpf: '',
             phoneNumber: ''
-          }));
+          });
         }
       } catch (err) {
         console.error('Error fetching user profile:', err);
@@ -181,9 +129,8 @@ const AccountPage: React.FC = () => {
     };
 
     fetchUserProfile();
-  }, [user]);
+  }, [user?.id]);
 
-  // Validate form data
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -223,7 +170,6 @@ const AccountPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // CPF validation function
   const isValidCPF = (cpf: string): boolean => {
     const cleanCPF = cpf.replace(/\D/g, '');
     if (cleanCPF.length !== 11) return false;
@@ -250,7 +196,6 @@ const AccountPage: React.FC = () => {
     return true;
   };
 
-  // Format CPF for display
   const formatCPF = (value: string): string => {
     const numbers = value.replace(/\D/g, '');
     const limitedNumbers = numbers.slice(0, 11);
@@ -512,7 +457,7 @@ const AccountPage: React.FC = () => {
               <h4 className="text-lg font-semibold text-white">Histórico de Compras</h4>
             </div>
             <div className="space-y-3">
-              {getCompletedOrders().slice(0, 3).map((order: any) => (
+              {getCompletedOrders().slice(0, 3).map((order) => (
                 <div key={order.id} className="bg-[#16162a] rounded-lg p-4 border border-gray-800/50">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
@@ -695,23 +640,4 @@ const AccountPage: React.FC = () => {
               <button
                 onClick={confirmDeleteAccount}
                 disabled={deleting}
-                className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2"
-              >
-                {deleting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                    <span>Excluindo...</span>
-                  </>
-                ) : (
-                  <span>Confirmar Exclusão</span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default AccountPage;
+                className="flex-1 bg-gradient-to-r from-re
