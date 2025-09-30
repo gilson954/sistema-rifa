@@ -1,4 +1,3 @@
-
 // src/pages/AccountPage.tsx
 import React, { useState, useEffect } from 'react';
 import {
@@ -67,7 +66,6 @@ const AccountPage: React.FC = () => {
   const [sendingResetLink, setSendingResetLink] = useState(false);
   const [resetLinkSent, setResetLinkSent] = useState(false);
 
-  // Fetch user profile data
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!user) {
@@ -135,7 +133,6 @@ const AccountPage: React.FC = () => {
     fetchUserProfile();
   }, [user]);
 
-  // Validate form data
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -175,7 +172,6 @@ const AccountPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // CPF validation function
   const isValidCPF = (cpf: string): boolean => {
     const cleanCPF = cpf.replace(/\D/g, '');
     if (cleanCPF.length !== 11) return false;
@@ -202,7 +198,6 @@ const AccountPage: React.FC = () => {
     return true;
   };
 
-  // Format CPF for display
   const formatCPF = (value: string): string => {
     const numbers = value.replace(/\D/g, '');
     const limitedNumbers = numbers.slice(0, 11);
@@ -333,7 +328,7 @@ const AccountPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0f0f1e] flex items-center justify-center p-6">
-        <div className="bg-[#1a1a2e] backdrop-blur-xl rounded-3xl border border-gray-800/50 shadow-2xl p-12">
+        <div className="bg-[#1a1a2e] backdrop-blur-xl rounded-2xl border border-gray-800/50 shadow-2xl p-12">
           <div className="flex items-center justify-center">
             <div className="relative">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-800"></div>
@@ -356,18 +351,21 @@ const AccountPage: React.FC = () => {
       <main className="max-w-5xl mx-auto space-y-6">
         
         {/* Header Card */}
-        <div className="bg-gradient-to-br from-[#1a1a2e] to-[#16162a] rounded-2xl p-6 md:p-8 border border-gray-800/50 shadow-xl">
-          <div className="flex items-start justify-between">
+        <div className="bg-gradient-to-br from-[#1a1a2e] to-[#16162a] rounded-2xl p-6 md:p-8 border border-gray-800/50 shadow-xl text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-pink-500/5 rounded-full -ml-32 -mb-32 blur-3xl"></div>
+          
+          <div className="relative flex items-start justify-between">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl md:text-2xl font-bold shadow-lg overflow-hidden">
                 {profileImageUrl ? (
                   <img src={profileImageUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-white">{avatarInitial(userData.name || user?.email)}</span>
+                  <span>{avatarInitial(userData.name || user?.email)}</span>
                 )}
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white">Minha conta</h1>
+                <h1 className="text-2xl md:text-3xl font-bold">Minha conta</h1>
                 <p className="text-gray-400 text-sm mt-1">Gerencie seus dados pessoais, redefina senha ou exclua sua conta.</p>
               </div>
             </div>
@@ -483,7 +481,7 @@ const AccountPage: React.FC = () => {
                     </div>
                     <div className="text-right flex-shrink-0">
                       <div className="font-bold text-lg md:text-xl text-white mb-1">R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}</div>
-                      <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100/10 border border-green-500/30 text-green-400">
+                      <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/10 border border-green-500/30 text-green-400">
                         ✓ Pago
                       </div>
                     </div>
@@ -560,87 +558,14 @@ const AccountPage: React.FC = () => {
                   value={userData.email}
                   onChange={(e) => setUserData({ ...userData, email: e.target.value })}
                   className={`w-full px-4 py-3 rounded-xl bg-[#16162a] border-2 text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all duration-200 ${
-                    errors.cpf ? 'border-red-500 focus:border-red-500' : 'border-gray-800 focus:border-purple-500'
+                    errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-800 focus:border-purple-500'
                   }`}
+                  placeholder="seu@email.com"
                 />
-                {errors.cpf && <p className="text-red-400 text-sm mt-2 flex items-center space-x-1"><AlertTriangle className="h-4 w-4" /><span>{errors.cpf}</span></p>}
+                {errors.email && <p className="text-red-400 text-sm mt-2 flex items-center space-x-1"><AlertTriangle className="h-4 w-4" /><span>{errors.email}</span></p>}
               </div>
 
               <div>
-                <CountryPhoneSelect
-                  selectedCountry={selectedCountry}
-                  onCountryChange={(c: Country) => setSelectedCountry(c)}
-                  phoneNumber={userData.phoneNumber}
-                  onPhoneChange={(value: string) => setUserData({ ...userData, phoneNumber: value })}
-                  placeholder="Número de telefone"
-                  error={errors.phoneNumber}
-                />
-              </div>
-
-              <button
-                onClick={handleSaveData}
-                className="group w-full inline-flex items-center justify-center gap-2 px-4 py-3 md:py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02]"
-              >
-                <span>Salvar</span>
-                <ArrowRight className="h-4 w-4 md:h-5 md:w-5 group-hover:translate-x-1 transition-transform duration-300" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="w-full max-w-md bg-[#1a1a2e] rounded-2xl p-6 md:p-8 border border-gray-800/50 shadow-2xl transform transition-all duration-300 animate-in slide-in-from-bottom-4">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-white">Excluir</h2>
-              <button 
-                onClick={() => setShowDeleteConfirmModal(false)} 
-                className="p-2 hover:bg-gray-800 rounded-xl transition-all duration-200 hover:rotate-90"
-              >
-                <X className="h-5 w-5 md:h-6 md:w-6 text-gray-400" />
-              </button>
-            </div>
-
-            <div className="mb-6 md:mb-8">
-              <div className="flex items-start space-x-3 md:space-x-4 p-4 md:p-5 bg-red-500/10 rounded-xl border-2 border-red-500/30">
-                <AlertTriangle className="h-5 w-5 md:h-6 md:w-6 text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm md:text-base text-gray-300 leading-relaxed">
-                  Você tem certeza de que quer excluir sua conta de forma permanente? Essa ação não pode ser desfeita e seu e-mail não poderá ser reutilizado.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirmModal(false)}
-                disabled={deleting}
-                className="flex-1 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 md:py-3.5 rounded-xl font-semibold transition-all duration-200 hover:scale-[1.02]"
-              >
-                Cancelar
-              </button>
-
-              <button
-                onClick={confirmDeleteAccount}
-                disabled={deleting}
-                className="flex-1 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 disabled:from-red-400 disabled:to-pink-400 disabled:cursor-not-allowed text-white py-3 md:py-3.5 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl hover:scale-[1.02]"
-              >
-                {deleting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 md:h-5 md:w-5 border-2 border-white border-t-transparent"></div>
-                    <span>Excluindo...</span>
-                  </>
-                ) : (
-                  <span>Confirmar</span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default AccountPage; border-2 text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all duration-200 ${
+                <label className="flex items-center space-x-2 text-sm font-semibold text-gray-400 mb-2 md:mb-3">
+                  <CreditCard className="h-4 w-4" />
+                  <span>CPF (opcional)</span>
