@@ -24,6 +24,11 @@ const stripHtml = (input?: string) => {
   return input.replace(/<[^>]*>/g, '').trim();
 };
 
+/* Helper to format numbers with thousands separator */
+const formatNumber = (num: number): string => {
+  return new Intl.NumberFormat('pt-BR').format(num);
+};
+
 const getTimeRemaining = (expiresAt: string) => {
   const now = new Date().getTime();
   const expiration = new Date(expiresAt).getTime();
@@ -239,74 +244,9 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  // Calcular estatísticas
-  const totalCampaigns = campaigns?.length || 0;
-  const totalRevenue = campaigns?.reduce((sum, c) => sum + (c.ticket_price * c.sold_tickets), 0) || 0;
-  const totalTicketsSold = campaigns?.reduce((sum, c) => sum + c.sold_tickets, 0) || 0;
-  const totalTicketsAvailable = campaigns?.reduce((sum, c) => sum + c.total_tickets, 0) || 0;
-
   return (
     <div className="dashboard-page min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards - Melhorados com gradientes sutis */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {/* Cotas Card */}
-          <div className="relative overflow-hidden rounded-2xl p-5 border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-500/10 to-transparent rounded-full blur-2xl"></div>
-            <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Cotas</span>
-              </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                {totalTicketsSold}/{totalTicketsAvailable}
-              </div>
-            </div>
-          </div>
-
-          {/* Preço Card */}
-          <div className="relative overflow-hidden rounded-2xl p-5 border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-2xl"></div>
-            <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Preço</span>
-              </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                {formatCurrency(totalRevenue / totalCampaigns || 0)}
-              </div>
-            </div>
-          </div>
-
-          {/* Arrecadado Card */}
-          <div className="relative overflow-hidden rounded-2xl p-5 border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-500/10 to-transparent rounded-full blur-2xl"></div>
-            <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Arrecadado</span>
-              </div>
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">
-                {formatCurrency(totalRevenue)}
-              </div>
-            </div>
-          </div>
-
-          {/* Criada Card */}
-          <div className="relative overflow-hidden rounded-2xl p-5 border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-indigo-500/10 to-transparent rounded-full blur-2xl"></div>
-            <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <Calendar className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Criada</span>
-              </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                {campaigns && campaigns[0] ? formatDate(campaigns[0].created_at) : '--/--/----'}
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Payment Setup Card - Melhorado */}
         {displayPaymentSetupCard && (
           <div className="mb-6">
@@ -484,7 +424,7 @@ const DashboardPage: React.FC = () => {
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm mb-4">
                       <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50">
                         <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                        <span className="font-medium text-gray-900 dark:text-white truncate">{campaign.sold_tickets}/{campaign.total_tickets}</span>
+                        <span className="font-medium text-gray-900 dark:text-white truncate">{formatNumber(campaign.sold_tickets)}/{formatNumber(campaign.total_tickets)}</span>
                       </div>
                       
                       <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50">
