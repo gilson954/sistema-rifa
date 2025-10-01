@@ -338,7 +338,7 @@ const AccountPage: React.FC = () => {
         </div>
       </div>
     );
-  }
+  };
 
   const avatarInitial = (nameOrEmail: string | undefined) => {
     const source = nameOrEmail || user?.email || '';
@@ -568,9 +568,4 @@ const AccountPage: React.FC = () => {
               <div>
                 <label className="flex items-center space-x-2 text-sm font-semibold text-gray-400 mb-2 md:mb-3">
                   <CreditCard className="h-4 w-4" />
-                  <span>CPF (opcional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={userData.cpf}
-                  onChange={handleCPFChange}
+                  <span>CPF (opcional)</span
