@@ -9,6 +9,8 @@ import {
   Clock,
   CheckCircle,
   CreditCard as Edit,
+  TrendingUp,
+  Sparkles
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
@@ -239,129 +241,153 @@ const DashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="dashboard-page min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 1) Payment Setup Card */}
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/20 py-8 px-4 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto space-y-6">
+        
+        {/* Payment Setup Card */}
         {displayPaymentSetupCard && (
-          <div className="mb-4">
-            <div className="w-full rounded-2xl p-4 shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-start sm:items-center space-x-4 flex-1 min-w-0">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-xl flex items-center justify-center flex-shrink-0 shadow">
-                    <Share2 className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Forma de recebimento</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">Você ainda não configurou uma forma para receber os pagamentos na sua conta.</p>
-                  </div>
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-700 dark:to-pink-700 rounded-3xl p-6 md:p-8 shadow-2xl text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full -ml-32 -mb-32 blur-3xl"></div>
+            
+            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-4 flex-1">
+                <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                  <Share2 className="h-6 w-6" />
                 </div>
-
-                <div className="flex-shrink-0 w-full sm:w-auto">
-                  <button onClick={handleConfigurePayment} className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-full font-medium transition">
-                    Configurar
-                  </button>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold mb-1">Forma de recebimento</h3>
+                  <p className="text-white/80 text-sm">Você ainda não configurou uma forma para receber os pagamentos na sua conta.</p>
                 </div>
               </div>
+              
+              <button 
+                onClick={handleConfigurePayment} 
+                className="group px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2"
+              >
+                <span>Configurar</span>
+                <Sparkles className="h-4 w-4 group-hover:rotate-12 transition-transform duration-300" />
+              </button>
             </div>
           </div>
         )}
 
-        {/* Botão Criar campanha centralizado */}
-        <div className="mb-6 flex justify-center">
+        {/* Create Campaign Button */}
+        <div className="flex justify-center">
           <button
             onClick={handleCreateCampaign}
-            className="inline-flex items-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white px-6 py-3 rounded-full font-semibold shadow-md transition transform hover:-translate-y-0.5"
+            className="group inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-6 w-6 group-hover:rotate-90 transition-transform duration-300" />
             <span>Criar campanha</span>
           </button>
         </div>
 
-        {/* Campaigns header */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Minhas Campanhas</h2>
-          <div className="text-sm text-gray-600 dark:text-gray-300">{campaigns ? campaigns.length : 0} campanhas</div>
+        {/* Campaigns Header */}
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
+                <TrendingUp className="h-5 w-5 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Minhas Campanhas</h2>
+            </div>
+            <div className="px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-xl">
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">{campaigns ? campaigns.length : 0} campanhas</span>
+            </div>
+          </div>
         </div>
 
-        {/* Campaigns list */}
+        {/* Campaigns List */}
         {campaignsLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-12">
+            <div className="flex items-center justify-center">
+              <div className="relative">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-200 dark:border-purple-900"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-transparent border-t-purple-600 absolute top-0 left-0"></div>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
             {paginatedCampaigns.length === 0 && (
-              <div className="rounded-2xl p-8 text-center border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50">
-                <div className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Nenhuma campanha encontrada</div>
-                <div className="text-sm text-gray-600 dark:text-gray-300 mb-4">Crie a sua primeira campanha e comece a vender cotas.</div>
-                <div className="flex justify-center">
-                  <button onClick={handleCreateCampaign} className="inline-flex items-center gap-2 bg-gradient-to-br from-purple-600 to-blue-600 text-white px-4 py-2 rounded-full font-semibold">
-                    <Plus className="h-4 w-4" /> Criar campanha
-                  </button>
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-12 text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="p-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl">
+                    <Plus className="h-12 w-12 text-white" />
+                  </div>
                 </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Nenhuma campanha encontrada</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">Crie a sua primeira campanha e comece a vender cotas.</p>
+                <button 
+                  onClick={handleCreateCampaign} 
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                >
+                  <Plus className="h-5 w-5" />
+                  <span>Criar campanha</span>
+                </button>
               </div>
             )}
 
-            <div className="grid gap-4">
-              {paginatedCampaigns.map((campaign: Campaign) => (
-                <article
-                  key={campaign.id}
-                  className={`rounded-2xl p-4 border transition-all duration-200 flex flex-col sm:flex-row gap-4 items-start ${
-                    campaign.status === 'draft' && campaign.expires_at && getTimeRemaining(campaign.expires_at).expired
-                      ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                      : 'bg-white/60 dark:bg-gray-900/50 border-gray-200/10 dark:border-gray-700/20'
-                  }`}
-                >
-                  {/* Image (top on mobile, left on desktop) */}
+            {paginatedCampaigns.map((campaign: Campaign) => (
+              <article
+                key={campaign.id}
+                className={`bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border shadow-xl p-6 transition-all duration-300 hover:shadow-2xl hover:scale-[1.01] ${
+                  campaign.status === 'draft' && campaign.expires_at && getTimeRemaining(campaign.expires_at).expired
+                    ? 'border-red-300 dark:border-red-800'
+                    : 'border-gray-200/50 dark:border-gray-700/50'
+                }`}
+              >
+                <div className="flex flex-col md:flex-row gap-6">
+                  {/* Image */}
                   <img
                     src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1'}
                     alt={stripHtml(campaign.title) || 'Prêmio'}
-                    className="w-full sm:w-28 h-40 sm:h-28 object-cover rounded-lg shadow-sm border border-gray-200/10 dark:border-gray-700/20 flex-shrink-0"
+                    className="w-full md:w-40 h-48 md:h-40 object-cover rounded-2xl shadow-lg"
                   />
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="min-w-0 pr-4">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
-                          {stripHtml(campaign.title)}
-                        </h3>
-                      </div>
-
-                      <div className="flex flex-col items-end gap-2">
-                        <div className="flex items-center gap-2">
-                          {campaign.status === 'draft' && !campaign.is_paid && (
-                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">Pendente</span>
-                          )}
-
-                          {campaign.status === 'draft' && campaign.is_paid && (
-                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Processando</span>
-                          )}
-
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
-                            {getStatusText(campaign.status)}
+                  <div className="flex-1 space-y-4">
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-4">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white flex-1">
+                        {stripHtml(campaign.title)}
+                      </h3>
+                      
+                      <div className="flex flex-wrap items-center gap-2">
+                        {campaign.status === 'draft' && !campaign.is_paid && (
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
+                            Pendente
                           </span>
-                        </div>
+                        )}
+                        {campaign.status === 'draft' && campaign.is_paid && (
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                            Processando
+                          </span>
+                        )}
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(campaign.status)}`}>
+                          {getStatusText(campaign.status)}
+                        </span>
                       </div>
                     </div>
 
-                    {/* Expiration / Payment Alerts */}
+                    {/* Alerts */}
                     {campaign.status === 'draft' && campaign.expires_at && !campaign.is_paid && (
-                      <div className="mb-3">
+                      <div>
                         {(() => {
                           const timeRemaining = getTimeRemaining(campaign.expires_at);
                           const isUrgent = !timeRemaining.expired && campaign.expires_at &&
-                            new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000; // Less than 24 hours
+                            new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000;
                           
                           return (
-                            <div className={`flex items-center space-x-2 p-2 rounded-lg text-sm ${
+                            <div className={`flex items-center gap-3 p-4 rounded-xl ${
                               timeRemaining.expired
                                 ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                                 : isUrgent
                                 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300'
                                 : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
                             }`}>
-                              <Clock className="h-4 w-4" />
-                              <span>
+                              <Clock className="h-5 w-5 flex-shrink-0" />
+                              <span className="text-sm font-medium">
                                 {timeRemaining.expired 
                                   ? 'Campanha expirada - Faça o pagamento para reativar'
                                   : `Faça o pagamento em até ${timeRemaining.text} ou ela vai expirar`
@@ -374,110 +400,152 @@ const DashboardPage: React.FC = () => {
                     )}
 
                     {campaign.status === 'draft' && campaign.is_paid && (
-                      <div className="mb-3">
-                        <div className="flex items-center space-x-2 p-2 rounded-lg text-sm bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
-                          <CheckCircle className="h-4 w-4" />
-                          <span>
-                            Taxa paga - {campaign.status === 'active' ? 'Campanha ativa!' : 'Ativando campanha...'}
-                          </span>
-                          {campaign.status !== 'active' && (
-                            <button
-                              onClick={refreshCampaigns}
-                              disabled={refreshingCampaigns}
-                              className="ml-2 text-xs bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded"
-                            >
-                              {refreshingCampaigns ? 'Atualizando...' : 'Atualizar'}
-                            </button>
-                          )}
-                        </div>
+                      <div className="flex items-center gap-3 p-4 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                        <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                        <span className="text-sm font-medium flex-1">
+                          Taxa paga - {campaign.status === 'active' ? 'Campanha ativa!' : 'Ativando campanha...'}
+                        </span>
+                        {campaign.status !== 'active' && (
+                          <button
+                            onClick={refreshCampaigns}
+                            disabled={refreshingCampaigns}
+                            className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition"
+                          >
+                            {refreshingCampaigns ? 'Atualizando...' : 'Atualizar'}
+                          </button>
+                        )}
                       </div>
                     )}
 
                     {/* Progress */}
-                    <div className="mb-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Progresso</span>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">{calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%</span>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Progresso</span>
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">
+                          {calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%
+                        </span>
                       </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 sm:h-2">
-                        <div className="bg-gradient-to-r from-purple-600 to-blue-600 h-1.5 sm:h-2 rounded-full transition-all duration-300" style={{ width: `${calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%` }} />
-                      </div>
-                    </div>
-
-                    {/* Compact info grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm text-gray-600 dark:text-gray-300">
-                      <div className="flex items-center gap-2 truncate">
-                        <Users className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                        <span className="truncate">{campaign.sold_tickets}/{campaign.total_tickets} cotas</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 truncate">
-                        <DollarSign className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                        <span className="truncate">{formatCurrency(campaign.ticket_price)}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 truncate">
-                        <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                        <span className="truncate">{formatDate(campaign.created_at)}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 truncate">
-                        <DollarSign className="h-4 w-4 text-green-500" />
-                        <span className="text-green-600 dark:text-green-400 font-medium truncate">{formatCurrency(campaign.ticket_price * campaign.sold_tickets)}</span>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                        <div 
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 h-3 rounded-full transition-all duration-500" 
+                          style={{ width: `${calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%` }}
+                        />
                       </div>
                     </div>
 
-                    {/* Actions: grid on mobile, inline on desktop */}
-                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mt-4">
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="p-3 bg-gradient-to-br from-purple-50 to-pink-50/30 dark:from-purple-900/20 dark:to-pink-900/10 rounded-xl border border-gray-200/50 dark:border-gray-700/50">
+                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 mb-1">
+                          <Users className="h-4 w-4" />
+                          <span className="text-xs font-medium">Cotas</span>
+                        </div>
+                        <div className="text-lg font-bold text-gray-900 dark:text-white">
+                          {campaign.sold_tickets}/{campaign.total_tickets}
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-gradient-to-br from-blue-50 to-cyan-50/30 dark:from-blue-900/20 dark:to-cyan-900/10 rounded-xl border border-gray-200/50 dark:border-gray-700/50">
+                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 mb-1">
+                          <DollarSign className="h-4 w-4" />
+                          <span className="text-xs font-medium">Preço</span>
+                        </div>
+                        <div className="text-lg font-bold text-gray-900 dark:text-white">
+                          {formatCurrency(campaign.ticket_price)}
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-gradient-to-br from-green-50 to-emerald-50/30 dark:from-green-900/20 dark:to-emerald-900/10 rounded-xl border border-gray-200/50 dark:border-gray-700/50">
+                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 mb-1">
+                          <TrendingUp className="h-4 w-4" />
+                          <span className="text-xs font-medium">Arrecadado</span>
+                        </div>
+                        <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                          {formatCurrency(campaign.ticket_price * campaign.sold_tickets)}
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-gradient-to-br from-orange-50 to-amber-50/30 dark:from-orange-900/20 dark:to-amber-900/10 rounded-xl border border-gray-200/50 dark:border-gray-700/50">
+                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 mb-1">
+                          <Calendar className="h-4 w-4" />
+                          <span className="text-xs font-medium">Criada</span>
+                        </div>
+                        <div className="text-lg font-bold text-gray-900 dark:text-white">
+                          {formatDate(campaign.created_at)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-wrap gap-3">
                       <button
                         onClick={() => handleViewCampaign(campaign.id)}
-                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition transform hover:-translate-y-0.5
-                                   animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600"
-                        aria-label={`Visualizar ${stripHtml(campaign.title)}`}
+                        className="group flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                       >
                         <Eye className="h-4 w-4" />
-                        <span className="hidden sm:inline">Visualizar</span>
+                        <span>Visualizar</span>
                       </button>
-                      
+
                       <button
                         onClick={() => handleViewSalesHistory(campaign.id)}
-                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow transition"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                       >
-                        <DollarSign className="h-4 w-4" /> <span className="hidden sm:inline">Vendas</span>
+                        <DollarSign className="h-4 w-4" />
+                        <span>Vendas</span>
                       </button>
-                      
+
                       {campaign.status === 'draft' && !campaign.is_paid && (
                         <button
                           onClick={() => handlePublishCampaign(campaign.id)}
-                          className="px-3 py-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 animate-gradient-x text-white text-sm font-medium shadow transition"
+                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                         >
-                          Publicar
+                          <Sparkles className="h-4 w-4" />
+                          <span>Publicar</span>
                         </button>
                       )}
-                      
+
                       <button
                         onClick={() => handleEditCampaign(campaign.id)}
-                        className="px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                       >
-                        <Edit className="h-4 w-4 inline-block mr-2" /> <span className="hidden sm:inline">Editar</span>
+                        <Edit className="h-4 w-4" />
+                        <span>Editar</span>
                       </button>
                     </div>
                   </div>
-                </article>
-              ))}
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-3">
-                <div className="text-sm text-gray-700 dark:text-gray-300">Mostrando {((currentPage - 1) * pageSize) + 1} a {Math.min(currentPage * pageSize, campaigns.length)} de {campaigns.length} campanhas</div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="pagination-button px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200/10 dark:border-gray-700/20 text-sm font-medium disabled:opacity-50">Anterior</button>
-                  <div className="px-4 py-2 bg-white/60 dark:bg-gray-800/30 rounded-lg">{currentPage} de {totalPages}</div>
-                  <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="pagination-button px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200/10 dark:border-gray-700/20 text-sm font-medium disabled:opacity-50">Próximo</button>
                 </div>
+              </article>
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Mostrando {((currentPage - 1) * pageSize) + 1} a {Math.min(currentPage * pageSize, campaigns.length)} de {campaigns.length} campanhas
               </div>
-            )}
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => handlePageChange(currentPage - 1)} 
+                  disabled={currentPage === 1} 
+                  className="px-5 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 text-gray-900 dark:text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all duration-300"
+                >
+                  Anterior
+                </button>
+                <div className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg">
+                  {currentPage} de {totalPages}
+                </div>
+                <button 
+                  onClick={() => handlePageChange(currentPage + 1)} 
+                  disabled={currentPage === totalPages} 
+                  className="px-5 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 text-gray-900 dark:text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all duration-300"
+                >
+                  Próximo
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </main>
