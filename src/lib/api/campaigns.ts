@@ -17,14 +17,14 @@ export class CampaignAPI {
         createCampaignSchema.parse(data);
       } catch (validationError) {
         if (validationError instanceof ZodError) {
-          const errorMessage = (validationError.errors || []).map(err => err.message).join(', ');
+          const errorMessage = (validationError.issues || []).map(err => err.message).join(', ');
           console.error('❌ [API VALIDATION] Campaign creation validation failed:', errorMessage);
           return { 
             data: null, 
             error: { 
               message: errorMessage,
               code: 'VALIDATION_ERROR',
-              details: validationError.errors || []
+              details: validationError.issues || []
             }
           };
         }
@@ -72,15 +72,15 @@ export class CampaignAPI {
         updateCampaignSchema.parse(data);
       } catch (validationError) {
         if (validationError instanceof ZodError) {
-          const errorMessage = (validationError.errors || []).map(err => `${err.path.join('.')}: ${err.message}`).join(', ') || 'Erro de validação nos dados da campanha - nenhum erro específico reportado pelo Zod';
+          const errorMessage = (validationError.issues || []).map(err => `${err.path.join('.')}: ${err.message}`).join(', ') || 'Erro de validação nos dados da campanha - nenhum erro específico reportado pelo Zod';
           console.error('❌ [API VALIDATION] Campaign update validation failed:', errorMessage);
-          console.error('❌ [API VALIDATION] Full validation errors:', validationError.errors);
+          console.error('❌ [API VALIDATION] Full validation errors:', validationError.issues);
           return { 
             data: null, 
             error: { 
               message: errorMessage,
               code: 'VALIDATION_ERROR',
-              details: validationError.errors || []
+              details: validationError.issues || []
             }
           };
         }
