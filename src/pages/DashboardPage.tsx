@@ -9,6 +9,7 @@ import {
   Clock,
   CheckCircle,
   CreditCard as Edit,
+  Sparkles,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
@@ -238,27 +239,100 @@ const DashboardPage: React.FC = () => {
     }
   };
 
+  // Calcular estatísticas
+  const totalCampaigns = campaigns?.length || 0;
+  const totalRevenue = campaigns?.reduce((sum, c) => sum + (c.ticket_price * c.sold_tickets), 0) || 0;
+  const totalTicketsSold = campaigns?.reduce((sum, c) => sum + c.sold_tickets, 0) || 0;
+  const totalTicketsAvailable = campaigns?.reduce((sum, c) => sum + c.total_tickets, 0) || 0;
+
   return (
     <div className="dashboard-page min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 1) Payment Setup Card */}
+        {/* Stats Cards - Melhorados com gradientes sutis */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {/* Cotas Card */}
+          <div className="relative overflow-hidden rounded-2xl p-5 border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-500/10 to-transparent rounded-full blur-2xl"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-2">
+                <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Cotas</span>
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                {totalTicketsSold}/{totalTicketsAvailable}
+              </div>
+            </div>
+          </div>
+
+          {/* Preço Card */}
+          <div className="relative overflow-hidden rounded-2xl p-5 border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-2xl"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-2">
+                <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Preço</span>
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                {formatCurrency(totalRevenue / totalCampaigns || 0)}
+              </div>
+            </div>
+          </div>
+
+          {/* Arrecadado Card */}
+          <div className="relative overflow-hidden rounded-2xl p-5 border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-500/10 to-transparent rounded-full blur-2xl"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-2">
+                <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Arrecadado</span>
+              </div>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">
+                {formatCurrency(totalRevenue)}
+              </div>
+            </div>
+          </div>
+
+          {/* Criada Card */}
+          <div className="relative overflow-hidden rounded-2xl p-5 border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-indigo-500/10 to-transparent rounded-full blur-2xl"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-2">
+                <Calendar className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Criada</span>
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                {campaigns && campaigns[0] ? formatDate(campaigns[0].created_at) : '--/--/----'}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Payment Setup Card - Melhorado */}
         {displayPaymentSetupCard && (
-          <div className="mb-4">
-            <div className="w-full rounded-2xl p-4 shadow-sm border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="mb-6">
+            <div className="relative overflow-hidden w-full rounded-2xl p-6 shadow-lg border border-purple-200/30 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/80 to-blue-50/80 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+              {/* Efeito de brilho */}
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
+              
+              <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-start sm:items-center space-x-4 flex-1 min-w-0">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-xl flex items-center justify-center flex-shrink-0 shadow">
-                    <Share2 className="h-5 w-5" />
+                  <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <Sparkles className="h-6 w-6" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Forma de recebimento</h3>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Forma de recebimento</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300">Você ainda não configurou uma forma para receber os pagamentos na sua conta.</p>
                   </div>
                 </div>
 
                 <div className="flex-shrink-0 w-full sm:w-auto">
-                  <button onClick={handleConfigurePayment} className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-full font-medium transition">
-                    Configurar
+                  <button 
+                    onClick={handleConfigurePayment} 
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 text-white"
+                  >
+                    <Share2 className="h-5 w-5" />
+                    Configurar agora
                   </button>
                 </div>
               </div>
@@ -266,37 +340,39 @@ const DashboardPage: React.FC = () => {
           </div>
         )}
 
-        {/* Botão Criar campanha centralizado */}
+        {/* Botão Criar campanha - Melhorado */}
         <div className="mb-6 flex justify-center">
           <button
             onClick={handleCreateCampaign}
-            className="inline-flex items-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white px-6 py-3 rounded-full font-semibold shadow-md transition transform hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-lg shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-6 w-6" />
             <span>Criar campanha</span>
           </button>
         </div>
 
-        {/* Campaigns header */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Minhas Campanhas</h2>
-          <div className="text-sm text-gray-600 dark:text-gray-300">{campaigns ? campaigns.length : 0} campanhas</div>
+        {/* Campaigns header - Com total melhorado */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Minhas Campanhas</h2>
+          <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 border border-purple-200/30 dark:border-purple-800/30">
+            <span className="text-sm font-bold text-purple-900 dark:text-purple-100">{campaigns ? campaigns.length : 0} campanhas</span>
+          </div>
         </div>
 
         {/* Campaigns list */}
         {campaignsLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
           </div>
         ) : (
           <div className="space-y-4">
             {paginatedCampaigns.length === 0 && (
-              <div className="rounded-2xl p-8 text-center border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50">
-                <div className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Nenhuma campanha encontrada</div>
-                <div className="text-sm text-gray-600 dark:text-gray-300 mb-4">Crie a sua primeira campanha e comece a vender cotas.</div>
+              <div className="rounded-2xl p-10 text-center border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50">
+                <div className="text-xl font-bold text-gray-900 dark:text-white mb-2">Nenhuma campanha encontrada</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300 mb-6">Crie a sua primeira campanha e comece a vender cotas.</div>
                 <div className="flex justify-center">
-                  <button onClick={handleCreateCampaign} className="inline-flex items-center gap-2 bg-gradient-to-br from-purple-600 to-blue-600 text-white px-4 py-2 rounded-full font-semibold">
-                    <Plus className="h-4 w-4" /> Criar campanha
+                  <button onClick={handleCreateCampaign} className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold shadow-lg transition-all duration-300 hover:-translate-y-0.5 bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+                    <Plus className="h-5 w-5" /> Criar campanha
                   </button>
                 </div>
               </div>
@@ -306,23 +382,23 @@ const DashboardPage: React.FC = () => {
               {paginatedCampaigns.map((campaign: Campaign) => (
                 <article
                   key={campaign.id}
-                  className={`rounded-2xl p-4 border transition-all duration-200 flex flex-col sm:flex-row gap-4 items-start ${
+                  className={`rounded-2xl p-5 border transition-all duration-300 hover:shadow-lg flex flex-col sm:flex-row gap-5 items-start ${
                     campaign.status === 'draft' && campaign.expires_at && getTimeRemaining(campaign.expires_at).expired
                       ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                      : 'bg-white/60 dark:bg-gray-900/50 border-gray-200/10 dark:border-gray-700/20'
+                      : 'bg-white/70 dark:bg-gray-900/60 border-gray-200/20 dark:border-gray-700/30 backdrop-blur-sm'
                   }`}
                 >
                   {/* Image (top on mobile, left on desktop) */}
                   <img
                     src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1'}
                     alt={stripHtml(campaign.title) || 'Prêmio'}
-                    className="w-full sm:w-28 h-40 sm:h-28 object-cover rounded-lg shadow-sm border border-gray-200/10 dark:border-gray-700/20 flex-shrink-0"
+                    className="w-full sm:w-32 h-48 sm:h-32 object-cover rounded-xl shadow-md border border-gray-200/20 dark:border-gray-700/30 flex-shrink-0"
                   />
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-start justify-between mb-3">
                       <div className="min-w-0 pr-4">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white truncate">
                           {stripHtml(campaign.title)}
                         </h3>
                       </div>
@@ -330,14 +406,14 @@ const DashboardPage: React.FC = () => {
                       <div className="flex flex-col items-end gap-2">
                         <div className="flex items-center gap-2">
                           {campaign.status === 'draft' && !campaign.is_paid && (
-                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">Pendente</span>
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">Pendente</span>
                           )}
 
                           {campaign.status === 'draft' && campaign.is_paid && (
-                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Processando</span>
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Processando</span>
                           )}
 
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(campaign.status)}`}>
                             {getStatusText(campaign.status)}
                           </span>
                         </div>
@@ -350,17 +426,17 @@ const DashboardPage: React.FC = () => {
                         {(() => {
                           const timeRemaining = getTimeRemaining(campaign.expires_at);
                           const isUrgent = !timeRemaining.expired && campaign.expires_at &&
-                            new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000; // Less than 24 hours
+                            new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000;
                           
                           return (
-                            <div className={`flex items-center space-x-2 p-2 rounded-lg text-sm ${
+                            <div className={`flex items-center space-x-2 p-3 rounded-xl text-sm font-medium ${
                               timeRemaining.expired
                                 ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                                 : isUrgent
                                 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300'
                                 : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
                             }`}>
-                              <Clock className="h-4 w-4" />
+                              <Clock className="h-5 w-5" />
                               <span>
                                 {timeRemaining.expired 
                                   ? 'Campanha expirada - Faça o pagamento para reativar'
@@ -375,8 +451,8 @@ const DashboardPage: React.FC = () => {
 
                     {campaign.status === 'draft' && campaign.is_paid && (
                       <div className="mb-3">
-                        <div className="flex items-center space-x-2 p-2 rounded-lg text-sm bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
-                          <CheckCircle className="h-4 w-4" />
+                        <div className="flex items-center space-x-2 p-3 rounded-xl text-sm font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                          <CheckCircle className="h-5 w-5" />
                           <span>
                             Taxa paga - {campaign.status === 'active' ? 'Campanha ativa!' : 'Ativando campanha...'}
                           </span>
@@ -384,7 +460,7 @@ const DashboardPage: React.FC = () => {
                             <button
                               onClick={refreshCampaigns}
                               disabled={refreshingCampaigns}
-                              className="ml-2 text-xs bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded"
+                              className="ml-2 text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg font-semibold transition"
                             >
                               {refreshingCampaigns ? 'Atualizando...' : 'Atualizar'}
                             </button>
@@ -394,44 +470,44 @@ const DashboardPage: React.FC = () => {
                     )}
 
                     {/* Progress */}
-                    <div className="mb-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Progresso</span>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">{calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%</span>
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Progresso</span>
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">{calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 sm:h-2">
-                        <div className="bg-gradient-to-r from-purple-600 to-blue-600 h-1.5 sm:h-2 rounded-full transition-all duration-300" style={{ width: `${calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%` }} />
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                        <div className="bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 h-2.5 rounded-full transition-all duration-500 animate-gradient-x bg-[length:200%_200%]" style={{ width: `${calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%` }} />
                       </div>
                     </div>
 
                     {/* Compact info grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm text-gray-600 dark:text-gray-300">
-                      <div className="flex items-center gap-2 truncate">
-                        <Users className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                        <span className="truncate">{campaign.sold_tickets}/{campaign.total_tickets} cotas</span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm mb-4">
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                        <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                        <span className="font-medium text-gray-900 dark:text-white truncate">{campaign.sold_tickets}/{campaign.total_tickets}</span>
                       </div>
                       
-                      <div className="flex items-center gap-2 truncate">
-                        <DollarSign className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                        <span className="truncate">{formatCurrency(campaign.ticket_price)}</span>
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                        <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        <span className="font-medium text-gray-900 dark:text-white truncate">{formatCurrency(campaign.ticket_price)}</span>
                       </div>
                       
-                      <div className="flex items-center gap-2 truncate">
-                        <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                        <span className="truncate">{formatDate(campaign.created_at)}</span>
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                        <Calendar className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        <span className="font-medium text-gray-900 dark:text-white truncate">{formatDate(campaign.created_at)}</span>
                       </div>
                       
-                      <div className="flex items-center gap-2 truncate">
-                        <DollarSign className="h-4 w-4 text-green-500" />
-                        <span className="text-green-600 dark:text-green-400 font-medium truncate">{formatCurrency(campaign.ticket_price * campaign.sold_tickets)}</span>
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-green-50 dark:bg-green-900/30">
+                        <DollarSign className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        <span className="text-green-600 dark:text-green-400 font-bold truncate">{formatCurrency(campaign.ticket_price * campaign.sold_tickets)}</span>
                       </div>
                     </div>
 
                     {/* Actions: grid on mobile, inline on desktop */}
-                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mt-4">
+                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
                       <button
                         onClick={() => handleViewCampaign(campaign.id)}
-                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition transform hover:-translate-y-0.5
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg
                                    animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600"
                         aria-label={`Visualizar ${stripHtml(campaign.title)}`}
                       >
@@ -441,7 +517,7 @@ const DashboardPage: React.FC = () => {
                       
                       <button
                         onClick={() => handleViewSalesHistory(campaign.id)}
-                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow transition"
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5"
                       >
                         <DollarSign className="h-4 w-4" /> <span className="hidden sm:inline">Vendas</span>
                       </button>
@@ -449,7 +525,7 @@ const DashboardPage: React.FC = () => {
                       {campaign.status === 'draft' && !campaign.is_paid && (
                         <button
                           onClick={() => handlePublishCampaign(campaign.id)}
-                          className="px-3 py-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 animate-gradient-x text-white text-sm font-medium shadow transition"
+                          className="px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-green-500 via-emerald-600 to-green-500"
                         >
                           Publicar
                         </button>
@@ -457,7 +533,7 @@ const DashboardPage: React.FC = () => {
                       
                       <button
                         onClick={() => handleEditCampaign(campaign.id)}
-                        className="px-3 py-2 rounded-lg text-white text-sm font-medium shadow transition animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600"
+                        className="px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600"
                       >
                         <Edit className="h-4 w-4 inline-block mr-2" /> <span className="hidden sm:inline">Editar</span>
                       </button>
@@ -467,14 +543,30 @@ const DashboardPage: React.FC = () => {
               ))}
             </div>
 
-            {/* Pagination */}
+            {/* Pagination - Melhorada */}
             {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-3">
-                <div className="text-sm text-gray-700 dark:text-gray-300">Mostrando {((currentPage - 1) * pageSize) + 1} a {Math.min(currentPage * pageSize, campaigns.length)} de {campaigns.length} campanhas</div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="pagination-button px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200/10 dark:border-gray-700/20 text-sm font-medium disabled:opacity-50">Anterior</button>
-                  <div className="px-4 py-2 bg-white/60 dark:bg-gray-800/30 rounded-lg">{currentPage} de {totalPages}</div>
-                  <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="pagination-button px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200/10 dark:border-gray-700/20 text-sm font-medium disabled:opacity-50">Próximo</button>
+              <div className="flex flex-col sm:flex-row items-center justify-between mt-8 gap-4 p-4 rounded-xl bg-white/60 dark:bg-gray-900/50 border border-gray-200/20 dark:border-gray-800/30 backdrop-blur-sm">
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Mostrando <span className="font-bold text-purple-600 dark:text-purple-400">{((currentPage - 1) * pageSize) + 1}</span> a <span className="font-bold text-purple-600 dark:text-purple-400">{Math.min(currentPage * pageSize, campaigns.length)}</span> de <span className="font-bold text-purple-600 dark:text-purple-400">{campaigns.length}</span> campanhas
+                </div>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => handlePageChange(currentPage - 1)} 
+                    disabled={currentPage === 1} 
+                    className="px-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200/20 dark:border-gray-700/30 text-sm font-semibold transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-gray-800"
+                  >
+                    Anterior
+                  </button>
+                  <div className="px-5 py-2 rounded-lg font-bold text-sm bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-900 dark:text-purple-100 border border-purple-200/30 dark:border-purple-800/30">
+                    {currentPage} de {totalPages}
+                  </div>
+                  <button 
+                    onClick={() => handlePageChange(currentPage + 1)} 
+                    disabled={currentPage === totalPages} 
+                    className="px-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200/20 dark:border-gray-700/30 text-sm font-semibold transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-gray-800"
+                  >
+                    Próximo
+                  </button>
                 </div>
               </div>
             )}
