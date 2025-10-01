@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle, ArrowRight, Home, Receipt, Loader2 } from 'lucide-react';
+import { CheckCircle, ArrowRight, Home, Receipt, Loader2, Calendar, CreditCard, DollarSign, Sparkles, Mail } from 'lucide-react';
 import { StripeAPI } from '../lib/api/stripe';
 import { getProductByPriceId, formatPrice } from '../stripe-config';
 import { useAuth } from '../context/AuthContext';
@@ -18,7 +18,6 @@ const PaymentSuccessPage = () => {
   const sessionId = searchParams.get('session_id');
   const campaignId = searchParams.get('campaign_id');
   
-  // Add campaign refetch hook
   const { campaign, refetch: refetchCampaign } = useCampaignWithRefetch(campaignId || '');
 
   useEffect(() => {
@@ -38,7 +37,6 @@ const PaymentSuccessPage = () => {
         } else {
           setOrder(data);
           
-          // If we have a campaign ID and haven't refreshed yet, refetch campaign data
           if (campaignId && !campaignRefreshed) {
             console.log('🔄 Refreshing campaign data after payment success...');
             await refetchCampaign();
@@ -71,14 +69,14 @@ const PaymentSuccessPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800 text-center">
-          <Loader2 className="h-12 w-12 text-purple-600 animate-spin mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Carregando detalhes do pagamento...
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4">
+        <div className="rounded-2xl p-8 border transition-all duration-200 bg-white/60 dark:bg-gray-900/40 border-gray-200/20 dark:border-gray-700/20 shadow-xl text-center max-w-md">
+          <Loader2 className="h-16 w-16 text-purple-600 animate-spin mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Processando Pagamento
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            Aguarde enquanto confirmamos seu pagamento
+            Aguarde enquanto confirmamos sua transação
           </p>
         </div>
       </div>
@@ -87,24 +85,41 @@ const PaymentSuccessPage = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800 text-center max-w-md">
-          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Receipt className="h-8 w-8 text-red-600 dark:text-red-400" />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+        <div className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200/20 dark:border-gray-800/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-center h-16">
+              <div className="flex items-center gap-2">
+                <img 
+                  src="/32132123.png" 
+                  alt="Rifaqui Logo" 
+                  className="w-8 h-8 object-contain"
+                />
+                <span className="text-xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
+              </div>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Erro ao carregar pagamento
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {error}
-          </p>
-          <button
-            onClick={handleGoHome}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center space-x-2 mx-auto"
-          >
-            <Home className="h-5 w-5" />
-            <span>Voltar ao Início</span>
-          </button>
+        </div>
+
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16 flex items-center justify-center">
+          <div className="rounded-2xl p-8 border transition-all duration-200 bg-white/60 dark:bg-gray-900/40 border-gray-200/20 dark:border-gray-700/20 shadow-xl text-center max-w-md">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Receipt className="h-8 w-8 text-red-600 dark:text-red-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Erro ao Carregar Pagamento
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              {error}
+            </p>
+            <button
+              onClick={handleGoHome}
+              className="animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 inline-flex items-center gap-2"
+            >
+              <Home className="h-5 w-5" />
+              <span>Voltar ao Início</span>
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -113,103 +128,250 @@ const PaymentSuccessPage = () => {
   const product = getProductInfo();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800 text-center max-w-md">
-        {/* Success Icon */}
-        <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400" />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+      {/* Header */}
+      <div className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200/20 dark:border-gray-800/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <button
+              onClick={handleGoHome}
+              className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              <Home className="h-5 w-5" />
+              <span className="hidden sm:inline">Página Inicial</span>
+            </button>
+            
+            <div className="flex items-center gap-2">
+              <img 
+                src="/32132123.png" 
+                alt="Rifaqui Logo" 
+                className="w-8 h-8 object-contain"
+              />
+              <span className="text-xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
+        {/* Success Banner */}
+        <div className="mb-8 rounded-2xl p-6 bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border border-green-200/50 dark:border-green-800/30 text-center">
+          <div className="inline-flex w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full items-center justify-center mx-auto mb-6 shadow-2xl animate-bounce">
+            <CheckCircle className="h-14 w-14 text-white" />
+          </div>
+
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">
+            Pagamento Confirmado!
+          </h1>
+          
+          <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
+            Seu pagamento foi processado com sucesso. Obrigado pela sua compra!
+          </p>
+
+          {/* Status Badge */}
+          <div className="inline-flex items-center gap-2 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-full px-4 py-2">
+            <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
+            <span className="text-sm font-semibold text-green-800 dark:text-green-200">
+              Transação concluída
+            </span>
+          </div>
         </div>
 
-        {/* Success Message */}
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-          Pagamento Confirmado!
-        </h1>
-        
-        <p className="text-gray-600 dark:text-gray-400 mb-8">
-          Seu pagamento foi processado com sucesso. Sua campanha será ativada em breve.
-        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column - Payment Details */}
+          <div className="space-y-6">
+            {/* Order Details Card */}
+            {order && (
+              <div className="rounded-2xl p-6 border transition-all duration-200 bg-white/60 dark:bg-gray-900/40 border-gray-200/20 dark:border-gray-700/20 shadow-lg">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                  <Receipt className="h-5 w-5 text-purple-600" />
+                  Detalhes do Pagamento
+                </h2>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                      <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Produto</div>
+                      <div className="font-medium text-gray-900 dark:text-white truncate">
+                        {product?.name || 'Rifaqui'}
+                      </div>
+                    </div>
+                  </div>
 
-        {/* Order Details */}
-        {order && (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 mb-8 text-left">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Detalhes do Pagamento
-            </h3>
-            
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Produto:</span>
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {product?.name || 'Rifaqui'}
-                </span>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                      <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Valor Pago</div>
+                      <div className="font-semibold text-gray-900 dark:text-white text-lg">
+                        {formatPrice(order.amount_total / 100, order.currency)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                      <CreditCard className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Status</div>
+                      <div className="font-medium text-green-600 dark:text-green-400">
+                        Pagamento Aprovado
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
+                      <Calendar className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Data</div>
+                      <div className="font-medium text-gray-900 dark:text-white">
+                        {new Date(order.created_at).toLocaleDateString('pt-BR', {
+                          day: '2-digit',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Valor:</span>
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {formatPrice(order.amount_total / 100, order.currency)}
-                </span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Status:</span>
-                <span className="font-medium text-green-600 dark:text-green-400">
-                  Pago
-                </span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Data:</span>
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {new Date(order.created_at).toLocaleDateString('pt-BR')}
-                </span>
+            )}
+
+            {/* Receipt Download */}
+            <div className="rounded-2xl p-6 border transition-all duration-200 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200/30 dark:border-blue-800/30 shadow-lg">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Mail className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+                    Comprovante Enviado
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    Um email com o comprovante de pagamento foi enviado para o seu endereço cadastrado.
+                  </p>
+                  <button className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                    Reenviar comprovante
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        )}
 
-        {/* Next Steps */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-8">
-          <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
-            Próximos Passos
-          </h4>
-          <p className="text-sm text-blue-700 dark:text-blue-300">
-            {campaign?.is_paid && campaign?.status === 'active' 
-              ? 'Sua campanha foi ativada com sucesso! Você já pode começar a receber participantes.'
-              : 'Sua campanha será ativada automaticamente em alguns instantes. Você receberá uma confirmação por email.'
-            }
-          </p>
-        </div>
+          {/* Right Column - Next Steps */}
+          <div className="space-y-6">
+            {/* Campaign Status */}
+            <div className="rounded-2xl p-6 border transition-all duration-200 bg-white/60 dark:bg-gray-900/40 border-gray-200/20 dark:border-gray-700/20 shadow-lg">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-yellow-600" />
+                Próximos Passos
+              </h2>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <button
-            onClick={handleGoToDashboard}
-            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center space-x-2"
-          >
-            <span>Ir para Dashboard</span>
-            <ArrowRight className="h-5 w-5" />
-          </button>
-          
-          <button
-            onClick={handleGoHome}
-            className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center space-x-2"
-          >
-            <Home className="h-5 w-5" />
-            <span>Início</span>
-          </button>
-        </div>
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200/50 dark:border-green-800/30 rounded-xl p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-green-800 dark:text-green-200 mb-1">
+                      {campaign?.is_paid && campaign?.status === 'active' 
+                        ? 'Campanha Ativa!' 
+                        : 'Ativação em Andamento'
+                      }
+                    </p>
+                    <p className="text-xs text-green-700 dark:text-green-300">
+                      {campaign?.is_paid && campaign?.status === 'active' 
+                        ? 'Sua campanha foi ativada com sucesso! Você já pode começar a receber participantes.'
+                        : 'Sua campanha será ativada automaticamente em alguns instantes. Você receberá uma confirmação por email.'
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-        {/* Support Link */}
-        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Dúvidas sobre seu pagamento?{' '}
-            <a href="#" className="text-purple-600 dark:text-purple-400 hover:underline">
-              Entre em contato
-            </a>
-          </p>
+              <div className="space-y-3 text-sm mb-6">
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 flex-shrink-0"></div>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Acesse seu dashboard para gerenciar a campanha
+                  </span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 flex-shrink-0"></div>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Compartilhe o link da campanha com seus clientes
+                  </span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 flex-shrink-0"></div>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Acompanhe as vendas em tempo real
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={handleGoToDashboard}
+                  className="w-full animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-xl text-white px-6 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg transform hover:-translate-y-0.5"
+                >
+                  <span>Ir para Dashboard</span>
+                  <ArrowRight className="h-5 w-5" />
+                </button>
+                
+                <button
+                  onClick={handleGoHome}
+                  className="w-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white px-6 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md"
+                >
+                  <Home className="h-5 w-5" />
+                  <span>Voltar ao Início</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Support Section */}
+            <div className="rounded-2xl p-6 border transition-all duration-200 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-purple-200/30 dark:border-purple-800/30 shadow-lg">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Precisa de Ajuda?
+              </h3>
+              
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Nossa equipe está pronta para ajudar com qualquer dúvida sobre seu pagamento ou campanha.
+              </p>
+
+              <button className="w-full animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 hover:shadow-lg text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 inline-flex items-center justify-center gap-2">
+                <Mail className="h-4 w-4" />
+                <span>Falar com Suporte</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200/20 dark:border-gray-800/30 py-8 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm text-gray-600 dark:text-gray-400">
+            <a href="#" className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 font-medium">
+              Termos de Uso
+            </a>
+            <span className="hidden sm:block text-gray-400">•</span>
+            <a href="#" className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 font-medium">
+              Política de Privacidade
+            </a>
+            <span className="hidden sm:block text-gray-400">•</span>
+            <span className="font-medium">Sistema desenvolvido por Rifaqui</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
