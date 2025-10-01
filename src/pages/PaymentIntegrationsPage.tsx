@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, X, ArrowRight, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
+import { ArrowLeft, X, ArrowRight, Trash2, AlertCircle, CheckCircle, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { PaymentsAPI, PaymentIntegrationConfig } from '../lib/api/payments';
@@ -44,7 +44,6 @@ const PaymentIntegrationsPage = () => {
         }
 
         if (data) {
-          // Fluxsis
           if (data.fluxsis) {
             setFluxsisConfig({
               api_key: data.fluxsis.api_key || '',
@@ -54,7 +53,6 @@ const PaymentIntegrationsPage = () => {
             setIsFluxsisConfigured(!!data.fluxsis.api_key);
           }
 
-          // Pay2m
           if (data.pay2m) {
             setPay2mConfig({
               api_key: data.pay2m.api_key || '',
@@ -64,7 +62,6 @@ const PaymentIntegrationsPage = () => {
             setIsPay2mConfigured(!!data.pay2m.api_key);
           }
 
-          // Paggue
           if (data.paggue) {
             setPaggueConfig({
               api_key: data.paggue.api_key || '',
@@ -74,7 +71,6 @@ const PaymentIntegrationsPage = () => {
             setIsPaggueConfigured(!!data.paggue.api_key);
           }
 
-          // Efi Bank
           if (data.efi_bank) {
             setEfiBankConfig({
               client_id: data.efi_bank.client_id || '',
@@ -129,8 +125,6 @@ const PaymentIntegrationsPage = () => {
         setIsFluxsisConfigured(true);
         setShowFluxsisModal(false);
         alert('Configuração do Fluxsis salva com sucesso!');
-        
-        // Update localStorage to reflect payment is now configured
         localStorage.setItem('isPaymentConfigured', 'true');
       }
     } catch (error) {
@@ -206,8 +200,6 @@ const PaymentIntegrationsPage = () => {
         setIsPay2mConfigured(true);
         setShowPay2mModal(false);
         alert('Configuração do Pay2m salva com sucesso!');
-        
-        // Update localStorage to reflect payment is now configured
         localStorage.setItem('isPaymentConfigured', 'true');
       }
     } catch (error) {
@@ -283,8 +275,6 @@ const PaymentIntegrationsPage = () => {
         setIsPaggueConfigured(true);
         setShowPaggueModal(false);
         alert('Configuração do Paggue salva com sucesso!');
-        
-        // Update localStorage to reflect payment is now configured
         localStorage.setItem('isPaymentConfigured', 'true');
       }
     } catch (error) {
@@ -360,8 +350,6 @@ const PaymentIntegrationsPage = () => {
         setIsEfiBankConfigured(true);
         setShowEfiBankModal(false);
         alert('Configuração do Efi Bank salva com sucesso!');
-        
-        // Update localStorage to reflect payment is now configured
         localStorage.setItem('isPaymentConfigured', 'true');
       }
     } catch (error) {
@@ -404,187 +392,142 @@ const PaymentIntegrationsPage = () => {
     }
   };
 
+  const paymentMethods = [
+    {
+      id: 'fluxsis',
+      name: 'Fluxsis',
+      logo: '/fluxsis22.png',
+      description: 'Pagamentos automáticos via PIX e cartão',
+      isConfigured: isFluxsisConfigured,
+      onConfigure: handleFluxsisConfig
+    },
+    {
+      id: 'pay2m',
+      name: 'Pay2m',
+      logo: '/pay2m2.png',
+      description: 'Soluções de pagamento digital',
+      isConfigured: isPay2mConfigured,
+      onConfigure: handlePay2mConfig
+    },
+    {
+      id: 'paggue',
+      name: 'Paggue',
+      logo: '/paggue2.png',
+      description: 'Plataforma de pagamentos online',
+      isConfigured: isPaggueConfigured,
+      onConfigure: handlePaggueConfig
+    },
+    {
+      id: 'efi_bank',
+      name: 'Efi Bank',
+      logo: '/efi2.png',
+      description: 'Banco digital com soluções de pagamento',
+      isConfigured: isEfiBankConfigured,
+      onConfigure: handleEfiBankConfig
+    }
+  ];
+
   return (
-    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
-      {/* Header */}
-      <div className="flex items-center space-x-4 p-6 border-b border-gray-200 dark:border-gray-800">
-        <button
-          onClick={handleGoBack}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
-        >
-          <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-        </button>
-        <h1 className="text-xl font-medium text-gray-900 dark:text-white">
-          Métodos de pagamentos
-        </h1>
-      </div>
-
-      {/* Payment Methods Grid */}
-      <div className="p-6 space-y-4">
-        {/* Fluxsis */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
-          <div className="flex items-center space-x-4">
-            <img 
-              src="/fluxsis22.png" 
-              alt="Fluxsis Logo" 
-              className="w-12 h-12 object-contain"
-            />
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                Fluxsis
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Pagamentos automáticos via PIX e cartão
-              </p>
-              <div className="flex items-center space-x-2 mt-2">
-                {isFluxsisConfigured ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-600 dark:text-green-400">Conectado</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Não conectado</span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
           <button
-            onClick={handleFluxsisConfig}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+            onClick={handleGoBack}
+            className="p-2 hover:bg-white/10 dark:hover:bg-gray-800/50 rounded-lg transition-colors duration-200"
           >
-            Configurar
+            <ArrowLeft className="h-6 w-6 text-gray-700 dark:text-gray-300" />
           </button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Métodos de Pagamento
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Configure suas integrações para receber pagamentos
+            </p>
+          </div>
         </div>
 
-        {/* Pay2m */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
-          <div className="flex items-center space-x-4">
-            <img 
-              src="/pay2m2.png" 
-              alt="Pay2m Logo" 
-              className="w-12 h-12 object-contain"
-            />
+        {/* Info Card */}
+        <div className="mb-6 rounded-2xl p-4 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/20 dark:border-blue-800/30">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Zap className="h-5 w-5 text-white" />
+            </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                Pay2m
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
+                Receba pagamentos automaticamente
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Soluções de pagamento digital
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Configure pelo menos um método de pagamento para começar a vender suas cotas. Todos os pagamentos são processados de forma segura e automática.
               </p>
-              <div className="flex items-center space-x-2 mt-2">
-                {isPay2mConfigured ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-600 dark:text-green-400">Conectado</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Não conectado</span>
-                  </>
-                )}
-              </div>
             </div>
           </div>
-          <button
-            onClick={handlePay2mConfig}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-          >
-            Configurar
-          </button>
         </div>
 
-        {/* Paggue */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
-          <div className="flex items-center space-x-4">
-            <img 
-              src="/paggue2.png" 
-              alt="Paggue Logo" 
-              className="w-12 h-12 object-contain"
-            />
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                Paggue
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Plataforma de pagamentos online
-              </p>
-              <div className="flex items-center space-x-2 mt-2">
-                {isPaggueConfigured ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-600 dark:text-green-400">Conectado</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Não conectado</span>
-                  </>
-                )}
+        {/* Payment Methods Grid */}
+        <div className="grid gap-4 md:grid-cols-2">
+          {paymentMethods.map((method) => (
+            <article
+              key={method.id}
+              className="rounded-2xl p-6 border transition-all duration-200 bg-white/60 dark:bg-gray-900/40 border-gray-200/20 dark:border-gray-700/20 hover:border-purple-500/30 hover:shadow-lg"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-4 flex-1 min-w-0">
+                  <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm border border-gray-200/20 dark:border-gray-700/20 p-2">
+                    <img 
+                      src={method.logo} 
+                      alt={`${method.name} Logo`} 
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                      {method.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      {method.description}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      {method.isConfigured ? (
+                        <>
+                          <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          <span className="text-sm font-medium text-green-600 dark:text-green-400">Conectado</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Não conectado</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          <button
-            onClick={handlePaggueConfig}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-          >
-            Configurar
-          </button>
+              
+              <button
+                onClick={method.onConfigure}
+                className="w-full mt-4 inline-flex items-center justify-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white px-4 py-3 rounded-xl font-semibold shadow-md transition transform hover:-translate-y-0.5"
+              >
+                <span>Configurar</span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </article>
+          ))}
         </div>
-
-        {/* Efi Bank */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-200">
-          <div className="flex items-center space-x-4">
-            <img 
-              src="/efi2.png" 
-              alt="Efi Bank Logo" 
-              className="w-12 h-12 object-contain"
-            />
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                Efi Bank
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Banco digital com soluções de pagamento
-              </p>
-              <div className="flex items-center space-x-2 mt-2">
-                {isEfiBankConfigured ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-600 dark:text-green-400">Conectado</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Não conectado</span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={handleEfiBankConfig}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-          >
-            Configurar
-          </button>
-        </div>
-      </div>
+      </main>
 
       {/* Fluxsis Modal */}
       {showFluxsisModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                 Configurar Fluxsis
               </h2>
               <button
                 onClick={() => setShowFluxsisModal(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
               >
                 <X className="h-5 w-5 text-gray-400" />
               </button>
@@ -635,15 +578,15 @@ const PaymentIntegrationsPage = () => {
               </div>
             </div>
 
-            <div className="flex space-x-3 mt-6">
+            <div className="flex gap-3 mt-6">
               {isFluxsisConfigured && (
                 <button
                   onClick={handleDeleteFluxsisConfig}
                   disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md"
                 >
                   {deleting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                   ) : (
                     <>
                       <Trash2 className="h-4 w-4" />
@@ -656,12 +599,12 @@ const PaymentIntegrationsPage = () => {
               <button
                 onClick={handleSaveFluxsisConfig}
                 disabled={loading || deleting}
-                className={`bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 ${
+                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md ${
                   isFluxsisConfigured ? 'flex-1' : 'w-full'
                 }`}
               >
                 {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 ) : (
                   <>
                     <span>Salvar</span>
@@ -676,15 +619,15 @@ const PaymentIntegrationsPage = () => {
 
       {/* Pay2m Modal */}
       {showPay2mModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                 Configurar Pay2m
               </h2>
               <button
                 onClick={() => setShowPay2mModal(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
               >
                 <X className="h-5 w-5 text-gray-400" />
               </button>
@@ -735,15 +678,15 @@ const PaymentIntegrationsPage = () => {
               </div>
             </div>
 
-            <div className="flex space-x-3 mt-6">
+            <div className="flex gap-3 mt-6">
               {isPay2mConfigured && (
                 <button
                   onClick={handleDeletePay2mConfig}
                   disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md"
                 >
                   {deleting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                   ) : (
                     <>
                       <Trash2 className="h-4 w-4" />
@@ -756,12 +699,12 @@ const PaymentIntegrationsPage = () => {
               <button
                 onClick={handleSavePay2mConfig}
                 disabled={loading || deleting}
-                className={`bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 ${
+                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md ${
                   isPay2mConfigured ? 'flex-1' : 'w-full'
                 }`}
               >
                 {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 ) : (
                   <>
                     <span>Salvar</span>
@@ -776,15 +719,15 @@ const PaymentIntegrationsPage = () => {
 
       {/* Paggue Modal */}
       {showPaggueModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                 Configurar Paggue
               </h2>
               <button
                 onClick={() => setShowPaggueModal(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
               >
                 <X className="h-5 w-5 text-gray-400" />
               </button>
@@ -835,15 +778,15 @@ const PaymentIntegrationsPage = () => {
               </div>
             </div>
 
-            <div className="flex space-x-3 mt-6">
+            <div className="flex gap-3 mt-6">
               {isPaggueConfigured && (
                 <button
                   onClick={handleDeletePaggueConfig}
                   disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md"
                 >
                   {deleting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                   ) : (
                     <>
                       <Trash2 className="h-4 w-4" />
@@ -856,12 +799,12 @@ const PaymentIntegrationsPage = () => {
               <button
                 onClick={handleSavePaggueConfig}
                 disabled={loading || deleting}
-                className={`bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 ${
+                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md ${
                   isPaggueConfigured ? 'flex-1' : 'w-full'
                 }`}
               >
                 {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 ) : (
                   <>
                     <span>Salvar</span>
@@ -876,15 +819,15 @@ const PaymentIntegrationsPage = () => {
 
       {/* Efi Bank Modal */}
       {showEfiBankModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                 Configurar Efi Bank
               </h2>
               <button
                 onClick={() => setShowEfiBankModal(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
               >
                 <X className="h-5 w-5 text-gray-400" />
               </button>
@@ -935,15 +878,15 @@ const PaymentIntegrationsPage = () => {
               </div>
             </div>
 
-            <div className="flex space-x-3 mt-6">
+            <div className="flex gap-3 mt-6">
               {isEfiBankConfigured && (
                 <button
                   onClick={handleDeleteEfiBankConfig}
                   disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md"
                 >
                   {deleting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                   ) : (
                     <>
                       <Trash2 className="h-4 w-4" />
@@ -956,12 +899,12 @@ const PaymentIntegrationsPage = () => {
               <button
                 onClick={handleSaveEfiBankConfig}
                 disabled={loading || deleting}
-                className={`bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 ${
+                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md ${
                   isEfiBankConfigured ? 'flex-1' : 'w-full'
                 }`}
               >
                 {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 ) : (
                   <>
                     <span>Salvar</span>
