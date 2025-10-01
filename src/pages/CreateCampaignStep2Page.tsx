@@ -240,7 +240,7 @@ const CreateCampaignStep2Page = () => {
 
       // Normalize description for database storage
       const normalizedDescription = isEditorContentEmpty(formData.description) 
-        ? null 
+        ? '' 
         : formData.description;
 
       const updateData = {

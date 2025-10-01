@@ -32,7 +32,8 @@ export const createCampaignSchema = z.object({
   description: z
     .string()
     .max(2000, 'A descrição deve ter no máximo 2000 caracteres')
-    .optional(),
+    .optional()
+    .nullable(),
   
   ticket_price: z
     .number()
@@ -146,6 +147,12 @@ export const createCampaignSchema = z.object({
 // Schema para validação de atualização de campanha
 export const updateCampaignSchema = createCampaignSchema.partial().extend({
   id: z.string().uuid('ID da campanha inválido')
+}).extend({
+  description: z
+    .string()
+    .max(2000, 'A descrição deve ter no máximo 2000 caracteres')
+    .optional()
+    .nullable()
 }).refine(
   (data) => !data.min_tickets_per_purchase || !data.max_tickets_per_purchase || data.min_tickets_per_purchase <= data.max_tickets_per_purchase,
   {
