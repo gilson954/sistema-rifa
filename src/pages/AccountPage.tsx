@@ -8,13 +8,7 @@ import {
   ArrowRight,
   ChevronDown,
   AlertTriangle,
-  CheckCircle,
-  ShoppingBag,
-  Mail,
-  User,
-  Lock,
-  Phone,
-  CreditCard
+  CheckCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -29,6 +23,7 @@ interface Country {
   flag: string;
 }
 
+// Add countries array at the top of the file (after imports)
 const countries: Country[] = [
   { code: 'BR', name: 'Brasil', dialCode: '+55', flag: '🇧🇷' },
   { code: 'US', name: 'Estados Unidos', dialCode: '+1', flag: '🇺🇸' },
@@ -66,6 +61,7 @@ const AccountPage: React.FC = () => {
   const [sendingResetLink, setSendingResetLink] = useState(false);
   const [resetLinkSent, setResetLinkSent] = useState(false);
 
+  // Fetch user profile data
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!user) {
@@ -82,6 +78,7 @@ const AccountPage: React.FC = () => {
 
         if (error) {
           console.error('Error fetching profile:', error);
+          // fallback to auth email
           setUserData(prev => ({
             ...prev,
             name: prev.name || '',
@@ -90,6 +87,7 @@ const AccountPage: React.FC = () => {
             phoneNumber: ''
           }));
         } else if (profile) {
+          // Parse phone number to extract country and number
           let countryCode = '+55';
           let phoneOnly = '';
           
@@ -103,6 +101,7 @@ const AccountPage: React.FC = () => {
             }
           }
           
+          // Find matching country
           const matchingCountry = countries.find(c => c.dialCode === countryCode) || selectedCountry;
           setSelectedCountry(matchingCountry);
           
@@ -133,6 +132,7 @@ const AccountPage: React.FC = () => {
     fetchUserProfile();
   }, [user]);
 
+  // Validate form data
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -172,14 +172,22 @@ const AccountPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // CPF validation function
   const isValidCPF = (cpf: string): boolean => {
+    // Remove any non-numeric characters
     const cleanCPF = cpf.replace(/\D/g, '');
+    
+    // Check if CPF has 11 digits
     if (cleanCPF.length !== 11) return false;
+    
+    // Check for known invalid CPFs (all same digits)
     if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
     
+    // Validate CPF algorithm
     let sum = 0;
     let remainder;
     
+    // Validate first digit
     for (let i = 1; i <= 9; i++) {
       sum += parseInt(cleanCPF.substring(i - 1, i)) * (11 - i);
     }
@@ -187,6 +195,7 @@ const AccountPage: React.FC = () => {
     if (remainder === 10 || remainder === 11) remainder = 0;
     if (remainder !== parseInt(cleanCPF.substring(9, 10))) return false;
     
+    // Validate second digit
     sum = 0;
     for (let i = 1; i <= 10; i++) {
       sum += parseInt(cleanCPF.substring(i - 1, i)) * (12 - i);
@@ -198,6 +207,7 @@ const AccountPage: React.FC = () => {
     return true;
   };
 
+  // Format CPF for display
   const formatCPF = (value: string): string => {
     const numbers = value.replace(/\D/g, '');
     const limitedNumbers = numbers.slice(0, 11);
@@ -228,10 +238,12 @@ const AccountPage: React.FC = () => {
     if (!user) return;
 
     try {
+      // Prepare phone number for storage (combine country code and number)
       const fullPhoneNumber = userData.phoneNumber.trim() 
         ? `${selectedCountry.dialCode} ${userData.phoneNumber.trim()}`
         : null;
       
+      // Prepare CPF for storage (only numbers)
       const cleanCPF = userData.cpf.trim() 
         ? userData.cpf.replace(/\D/g, '')
         : null;
@@ -327,12 +339,11 @@ const AccountPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f0f1e] flex items-center justify-center p-6">
-        <div className="bg-[#1a1a2e] backdrop-blur-xl rounded-2xl border border-gray-800/50 shadow-2xl p-12">
-          <div className="flex items-center justify-center">
-            <div className="relative">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-800"></div>
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-transparent border-t-purple-600 absolute top-0 left-0"></div>
+      <div className="bg-transparent">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="rounded-2xl p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
             </div>
           </div>
         </div>
@@ -340,6 +351,7 @@ const AccountPage: React.FC = () => {
     );
   }
 
+  // Helper to display initials if no avatar url
   const avatarInitial = (nameOrEmail: string | undefined) => {
     const source = nameOrEmail || user?.email || '';
     if (!source) return 'U';
@@ -347,225 +359,269 @@ const AccountPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f0f1e] py-8 px-4 sm:px-6 lg:px-8">
-      <main className="max-w-5xl mx-auto space-y-6">
-        
-        {/* Header Card */}
-        <div className="bg-gradient-to-br from-[#1a1a2e] to-[#16162a] rounded-2xl p-6 md:p-8 border border-gray-800/50 shadow-xl text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-pink-500/5 rounded-full -ml-32 -mb-32 blur-3xl"></div>
-          
-          <div className="relative flex items-start justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl md:text-2xl font-bold shadow-lg overflow-hidden">
+    <div className="bg-transparent min-h-screen">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Card wrapper */}
+        <div className="rounded-2xl p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
+          {/* Top header of card */}
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Minha conta</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Gerencie seus dados pessoais, redefina senha ou exclua sua conta.</p>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              {/* Removed "Alterar foto" button as requested */}
+
+              {/* Small edit icon */}
+              <button
+                onClick={handleEditData}
+                title="Editar"
+                className="p-2 rounded-lg bg-gray-800/40 hover:bg-gray-800/30 transition"
+              >
+                <Pencil className="h-4 w-4 text-white" />
+              </button>
+            </div>
+          </div>
+
+          {/* Content grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Avatar / basic info */}
+            <div className="col-span-1 flex items-center gap-4 p-4 rounded-xl bg-white/3 dark:bg-black/10">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-400 flex items-center justify-center text-white text-lg font-semibold shadow overflow-hidden">
                 {profileImageUrl ? (
-                  <img src={profileImageUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  <img src={profileImageUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
                 ) : (
                   <span>{avatarInitial(userData.name || user?.email)}</span>
                 )}
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold">Minha conta</h1>
-                <p className="text-gray-400 text-sm mt-1">Gerencie seus dados pessoais, redefina senha ou exclua sua conta.</p>
+                <div className="text-sm text-gray-400">Usuário</div>
+                <div className="font-medium text-gray-900 dark:text-white">{userData.name || '-'}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">{userData.email || '-'}</div>
               </div>
             </div>
 
-            <button
-              onClick={handleEditData}
-              title="Editar"
-              className="group p-2.5 md:p-3 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 backdrop-blur-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-            >
-              <Pencil className="h-4 w-4 md:h-5 md:w-5 text-purple-400 group-hover:rotate-12 transition-transform duration-300" />
-            </button>
-          </div>
-        </div>
-
-        {/* Main Data Card */}
-        <div className="bg-[#1a1a2e] backdrop-blur-xl rounded-2xl border border-gray-800/50 shadow-xl p-6 md:p-8 transition-all duration-300 hover:shadow-2xl">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
-              <User className="h-5 w-5 text-white" />
-            </div>
-            <h2 className="text-xl md:text-2xl font-bold text-white">Dados Principais</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            <div className="group p-4 md:p-5 bg-[#16162a] rounded-xl border border-gray-800/50 transition-all duration-300 hover:shadow-md hover:border-gray-700/50">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-400 mb-2">
-                <User className="h-4 w-4" />
-                <span>Nome</span>
-              </label>
-              <div className="text-base md:text-lg font-semibold text-white">{userData.name || '-'}</div>
-            </div>
-
-            <div className="group p-4 md:p-5 bg-[#16162a] rounded-xl border border-gray-800/50 transition-all duration-300 hover:shadow-md hover:border-gray-700/50">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-400 mb-2">
-                <Mail className="h-4 w-4" />
-                <span>Email</span>
-              </label>
-              <div className="text-base md:text-lg font-semibold text-white break-all">{userData.email || '-'}</div>
-            </div>
-
-            <div className="group p-4 md:p-5 bg-[#16162a] rounded-xl border border-gray-800/50 transition-all duration-300 hover:shadow-md hover:border-gray-700/50">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-400 mb-2">
-                <CreditCard className="h-4 w-4" />
-                <span>CPF</span>
-              </label>
-              <div className="text-base md:text-lg font-semibold text-white">{userData.cpf || '-'}</div>
-            </div>
-
-            <div className="group p-4 md:p-5 bg-[#16162a] rounded-xl border border-gray-800/50 transition-all duration-300 hover:shadow-md hover:border-gray-700/50">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-400 mb-2">
-                <Phone className="h-4 w-4" />
-                <span>Telefone</span>
-              </label>
-              <div className="text-base md:text-lg font-semibold text-white">
-                {userData.phoneNumber ? `${selectedCountry.dialCode} ${userData.phoneNumber}` : '-'}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Reset Password Card */}
-        <div className="bg-[#1a1a2e] backdrop-blur-xl rounded-2xl border border-gray-800/50 shadow-xl p-6 md:p-8 transition-all duration-300 hover:shadow-2xl">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl">
-              <Lock className="h-5 w-5 text-white" />
-            </div>
-            <h3 className="text-xl md:text-2xl font-bold text-white">Resetar senha</h3>
-          </div>
-          <p className="text-sm md:text-base text-gray-400 mb-6 leading-relaxed">
-            Você receberá um link via e-mail para redefinir a sua senha.
-          </p>
-
-          <button
-            onClick={handleSendResetLink}
-            disabled={sendingResetLink}
-            className="group w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 disabled:from-blue-400 disabled:to-cyan-400 disabled:cursor-not-allowed text-white py-3 md:py-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl hover:scale-[1.02]"
-          >
-            {sendingResetLink ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 md:h-5 md:w-5 border-2 border-white border-t-transparent"></div>
-                <span>Enviando...</span>
-              </>
-            ) : resetLinkSent ? (
-              <>
-                <span>Link enviado!</span>
-                <CheckCircle className="h-4 w-4 md:h-5 md:w-5" />
-              </>
-            ) : (
-              <>
-                <span>Enviar link</span>
-                <Link className="h-4 w-4 md:h-5 md:w-5" />
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Purchase History */}
-        {getCompletedOrders().length > 0 && (
-          <div className="bg-[#1a1a2e] backdrop-blur-xl rounded-2xl border border-gray-800/50 shadow-xl p-6 md:p-8 transition-all duration-300 hover:shadow-2xl">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
-                <ShoppingBag className="h-5 w-5 text-white" />
-              </div>
-              <h4 className="text-xl md:text-2xl font-bold text-white">Histórico de Compras recentes</h4>
-            </div>
-            <div className="space-y-3">
-              {getCompletedOrders().slice(0, 3).map((order) => (
-                <div key={order.id} className="group bg-[#16162a] rounded-xl p-4 md:p-5 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border border-gray-800/50 hover:border-gray-700/50">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-white mb-1 truncate">Rifaqui - Taxa de Publicação</div>
-                      <div className="text-sm text-gray-400">{new Date(order.created_at).toLocaleDateString('pt-BR')}</div>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="font-bold text-lg md:text-xl text-white mb-1">R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}</div>
-                      <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/10 border border-green-500/30 text-green-400">
-                        ✓ Pago
-                      </div>
-                    </div>
+            {/* Main fields */}
+            <div className="col-span-2 p-4 rounded-xl bg-white/3 dark:bg-black/10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-400">Nome</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.name || '-'}</div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400">Email</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.email || '-'}</div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400">CPF</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.cpf || '-'}</div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400">Telefone</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">
+                    {userData.phoneNumber ? `${selectedCountry.dialCode} ${userData.phoneNumber}` : '-'}
                   </div>
                 </div>
-              ))}
+              </div>
+
+              {/* Reset password */}
+              <div className="mt-6">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">Resetar senha</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Você receberá um link via e-mail para redefinir a sua senha.</p>
+
+                <div className="mt-4">
+                  <button
+                    onClick={handleSendResetLink}
+                    disabled={sendingResetLink}
+                    className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+                               animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-pink-500 to-indigo-600"
+                  >
+                    {sendingResetLink ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Enviando...</span>
+                      </>
+                    ) : resetLinkSent ? (
+                      <>
+                        <span>Link enviado!</span>
+                        <CheckCircle className="h-4 w-4" />
+                      </>
+                    ) : (
+                      <>
+                        <span>Enviar link</span>
+                        <Link className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Delete account */}
+              <div className="mt-6">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">Excluir minha conta</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                  Lembre-se de que esta ação é irreversível e removerá permanentemente todas as suas informações e dados pessoais de nossa plataforma; você não pode ter rifas em andamento.
+                </p>
+
+                <div className="mt-4">
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleting}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-rose-500 text-white font-medium hover:opacity-95 transition disabled:opacity-50"
+                  >
+                    <span>{deleting ? 'Excluindo...' : 'Quero excluir'}</span>
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        )}
 
-        {/* Delete Account Card */}
-        <div className="bg-[#1a1a2e] backdrop-blur-xl rounded-2xl border border-red-900/30 shadow-xl p-6 md:p-8 transition-all duration-300 hover:shadow-2xl">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-gradient-to-br from-red-500 to-pink-500 rounded-xl">
-              <AlertTriangle className="h-5 w-5 text-white" />
+          {/* Optional purchase history (kept smaller / below) */}
+          {getCompletedOrders().length > 0 && (
+            <div className="mt-6">
+              <h4 className="text-sm font-semibold text-gray-400 mb-3">Histórico de Compras recentes</h4>
+              <div className="space-y-3">
+                {getCompletedOrders().slice(0, 3).map((order) => (
+                  <div key={order.id} className="flex items-center justify-between p-3 rounded-lg bg-white/3 dark:bg-black/10">
+                    <div>
+                      <div className="font-medium text-gray-900 dark:text-white">Rifaqui - Taxa de Publicação</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{new Date(order.created_at).toLocaleDateString('pt-BR')}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium text-gray-900 dark:text-white">R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}</div>
+                      <div className="text-sm text-green-600 dark:text-green-400">Pago</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <h3 className="text-xl md:text-2xl font-bold text-white">Excluir minha conta</h3>
-          </div>
-          <p className="text-sm md:text-base text-gray-400 mb-6 leading-relaxed">
-            Lembre-se de que esta ação é irreversível e removerá permanentemente todas as suas informações e dados pessoais de nossa plataforma; você não pode ter rifas em andamento.
-          </p>
-
-          <button
-            onClick={handleDeleteAccount}
-            disabled={deleting}
-            className="group inline-flex items-center gap-2 px-5 md:px-6 py-2.5 md:py-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-          >
-            <span>{deleting ? 'Excluindo...' : 'Quero excluir'}</span>
-            <Trash2 className="h-4 w-4 group-hover:rotate-12 transition-transform duration-300" />
-          </button>
+          )}
         </div>
       </main>
 
       {/* Edit Data Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="w-full max-w-lg bg-[#1a1a2e] rounded-2xl p-6 md:p-8 border border-gray-800/50 shadow-2xl transform transition-all duration-300 animate-in slide-in-from-bottom-4">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl md:text-2xl font-bold text-white">Editar dados pessoais</h2>
-                <p className="text-sm text-gray-400 mt-1">Preencha os campos abaixo para editar seus dados pessoais.</p>
-              </div>
-              <button 
-                onClick={() => setShowEditModal(false)} 
-                className="p-2 hover:bg-gray-800 rounded-xl transition-all duration-200 hover:rotate-90"
-              >
-                <X className="h-5 w-5 md:h-6 md:w-6 text-gray-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Editar dados pessoais</h2>
+              <button onClick={() => setShowEditModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                <X className="h-5 w-5 text-gray-400" />
               </button>
             </div>
 
-            <div className="space-y-4 md:space-y-5">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Preencha os campos abaixo para editar seus dados pessoais.</p>
+
+            <div className="space-y-4">
               <div>
-                <label className="flex items-center space-x-2 text-sm font-semibold text-gray-400 mb-2 md:mb-3">
-                  <User className="h-4 w-4" />
-                  <span>Nome completo</span>
-                </label>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Nome completo</label>
                 <input
                   type="text"
                   value={userData.name}
                   onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-[#16162a] border-2 border-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200"
-                  placeholder="Seu nome completo"
+                  className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-purple-500 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
-                {errors.name && <p className="text-red-400 text-sm mt-2 flex items-center space-x-1"><AlertTriangle className="h-4 w-4" /><span>{errors.name}</span></p>}
+                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
               </div>
 
               <div>
-                <label className="flex items-center space-x-2 text-sm font-semibold text-gray-400 mb-2 md:mb-3">
-                  <Mail className="h-4 w-4" />
-                  <span>Email</span>
-                </label>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Email</label>
                 <input
                   type="email"
                   value={userData.email}
                   onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                  className={`w-full px-4 py-3 rounded-xl bg-[#16162a] border-2 text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all duration-200 ${
-                    errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-800 focus:border-purple-500'
+                  className={`w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                    errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
-                  placeholder="seu@email.com"
                 />
-                {errors.email && <p className="text-red-400 text-sm mt-2 flex items-center space-x-1"><AlertTriangle className="h-4 w-4" /><span>{errors.email}</span></p>}
+                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
               </div>
 
               <div>
-                <label className="flex items-center space-x-2 text-sm font-semibold text-gray-400 mb-2 md:mb-3">
-                  <CreditCard className="h-4 w-4" />
-                  <span>CPF (opcional)</span>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">CPF (opcional)</label>
+                <input
+                  type="text"
+                  value={userData.cpf}
+                  onChange={handleCPFChange}
+                  placeholder="000.000.000-00"
+                  className={`w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                    errors.cpf ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                />
+                {errors.cpf && <p className="text-red-500 text-sm mt-1">{errors.cpf}</p>}
+              </div>
+
+              <div>
+                <CountryPhoneSelect
+                  selectedCountry={selectedCountry}
+                  onCountryChange={(c: Country) => setSelectedCountry(c)}
+                  phoneNumber={userData.phoneNumber}
+                  onPhoneChange={(value: string) => setUserData({ ...userData, phoneNumber: value })}
+                  placeholder="Número de telefone"
+                  error={errors.phoneNumber}
+                />
+              </div>
+
+              <button
+                onClick={handleSaveData}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white font-semibold"
+              >
+                <span>Salvar</span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Excluir</h2>
+              <button onClick={() => setShowDeleteConfirmModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <div className="flex items-start space-x-3 mb-4">
+                <AlertTriangle className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" />
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  Você tem certeza de que quer excluir sua conta de forma permanente? Essa ação não pode ser desfeita e seu e-mail não poderá ser reutilizado.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirmModal(false)}
+                disabled={deleting}
+                className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 text-gray-900 dark:text-white py-3 rounded-lg font-medium transition"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={confirmDeleteAccount}
+                disabled={deleting}
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-3 rounded-lg font-medium transition"
+              >
+                {deleting ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                ) : (
+                  <span>Confirmar</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AccountPage;
