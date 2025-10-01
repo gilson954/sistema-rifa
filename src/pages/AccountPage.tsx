@@ -8,7 +8,13 @@ import {
   ArrowRight,
   ChevronDown,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  User,
+  Mail,
+  Phone,
+  CreditCard,
+  Shield,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -339,12 +345,10 @@ const AccountPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-transparent">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="rounded-2xl p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
-            </div>
+      <div className="bg-transparent min-h-screen">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
           </div>
         </div>
       </div>
@@ -360,268 +364,221 @@ const AccountPage: React.FC = () => {
 
   return (
     <div className="bg-transparent min-h-screen">
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Card wrapper */}
-        <div className="rounded-2xl p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
-          {/* Top header of card */}
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Minha conta</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Gerencie seus dados pessoais, redefina senha ou exclua sua conta.</p>
-            </div>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Header Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Minha Conta</h1>
+          <p className="text-gray-600 dark:text-gray-400">Gerencie suas informações pessoais e configurações</p>
+        </div>
 
-            <div className="flex items-center space-x-3">
-              {/* Removed "Alterar foto" button as requested */}
-
-              {/* Small edit icon */}
-              <button
-                onClick={handleEditData}
-                title="Editar"
-                className="p-2 rounded-lg bg-gray-800/40 hover:bg-gray-800/30 transition"
-              >
-                <Pencil className="h-4 w-4 text-white" />
-              </button>
+        {/* Profile Card */}
+        <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur-xl rounded-3xl shadow-lg border border-gray-200/50 dark:border-gray-800/50 overflow-hidden mb-6">
+          {/* Profile Header with gradient */}
+          <div className="relative h-32 bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600">
+            <div className="absolute -bottom-16 left-8">
+              <div className="w-32 h-32 rounded-2xl bg-white dark:bg-gray-800 p-1.5 shadow-xl">
+                <div className="w-full h-full rounded-xl bg-gradient-to-br from-purple-600 to-blue-400 flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
+                  {profileImageUrl ? (
+                    <img src={profileImageUrl} alt="Avatar" className="w-full h-full object-cover rounded-xl" />
+                  ) : (
+                    <span>{avatarInitial(userData.name || user?.email)}</span>
+                  )}
+                </div>
+              </div>
             </div>
+            <button
+              onClick={handleEditData}
+              className="absolute top-4 right-4 p-2.5 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-all duration-200 group"
+            >
+              <Pencil className="h-5 w-5 text-white group-hover:scale-110 transition-transform" />
+            </button>
           </div>
 
-          {/* Content grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Avatar / basic info */}
-            <div className="col-span-1 flex items-center gap-4 p-4 rounded-xl bg-white/3 dark:bg-black/10">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-400 flex items-center justify-center text-white text-lg font-semibold shadow overflow-hidden">
-                {profileImageUrl ? (
-                  <img src={profileImageUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
-                ) : (
-                  <span>{avatarInitial(userData.name || user?.email)}</span>
-                )}
+          {/* Profile Info */}
+          <div className="pt-20 px-8 pb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{userData.name || 'Usuário'}</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">{userData.email}</p>
+
+            {/* Info Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="group p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:border-purple-500/50 transition-all duration-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+                    <User className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Nome Completo</span>
+                </div>
+                <p className="text-gray-900 dark:text-white font-medium ml-11">{userData.name || '-'}</p>
+              </div>
+
+              <div className="group p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:border-purple-500/50 transition-all duration-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                    <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Email</span>
+                </div>
+                <p className="text-gray-900 dark:text-white font-medium ml-11 truncate">{userData.email || '-'}</p>
+              </div>
+
+              <div className="group p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:border-purple-500/50 transition-all duration-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
+                    <CreditCard className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">CPF</span>
+                </div>
+                <p className="text-gray-900 dark:text-white font-medium ml-11">{userData.cpf || '-'}</p>
+              </div>
+
+              <div className="group p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:border-purple-500/50 transition-all duration-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                    <Phone className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Telefone</span>
+                </div>
+                <p className="text-gray-900 dark:text-white font-medium ml-11">
+                  {userData.phoneNumber ? `${selectedCountry.dialCode} ${userData.phoneNumber}` : '-'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Security Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Reset Password Card */}
+          <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur-xl rounded-3xl shadow-lg border border-gray-200/50 dark:border-gray-800/50 p-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-purple-600 to-blue-500">
+                <Shield className="h-6 w-6 text-white" />
               </div>
               <div>
-                <div className="text-sm text-gray-400">Usuário</div>
-                <div className="font-medium text-gray-900 dark:text-white">{userData.name || '-'}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">{userData.email || '-'}</div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Segurança</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Redefinir sua senha</p>
               </div>
             </div>
-
-            {/* Main fields */}
-            <div className="col-span-2 p-4 rounded-xl bg-white/3 dark:bg-black/10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-gray-400">Nome</label>
-                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.name || '-'}</div>
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-400">Email</label>
-                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.email || '-'}</div>
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-400">CPF</label>
-                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.cpf || '-'}</div>
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-400">Telefone</label>
-                  <div className="mt-1 font-medium text-gray-900 dark:text-white">
-                    {userData.phoneNumber ? `${selectedCountry.dialCode} ${userData.phoneNumber}` : '-'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Reset password */}
-              <div className="mt-6">
-                <h3 className="text-base font-semibold text-gray-900 dark:text-white">Resetar senha</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Você receberá um link via e-mail para redefinir a sua senha.</p>
-
-                <div className="mt-4">
-                  <button
-                    onClick={handleSendResetLink}
-                    disabled={sendingResetLink}
-                    className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
-                               animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-pink-500 to-indigo-600"
-                  >
-                    {sendingResetLink ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        <span>Enviando...</span>
-                      </>
-                    ) : resetLinkSent ? (
-                      <>
-                        <span>Link enviado!</span>
-                        <CheckCircle className="h-4 w-4" />
-                      </>
-                    ) : (
-                      <>
-                        <span>Enviar link</span>
-                        <Link className="h-4 w-4" />
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Delete account */}
-              <div className="mt-6">
-                <h3 className="text-base font-semibold text-gray-900 dark:text-white">Excluir minha conta</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
-                  Lembre-se de que esta ação é irreversível e removerá permanentemente todas as suas informações e dados pessoais de nossa plataforma; você não pode ter rifas em andamento.
-                </p>
-
-                <div className="mt-4">
-                  <button
-                    onClick={handleDeleteAccount}
-                    disabled={deleting}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-rose-500 text-white font-medium hover:opacity-95 transition disabled:opacity-50"
-                  >
-                    <span>{deleting ? 'Excluindo...' : 'Quero excluir'}</span>
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              Enviaremos um link seguro para o seu email para redefinir sua senha.
+            </p>
+            <button
+              onClick={handleSendResetLink}
+              disabled={sendingResetLink}
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-white transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg hover:shadow-xl bg-gradient-to-r from-purple-600 to-blue-600"
+            >
+              {sendingResetLink ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Enviando...</span>
+                </>
+              ) : resetLinkSent ? (
+                <>
+                  <CheckCircle className="h-5 w-5" />
+                  <span>Link Enviado!</span>
+                </>
+              ) : (
+                <>
+                  <Link className="h-5 w-5" />
+                  <span>Enviar Link de Redefinição</span>
+                </>
+              )}
+            </button>
           </div>
 
-          {/* Optional purchase history (kept smaller / below) */}
-          {getCompletedOrders().length > 0 && (
-            <div className="mt-6">
-              <h4 className="text-sm font-semibold text-gray-400 mb-3">Histórico de Compras recentes</h4>
-              <div className="space-y-3">
-                {getCompletedOrders().slice(0, 3).map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-3 rounded-lg bg-white/3 dark:bg-black/10">
-                    <div>
-                      <div className="font-medium text-gray-900 dark:text-white">Rifaqui - Taxa de Publicação</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{new Date(order.created_at).toLocaleDateString('pt-BR')}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium text-gray-900 dark:text-white">R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}</div>
-                      <div className="text-sm text-green-600 dark:text-green-400">Pago</div>
-                    </div>
-                  </div>
-                ))}
+          {/* Delete Account Card */}
+          <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur-xl rounded-3xl shadow-lg border border-red-200/50 dark:border-red-900/50 p-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-red-600 to-rose-500">
+                <AlertTriangle className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Zona de Perigo</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Excluir conta permanentemente</p>
               </div>
             </div>
-          )}
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              Esta ação é irreversível e removerá permanentemente todos os seus dados. Certifique-se de não ter rifas em andamento.
+            </p>
+            <button
+              onClick={handleDeleteAccount}
+              disabled={deleting}
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-white transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 shadow-lg hover:shadow-xl bg-gradient-to-r from-red-600 to-rose-600"
+            >
+              <Trash2 className="h-5 w-5" />
+              <span>{deleting ? 'Excluindo...' : 'Excluir Minha Conta'}</span>
+            </button>
+          </div>
         </div>
+
+        {/* Purchase History */}
+        {getCompletedOrders().length > 0 && (
+          <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur-xl rounded-3xl shadow-lg border border-gray-200/50 dark:border-gray-800/50 p-8">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Histórico de Compras</h3>
+            <div className="space-y-3">
+              {getCompletedOrders().slice(0, 3).map((order) => (
+                <div key={order.id} className="flex items-center justify-between p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:border-purple-500/50 transition-all duration-200">
+                  <div>
+                    <div className="font-semibold text-gray-900 dark:text-white mb-1">Rifaqui - Taxa de Publicação</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{new Date(order.created_at).toLocaleDateString('pt-BR')}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-gray-900 dark:text-white mb-1">R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}</div>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                      <CheckCircle className="h-3 w-3" />
+                      Pago
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Edit Data Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Editar dados pessoais</h2>
-              <button onClick={() => setShowEditModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            </div>
-
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Preencha os campos abaixo para editar seus dados pessoais.</p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Nome completo</label>
-                <input
-                  type="text"
-                  value={userData.name}
-                  onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-purple-500 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Email</label>
-                <input
-                  type="email"
-                  value={userData.email}
-                  onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                  className={`w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                    errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  }`}
-                />
-                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">CPF (opcional)</label>
-                <input
-                  type="text"
-                  value={userData.cpf}
-                  onChange={handleCPFChange}
-                  placeholder="000.000.000-00"
-                  className={`w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                    errors.cpf ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  }`}
-                />
-                {errors.cpf && <p className="text-red-500 text-sm mt-1">{errors.cpf}</p>}
-              </div>
-
-              <div>
-                <CountryPhoneSelect
-                  selectedCountry={selectedCountry}
-                  onCountryChange={(c: Country) => setSelectedCountry(c)}
-                  phoneNumber={userData.phoneNumber}
-                  onPhoneChange={(value: string) => setUserData({ ...userData, phoneNumber: value })}
-                  placeholder="Número de telefone"
-                  error={errors.phoneNumber}
-                />
-              </div>
-
-              <button
-                onClick={handleSaveData}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white font-semibold"
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-gray-900 shadow-2xl border border-gray-200/50 dark:border-gray-800/50 overflow-hidden">
+            <div className="relative h-24 bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600">
+              <button 
+                onClick={() => setShowEditModal(false)} 
+                className="absolute top-4 right-4 p-2 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-all"
               >
-                <span>Salvar</span>
-                <ArrowRight className="h-4 w-4" />
+                <X className="h-5 w-5 text-white" />
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Excluir</h2>
-              <button onClick={() => setShowDeleteConfirmModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            </div>
-
-            <div className="mb-6">
-              <div className="flex items-start space-x-3 mb-4">
-                <AlertTriangle className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" />
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  Você tem certeza de que quer excluir sua conta de forma permanente? Essa ação não pode ser desfeita e seu e-mail não poderá ser reutilizado.
-                </p>
+            
+            <div className="p-8 -mt-8">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Editar Perfil</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Atualize suas informações pessoais</p>
               </div>
-            </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirmModal(false)}
-                disabled={deleting}
-                className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 text-gray-900 dark:text-white py-3 rounded-lg font-medium transition"
-              >
-                Cancelar
-              </button>
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nome Completo</label>
+                  <input
+                    type="text"
+                    value={userData.name}
+                    onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+                    className={`w-full px-4 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800 border ${errors.name ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'} text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all`}
+                    placeholder="Seu nome completo"
+                  />
+                  {errors.name && <p className="text-red-500 text-sm mt-2">{errors.name}</p>}
+                </div>
 
-              <button
-                onClick={confirmDeleteAccount}
-                disabled={deleting}
-                className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-3 rounded-lg font-medium transition"
-              >
-                {deleting ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                ) : (
-                  <span>Confirmar</span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={userData.email}
+                    onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+                    className={`w-full px-4 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800 border ${errors.email ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'} text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all`}
+                    placeholder="seu@email.com"
+                  />
+                  {errors.email && <p className="text-red-500 text-sm mt-2">{errors.email}</p>}
+                </div>
 
-export default AccountPage;
+                <div>
+                  <label className="block text-sm font-medium text-gray-700
