@@ -8,13 +8,7 @@ import {
   ArrowRight,
   ChevronDown,
   AlertTriangle,
-  CheckCircle,
-  ShoppingBag,
-  Mail,
-  User,
-  Lock,
-  Phone,
-  CreditCard
+  CheckCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -345,12 +339,11 @@ const AccountPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/20 flex items-center justify-center p-6">
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-2xl p-12">
-          <div className="flex items-center justify-center">
-            <div className="relative">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-200 dark:border-purple-900"></div>
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-transparent border-t-purple-600 absolute top-0 left-0"></div>
+      <div className="bg-transparent">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="rounded-2xl p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
             </div>
           </div>
         </div>
@@ -366,239 +359,198 @@ const AccountPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/20 py-8 px-4 sm:px-6 lg:px-8">
-      <main className="max-w-5xl mx-auto space-y-6">
-        
-        {/* Header Card */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-700 dark:to-pink-700 rounded-3xl p-6 md:p-8 shadow-2xl text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full -ml-32 -mb-32 blur-3xl"></div>
-          
-          <div className="relative flex items-start justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-xl md:text-2xl font-bold shadow-lg overflow-hidden">
+    <div className="bg-transparent min-h-screen">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Card wrapper */}
+        <div className="rounded-2xl p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
+          {/* Top header of card */}
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Minha conta</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Gerencie seus dados pessoais, redefina senha ou exclua sua conta.</p>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              {/* Removed "Alterar foto" button as requested */}
+
+              {/* Small edit icon */}
+              <button
+                onClick={handleEditData}
+                title="Editar"
+                className="p-2 rounded-lg bg-gray-800/40 hover:bg-gray-800/30 transition"
+              >
+                <Pencil className="h-4 w-4 text-white" />
+              </button>
+            </div>
+          </div>
+
+          {/* Content grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Avatar / basic info */}
+            <div className="col-span-1 flex items-center gap-4 p-4 rounded-xl bg-white/3 dark:bg-black/10">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-400 flex items-center justify-center text-white text-lg font-semibold shadow overflow-hidden">
                 {profileImageUrl ? (
-                  <img src={profileImageUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  <img src={profileImageUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
                 ) : (
                   <span>{avatarInitial(userData.name || user?.email)}</span>
                 )}
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold">Minha conta</h1>
-                <p className="text-white/80 text-sm mt-1">Gerencie seus dados pessoais, redefina senha ou exclua sua conta.</p>
+                <div className="text-sm text-gray-400">Usuário</div>
+                <div className="font-medium text-gray-900 dark:text-white">{userData.name || '-'}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">{userData.email || '-'}</div>
               </div>
             </div>
 
-            <button
-              onClick={handleEditData}
-              title="Editar"
-              className="group p-2.5 md:p-3 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-            >
-              <Pencil className="h-4 w-4 md:h-5 md:w-5 text-white group-hover:rotate-12 transition-transform duration-300" />
-            </button>
-          </div>
-        </div>
-
-        {/* Main Data Card */}
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-6 md:p-8 transition-all duration-300 hover:shadow-2xl">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
-              <User className="h-5 w-5 text-white" />
-            </div>
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Dados Principais</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            <div className="group p-4 md:p-5 bg-gradient-to-br from-gray-50 to-purple-50/30 dark:from-gray-900/50 dark:to-purple-900/20 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 hover:shadow-md">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                <User className="h-4 w-4" />
-                <span>Nome</span>
-              </label>
-              <div className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">{userData.name || '-'}</div>
-            </div>
-
-            <div className="group p-4 md:p-5 bg-gradient-to-br from-gray-50 to-pink-50/30 dark:from-gray-900/50 dark:to-pink-900/20 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 hover:shadow-md">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                <Mail className="h-4 w-4" />
-                <span>Email</span>
-              </label>
-              <div className="text-base md:text-lg font-semibold text-gray-900 dark:text-white break-all">{userData.email || '-'}</div>
-            </div>
-
-            <div className="group p-4 md:p-5 bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-gray-900/50 dark:to-blue-900/20 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 hover:shadow-md">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                <CreditCard className="h-4 w-4" />
-                <span>CPF</span>
-              </label>
-              <div className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">{userData.cpf || '-'}</div>
-            </div>
-
-            <div className="group p-4 md:p-5 bg-gradient-to-br from-gray-50 to-green-50/30 dark:from-gray-900/50 dark:to-green-900/20 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 hover:shadow-md">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                <Phone className="h-4 w-4" />
-                <span>Telefone</span>
-              </label>
-              <div className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">
-                {userData.phoneNumber ? `${selectedCountry.dialCode} ${userData.phoneNumber}` : '-'}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Reset Password Card */}
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-6 md:p-8 transition-all duration-300 hover:shadow-2xl">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl">
-              <Lock className="h-5 w-5 text-white" />
-            </div>
-            <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Resetar senha</h3>
-          </div>
-          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-            Você receberá um link via e-mail para redefinir a sua senha.
-          </p>
-
-          <button
-            onClick={handleSendResetLink}
-            disabled={sendingResetLink}
-            className="group w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 disabled:from-blue-400 disabled:to-cyan-400 disabled:cursor-not-allowed text-white py-3 md:py-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl hover:scale-[1.02]"
-          >
-            {sendingResetLink ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 md:h-5 md:w-5 border-2 border-white border-t-transparent"></div>
-                <span>Enviando...</span>
-              </>
-            ) : resetLinkSent ? (
-              <>
-                <span>Link enviado!</span>
-                <CheckCircle className="h-4 w-4 md:h-5 md:w-5" />
-              </>
-            ) : (
-              <>
-                <span>Enviar link</span>
-                <Link className="h-4 w-4 md:h-5 md:w-5" />
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Purchase History */}
-        {getCompletedOrders().length > 0 && (
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-6 md:p-8 transition-all duration-300 hover:shadow-2xl">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
-                <ShoppingBag className="h-5 w-5 text-white" />
-              </div>
-              <h4 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Histórico de Compras recentes</h4>
-            </div>
-            <div className="space-y-3">
-              {getCompletedOrders().slice(0, 3).map((order) => (
-                <div key={order.id} className="group bg-gradient-to-r from-gray-50 to-purple-50/30 dark:from-gray-900/50 dark:to-purple-900/20 rounded-2xl p-4 md:p-5 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border border-gray-200/50 dark:border-gray-700/50">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-gray-900 dark:text-white mb-1 truncate">Rifaqui - Taxa de Publicação</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{new Date(order.created_at).toLocaleDateString('pt-BR')}</div>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="font-bold text-lg md:text-xl text-gray-900 dark:text-white mb-1">R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}</div>
-                      <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
-                        ✓ Pago
-                      </div>
-                    </div>
+            {/* Main fields */}
+            <div className="col-span-2 p-4 rounded-xl bg-white/3 dark:bg-black/10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-400">Nome</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.name || '-'}</div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400">Email</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.email || '-'}</div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400">CPF</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.cpf || '-'}</div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400">Telefone</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">
+                    {userData.phoneNumber ? `${selectedCountry.dialCode} ${userData.phoneNumber}` : '-'}
                   </div>
                 </div>
-              ))}
+              </div>
+
+              {/* Reset password */}
+              <div className="mt-6">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">Resetar senha</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Você receberá um link via e-mail para redefinir a sua senha.</p>
+
+                <div className="mt-4">
+                  <button
+                    onClick={handleSendResetLink}
+                    disabled={sendingResetLink}
+                    className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+                               animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-pink-500 to-indigo-600"
+                  >
+                    {sendingResetLink ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Enviando...</span>
+                      </>
+                    ) : resetLinkSent ? (
+                      <>
+                        <span>Link enviado!</span>
+                        <CheckCircle className="h-4 w-4" />
+                      </>
+                    ) : (
+                      <>
+                        <span>Enviar link</span>
+                        <Link className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Delete account */}
+              <div className="mt-6">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">Excluir minha conta</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                  Lembre-se de que esta ação é irreversível e removerá permanentemente todas as suas informações e dados pessoais de nossa plataforma; você não pode ter rifas em andamento.
+                </p>
+
+                <div className="mt-4">
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleting}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-rose-500 text-white font-medium hover:opacity-95 transition disabled:opacity-50"
+                  >
+                    <span>{deleting ? 'Excluindo...' : 'Quero excluir'}</span>
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        )}
 
-        {/* Delete Account Card */}
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-red-200/50 dark:border-red-900/50 shadow-xl p-6 md:p-8 transition-all duration-300 hover:shadow-2xl">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-gradient-to-br from-red-500 to-pink-500 rounded-xl">
-              <AlertTriangle className="h-5 w-5 text-white" />
+          {/* Optional purchase history (kept smaller / below) */}
+          {getCompletedOrders().length > 0 && (
+            <div className="mt-6">
+              <h4 className="text-sm font-semibold text-gray-400 mb-3">Histórico de Compras recentes</h4>
+              <div className="space-y-3">
+                {getCompletedOrders().slice(0, 3).map((order) => (
+                  <div key={order.id} className="flex items-center justify-between p-3 rounded-lg bg-white/3 dark:bg-black/10">
+                    <div>
+                      <div className="font-medium text-gray-900 dark:text-white">Rifaqui - Taxa de Publicação</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{new Date(order.created_at).toLocaleDateString('pt-BR')}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium text-gray-900 dark:text-white">R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}</div>
+                      <div className="text-sm text-green-600 dark:text-green-400">Pago</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Excluir minha conta</h3>
-          </div>
-          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-            Lembre-se de que esta ação é irreversível e removerá permanentemente todas as suas informações e dados pessoais de nossa plataforma; você não pode ter rifas em andamento.
-          </p>
-
-          <button
-            onClick={handleDeleteAccount}
-            disabled={deleting}
-            className="group inline-flex items-center gap-2 px-5 md:px-6 py-2.5 md:py-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-          >
-            <span>{deleting ? 'Excluindo...' : 'Quero excluir'}</span>
-            <Trash2 className="h-4 w-4 group-hover:rotate-12 transition-transform duration-300" />
-          </button>
+          )}
         </div>
       </main>
 
       {/* Edit Data Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-3xl p-6 md:p-8 shadow-2xl transform transition-all duration-300 animate-in slide-in-from-bottom-4">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Editar dados pessoais</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Preencha os campos abaixo para editar seus dados pessoais.</p>
-              </div>
-              <button 
-                onClick={() => setShowEditModal(false)} 
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-200 hover:rotate-90"
-              >
-                <X className="h-5 w-5 md:h-6 md:w-6 text-gray-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Editar dados pessoais</h2>
+              <button onClick={() => setShowEditModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                <X className="h-5 w-5 text-gray-400" />
               </button>
             </div>
 
-            <div className="space-y-4 md:space-y-5">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Preencha os campos abaixo para editar seus dados pessoais.</p>
+
+            <div className="space-y-4">
               <div>
-                <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 md:mb-3">
-                  <User className="h-4 w-4" />
-                  <span>Nome completo</span>
-                </label>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Nome completo</label>
                 <input
                   type="text"
                   value={userData.name}
                   onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border-2 border-purple-200 dark:border-purple-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200"
-                  placeholder="Seu nome completo"
+                  className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-purple-500 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
-                {errors.name && <p className="text-red-500 text-sm mt-2 flex items-center space-x-1"><AlertTriangle className="h-4 w-4" /><span>{errors.name}</span></p>}
+                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
               </div>
 
               <div>
-                <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 md:mb-3">
-                  <Mail className="h-4 w-4" />
-                  <span>Email</span>
-                </label>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Email</label>
                 <input
                   type="email"
                   value={userData.email}
                   onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                  className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border-2 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all duration-200 ${
-                    errors.email ? 'border-red-500 focus:border-red-500' : 'border-purple-200 dark:border-purple-800 focus:border-purple-500'
+                  className={`w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                    errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
-                  placeholder="seu@email.com"
                 />
-                {errors.email && <p className="text-red-500 text-sm mt-2 flex items-center space-x-1"><AlertTriangle className="h-4 w-4" /><span>{errors.email}</span></p>}
+                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
               </div>
 
               <div>
-                <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 md:mb-3">
-                  <CreditCard className="h-4 w-4" />
-                  <span>CPF (opcional)</span>
-                </label>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">CPF (opcional)</label>
                 <input
                   type="text"
                   value={userData.cpf}
                   onChange={handleCPFChange}
                   placeholder="000.000.000-00"
-                  className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border-2 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all duration-200 ${
-                    errors.cpf ? 'border-red-500 focus:border-red-500' : 'border-purple-200 dark:border-purple-800 focus:border-purple-500'
+                  className={`w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                    errors.cpf ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                 />
-                {errors.cpf && <p className="text-red-500 text-sm mt-2 flex items-center space-x-1"><AlertTriangle className="h-4 w-4" /><span>{errors.cpf}</span></p>}
+                {errors.cpf && <p className="text-red-500 text-sm mt-1">{errors.cpf}</p>}
               </div>
 
               <div>
@@ -614,10 +566,10 @@ const AccountPage: React.FC = () => {
 
               <button
                 onClick={handleSaveData}
-                className="group w-full inline-flex items-center justify-center gap-2 px-4 py-3 md:py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02]"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white font-semibold"
               >
                 <span>Salvar</span>
-                <ArrowRight className="h-4 w-4 md:h-5 md:w-5 group-hover:translate-x-1 transition-transform duration-300" />
+                <ArrowRight className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -626,22 +578,19 @@ const AccountPage: React.FC = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-3xl p-6 md:p-8 shadow-2xl transform transition-all duration-300 animate-in slide-in-from-bottom-4">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Excluir</h2>
-              <button 
-                onClick={() => setShowDeleteConfirmModal(false)} 
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-200 hover:rotate-90"
-              >
-                <X className="h-5 w-5 md:h-6 md:w-6 text-gray-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Excluir</h2>
+              <button onClick={() => setShowDeleteConfirmModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                <X className="h-5 w-5 text-gray-400" />
               </button>
             </div>
 
-            <div className="mb-6 md:mb-8">
-              <div className="flex items-start space-x-3 md:space-x-4 p-4 md:p-5 bg-red-50 dark:bg-red-900/20 rounded-2xl border-2 border-red-200 dark:border-red-800">
-                <AlertTriangle className="h-5 w-5 md:h-6 md:w-6 text-red-500 flex-shrink-0 mt-0.5" />
-                <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
+            <div className="mb-6">
+              <div className="flex items-start space-x-3 mb-4">
+                <AlertTriangle className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" />
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                   Você tem certeza de que quer excluir sua conta de forma permanente? Essa ação não pode ser desfeita e seu e-mail não poderá ser reutilizado.
                 </p>
               </div>
@@ -651,7 +600,7 @@ const AccountPage: React.FC = () => {
               <button
                 onClick={() => setShowDeleteConfirmModal(false)}
                 disabled={deleting}
-                className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 dark:text-white py-3 md:py-3.5 rounded-xl font-semibold transition-all duration-200 hover:scale-[1.02]"
+                className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 text-gray-900 dark:text-white py-3 rounded-lg font-medium transition"
               >
                 Cancelar
               </button>
@@ -659,13 +608,10 @@ const AccountPage: React.FC = () => {
               <button
                 onClick={confirmDeleteAccount}
                 disabled={deleting}
-                className="flex-1 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 disabled:from-red-400 disabled:to-pink-400 disabled:cursor-not-allowed text-white py-3 md:py-3.5 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl hover:scale-[1.02]"
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-3 rounded-lg font-medium transition"
               >
                 {deleting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 md:h-5 md:w-5 border-2 border-white border-t-transparent"></div>
-                    <span>Excluindo...</span>
-                  </>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                 ) : (
                   <span>Confirmar</span>
                 )}
