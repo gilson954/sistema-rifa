@@ -12,6 +12,9 @@ interface QuotaGridProps {
   currentUserId?: string;
   campaignTheme: string;
   primaryColor?: string | null;
+  colorMode?: string;
+  gradientClasses?: string;
+  customGradientColors?: string;
 }
 
 const QuotaGrid: React.FC<QuotaGridProps> = ({
@@ -24,7 +27,10 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   tickets,
   currentUserId,
   campaignTheme,
-  primaryColor
+  primaryColor,
+  colorMode = 'solid',
+  gradientClasses,
+  customGradientColors
 }) => {
   // Function to get theme classes
   const getThemeClasses = (theme: string) => {
@@ -74,6 +80,58 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     if (ticket.status === 'reservado') return 'reserved';
     if (selectedQuotas.includes(quotaNumber)) return 'selected';
     return 'available';
+  };
+
+  // Função para gerar gradiente customizado
+  const getCustomGradientStyle = (customColorsJson: string) => {
+    try {
+      const colors = JSON.parse(customColorsJson);
+      if (Array.isArray(colors) && colors.length >= 2) {
+        if (colors.length === 2) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]})`;
+        } else if (colors.length === 3) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing custom gradient colors:', error);
+    }
+    return null;
+  };
+
+  // Função para obter style para cor ou gradiente
+  const getColorStyle = () => {
+    if (colorMode === 'gradient') {
+      // Gradiente customizado
+      if (gradientClasses === 'custom' && customGradientColors) {
+        const gradientStyle = getCustomGradientStyle(customGradientColors);
+        if (gradientStyle) {
+          return {
+            background: gradientStyle,
+            backgroundSize: '200% 200%'
+          };
+        }
+      }
+      // Gradiente predefinido - retorna vazio, usará className
+      return {};
+    }
+    // Cor sólida
+    return { backgroundColor: primaryColor || '#3B82F6' };
+  };
+
+  // Função para obter className para gradientes
+  const getColorClassName = (baseClasses: string = '') => {
+    if (colorMode === 'gradient') {
+      // Gradiente customizado
+      if (gradientClasses === 'custom' && customGradientColors) {
+        return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
+      }
+      // Gradiente predefinido
+      if (gradientClasses && gradientClasses !== 'custom') {
+        return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
+      }
+    }
+    return baseClasses;
   };
 
   const getQuotaStyles = (status: string) => {
@@ -180,14 +238,14 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         </p>
         
         <div className="flex flex-wrap justify-center gap-2 mb-4">
-          <button 
+          <button
             onClick={() => onFilterChange('all')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-              activeFilter === 'all' 
-                ? `text-white border-transparent` 
+              activeFilter === 'all'
+                ? getColorClassName('text-white border-transparent')
                 : `${getThemeClasses(campaignTheme).text} border ${getThemeClasses(campaignTheme).border} hover:opacity-80`
             }`}
-            style={activeFilter === 'all' ? { backgroundColor: primaryColor || '#3B82F6' } : {}}
+            style={activeFilter === 'all' ? getColorStyle() : {}}
           >
             Todos <span className={`ml-1 px-2 py-1 rounded text-xs ${
               activeFilter === 'all' 
@@ -196,14 +254,14 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
             }`}>{filterCounts.all}</span>
           </button>
           
-          <button 
+          <button
             onClick={() => onFilterChange('available')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-              activeFilter === 'available' 
-                ? `text-white border-transparent` 
+              activeFilter === 'available'
+                ? getColorClassName('text-white border-transparent')
                 : `${getThemeClasses(campaignTheme).text} border ${getThemeClasses(campaignTheme).border} hover:opacity-80`
             }`}
-            style={activeFilter === 'available' ? { backgroundColor: primaryColor || '#3B82F6' } : {}}
+            style={activeFilter === 'available' ? getColorStyle() : {}}
           >
             Disponíveis <span className={`ml-1 px-2 py-1 rounded text-xs ${
               activeFilter === 'available' 
@@ -234,14 +292,14 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
             Comprados <span className="ml-1 bg-green-600 text-white px-2 py-1 rounded text-xs">{filterCounts.purchased}</span>
           </button>
           
-          <button 
+          <button
             onClick={() => onFilterChange('my-numbers')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 text-white ${
-              activeFilter === 'my-numbers' 
-                ? 'opacity-100' 
+            className={getColorClassName(`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 text-white ${
+              activeFilter === 'my-numbers'
+                ? 'opacity-100'
                 : 'opacity-80 hover:opacity-100'
-            }`}
-            style={{ backgroundColor: primaryColor || '#3B82F6' }}
+            }`)}
+            style={getColorStyle()}
           >
             Meus Nº <span className="ml-1 bg-white/20 text-white px-2 py-1 rounded text-xs">{filterCounts.myNumbers}</span>
           </button>
@@ -267,10 +325,11 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
               className={`
                 w-10 h-10 text-xs font-medium rounded flex items-center justify-center transition-all duration-200
                 ${quotaStyles}
+                ${isSelected ? getColorClassName('') : ''}
                 ${mode === 'automatic' || status === 'purchased' || status === 'reserved' ? 'cursor-not-allowed' : 'cursor-pointer'}
               `}
-              style={isSelected ? { 
-                backgroundColor: primaryColor || '#3B82F6',
+              style={isSelected ? {
+                ...getColorStyle(),
                 borderColor: primaryColor || '#3B82F6'
               } : {}}
               disabled={mode === 'automatic' || status === 'purchased' || status === 'reserved'}

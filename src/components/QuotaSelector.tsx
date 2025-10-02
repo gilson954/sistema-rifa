@@ -24,6 +24,9 @@ interface QuotaSelectorProps {
   onReserve?: () => void;
   reserving?: boolean;
   disabled?: boolean;
+  colorMode?: string;
+  gradientClasses?: string;
+  customGradientColors?: string;
 }
 
 const QuotaSelector: React.FC<QuotaSelectorProps> = ({
@@ -39,7 +42,10 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   campaignTheme,
   onReserve,
   reserving = false,
-  disabled = false
+  disabled = false,
+  colorMode = 'solid',
+  gradientClasses,
+  customGradientColors
 }) => {
   const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -144,6 +150,59 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     }
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
+
+  // Função para gerar gradiente customizado
+  const getCustomGradientStyle = (customColorsJson: string) => {
+    try {
+      const colors = JSON.parse(customColorsJson);
+      if (Array.isArray(colors) && colors.length >= 2) {
+        if (colors.length === 2) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]})`;
+        } else if (colors.length === 3) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing custom gradient colors:', error);
+    }
+    return null;
+  };
+
+  // Função para obter style para cor ou gradiente
+  const getColorStyle = () => {
+    if (colorMode === 'gradient') {
+      // Gradiente customizado
+      if (gradientClasses === 'custom' && customGradientColors) {
+        const gradientStyle = getCustomGradientStyle(customGradientColors);
+        if (gradientStyle) {
+          return {
+            background: gradientStyle,
+            backgroundSize: '200% 200%'
+          };
+        }
+      }
+      // Gradiente predefinido - retorna vazio, usará className
+      return {};
+    }
+    // Cor sólida
+    return { backgroundColor: primaryColor || '#3B82F6' };
+  };
+
+  // Função para obter className para gradientes
+  const getColorClassName = (baseClasses: string = '') => {
+    if (colorMode === 'gradient') {
+      // Gradiente customizado
+      if (gradientClasses === 'custom' && customGradientColors) {
+        return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
+      }
+      // Gradiente predefinido
+      if (gradientClasses && gradientClasses !== 'custom') {
+        return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
+      }
+    }
+    return baseClasses;
+  };
+
   if (mode === 'manual') {
     return null; // Manual mode uses the quota grid for selection
   }
@@ -170,8 +229,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           <button
             key={index}
             onClick={() => handleIncrement(button.value)}
-            className="text-white py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg font-medium text-xs sm:text-sm hover:brightness-90 transition-all duration-200"
-            style={{ backgroundColor: primaryColor || '#3B82F6' }}
+            className={getColorClassName("text-white py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg font-medium text-xs sm:text-sm hover:brightness-90 transition-all duration-200")}
+            style={getColorStyle()}
           >
             {button.label}
           </button>
@@ -234,17 +293,15 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       </div>
 
       {/* Buy Button */}
-      <button 
+      <button
         onClick={onReserve}
         disabled={reserving || disabled || !onReserve}
-        className={`w-full py-3 rounded-lg font-bold text-base transition-colors duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
-        promotionInfo 
-          ? 'text-white hover:brightness-90' 
+        className={getColorClassName(`w-full py-3 rounded-lg font-bold text-base transition-colors duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
+        promotionInfo
+          ? 'text-white hover:brightness-90'
           : 'text-white hover:brightness-90'
-      }`}
-      style={{ 
-        backgroundColor: primaryColor || '#3B82F6'
-      }}>
+      }`)}
+      style={getColorStyle()}>
         {reserving ? 'RESERVANDO...' : disabled ? 'INDISPONÍVEL' : 'RESERVAR'}
       </button>
     </div>

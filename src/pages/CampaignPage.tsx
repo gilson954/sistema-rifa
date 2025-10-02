@@ -881,6 +881,13 @@ const CampaignPage = () => {
               {campaign.promotions.map((promo: Promotion) => {
                 const originalValue = promo.ticketQuantity * campaign.ticket_price;
                 const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0;
+                const colorMode = organizerProfile?.color_mode || 'solid';
+                const gradientClasses = organizerProfile?.gradient_classes;
+                const customGradientColors = organizerProfile?.custom_gradient_colors;
+
+                // Determinar se deve usar gradiente
+                const useGradient = colorMode === 'gradient';
+                const isCustomGradient = useGradient && gradientClasses === 'custom' && customGradientColors;
 
                 return (
                   <button
@@ -888,9 +895,11 @@ const CampaignPage = () => {
                     type="button"
                     onClick={() => {
                     }}
-                    className="flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 shadow-sm"
+                    className={`flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 shadow-sm ${
+                      useGradient && !isCustomGradient ? `border-2` : 'border-2'
+                    }`}
                     style={{
-                      border: `1.5px solid ${primaryColor}`,
+                      borderColor: primaryColor || '#3B82F6',
                       background: 'transparent',
                       }}
                     >
@@ -966,6 +975,9 @@ const CampaignPage = () => {
                 currentUserId={user?.id}
                 campaignTheme={campaignTheme}
                 primaryColor={primaryColor}
+                colorMode={organizerProfile?.color_mode}
+                gradientClasses={organizerProfile?.gradient_classes}
+                customGradientColors={organizerProfile?.custom_gradient_colors}
               />
 
               {/* Manual Mode - Selection Summary */}
@@ -1069,6 +1081,9 @@ const CampaignPage = () => {
               onReserve={isCampaignAvailable ? handleOpenReservationModal : undefined}
               reserving={reserving}
               disabled={!isCampaignAvailable}
+              colorMode={organizerProfile?.color_mode}
+              gradientClasses={organizerProfile?.gradient_classes}
+              customGradientColors={organizerProfile?.custom_gradient_colors}
             />
             </>
           )}
