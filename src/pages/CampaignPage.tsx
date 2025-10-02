@@ -173,16 +173,28 @@ const CampaignPage = () => {
         }
       }
 
-      // Predefined gradient - return empty object, will use className instead
+      // Predefined gradient - return empty object if not text, for text return clipping styles
+      if (isText) {
+        return {
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          color: 'transparent'
+        };
+      }
       return {};
     }
 
-    // Solid color
+    // Solid color - if isText is true, always return color property for text
+    if (isText) {
+      return { color: primaryColor };
+    }
+
     return isBackground ? { backgroundColor: primaryColor } : { color: primaryColor };
   };
 
   // Function to get className for gradients
-  const getColorClassName = (baseClasses: string = '') => {
+  const getColorClassName = (baseClasses: string = '', isText: boolean = false) => {
     const colorMode = organizerProfile?.color_mode || 'solid';
 
     if (colorMode === 'gradient') {
@@ -762,8 +774,8 @@ const CampaignPage = () => {
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <span className="text-xs sm:text-sm text-gray-600">Participe por apenas</span>
                 <span
-                  className={getColorClassName("font-bold text-sm sm:text-base md:text-lg")}
-                  style={getColorStyle(true, true)}
+                  className={getColorClassName("font-bold text-sm sm:text-base md:text-lg", true)}
+                  style={getColorStyle(false, true)}
                 >
                   {formatCurrency(campaign.ticket_price)}
                 </span>
