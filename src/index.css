@@ -36,7 +36,7 @@
 .animate-gradient-text {
   background: linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5);
   background-size: 400% 400%;
-  animation: gradientBackgroundText 6s ease infinite;
+  animation: gradientBackgroundText 16s ease infinite;
   -webkit-background-clip: text;
   color: transparent;
 }
