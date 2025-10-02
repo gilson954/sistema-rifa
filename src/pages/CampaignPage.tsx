@@ -38,17 +38,13 @@ interface OrganizerProfile {
   name: string;
   email: string;
   avatar_url?: string;
-  logo_url?: string;
   social_media_links?: any;
   payment_integrations_config?: any;
   primary_color?: string;
   theme?: string;
-  color_mode?: 'solid' | 'gradient';
-  gradient_classes?: string;
-  custom_gradient_colors?: string;
 }
 
-const CampaignPage = () => {
+const CampaignPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -57,15 +53,16 @@ const CampaignPage = () => {
   // Função para verificar se a descrição contém conteúdo válido
   const isValidDescription = (description: string): boolean => {
     if (!description || typeof description !== 'string') return false;
-    
+
+    // Remove HTML tags e espaços para verificar se há conteúdo real
     const textContent = description
-      .replace(/<[^>]*>/g, '')
-      .replace(/&nbsp;/g, ' ')
+      .replace(/<[^>]*>/g, '') // Remove todas as tags HTML
+      .replace(/&nbsp;/g, ' ') // Substitui &nbsp; por espaços
       .trim();
-    
+
     return textContent.length > 0;
   };
-  
+
   // Check if this is a custom domain request
   const developmentHosts = [
     'localhost',
@@ -76,27 +73,40 @@ const CampaignPage = () => {
     'webcontainer.io',
     'webcontainer-api.io'
   ];
-  
+
   const isDevelopmentHost = developmentHosts.some(host => 
     window.location.hostname === host || window.location.hostname.includes(host)
   );
-  
+
   const isCustomDomain = !isDevelopmentHost && slug;
-  
+
+  // Use appropriate hook based on access method
   const { campaign: campaignBySlug, loading: loadingBySlug, error: errorBySlug } = useCampaignBySlug(slug || '');
   const { campaign: campaignByDomain, loading: loadingByDomain, error: errorByDomain } = useCampaignByCustomDomain(
     isCustomDomain ? window.location.hostname : ''
   );
-  
+
+  // Select the appropriate campaign data
   const campaign = isCustomDomain ? campaignByDomain : campaignBySlug;
   const loading = isCustomDomain ? loadingByDomain : loadingBySlug;
   const error = isCustomDomain ? errorByDomain : errorBySlug;
 
+  // Check if campaign is available for purchases (paid and active)
   const isCampaignAvailable = campaign?.status === 'active' && campaign?.is_paid !== false;
 
+  // Debug: Log campaign description (remover após teste)
+  useEffect(() => {
+    if (campaign?.description) {
+      console.log('📝 Descrição da campanha:', campaign.description);
+      console.log('📝 Descrição é válida:', isValidDescription(campaign.description));
+    }
+  }, [campaign?.description]);
+
+  // Organizer profile state
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
 
+  // Tickets management
   const {
     tickets,
     loading: ticketsLoading,
@@ -106,33 +116,41 @@ const CampaignPage = () => {
     reserving
   } = useTickets(campaign?.id || '');
 
+  // Local state for manual selection
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [activeFilter, setActiveFilter] = useState<'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers'>('all');
-  
+
+  // Modal states
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
   const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
   const [reservationTotalValue, setReservationTotalValue] = useState(0);
 
+  // Image gallery state
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [fullscreenImageIndex, setFullscreenImageIndex] = useState<number | null>(null);
-  
+
+  // Touch/swipe state for mobile navigation
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
   // Load organizer profile
   useEffect(() => {
     if (campaign?.user_id) {
+      // DEBUG: Log campaign reservation timeout value
+      console.log('🔧 [CAMPAIGN DEBUG] Campaign reservation_timeout_minutes:', campaign?.reservation_timeout_minutes);
+      console.log('🔧 [CAMPAIGN DEBUG] Full campaign object:', campaign);
+
       const loadOrganizerProfile = async () => {
         setLoadingOrganizer(true);
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('id, name, email, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
+            .select('id, name, email, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme')
             .eq('id', campaign.user_id)
             .single();
-          
+
           if (error) {
             console.error('Error loading organizer profile:', error);
           } else {
@@ -144,105 +162,18 @@ const CampaignPage = () => {
           setLoadingOrganizer(false);
         }
       };
-      
+
       loadOrganizerProfile();
     }
   }, [campaign?.user_id]);
 
-  // FUNÇÃO CORRIGIDA: Gera o estilo CSS para gradiente personalizado
-  const getCustomGradientStyle = (customGradientColors: string) => {
-    try {
-      const colors = JSON.parse(customGradientColors);
-      if (!Array.isArray(colors) || colors.length < 2) {
-        return null;
-      }
-      
-      if (colors.length === 2) {
-        return `linear-gradient(90deg, ${colors[0]}, ${colors[1]})`;
-      } else if (colors.length === 3) {
-        return `linear-gradient(90deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
-      }
-      
-      return `linear-gradient(90deg, ${colors.join(', ')})`;
-    } catch (error) {
-      console.error('Error parsing custom gradient colors:', error);
-      return null;
-    }
-  };
-
-  // FUNÇÃO CORRIGIDA: Retorna o objeto de estilo CSS
-  const getColorStyle = (isText: boolean = false) => {
-    if (!organizerProfile) return {};
-
-    const colorMode = organizerProfile.color_mode || 'solid';
-    const primaryColor = organizerProfile.primary_color || '#3B82F6';
-    const gradientClasses = organizerProfile.gradient_classes;
-    const customGradientColors = organizerProfile.custom_gradient_colors;
-
-    if (colorMode === 'solid') {
-      if (isText) {
-        return {
-          backgroundImage: `linear-gradient(to right, ${primaryColor}, ${primaryColor})`,
-          backgroundClip: 'text',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundSize: '200% 200%'
-        };
-      }
-      return { backgroundColor: primaryColor };
-    }
-
-    // Modo gradiente
-    if (gradientClasses === 'custom' && customGradientColors) {
-      const gradientStyle = getCustomGradientStyle(customGradientColors);
-      if (gradientStyle) {
-        return {
-          background: gradientStyle,
-          backgroundSize: '200% 200%',
-          ...(isText && {
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
-          })
-        };
-      }
-    }
-
-    // Gradiente predefinido - não retorna nada aqui, as classes CSS cuidam disso
-    return {};
-  };
-
-  // FUNÇÃO CORRIGIDA: Retorna as classes CSS apropriadas
-  const getColorClassName = (baseClasses: string = '') => {
-    if (!organizerProfile) return baseClasses;
-
-    const colorMode = organizerProfile.color_mode || 'solid';
-    const gradientClasses = organizerProfile.gradient_classes;
-    const customGradientColors = organizerProfile.custom_gradient_colors;
-
-    if (colorMode === 'solid') {
-      return baseClasses;
-    }
-
-    // Modo gradiente
-    if (gradientClasses === 'custom' && customGradientColors) {
-      // Para gradiente personalizado, usamos style inline + classes de animação
-      return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
-    }
-
-    // Gradiente predefinido
-    if (gradientClasses) {
-      return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
-    }
-
-    return baseClasses;
-  };
-
+  // Get applicable promotion for a given quantity
   const getBestPromotionForDisplay = useCallback((quotaCount: number): PromotionInfo | null => {
     if (!campaign?.promotions || !Array.isArray(campaign.promotions) || campaign.promotions.length === 0) {
       return null;
     }
 
+    // Find the best promotion that applies to this quantity
     const applicablePromotions = campaign.promotions.filter(
       (promo: Promotion) => promo.ticketQuantity <= quotaCount
     );
@@ -251,18 +182,20 @@ const CampaignPage = () => {
       return null;
     }
 
+    // Get the promotion with the highest ticket quantity (best deal)
     const applicablePromotion = applicablePromotions.reduce((best, current) => 
       current.ticketQuantity > best.ticketQuantity ? current : best
     );
 
     const originalTotal = quotaCount * campaign.ticket_price;
-    
+
+    // Calculate total using the new block promotion logic
     const { total: promotionalTotal } = calculateTotalWithPromotions(
       quotaCount,
       campaign.ticket_price,
       campaign.promotions
     );
-    
+
     const savings = originalTotal - promotionalTotal;
     const discountPercentage = Math.round((savings / originalTotal) * 100);
 
@@ -275,31 +208,37 @@ const CampaignPage = () => {
     };
   }, [campaign?.promotions, campaign?.ticket_price]);
 
+  // Handle manual quota selection
   const handleQuotaSelect = useCallback((quotaNumber: number) => {
     if (!campaign || campaign.campaign_model !== 'manual') return;
 
+    // Check if quota is available
     const availableTickets = getAvailableTickets();
     const isAvailable = availableTickets.some(ticket => ticket.quota_number === quotaNumber);
-    
+
     if (!isAvailable) return;
 
     setSelectedQuotas(prev => {
       if (prev.includes(quotaNumber)) {
+        // Remove if already selected
         return prev.filter(q => q !== quotaNumber);
       } else {
+        // Add if not selected and within limits
         const newSelection = [...prev, quotaNumber];
         if (newSelection.length <= (campaign.max_tickets_per_purchase || 1000)) {
           return newSelection;
         }
-        return prev;
+        return prev; // Don't add if exceeds limit
       }
     });
   }, [campaign, getAvailableTickets]);
 
+  // Handle automatic quantity change
   const handleQuantityChange = useCallback((newQuantity: number) => {
     setQuantity(newQuantity);
   }, []);
 
+  // Handle reservation submission
   const handleReservationSubmit = useCallback(async (customerData: CustomerData) => {
     if (!campaign || !user) {
       alert('Você precisa estar logado para reservar cotas');
@@ -310,12 +249,14 @@ const CampaignPage = () => {
       let quotasToReserve: number[] = [];
 
       if (campaign.campaign_model === 'manual') {
+        // Manual mode: use selected quotas
         if (selectedQuotas.length === 0) {
           alert('Selecione pelo menos uma cota para reservar');
           return;
         }
         quotasToReserve = selectedQuotas;
       } else {
+        // Automatic mode: generate random quotas
         if (quantity <= 0) {
           alert('Selecione uma quantidade válida de cotas');
           return;
@@ -329,26 +270,32 @@ const CampaignPage = () => {
           return;
         }
 
+        // Randomly select quotas from available ones
         const shuffled = [...availableQuotaNumbers].sort(() => 0.5 - Math.random());
         quotasToReserve = shuffled.slice(0, quantity);
       }
 
+      // Reserve the quotas
       const result = await reserveTickets(quotasToReserve);
-      
+
       if (result) {
+        // Calculate total value (considering promotions)
         const { total: totalValue } = calculateTotalWithPromotions(
           quotasToReserve.length,
           campaign.ticket_price,
           campaign.promotions || []
         );
 
+        // Set reservation data
         setReservationCustomerData(customerData);
         setReservationQuotas(quotasToReserve);
         setReservationTotalValue(totalValue);
 
+        // Clear selections
         setSelectedQuotas([]);
         setQuantity(Math.max(1, campaign.min_tickets_per_purchase || 1));
 
+        // Navigate to payment confirmation
         navigate('/payment-confirmation', {
           state: {
             reservationData: {
@@ -374,6 +321,7 @@ const CampaignPage = () => {
     }
   }, [campaign, user, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate]);
 
+  // Handle opening reservation modal
   const handleOpenReservationModal = useCallback(() => {
     if (!user) {
       alert('Você precisa estar logado para reservar cotas');
@@ -394,6 +342,7 @@ const CampaignPage = () => {
     setShowReservationModal(true);
   }, [user, campaign, selectedQuotas, quantity, navigate]);
 
+  // Image navigation
   const handlePreviousImage = () => {
     if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
       setCurrentImageIndex(prev => 
@@ -410,6 +359,7 @@ const CampaignPage = () => {
     }
   };
 
+  // Handle fullscreen image view
   const handleImageClick = (imageIndex: number) => {
     setFullscreenImageIndex(imageIndex);
   };
@@ -420,12 +370,13 @@ const CampaignPage = () => {
     setTouchEndX(null);
   };
 
+  // Fullscreen navigation functions
   const goToPreviousFullscreenImage = () => {
     if (fullscreenImageIndex === null || !campaign?.prize_image_urls) return;
-    
+
     const totalImages = campaign.prize_image_urls.length;
     if (totalImages <= 1) return;
-    
+
     setFullscreenImageIndex(prev => 
       prev === 0 ? totalImages - 1 : (prev || 0) - 1
     );
@@ -433,15 +384,16 @@ const CampaignPage = () => {
 
   const goToNextFullscreenImage = () => {
     if (fullscreenImageIndex === null || !campaign?.prize_image_urls) return;
-    
+
     const totalImages = campaign.prize_image_urls.length;
     if (totalImages <= 1) return;
-    
+
     setFullscreenImageIndex(prev => 
       prev === totalImages - 1 ? 0 : (prev || 0) + 1
     );
   };
 
+  // Keyboard navigation for fullscreen
   useEffect(() => {
     if (fullscreenImageIndex === null) return;
 
@@ -462,6 +414,7 @@ const CampaignPage = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [fullscreenImageIndex]);
 
+  // Touch/swipe handlers for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartX(e.targetTouches[0].clientX);
   };
@@ -472,7 +425,7 @@ const CampaignPage = () => {
 
   const handleTouchEnd = () => {
     if (!touchStartX || !touchEndX) return;
-    
+
     const distance = touchStartX - touchEndX;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
@@ -483,10 +436,11 @@ const CampaignPage = () => {
       goToPreviousFullscreenImage();
     }
 
+    // Reset touch state
     setTouchStartX(null);
     setTouchEndX(null);
   };
-
+  // Get theme classes based on campaign theme
   const getThemeClasses = (campaignTheme: string) => {
     switch (campaignTheme) {
       case 'claro':
@@ -524,6 +478,52 @@ const CampaignPage = () => {
     }
   };
 
+  // 🔥 Funções para gradiente personalizado ou predefinido
+  const getColorClassName = () => {
+    // campaign.gradientClasses is expected to be a string with Tailwind gradient classes
+    // For pre-defined gradients we return that class string (e.g. "bg-gradient-to-r from-purple-500 to-pink-500 animate-[...]")
+    if (campaign?.gradientClasses && campaign.gradientClasses !== 'custom') {
+      return campaign.gradientClasses;
+    }
+    return '';
+  };
+
+  const getColorStyle = (isText = false) => {
+    // When campaign stores a custom gradient, it should provide an array of color strings in campaign.customGradientColors
+    // Example: ['#ff7a18', '#af002d', '#319197']
+    if (campaign?.gradientClasses === 'custom' && Array.isArray(campaign?.customGradientColors) && campaign.customGradientColors.length > 0) {
+      const gradient = `linear-gradient(90deg, ${campaign.customGradientColors.join(', ')})`;
+      return {
+        background: gradient,
+        backgroundSize: '200% 200%',
+        animation: 'gradientMove 4s ease infinite',
+        WebkitBackgroundClip: isText ? 'text' : undefined,
+        backgroundClip: isText ? 'text' : undefined,
+        color: isText ? 'transparent' : undefined
+      } as React.CSSProperties;
+    }
+
+    // No custom style for non-custom gradients
+    return {} as React.CSSProperties;
+  };
+
+  // Small helper component to render text with gradient when configured
+  const GradientText: React.FC<{ className?: string; children: React.ReactNode }> = ({ className = '', children }) => {
+    // If campaign.gradientClasses points to a pre-defined tailwind gradient, we apply it via className
+    // If campaign.gradientClasses === 'custom', getColorStyle will provide inline background gradient compatible with bg-clip-text
+    const predefClasses = getColorClassName();
+    const needsInlineStyle = campaign?.gradientClasses === 'custom';
+
+    return (
+      <span
+        className={`bg-clip-text text-transparent ${predefClasses} ${className}`}
+        style={needsInlineStyle ? getColorStyle(true) : undefined}
+      >
+        {children}
+      </span>
+    );
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -534,35 +534,40 @@ const CampaignPage = () => {
     });
   };
 
+  // Calculate progress percentage
   const getProgressPercentage = () => {
     if (!campaign) return 0;
     return Math.round((campaign.sold_tickets / campaign.total_tickets) * 100);
   };
 
+  // Get current promotion info for selected/quantity
   const currentPromotionInfo = campaign?.campaign_model === 'manual' 
     ? getBestPromotionForDisplay(selectedQuotas.length)
     : getBestPromotionForDisplay(quantity);
 
+  // Calculate current total value
   const getCurrentTotalValue = () => {
     const currentQuantity = campaign?.campaign_model === 'manual' ? selectedQuotas.length : quantity;
-    
+
     if (!campaign) return 0;
-    
+
+    // Use the new block promotion calculation
     const { total } = calculateTotalWithPromotions(
       currentQuantity,
       campaign.ticket_price,
       campaign.promotions || []
     );
-    
+
     return total;
   };
 
+  // Get configured payment methods
   const getConfiguredPaymentMethods = () => {
     if (!organizerProfile?.payment_integrations_config) return [];
-    
+
     const config = organizerProfile.payment_integrations_config;
     const methods = [];
-    
+
     if (config.mercado_pago?.client_id || config.mercado_pago?.access_token) {
       methods.push({ name: 'Mercado Pago', icon: '💳', color: '#00B1EA' });
     }
@@ -578,23 +583,26 @@ const CampaignPage = () => {
     if (config.efi_bank?.client_id) {
       methods.push({ name: 'Efi Bank', icon: '🏦', color: '#EF4444' });
     }
-    
+
+    // Always show PIX as it's the default
     methods.push({ name: 'PIX', icon: '₽', color: '#00BC63' });
-    
+
     return methods;
   };
 
+  // Generate share URL
   const generateShareUrl = () => {
     const baseUrl = window.location.origin;
     return `${baseUrl}/c/${campaign?.slug}`;
   };
 
+  // Handle social media sharing
   const handleShare = (platform: string) => {
     const shareUrl = generateShareUrl();
     const shareText = `Participe da ${campaign?.title}! Cotas por apenas ${formatCurrency(campaign?.ticket_price || 0)}`;
-    
+
     let url = '';
-    
+
     switch (platform) {
       case 'whatsapp':
         url = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`;
@@ -611,10 +619,11 @@ const CampaignPage = () => {
       default:
         return;
     }
-    
+
     window.open(url, '_blank', 'width=600,height=400');
   };
 
+  // Handle organizer social media click
   const handleOrganizerSocialClick = (platform: string, url: string) => {
     window.open(url, '_blank');
   };
@@ -654,9 +663,11 @@ const CampaignPage = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${themeClasses.background}`}>
+      {/* Header - Redesigned according to image specifications */}
       <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.cardBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
+            {/* Logo - Left aligned */}
             <div className="flex items-center space-x-2">
               <img 
                 src="/logo criado pelo Chatgpt.png" 
@@ -665,7 +676,8 @@ const CampaignPage = () => {
               />
               <span className={`text-xl font-bold ${themeClasses.text}`}>Rifaqui</span>
             </div>
-            
+
+            {/* "Ver Minhas Cotas" Button - Right aligned and highlighted */}
             <button
               onClick={() => navigate('/my-tickets')}
               className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 shadow-md"
@@ -678,12 +690,16 @@ const CampaignPage = () => {
         </div>
       </header>
 
+      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+        {/* Campaign Title - Standalone, not in a card */}
         <h1 className={`text-2xl md:text-3xl font-bold ${themeClasses.text} mb-4 text-center`}>
           {campaign.title}
         </h1>
 
+        {/* 1. Seção de galeria de imagens - Full width card */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4`}>
+          {/* Image Display */}
           <div className="relative group">
             <img
               src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
@@ -692,7 +708,8 @@ const CampaignPage = () => {
               onClick={() => handleImageClick(currentImageIndex)}
               style={{ cursor: 'pointer' }}
             />
-            
+
+            {/* Navigation Arrows */}
             {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
               <>
                 <button
@@ -701,7 +718,7 @@ const CampaignPage = () => {
                 >
                   <ChevronLeft className="h-6 w-6" />
                 </button>
-                
+
                 <button
                   onClick={handleNextImage}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75"
@@ -710,27 +727,26 @@ const CampaignPage = () => {
                 </button>
               </>
             )}
-            
+
+            {/* Image Counter */}
             {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
               <div className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
                 {currentImageIndex + 1} / {campaign.prize_image_urls.length}
               </div>
             )}
 
-            {/* BADGE DE PREÇO CORRIGIDO */}
+            {/* Price Badge - agora com suporte a gradiente (predefinido ou custom) */}
             <div className="absolute top-4 left-4 bg-white bg-opacity-95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-600">Participe por apenas</span>
-                <span 
-                  className={getColorClassName("font-bold text-base bg-clip-text")}
-                  style={getColorStyle(true)}
-                >
+                <GradientText className="font-bold text-base">
                   {formatCurrency(campaign.ticket_price)}
-                </span>
+                </GradientText>
               </div>
             </div>
           </div>
 
+          {/* Thumbnail Strip */}
           {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
             <div className="p-3 bg-gray-50 dark:bg-gray-800">
               <div className="flex space-x-2 overflow-x-auto pb-2">
@@ -757,11 +773,12 @@ const CampaignPage = () => {
           )}
         </section>
 
+        {/* 2. Seção de Organizador - Full width card */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
           <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
             Organizador
           </h3>
-          
+
           {loadingOrganizer ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
@@ -801,6 +818,7 @@ const CampaignPage = () => {
                 </div>
               </div>
 
+              {/* Organizer Social Media */}
               {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
                 <div className="text-center">
                   <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>
@@ -809,10 +827,10 @@ const CampaignPage = () => {
                   <div className="flex justify-center flex-wrap gap-1.5">
                     {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
                       if (!url || typeof url !== 'string') return null;
-                      
+
                       const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
                       if (!config) return null;
-                      
+
                       const IconComponent = config.icon;
                       return (
                         <button
@@ -840,22 +858,22 @@ const CampaignPage = () => {
           )}
         </section>
 
+        {/* 3. Seção de Promoções Disponíveis - Full width card */}
         {campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
           <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4`}>
             <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
               🎁 Promoções Disponíveis
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
               {campaign.promotions.map((promo: Promotion) => {
                 const originalValue = promo.ticketQuantity * campaign.ticket_price;
                 const discountPercentage = Math.round((promo.fixedDiscountAmount / originalValue) * 100);
-                
+
                 return (
                   <div
                     key={promo.id}
-                    className={`border ${themeClasses.border} rounded-lg p-2 hover:shadow-md transition-all duration-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20`}
-                  >
+                    className={`border ${themeClasses.border} rounded-lg p-2 hover:shadow-md transition-all duration-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20`}>
                     <div className="text-center">
                       <div className={`font-bold text-sm ${themeClasses.text} mb-0.5`}>
                         {promo.ticketQuantity} cotas
@@ -863,7 +881,7 @@ const CampaignPage = () => {
                       <div className="text-xs text-green-600 dark:text-green-400 font-medium mb-0.5">
                         {discountPercentage}% de desconto
                       </div>
-                      <div className={`text-xs ${themeClasses.textSecondary} line-through mb-0.5`}>
+                      <div className={`text-xs ${getThemeClasses(campaignTheme).textSecondary} line-through mb-0.5`}>
                         {formatCurrency(originalValue)}
                       </div>
                       <div className="text-base font-bold text-green-600 dark:text-green-400">
@@ -877,12 +895,13 @@ const CampaignPage = () => {
           </section>
         )}
 
+        {/* 4. Seção de Prêmios - Full width card */}
         {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
           <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4`}>
             <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
               🏆 Prêmios
             </h3>
-            
+
             <div className="max-w-xl mx-auto space-y-1">
               {campaign.prizes.map((prize: any, index: number) => (
                 <div key={prize.id} className="flex items-center justify-center space-x-1.5">
@@ -899,6 +918,7 @@ const CampaignPage = () => {
           </section>
         )}
 
+        {/* 5. Seção de compra/seleção de cota - Full width card */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
           <h2 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
             {campaign.campaign_model === 'manual' ? 'Selecione suas Cotas' : 'Escolha a Quantidade'}
@@ -906,6 +926,7 @@ const CampaignPage = () => {
 
           {campaign.campaign_model === 'manual' ? (
             <div className="space-y-4">
+              {/* Campaign Unavailable Alert */}
               {!isCampaignAvailable && (
                 <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
                   <div className="flex items-center space-x-3">
@@ -935,316 +956,6 @@ const CampaignPage = () => {
                 primaryColor={primaryColor}
               />
 
+              {/* Manual Mode - Selection Summary */}
               {selectedQuotas.length > 0 && (
                 <div className={`${themeClasses.background} rounded-xl p-4 border ${themeClasses.border}`}>
-                  <h3 className={`text-base font-bold ${themeClasses.text} mb-3`}>
-                    Cotas Selecionadas
-                  </h3>
-                  
-                  <div className="mb-3">
-                    <div className={`text-sm ${themeClasses.textSecondary} mb-2`}>
-                      Números selecionados:
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {selectedQuotas.sort((a, b) => a - b).map(quota => (
-                        <span
-                          key={quota}
-                          className="px-2 py-1 text-white rounded text-xs font-medium"
-                          style={{ backgroundColor: primaryColor }}
-                        >
-                          {quota.toString().padStart(3, '0')}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {currentPromotionInfo && (
-                    <div className="mb-3 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                      <div className="text-center">
-                        <div className="text-xs font-medium text-green-800 dark:text-green-200 mb-1">
-                          🎉 Promoção Aplicada: {currentPromotionInfo.discountPercentage}% OFF
-                        </div>
-                        <div className="text-xs text-green-700 dark:text-green-300">
-                          Economia de {formatCurrency(currentPromotionInfo.savings)}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center mb-6">
-                    <span className={`font-medium ${themeClasses.text}`}>
-                      {selectedQuotas.length} {selectedQuotas.length === 1 ? 'cota' : 'cotas'}
-                    </span>
-                    <div className="text-right">
-                      {currentPromotionInfo && (
-                        <div className={`text-xs ${themeClasses.textSecondary} line-through`}>
-                          {formatCurrency(currentPromotionInfo.originalTotal)}
-                        </div>
-                      )}
-                      <div 
-                        className={getColorClassName(`text-xl font-bold ${currentPromotionInfo ? 'bg-clip-text' : ''}`)}
-                        style={currentPromotionInfo ? {} : getColorStyle(true)}
-                      >
-                        {formatCurrency(getCurrentTotalValue())}
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleOpenReservationModal}
-                    disabled={selectedQuotas.length === 0}
-                    className="w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    {isCampaignAvailable ? 'Reservar Cotas Selecionadas' : 'Campanha Indisponível'}
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <>
-              {!isCampaignAvailable && (
-                <div className="bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-800 rounded-lg p-4">
-                  <div className="flex items-center space-x-3">
-                    <AlertTriangle className="h-6 w-6 text-orange-700 dark:text-orange-400 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
-                        Campanha Indisponível
-                      </h4>
-                      <p className="text-sm text-orange-700 dark:text-orange-300">
-                        Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-            <QuotaSelector
-              ticketPrice={campaign.ticket_price}
-              minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
-              maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 1000}
-              onQuantityChange={handleQuantityChange}
-              initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
-              mode="automatic"
-              promotionInfo={currentPromotionInfo}
-              promotions={campaign.promotions || []}
-              primaryColor={primaryColor}
-              campaignTheme={campaignTheme}
-              onReserve={isCampaignAvailable ? handleOpenReservationModal : undefined}
-              reserving={reserving}
-              disabled={!isCampaignAvailable}
-            />
-            </>
-          )}
-        </section>
-
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
-          <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center`}>
-            Descrição/Regulamento
-          </h3>
-          
-          {campaign.description && isValidDescription(campaign.description) ? (
-            <div 
-              className={`${themeClasses.textSecondary} mb-4 prose prose-base max-w-none ql-editor`}
-              dangerouslySetInnerHTML={{ __html: campaign.description }}
-            />
-          ) : (
-            <div className={`${themeClasses.textSecondary} mb-4 text-center italic`}>
-              <p>Nenhuma descrição fornecida para esta campanha.</p>
-            </div>
-          )}
-
-          {campaign.show_draw_date && campaign.draw_date && (
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <Calendar className={`h-5 w-5 ${themeClasses.textSecondary}`} />
-              <span className={`text-base ${themeClasses.text}`}>
-                Data de sorteio: <strong>{formatDate(campaign.draw_date)}</strong>
-              </span>
-            </div>
-          )}
-
-          {campaign.show_percentage && (
-            <div className="max-w-xl mx-auto">
-              <div className="flex justify-center items-center mb-3">
-                <span className={`text-base font-bold ${themeClasses.text}`}>
-                  {getProgressPercentage()}%
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                <div 
-                  className="h-3 rounded-full transition-all duration-300"
-                  style={{ 
-                    width: `${getProgressPercentage()}%`,
-                    backgroundColor: primaryColor 
-                  }}
-                />
-              </div>
-            </div>
-          )}
-        </section>
-
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
-            <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
-              Seção de Métodos de Pagamento
-            </h3>
-            
-            <div className="space-y-2">
-              {getConfiguredPaymentMethods().map((method, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
-                >
-                  <div 
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                    style={{ backgroundColor: method.color }}
-                  >
-                    {method.icon}
-                  </div>
-                  <span className={`font-medium text-sm ${themeClasses.text}`}>
-                    {method.name}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
-            <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
-              Seção de Método de Sorteio
-            </h3>
-            
-            <div className="flex items-center justify-center space-x-2">
-              <div 
-                className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
-                style={{ backgroundColor: primaryColor }}
-              >
-                <Trophy className="h-5 w-5" />
-              </div>
-              <div className="text-center">
-                <p className={`font-medium text-sm ${themeClasses.text}`}>
-                  {campaign.draw_method}
-                </p>
-                <p className={`text-xs ${themeClasses.textSecondary}`}>
-                  Sorteio transparente e confiável
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
-          <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
-            Compartilhar Campanha
-          </h3>
-          
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto">
-            {Object.entries(shareSectionConfig).map(([platform, config]) => {
-              const IconComponent = config.icon;
-              return (
-                <button
-                  key={platform}
-                  onClick={() => handleShare(platform)}
-                  className={`flex flex-col items-center space-y-1.5 p-3 rounded-lg border ${themeClasses.border} hover:shadow-lg transition-all duration-200 group`}
-                  style={{ 
-                    backgroundColor: themeClasses.cardBg === 'bg-white' ? '#ffffff' : '#1f2937',
-                    borderColor: config.color + '20'
-                  }}
-                >
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-200"
-                    style={{ backgroundColor: config.color }}
-                  >
-                    <IconComponent size={20} />
-                  </div>
-                  <span className={`text-xs font-medium ${themeClasses.text}`}>
-                    {config.name}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      </main>
-
-      {fullscreenImageIndex !== null && campaign?.prize_image_urls && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
-          onClick={handleCloseFullscreen}
-        >
-          <div 
-            className="relative max-w-full max-h-full"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            <img
-              src={campaign.prize_image_urls[fullscreenImageIndex]}
-              alt={campaign.title}
-              className="max-w-full max-h-full object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
-            
-            {campaign.prize_image_urls.length > 1 && (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goToPreviousFullscreenImage();
-                  }}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
-                  aria-label="Imagem anterior"
-                >
-                  <ChevronLeft className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
-                </button>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goToNextFullscreenImage();
-                  }}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
-                  aria-label="Próxima imagem"
-                >
-                  <ChevronRight className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
-                </button>
-              </>
-            )}
-
-            {campaign.prize_image_urls.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm font-medium">
-                {fullscreenImageIndex + 1} / {campaign.prize_image_urls.length}
-              </div>
-            )}
-            
-            <button
-              onClick={handleCloseFullscreen}
-              className="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-colors duration-200 flex items-center justify-center"
-              aria-label="Fechar imagem em tela cheia"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
-
-      <ReservationModal
-        isOpen={showReservationModal}
-        onClose={() => setShowReservationModal(false)}
-        onReserve={handleReservationSubmit}
-        quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
-        totalValue={getCurrentTotalValue()}
-        selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
-        campaignTitle={campaign.title}
-        primaryColor={primaryColor}
-        campaignTheme={campaignTheme}
-        reserving={reserving}
-        reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
-      />
-    </div>
-  );
-};
-
-export default CampaignPage;
