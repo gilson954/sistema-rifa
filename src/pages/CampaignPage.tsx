@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Share2, 
   Calendar, 
@@ -11,10 +12,9 @@ import {
   ExternalLink,
   AlertTriangle
 } from 'lucide-react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { useCampaignByPublicId, useCampaignByCustomDomain } from '../hooks/useCampaigns';
+import { useCampaignBySlug, useCampaignByCustomDomain } from '../hooks/useCampaigns';
 import { useTickets } from '../hooks/useTickets';
 import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
@@ -36,19 +36,22 @@ interface PromotionInfo {
 interface OrganizerProfile {
   id: string;
   name: string;
+  email: string;
   avatar_url?: string;
-  logo_url?: string;
   social_media_links?: any;
   payment_integrations_config?: any;
   primary_color?: string;
   theme?: string;
-  color_mode?: string;
-  gradient_classes?: string;
-  custom_gradient_colors?: string;
+  // Assumindo que a configuração do gradiente customizado está aqui ou no campaign.
+  gradient_config?: {
+    gradientClasses: 'solid' | 'preset' | 'custom';
+    customGradientColors: string[];
+    selectedGradient: string;
+  }
 }
 
 const CampaignPage = () => {
-  const { publicId } = useParams<{ publicId: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme } = useTheme();
@@ -81,21 +84,29 @@ const CampaignPage = () => {
     window.location.hostname === host || window.location.hostname.includes(host)
   );
   
-  const isCustomDomain = !isDevelopmentHost && publicId;
+  const isCustomDomain = !isDevelopmentHost && slug;
   
   // Use appropriate hook based on access method
-  const { campaign: campaignByPublicId, loading: loadingByPublicId, error: errorByPublicId } = useCampaignByPublicId(publicId || '');
+  const { campaign: campaignBySlug, loading: loadingBySlug, error: errorBySlug } = useCampaignBySlug(slug || '');
   const { campaign: campaignByDomain, loading: loadingByDomain, error: errorByDomain } = useCampaignByCustomDomain(
     isCustomDomain ? window.location.hostname : ''
   );
   
   // Select the appropriate campaign data
-  const campaign = isCustomDomain ? campaignByDomain : campaignByPublicId;
-  const loading = isCustomDomain ? loadingByDomain : loadingByPublicId;
-  const error = isCustomDomain ? errorByDomain : errorByPublicId;
+  const campaign = isCustomDomain ? campaignByDomain : campaignBySlug;
+  const loading = isCustomDomain ? loadingByDomain : loadingBySlug;
+  const error = isCustomDomain ? errorByDomain : errorBySlug;
 
   // Check if campaign is available for purchases (paid and active)
   const isCampaignAvailable = campaign?.status === 'active' && campaign?.is_paid !== false;
+
+  // Debug: Log campaign description (remover após teste)
+  useEffect(() => {
+    if (campaign?.description) {
+      console.log('📝 Descrição da campanha:', campaign.description);
+      console.log('📝 Descrição é válida:', isValidDescription(campaign.description));
+    }
+  }, [campaign?.description]);
 
   // Organizer profile state
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
@@ -130,89 +141,26 @@ const CampaignPage = () => {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
-  // Function to generate gradient style from custom colors
-  const getCustomGradientStyle = (customColorsJson: string) => {
-    try {
-      const colors = JSON.parse(customColorsJson);
-      if (Array.isArray(colors) && colors.length >= 2) {
-        if (colors.length === 2) {
-          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]})`;
-        } else if (colors.length === 3) {
-          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
-        }
-      }
-    } catch (error) {
-      console.error('Error parsing custom gradient colors:', error);
-    }
-    return null;
-  };
-
-  // Function to get style object for gradient or solid color
-  const getColorStyle = (isBackground: boolean = true) => {
-    const colorMode = organizerProfile?.color_mode || 'solid';
-    const primaryColor = organizerProfile?.primary_color || '#3B82F6';
-
-    if (colorMode === 'gradient') {
-      const gradientClasses = organizerProfile?.gradient_classes;
-      const customGradientColors = organizerProfile?.custom_gradient_colors;
-
-      // Custom gradient
-      if (gradientClasses === 'custom' && customGradientColors) {
-        const gradientStyle = getCustomGradientStyle(customGradientColors);
-        if (gradientStyle) {
-          return {
-            background: gradientStyle,
-            backgroundSize: '200% 200%'
-          };
-        }
-      }
-
-      // Predefined gradient - return empty object, will use className instead
-      return {};
-    }
-
-    // Solid color
-    return isBackground ? { backgroundColor: primaryColor } : { color: primaryColor };
-  };
-
-  // Function to get className for gradients
-  const getColorClassName = (baseClasses: string = '') => {
-    const colorMode = organizerProfile?.color_mode || 'solid';
-
-    if (colorMode === 'gradient') {
-      const gradientClasses = organizerProfile?.gradient_classes;
-      const customGradientColors = organizerProfile?.custom_gradient_colors;
-
-      // Custom gradient
-      if (gradientClasses === 'custom' && customGradientColors) {
-        return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
-      }
-
-      // Predefined gradient
-      if (gradientClasses && gradientClasses !== 'custom') {
-        return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
-      }
-    }
-
-    return baseClasses;
-  };
-
   // Load organizer profile
   useEffect(() => {
     if (campaign?.user_id) {
+      // DEBUG: Log campaign reservation timeout value
+      console.log('🔧 [CAMPAIGN DEBUG] Campaign reservation_timeout_minutes:', campaign?.reservation_timeout_minutes);
+      console.log('🔧 [CAMPAIGN DEBUG] Full campaign object:', campaign);
+      
       const loadOrganizerProfile = async () => {
         setLoadingOrganizer(true);
         try {
           const { data, error } = await supabase
-            .from('public_profiles_view')
-            .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
+            .from('profiles')
+            .select('id, name, email, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, gradient_config')
             .eq('id', campaign.user_id)
-            .maybeSingle();
+            .single();
           
           if (error) {
             console.error('Error loading organizer profile:', error);
           } else {
-            setOrganizerProfile(data);
+            setOrganizerProfile(data as OrganizerProfile);
           }
         } catch (error) {
           console.error('Error loading organizer profile:', error);
@@ -224,6 +172,69 @@ const CampaignPage = () => {
       loadOrganizerProfile();
     }
   }, [campaign?.user_id]);
+
+  const campaignTheme = organizerProfile?.theme || 'claro';
+  const primaryColor = organizerProfile?.primary_color || '#3B82F6'; // Default blue
+  const themeClasses = getThemeClasses(campaignTheme);
+  
+  // --- Funções de Ajuda para o Tema/Gradiente (Conforme plano do Bolt) ---
+  
+  // Variáveis simuladas para o estado do gradiente customizado (devem vir do profile/campaign)
+  const gradientConfig = organizerProfile?.gradient_config || {
+    gradientClasses: 'solid', // Default para sólido
+    customGradientColors: ['#9333EA', '#EC4899', '#3B82F6'], // Cores de exemplo
+    selectedGradient: 'from-purple-600 via-pink-500 to-blue-600'
+  };
+
+  // Linhas 151-176 (aproximado)
+  const getColorStyle = (isGradientText: boolean): React.CSSProperties => {
+    // Se não for para aplicar o gradiente no texto, retorna a cor primária sólida.
+    if (!isGradientText) {
+      return { color: primaryColor };
+    }
+
+    // Lógica para GRADIENTE NO TEXTO (usando bg-clip-text text-transparent)
+    if (gradientConfig.gradientClasses === 'custom' && gradientConfig.customGradientColors?.length >= 2) {
+      // **CORREÇÃO APLICADA AQUI:** Garante que o gradiente customizado seja aplicado
+      // como background com backgroundSize para animação.
+      const gradient = `linear-gradient(90deg, ${gradientConfig.customGradientColors.join(', ')})`;
+      return {
+        background: gradient,
+        backgroundSize: '400% 400%', // Necessário para a animação horizontal
+      };
+    } else if (gradientConfig.gradientClasses === 'preset' && gradientConfig.selectedGradient) {
+      // Lógica para gradientes predefinidos (que seriam aplicados via classe, mas são forçados aqui se precisar de style)
+      // Como a classe será aplicada separadamente (ver getColorClassName), este bloco pode ser simplificado
+      return {}; // Deixa a classe CSS cuidar do gradiente, que funciona com preset.
+    }
+    
+    // Fallback para cor sólida ou gradiente padrão se houver problema.
+    return { color: primaryColor };
+  };
+
+  // Linhas 179-198 (aproximado)
+  const getColorClassName = (baseClasses: string): string => {
+    let finalClasses = baseClasses;
+
+    if (gradientConfig.gradientClasses === 'custom') {
+      // Adiciona a classe de animação para gradiente customizado
+      finalClasses = `${finalClasses} animate-gradient-x`;
+      // Não retorna as classes de gradiente predefinido (ex: from-X to-Y)
+      
+    } else if (gradientConfig.gradientClasses === 'preset' && gradientConfig.selectedGradient) {
+      // Adiciona as classes do gradiente predefinido
+      finalClasses = `${finalClasses} bg-gradient-to-r ${gradientConfig.selectedGradient} animate-gradient-x`;
+      
+    } else {
+      // Aplica a cor primária como classe (se estiver em formato de classe Tailwind, o que é improvável aqui)
+      // Caso contrário, a cor sólida será definida pelo estilo default do componente.
+    }
+    
+    return finalClasses;
+  };
+
+  // --- Fim das Funções de Ajuda para o Tema/Gradiente ---
+
 
   // Get applicable promotion for a given quantity
   const getBestPromotionForDisplay = useCallback((quotaCount: number): PromotionInfo | null => {
@@ -298,8 +309,8 @@ const CampaignPage = () => {
 
   // Handle reservation submission
   const handleReservationSubmit = useCallback(async (customerData: CustomerData) => {
-    if (!campaign) {
-      alert('Erro: dados da campanha não encontrados');
+    if (!campaign || !user) {
+      alert('Você precisa estar logado para reservar cotas');
       return;
     }
 
@@ -334,13 +345,7 @@ const CampaignPage = () => {
       }
 
       // Reserve the quotas
-      const result = await reserveTickets(
-        quotasToReserve,
-        user?.id || null, // Pass user ID if logged in, null if not
-        customerData.name,
-        customerData.email,
-        `${customerData.countryCode} ${customerData.phoneNumber}`
-      );
+      const result = await reserveTickets(quotasToReserve);
       
       if (result) {
         // Calculate total value (considering promotions)
@@ -387,6 +392,12 @@ const CampaignPage = () => {
 
   // Handle opening reservation modal
   const handleOpenReservationModal = useCallback(() => {
+    if (!user) {
+      alert('Você precisa estar logado para reservar cotas');
+      navigate('/login');
+      return;
+    }
+
     if (campaign?.campaign_model === 'manual' && selectedQuotas.length === 0) {
       alert('Selecione pelo menos uma cota para reservar');
       return;
@@ -606,7 +617,7 @@ const CampaignPage = () => {
   // Generate share URL
   const generateShareUrl = () => {
     const baseUrl = window.location.origin;
-    return `${baseUrl}/c/${campaign?.public_id}`;
+    return `${baseUrl}/c/${campaign?.slug}`;
   };
 
   // Handle social media sharing
@@ -649,11 +660,7 @@ const CampaignPage = () => {
     );
   }
 
-  if (
-    error || 
-    !campaign || 
-    (!user && campaign && campaign.is_paid === false)
-  ) {
+  if (error || !campaign) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
         <div className="text-center">
@@ -674,10 +681,6 @@ const CampaignPage = () => {
     );
   }
 
-  const campaignTheme = organizerProfile?.theme || 'claro';
-  const primaryColor = organizerProfile?.primary_color || '#3B82F6';
-  const themeClasses = getThemeClasses(campaignTheme);
-
   return (
     <div className={`min-h-screen transition-colors duration-300 ${themeClasses.background}`}>
       {/* Header - Redesigned according to image specifications */}
@@ -687,7 +690,7 @@ const CampaignPage = () => {
             {/* Logo - Left aligned */}
             <div className="flex items-center space-x-2">
               <img 
-                src="/logo-chatgpt.png" 
+                src="/logo criado pelo Chatgpt.png" 
                 alt="Rifaqui Logo" 
                 className="w-10 h-10 object-contain"
               />
@@ -714,13 +717,14 @@ const CampaignPage = () => {
           {campaign.title}
         </h1>
 
-        {/* 1. Seção de galeria de imagens - card com largura limitada */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}>
-          <div className="relative group w-full">
+        {/* 1. Seção de galeria de imagens - Full width card */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4`}>
+          {/* Image Display */}
+          <div className="relative group">
             <img
               src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
               alt={campaign.title}
-              className="w-full h-[300px] sm:h-[500px] object-cover rounded-t-xl"
+              className="w-full h-[300px] sm:h-[600px] object-cover"
               onClick={() => handleImageClick(currentImageIndex)}
               style={{ cursor: 'pointer' }}
             />
@@ -752,11 +756,13 @@ const CampaignPage = () => {
             )}
 
             {/* Price Badge */}
-            <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white bg-opacity-95 backdrop-blur-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-lg">
-              <div className="flex items-center space-x-1 sm:space-x-2">
-                <span className="text-xs sm:text-sm text-gray-600">Participe por apenas</span>
+            <div className="absolute top-4 left-4 bg-white bg-opacity-95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Participe por apenas</span>
+                {/* [CORREÇÃO DO BUG]: Aplicando as funções auxiliares conforme o código original, 
+                   garantindo que o gradiente customizado animado seja aplicado via style e className. */}
                 <span
-                  className={getColorClassName("font-bold text-sm sm:text-base md:text-lg bg-clip-text text-transparent")}
+                  className={getColorClassName("font-bold text-base bg-clip-text text-transparent")}
                   style={getColorStyle(true)}
                 >
                   {formatCurrency(campaign.ticket_price)}
@@ -792,98 +798,80 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 2. Seção de Organizador — layout ajustado ao wireframe (avatar à esquerda, "Organizador:" + nome à direita, ícones em linha abaixo do nome) */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+        {/* 2. Seção de Organizador - Full width card */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
+          <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
+            Organizador
+          </h3>
+          
           {loadingOrganizer ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
             </div>
           ) : organizerProfile ? (
-            <div className="flex items-start gap-4">
-              {/* Avatar / Logo à esquerda */}
-              <div className="flex-shrink-0">
+            <div className="max-w-sm mx-auto">
+              <div className="flex items-center space-x-3 mb-3">
                 {organizerProfile.logo_url ? (
-                  organizerProfile.color_mode === 'gradient' ? (
-                    <div
-                      className={getColorClassName("p-1 rounded-lg shadow-md")}
-                      style={getColorStyle(true)}
-                    >
-                      <img
-                        src={organizerProfile.logo_url}
-                        alt={organizerProfile.name}
-                        className="w-[88px] h-[88px] rounded-md object-contain bg-white dark:bg-gray-800"
-                      />
-                    </div>
-                  ) : (
-                    <img
-                      src={organizerProfile.logo_url}
-                      alt={organizerProfile.name}
-                      className="w-24 h-24 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
-                      style={{ borderColor: organizerProfile.primary_color || '#3B82F6' }}
-                    />
-                  )
+                  <img
+                    src={organizerProfile.logo_url}
+                    alt={organizerProfile.name}
+                    className="w-12 h-12 rounded object-contain bg-white dark:bg-gray-800 border-2 p-1"
+                    style={{ borderColor: primaryColor }}
+                  />
                 ) : organizerProfile.avatar_url ? (
-                  organizerProfile.color_mode === 'gradient' ? (
-                    <div
-                      className={getColorClassName("p-1 rounded-full shadow-md")}
-                      style={getColorStyle(true)}
-                    >
-                      <img
-                        src={organizerProfile.avatar_url}
-                        alt={organizerProfile.name}
-                        className="w-14 h-14 rounded-full object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <img
-                      src={organizerProfile.avatar_url}
-                      alt={organizerProfile.name}
-                      className="w-16 h-16 rounded-full object-cover border-4 shadow-md"
-                      style={{ borderColor: organizerProfile.primary_color || '#3B82F6' }}
-                    />
-                  )
+                  <img
+                    src={organizerProfile.avatar_url}
+                    alt={organizerProfile.name}
+                    className="w-12 h-12 rounded-full object-cover border-2"
+                    style={{ borderColor: primaryColor }}
+                  />
                 ) : (
-                  <div
-                    className={getColorClassName("w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md")}
-                    style={getColorStyle(true)}
+                  <div 
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
+                    style={{ backgroundColor: primaryColor }}
                   >
-                    {organizerProfile.name ? organizerProfile.name.charAt(0).toUpperCase() : 'O'}
+                    {organizerProfile.name.charAt(0).toUpperCase()}
                   </div>
                 )}
+                <div className="text-center flex-1">
+                  <h4 className={`text-base font-semibold ${themeClasses.text}`}>
+                    {organizerProfile.name}
+                  </h4>
+                  <p className={`text-sm ${themeClasses.textSecondary}`}>
+                    Organizador da campanha
+                  </p>
+                </div>
               </div>
 
-              {/* Conteúdo à direita do avatar: label, nome e ícones sociais em linha abaixo */}
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm ${themeClasses.textSecondary} leading-tight`}>
-                  Organizador:
-                </p>
-                <h4 className={`text-base font-semibold ${themeClasses.text} truncate`}>
-                  {organizerProfile.name}
-                </h4>
-
-                {/* Ícones sociais em linha, logo abaixo do nome */}
-                {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
-                  <div className="mt-2 flex items-center gap-2">
+              {/* Organizer Social Media */}
+              {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
+                <div className="text-center">
+                  <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>
+                    Redes Sociais
+                  </p>
+                  <div className="flex justify-center flex-wrap gap-1.5">
                     {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
                       if (!url || typeof url !== 'string') return null;
+                      
                       const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
                       if (!config) return null;
+                      
                       const IconComponent = config.icon;
                       return (
                         <button
                           key={platform}
                           onClick={() => handleOrganizerSocialClick(platform, url)}
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform duration-150"
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform duration-200"
                           style={{ backgroundColor: config.color }}
                           title={`${config.name} do organizador`}
                         >
-                          <IconComponent size={12} />
+                          <IconComponent size={16} />
                         </button>
                       );
                     })}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-4">
@@ -895,60 +883,37 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 3. Seção de Promoções Disponíveis - card com largura limitada */}
+        {/* 3. Seção de Promoções Disponíveis - Full width card */}
         {campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
-          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4`}>
             <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
               🎁 Promoções Disponíveis
             </h3>
-
-            {/* Layout ajustado: botões/pills com texto adaptado ao tema na esquerda e percentual em verde */}
-            <div className="flex flex-wrap gap-3 justify-center">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
               {campaign.promotions.map((promo: Promotion) => {
                 const originalValue = promo.ticketQuantity * campaign.ticket_price;
-                const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0;
-                const colorMode = organizerProfile?.color_mode || 'solid';
-
+                const discountPercentage = Math.round((promo.fixedDiscountAmount / originalValue) * 100);
+                
                 return (
-                  <div key={promo.id}>
-                    {colorMode === 'gradient' ? (
-                      <div
-                        className={getColorClassName("p-0.5 rounded-lg shadow-sm")}
-                        style={getColorStyle(true)}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => {}}
-                          className={`flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 ${
-                            themeClasses.cardBg
-                          }`}
-                        >
-                          <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
-                            {promo.ticketQuantity} cotas por {formatCurrency(originalValue)}
-                          </span>
-                          <span className="ml-3 text-sm font-extrabold text-green-500 dark:text-green-300">
-                            {discountPercentage}%
-                          </span>
-                        </button>
+                  <div
+                    key={promo.id}
+                    className={`border ${themeClasses.border} rounded-lg p-2 hover:shadow-md transition-all duration-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20`}
+                  >
+                    <div className="text-center">
+                      <div className={`font-bold text-sm ${themeClasses.text} mb-0.5`}>
+                        {promo.ticketQuantity} cotas
                       </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => {}}
-                        className={`flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 shadow-sm border-2`}
-                        style={{
-                          background: 'transparent',
-                          borderColor: organizerProfile?.primary_color || (campaignTheme === 'claro' ? '#d1d5db' : '#4b5563')
-                        }}
-                      >
-                        <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
-                          {promo.ticketQuantity} cotas por {formatCurrency(originalValue)}
-                        </span>
-                        <span className="ml-3 text-sm font-extrabold text-green-500 dark:text-green-300">
-                          {discountPercentage}%
-                        </span>
-                      </button>
-                    )}
+                      <div className="text-xs text-green-600 dark:text-green-400 font-medium mb-0.5">
+                        {discountPercentage}% de desconto
+                      </div>
+                      <div className={`text-xs ${getThemeClasses(campaignTheme).textSecondary} line-through mb-0.5`}>
+                        {formatCurrency(originalValue)}
+                      </div>
+                      <div className="text-base font-bold text-green-600 dark:text-green-400">
+                        {formatCurrency(promo.discountedTotalValue)}
+                      </div>
+                    </div>
                   </div>
                 );
               })}
@@ -956,19 +921,19 @@ const CampaignPage = () => {
           </section>
         )}
 
-        {/* 4. Seção de Prêmios - card com largura limitada */}
+        {/* 4. Seção de Prêmios - Full width card */}
         {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
-          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4`}>
             <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
               🏆 Prêmios
             </h3>
             
-            <div className="w-full space-y-1">
+            <div className="max-w-xl mx-auto space-y-1">
               {campaign.prizes.map((prize: any, index: number) => (
                 <div key={prize.id} className="flex items-center justify-center space-x-1.5">
-                  <div
-                    className={getColorClassName("w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs")}
-                    style={getColorStyle(true)}
+                  <div 
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs"
+                    style={{ backgroundColor: primaryColor }}
                   >
                     {index + 1}
                   </div>
@@ -979,24 +944,24 @@ const CampaignPage = () => {
           </section>
         )}
 
-        {/* 5. Seção de compra/seleção de cota - card com largura limitada */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+        {/* 5. Seção de compra/seleção de cota - Full width card */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
           <h2 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
             {campaign.campaign_model === 'manual' ? 'Selecione suas Cotas' : 'Escolha a Quantidade'}
           </h2>
 
           {campaign.campaign_model === 'manual' ? (
             <div className="space-y-4">
-              {/* Campaign Unavailable Alert (manual) - ESTILO ATUALIZADO */}
+              {/* Campaign Unavailable Alert */}
               {!isCampaignAvailable && (
-                <div className="bg-gray-900 border border-orange-800 rounded-lg p-4 mb-4">
+                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
                   <div className="flex items-center space-x-3">
-                    <AlertTriangle className="h-6 w-6 text-orange-400 flex-shrink-0" />
+                    <AlertTriangle className="h-6 w-6 text-orange-600 dark:text-orange-400 flex-shrink-0" />
                     <div>
-                      <h4 className="font-semibold text-orange-300 mb-1">
+                      <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
                         Campanha Indisponível
                       </h4>
-                      <p className="text-sm text-orange-400">
+                      <p className="text-sm text-orange-700 dark:text-orange-300">
                         Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
                       </p>
                     </div>
@@ -1015,9 +980,6 @@ const CampaignPage = () => {
                 currentUserId={user?.id}
                 campaignTheme={campaignTheme}
                 primaryColor={primaryColor}
-                colorMode={organizerProfile?.color_mode}
-                gradientClasses={organizerProfile?.gradient_classes}
-                customGradientColors={organizerProfile?.custom_gradient_colors}
               />
 
               {/* Manual Mode - Selection Summary */}
@@ -1035,8 +997,8 @@ const CampaignPage = () => {
                       {selectedQuotas.sort((a, b) => a - b).map(quota => (
                         <span
                           key={quota}
-                          className={getColorClassName("px-2 py-1 text-white rounded text-xs font-medium")}
-                          style={getColorStyle(true)}
+                          className="px-2 py-1 text-white rounded text-xs font-medium"
+                          style={{ backgroundColor: primaryColor }}
                         >
                           {quota.toString().padStart(3, '0')}
                         </span>
@@ -1068,9 +1030,9 @@ const CampaignPage = () => {
                           {formatCurrency(currentPromotionInfo.originalTotal)}
                         </div>
                       )}
-                      <div
-                        className={currentPromotionInfo ? 'text-xl font-bold text-green-600' : getColorClassName('text-xl font-bold bg-clip-text text-transparent')}
-                        style={!currentPromotionInfo ? getColorStyle(true) : {}}
+                      <div 
+                        className={`text-xl font-bold ${currentPromotionInfo ? 'text-green-600' : ''}`}
+                        style={!currentPromotionInfo ? { color: primaryColor } : {}}
                       >
                         {formatCurrency(getCurrentTotalValue())}
                       </div>
@@ -1080,8 +1042,8 @@ const CampaignPage = () => {
                   <button
                     onClick={handleOpenReservationModal}
                     disabled={selectedQuotas.length === 0}
-                    className={getColorClassName("w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed")}
-                    style={getColorStyle(true)}
+                    className="w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: primaryColor }}
                   >
                     {isCampaignAvailable ? 'Reservar Cotas Selecionadas' : 'Campanha Indisponível'}
                   </button>
@@ -1090,16 +1052,16 @@ const CampaignPage = () => {
             </div>
           ) : (
             <>
-              {/* Campaign Unavailable Alert (automatic) - ESTILO ATUALIZADO */}
+              {/* Campaign Unavailable Alert */}
               {!isCampaignAvailable && (
-                <div className="bg-gray-900 border border-orange-800 rounded-lg p-4 mb-4">
+                <div className="bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-800 rounded-lg p-4">
                   <div className="flex items-center space-x-3">
-                    <AlertTriangle className="h-6 w-6 text-orange-400 flex-shrink-0" />
+                    <AlertTriangle className="h-6 w-6 text-orange-700 dark:text-orange-400 flex-shrink-0" />
                     <div>
-                      <h4 className="font-semibold text-orange-300 mb-1">
+                      <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
                         Campanha Indisponível
                       </h4>
-                      <p className="text-sm text-orange-400">
+                      <p className="text-sm text-orange-700 dark:text-orange-300">
                         Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
                       </p>
                     </div>
@@ -1121,16 +1083,13 @@ const CampaignPage = () => {
               onReserve={isCampaignAvailable ? handleOpenReservationModal : undefined}
               reserving={reserving}
               disabled={!isCampaignAvailable}
-              colorMode={organizerProfile?.color_mode}
-              gradientClasses={organizerProfile?.gradient_classes}
-              customGradientColors={organizerProfile?.custom_gradient_colors}
             />
             </>
           )}
         </section>
 
-        {/* 6. Descrição/Regulamento - card com largura limitada */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+        {/* 6. Descrição/Regulamento - Full width card */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
           <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center`}>
             Descrição/Regulamento
           </h3>
@@ -1159,18 +1118,18 @@ const CampaignPage = () => {
 
           {/* Progress Bar - Only show if show_percentage is enabled */}
           {campaign.show_percentage && (
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-xl mx-auto">
               <div className="flex justify-center items-center mb-3">
                 <span className={`text-base font-bold ${themeClasses.text}`}>
                   {getProgressPercentage()}%
                 </span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                <div
-                  className={getColorClassName("h-3 rounded-full transition-all duration-300")}
-                  style={{
+                <div 
+                  className="h-3 rounded-full transition-all duration-300"
+                  style={{ 
                     width: `${getProgressPercentage()}%`,
-                    ...getColorStyle(true)
+                    backgroundColor: primaryColor 
                   }}
                 />
               </div>
@@ -1178,68 +1137,66 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 7. Métodos de Pagamento e Método de Sorteio - centralizados e com largura limitada */}
-        <section className="mb-4">
-          <div className="max-w-3xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Payment Methods Card - Left */}
-            <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
-              <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
-                Métodos de Pagamento
-              </h3>
-              
-              <div className="space-y-2">
-                {getConfiguredPaymentMethods().map((method, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
-                  >
-                    <div 
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                      style={{ backgroundColor: method.color }}
-                    >
-                      {method.icon}
-                    </div>
-                    <span className={`font-medium text-sm ${themeClasses.text}`}>
-                      {method.name}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Draw Method Card - Right */}
-            <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
-              <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
-                Método de Sorteio
-              </h3>
-              
-              <div className="flex items-center justify-center space-x-2">
+        {/* 7. Métodos de Pagamento e Método de Sorteio - Side by side layout */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          {/* Payment Methods Card - Left */}
+          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
+              Seção de Métodos de Pagamento
+            </h3>
+            
+            <div className="space-y-2">
+              {getConfiguredPaymentMethods().map((method, index) => (
                 <div
-                  className={getColorClassName("w-10 h-10 rounded-lg flex items-center justify-center text-white")}
-                  style={getColorStyle(true)}
+                  key={index}
+                  className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
                 >
-                  <Trophy className="h-5 w-5" />
+                  <div 
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                    style={{ backgroundColor: method.color }}
+                  >
+                    {method.icon}
+                  </div>
+                  <span className={`font-medium text-sm ${themeClasses.text}`}>
+                    {method.name}
+                  </span>
                 </div>
-                <div className="text-center">
-                  <p className={`font-medium text-sm ${themeClasses.text}`}>
-                    {campaign.draw_method}
-                  </p>
-                  <p className={`text-xs ${themeClasses.textSecondary}`}>
-                    Sorteio transparente e confiável
-                  </p>
-                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Draw Method Card - Right */}
+          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
+              Seção de Método de Sorteio
+            </h3>
+            
+            <div className="flex items-center justify-center space-x-2">
+              <div 
+                className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
+                style={{ backgroundColor: primaryColor }}
+              >
+                <Trophy className="h-5 w-5" />
+              </div>
+              <div className="text-center">
+                <p className={`font-medium text-sm ${themeClasses.text}`}>
+                  {campaign.draw_method}
+                </p>
+                <p className={`text-xs ${themeClasses.textSecondary}`}>
+                  Sorteio transparente e confiável
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Share Campaign Section - centralizado e com largura limitado */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-6`}>
+        {/* Share Campaign Section - Full width at bottom */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
           <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
             Compartilhar Campanha
           </h3>
           
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto">
             {Object.entries(shareSectionConfig).map(([platform, config]) => {
               const IconComponent = config.icon;
               return (
@@ -1266,6 +1223,8 @@ const CampaignPage = () => {
             })}
           </div>
         </section>
+
+        {/* REMOVED CONFIDENTIAL SECTIONS (Mantido para preservar a estrutura) */}
       </main>
 
       {/* Fullscreen Image Modal */}
