@@ -42,6 +42,12 @@ interface OrganizerProfile {
   payment_integrations_config?: any;
   primary_color?: string;
   theme?: string;
+  // Assumindo que a configuração do gradiente customizado está aqui ou no campaign.
+  gradient_config?: {
+    gradientClasses: 'solid' | 'preset' | 'custom';
+    customGradientColors: string[];
+    selectedGradient: string;
+  }
 }
 
 const CampaignPage = () => {
@@ -147,14 +153,14 @@ const CampaignPage = () => {
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('id, name, email, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme')
+            .select('id, name, email, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, gradient_config')
             .eq('id', campaign.user_id)
             .single();
           
           if (error) {
             console.error('Error loading organizer profile:', error);
           } else {
-            setOrganizerProfile(data);
+            setOrganizerProfile(data as OrganizerProfile);
           }
         } catch (error) {
           console.error('Error loading organizer profile:', error);
@@ -166,6 +172,69 @@ const CampaignPage = () => {
       loadOrganizerProfile();
     }
   }, [campaign?.user_id]);
+
+  const campaignTheme = organizerProfile?.theme || 'claro';
+  const primaryColor = organizerProfile?.primary_color || '#3B82F6'; // Default blue
+  const themeClasses = getThemeClasses(campaignTheme);
+  
+  // --- Funções de Ajuda para o Tema/Gradiente (Conforme plano do Bolt) ---
+  
+  // Variáveis simuladas para o estado do gradiente customizado (devem vir do profile/campaign)
+  const gradientConfig = organizerProfile?.gradient_config || {
+    gradientClasses: 'solid', // Default para sólido
+    customGradientColors: ['#9333EA', '#EC4899', '#3B82F6'], // Cores de exemplo
+    selectedGradient: 'from-purple-600 via-pink-500 to-blue-600'
+  };
+
+  // Linhas 151-176 (aproximado)
+  const getColorStyle = (isGradientText: boolean): React.CSSProperties => {
+    // Se não for para aplicar o gradiente no texto, retorna a cor primária sólida.
+    if (!isGradientText) {
+      return { color: primaryColor };
+    }
+
+    // Lógica para GRADIENTE NO TEXTO (usando bg-clip-text text-transparent)
+    if (gradientConfig.gradientClasses === 'custom' && gradientConfig.customGradientColors?.length >= 2) {
+      // **CORREÇÃO APLICADA AQUI:** Garante que o gradiente customizado seja aplicado
+      // como background com backgroundSize para animação.
+      const gradient = `linear-gradient(90deg, ${gradientConfig.customGradientColors.join(', ')})`;
+      return {
+        background: gradient,
+        backgroundSize: '400% 400%', // Necessário para a animação horizontal
+      };
+    } else if (gradientConfig.gradientClasses === 'preset' && gradientConfig.selectedGradient) {
+      // Lógica para gradientes predefinidos (que seriam aplicados via classe, mas são forçados aqui se precisar de style)
+      // Como a classe será aplicada separadamente (ver getColorClassName), este bloco pode ser simplificado
+      return {}; // Deixa a classe CSS cuidar do gradiente, que funciona com preset.
+    }
+    
+    // Fallback para cor sólida ou gradiente padrão se houver problema.
+    return { color: primaryColor };
+  };
+
+  // Linhas 179-198 (aproximado)
+  const getColorClassName = (baseClasses: string): string => {
+    let finalClasses = baseClasses;
+
+    if (gradientConfig.gradientClasses === 'custom') {
+      // Adiciona a classe de animação para gradiente customizado
+      finalClasses = `${finalClasses} animate-gradient-x`;
+      // Não retorna as classes de gradiente predefinido (ex: from-X to-Y)
+      
+    } else if (gradientConfig.gradientClasses === 'preset' && gradientConfig.selectedGradient) {
+      // Adiciona as classes do gradiente predefinido
+      finalClasses = `${finalClasses} bg-gradient-to-r ${gradientConfig.selectedGradient} animate-gradient-x`;
+      
+    } else {
+      // Aplica a cor primária como classe (se estiver em formato de classe Tailwind, o que é improvável aqui)
+      // Caso contrário, a cor sólida será definida pelo estilo default do componente.
+    }
+    
+    return finalClasses;
+  };
+
+  // --- Fim das Funções de Ajuda para o Tema/Gradiente ---
+
 
   // Get applicable promotion for a given quantity
   const getBestPromotionForDisplay = useCallback((quotaCount: number): PromotionInfo | null => {
@@ -612,10 +681,6 @@ const CampaignPage = () => {
     );
   }
 
-  const campaignTheme = organizerProfile?.theme || 'claro';
-  const primaryColor = organizerProfile?.primary_color || '#3B82F6';
-  const themeClasses = getThemeClasses(campaignTheme);
-
   return (
     <div className={`min-h-screen transition-colors duration-300 ${themeClasses.background}`}>
       {/* Header - Redesigned according to image specifications */}
@@ -694,14 +759,11 @@ const CampaignPage = () => {
             <div className="absolute top-4 left-4 bg-white bg-opacity-95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-600">Participe por apenas</span>
+                {/* [CORREÇÃO DO BUG]: Aplicando as funções auxiliares conforme o código original, 
+                   garantindo que o gradiente customizado animado seja aplicado via style e className. */}
                 <span
-                  // CORREÇÃO: Aplicando classes de gradiente animado (bg-clip-text, text-transparent e animate-gradient-x)
-                  className="font-bold text-base bg-clip-text text-transparent animate-gradient-x"
-                  style={{
-                    // Define o gradiente de background com base na primaryColor e cores de transição para o efeito de animação
-                    background: `linear-gradient(90deg, ${primaryColor} 0%, #FFCC70 25%, #9333EA 50%, #FFCC70 75%, ${primaryColor} 100%)`,
-                    backgroundSize: '400% 400%', // Aumenta o tamanho do background para permitir o movimento da animação
-                  }}
+                  className={getColorClassName("font-bold text-base bg-clip-text text-transparent")}
+                  style={getColorStyle(true)}
                 >
                   {formatCurrency(campaign.ticket_price)}
                 </span>
@@ -1162,13 +1224,7 @@ const CampaignPage = () => {
           </div>
         </section>
 
-        {/* REMOVED CONFIDENTIAL SECTIONS */}
-        {/* The following sections have been removed from public view as they contain confidential information:
-          - Campaign Stats Card (total_tickets, sold_tickets, available_tickets, reservation_timeout_minutes)
-          - Campaign Details Card (ticket_price, min_tickets_per_purchase, max_tickets_per_purchase, campaign_model)
-          
-          These sections are only appropriate for the campaign organizer's dashboard view.
-        */}
+        {/* REMOVED CONFIDENTIAL SECTIONS (Mantido para preservar a estrutura) */}
       </main>
 
       {/* Fullscreen Image Modal */}
