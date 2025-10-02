@@ -669,6 +669,24 @@ const CustomizationPage = () => {
                   </button>
                 </div>
               </div>
+                    onClick={() => setColorMode('gradient')}
+                    className={`p-6 rounded-2xl border-2 transition-all duration-300 ${
+                      colorMode === 'gradient'
+                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-lg'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-lg font-bold text-gray-900 dark:text-white">Gradiente Animado</span>
+                      {colorMode === 'gradient' && <CheckCircle className="h-6 w-6 text-purple-600" />}
+                    </div>
+                    <div 
+                      className={`w-full h-8 rounded-lg shadow-md ${isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`}`}
+                      style={isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {}}
+                    ></div>
+                  </button>
+                </div>
+              </div>
 
               {/* Color Selection - Cores Sólidas */}
               {colorMode === 'solid' && (
