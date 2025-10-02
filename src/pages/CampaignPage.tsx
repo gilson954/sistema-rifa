@@ -38,11 +38,12 @@ interface OrganizerProfile {
   name: string;
   email: string;
   avatar_url?: string;
+  logo_url?: string; // Adicionado para consistência
   social_media_links?: any;
   payment_integrations_config?: any;
   primary_color?: string;
   theme?: string;
-  // Assumindo que a configuração do gradiente customizado está aqui ou no campaign.
+  // Adição para o plano do bolt
   gradient_config?: {
     gradientClasses: 'solid' | 'preset' | 'custom';
     customGradientColors: string[];
@@ -153,6 +154,7 @@ const CampaignPage = () => {
         try {
           const { data, error } = await supabase
             .from('profiles')
+            // CORREÇÃO: Adicionando 'logo_url' e 'gradient_config'
             .select('id, name, email, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, gradient_config')
             .eq('id', campaign.user_id)
             .single();
@@ -182,11 +184,10 @@ const CampaignPage = () => {
   // Variáveis simuladas para o estado do gradiente customizado (devem vir do profile/campaign)
   const gradientConfig = organizerProfile?.gradient_config || {
     gradientClasses: 'solid', // Default para sólido
-    customGradientColors: ['#9333EA', '#EC4899', '#3B82F6'], // Cores de exemplo
+    customGradientColors: ['#9333EA', '#EC4899', '#3B82F6'], // Cores de exemplo (Fallback)
     selectedGradient: 'from-purple-600 via-pink-500 to-blue-600'
   };
 
-  // Linhas 151-176 (aproximado)
   const getColorStyle = (isGradientText: boolean): React.CSSProperties => {
     // Se não for para aplicar o gradiente no texto, retorna a cor primária sólida.
     if (!isGradientText) {
@@ -203,32 +204,26 @@ const CampaignPage = () => {
         backgroundSize: '400% 400%', // Necessário para a animação horizontal
       };
     } else if (gradientConfig.gradientClasses === 'preset' && gradientConfig.selectedGradient) {
-      // Lógica para gradientes predefinidos (que seriam aplicados via classe, mas são forçados aqui se precisar de style)
-      // Como a classe será aplicada separadamente (ver getColorClassName), este bloco pode ser simplificado
-      return {}; // Deixa a classe CSS cuidar do gradiente, que funciona com preset.
+      // Deixa a classe CSS (aplicada em getColorClassName) cuidar do gradiente predefinido
+      return {}; 
     }
     
     // Fallback para cor sólida ou gradiente padrão se houver problema.
     return { color: primaryColor };
   };
 
-  // Linhas 179-198 (aproximado)
   const getColorClassName = (baseClasses: string): string => {
     let finalClasses = baseClasses;
 
     if (gradientConfig.gradientClasses === 'custom') {
       // Adiciona a classe de animação para gradiente customizado
       finalClasses = `${finalClasses} animate-gradient-x`;
-      // Não retorna as classes de gradiente predefinido (ex: from-X to-Y)
       
     } else if (gradientConfig.gradientClasses === 'preset' && gradientConfig.selectedGradient) {
       // Adiciona as classes do gradiente predefinido
       finalClasses = `${finalClasses} bg-gradient-to-r ${gradientConfig.selectedGradient} animate-gradient-x`;
       
-    } else {
-      // Aplica a cor primária como classe (se estiver em formato de classe Tailwind, o que é improvável aqui)
-      // Caso contrário, a cor sólida será definida pelo estilo default do componente.
-    }
+    } 
     
     return finalClasses;
   };
@@ -759,8 +754,7 @@ const CampaignPage = () => {
             <div className="absolute top-4 left-4 bg-white bg-opacity-95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-600">Participe por apenas</span>
-                {/* [CORREÇÃO DO BUG]: Aplicando as funções auxiliares conforme o código original, 
-                   garantindo que o gradiente customizado animado seja aplicado via style e className. */}
+                {/* [CORREÇÃO DO BUG]: Aplicando as funções auxiliares conforme o plano do bolt */}
                 <span
                   className={getColorClassName("font-bold text-base bg-clip-text text-transparent")}
                   style={getColorStyle(true)}
@@ -1224,7 +1218,13 @@ const CampaignPage = () => {
           </div>
         </section>
 
-        {/* REMOVED CONFIDENTIAL SECTIONS (Mantido para preservar a estrutura) */}
+        {/* REMOVED CONFIDENTIAL SECTIONS */}
+        {/* The following sections have been removed from public view as they contain confidential information:
+          - Campaign Stats Card (total_tickets, sold_tickets, available_tickets, reservation_timeout_minutes)
+          - Campaign Details Card (ticket_price, min_tickets_per_purchase, max_tickets_per_purchase, campaign_model)
+          
+          These sections are only appropriate for the campaign organizer's dashboard view.
+        */}
       </main>
 
       {/* Fullscreen Image Modal */}
