@@ -806,15 +806,13 @@ const CampaignPage = () => {
                   <img
                     src={organizerProfile.logo_url}
                     alt={organizerProfile.name}
-                    className="w-24 h-24 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
-                    style={{ borderColor: primaryColor }}
+                    className="w-24 h-24 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 border-purple-500 shadow-md"
                   />
                 ) : organizerProfile.avatar_url ? (
                   <img
                     src={organizerProfile.avatar_url}
                     alt={organizerProfile.name}
-                    className="w-16 h-16 rounded-full object-cover border-4 shadow-md"
-                    style={{ borderColor: primaryColor }}
+                    className="w-16 h-16 rounded-full object-cover border-4 border-purple-500 shadow-md"
                   />
                 ) : (
                   <div
@@ -895,11 +893,10 @@ const CampaignPage = () => {
                     type="button"
                     onClick={() => {
                     }}
-                    className={`flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 shadow-sm ${
-                      useGradient && !isCustomGradient ? `border-2` : 'border-2'
+                    className={`flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 shadow-sm border-2 ${
+                      campaignTheme === 'claro' ? 'border-gray-300' : 'border-gray-600'
                     }`}
                     style={{
-                      borderColor: primaryColor || '#3B82F6',
                       background: 'transparent',
                       }}
                     >

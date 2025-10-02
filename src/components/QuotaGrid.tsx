@@ -328,10 +328,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
                 ${isSelected ? getColorClassName('') : ''}
                 ${mode === 'automatic' || status === 'purchased' || status === 'reserved' ? 'cursor-not-allowed' : 'cursor-pointer'}
               `}
-              style={isSelected ? {
-                ...getColorStyle(),
-                borderColor: primaryColor || '#3B82F6'
-              } : {}}
+              style={isSelected ? getColorStyle() : {}}
               disabled={mode === 'automatic' || status === 'purchased' || status === 'reserved'}
               title={`Cota ${quotaNumber.toString().padStart(padLength, '0')} - ${
                 status === 'purchased' ? 'Comprada' : 
