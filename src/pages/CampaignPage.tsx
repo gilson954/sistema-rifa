@@ -756,7 +756,7 @@ const CampaignPage = () => {
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <span className="text-xs sm:text-sm text-gray-600">Participe por apenas</span>
                 <span
-                  className={`font-bold text-sm sm:text-base md:text-lg bg-clip-text text-transparent ${getColorClassName()}`}
+                  className={getColorClassName("font-bold text-sm sm:text-base md:text-lg bg-clip-text text-transparent")}
                   style={getColorStyle(true)}
                 >
                   {formatCurrency(campaign.ticket_price)}
