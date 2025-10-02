@@ -131,6 +131,9 @@ export type Database = {
           payment_integrations_config: any | null
           cpf: string | null
           phone_number: string | null
+          color_mode: string | null
+          gradient_classes: string | null
+          custom_gradient_colors: string | null
         }
         Insert: {
           id: string
@@ -147,6 +150,9 @@ export type Database = {
           payment_integrations_config?: any | null
           cpf?: string | null
           phone_number?: string | null
+          color_mode?: string | null
+          gradient_classes?: string | null
+          custom_gradient_colors?: string | null
         }
         Update: {
           id?: string
@@ -163,6 +169,9 @@ export type Database = {
           payment_integrations_config?: any | null
           cpf?: string | null
           phone_number?: string | null
+          color_mode?: string | null
+          gradient_classes?: string | null
+          custom_gradient_colors?: string | null
         }
       }
       tickets: {

@@ -8,6 +8,9 @@ export interface PublicProfile {
   logo_url: string | null;
   social_media_links: any | null;
   payment_integrations_config: any | null;
+  color_mode: string | null;
+  gradient_classes: string | null;
+  custom_gradient_colors: string | null;
 }
 
 export class PublicProfilesAPI {
@@ -60,10 +63,13 @@ export class PublicProfilesAPI {
 
       // Check if user has any customization settings
       return !!(
-        data.primary_color || 
-        data.theme !== 'claro' || 
+        data.primary_color ||
+        data.theme !== 'claro' ||
         data.logo_url ||
-        data.social_media_links
+        data.social_media_links ||
+        data.color_mode ||
+        data.gradient_classes ||
+        data.custom_gradient_colors
       );
     } catch (error) {
       console.error('Error checking customization:', error);
