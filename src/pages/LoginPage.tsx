@@ -1,3 +1,4 @@
+// src/pages/LoginPage.tsx
 import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react'
@@ -140,13 +141,7 @@ const LoginPage = () => {
       {/* Background */}
       <div className="relative min-h-screen flex items-center justify-center p-6 pt-20 overflow-hidden">
         <div className="absolute inset-0 -z-10">
-          <div
-            className="w-full h-full animate-gradient"
-            style={{
-              background: 'linear-gradient(140deg, #af4e2b, #8a5f1, #9373f0)',
-              backgroundSize: '180% 180%'
-            }}
-          />
+          <div className="w-full h-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 dark:from-gray-900 dark:via-purple-900 dark:to-black animate-gradient" />
         </div>
 
         <motion.div
