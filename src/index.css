@@ -79,7 +79,7 @@
 .animate-gradient-button {
   background: linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5);
   background-size: 300% 300%;
-  animation: gradientMove 4s ease infinite;
+  animation: gradientMove 10s ease infinite;
   color: white;
   padding: 12px 24px;
   font-size: 16px;
