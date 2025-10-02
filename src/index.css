@@ -34,7 +34,7 @@
 }
 
 .animate-gradient-text {
-  background: linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5, #FFD700);
+  background: linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5);
   background-size: 400% 400%;
   animation: gradientBackgroundText 6s ease infinite;
   -webkit-background-clip: text;
@@ -77,7 +77,7 @@
 }
 
 .animate-gradient-button {
-  background: linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5, #FFD700);
+  background: linear-gradient(90deg, #FF0066, #00A1FF, #9B4DE5);
   background-size: 300% 300%;
   animation: gradientMove 4s ease infinite;
   color: white;
