@@ -42,6 +42,9 @@ interface OrganizerProfile {
   payment_integrations_config?: any;
   primary_color?: string;
   theme?: string;
+  color_mode?: string;
+  gradient_classes?: string;
+  custom_gradient_colors?: string;
 }
 
 const CampaignPage = () => {
@@ -127,6 +130,73 @@ const CampaignPage = () => {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
+  // Function to generate gradient style from custom colors
+  const getCustomGradientStyle = (customColorsJson: string) => {
+    try {
+      const colors = JSON.parse(customColorsJson);
+      if (Array.isArray(colors) && colors.length >= 2) {
+        if (colors.length === 2) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]})`;
+        } else if (colors.length === 3) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing custom gradient colors:', error);
+    }
+    return null;
+  };
+
+  // Function to get style object for gradient or solid color
+  const getColorStyle = (isBackground: boolean = true) => {
+    const colorMode = organizerProfile?.color_mode || 'solid';
+    const primaryColor = organizerProfile?.primary_color || '#3B82F6';
+
+    if (colorMode === 'gradient') {
+      const gradientClasses = organizerProfile?.gradient_classes;
+      const customGradientColors = organizerProfile?.custom_gradient_colors;
+
+      // Custom gradient
+      if (gradientClasses === 'custom' && customGradientColors) {
+        const gradientStyle = getCustomGradientStyle(customGradientColors);
+        if (gradientStyle) {
+          return {
+            background: gradientStyle,
+            backgroundSize: '200% 200%'
+          };
+        }
+      }
+
+      // Predefined gradient - return empty object, will use className instead
+      return {};
+    }
+
+    // Solid color
+    return isBackground ? { backgroundColor: primaryColor } : { color: primaryColor };
+  };
+
+  // Function to get className for gradients
+  const getColorClassName = (baseClasses: string = '') => {
+    const colorMode = organizerProfile?.color_mode || 'solid';
+
+    if (colorMode === 'gradient') {
+      const gradientClasses = organizerProfile?.gradient_classes;
+      const customGradientColors = organizerProfile?.custom_gradient_colors;
+
+      // Custom gradient
+      if (gradientClasses === 'custom' && customGradientColors) {
+        return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
+      }
+
+      // Predefined gradient
+      if (gradientClasses && gradientClasses !== 'custom') {
+        return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
+      }
+    }
+
+    return baseClasses;
+  };
+
   // Load organizer profile
   useEffect(() => {
     if (campaign?.user_id) {
@@ -135,7 +205,7 @@ const CampaignPage = () => {
         try {
           const { data, error } = await supabase
             .from('public_profiles_view')
-            .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme')
+            .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
             .eq('id', campaign.user_id)
             .maybeSingle();
           
@@ -685,7 +755,10 @@ const CampaignPage = () => {
             <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white bg-opacity-95 backdrop-blur-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-lg">
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <span className="text-xs sm:text-sm text-gray-600">Participe por apenas</span>
-                <span className="font-bold text-sm sm:text-base md:text-lg" style={{ color: primaryColor }}>
+                <span
+                  className={getColorClassName("font-bold text-sm sm:text-base md:text-lg bg-clip-text text-transparent")}
+                  style={getColorStyle(true)}
+                >
                   {formatCurrency(campaign.ticket_price)}
                 </span>
               </div>
@@ -745,8 +818,8 @@ const CampaignPage = () => {
                   />
                 ) : (
                   <div
-                    className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md"
-                    style={{ backgroundColor: primaryColor }}
+                    className={getColorClassName("w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md")}
+                    style={getColorStyle(true)}
                   >
                     {organizerProfile.name ? organizerProfile.name.charAt(0).toUpperCase() : 'O'}
                   </div>
@@ -844,9 +917,9 @@ const CampaignPage = () => {
             <div className="w-full space-y-1">
               {campaign.prizes.map((prize: any, index: number) => (
                 <div key={prize.id} className="flex items-center justify-center space-x-1.5">
-                  <div 
-                    className="w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs"
-                    style={{ backgroundColor: primaryColor }}
+                  <div
+                    className={getColorClassName("w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs")}
+                    style={getColorStyle(true)}
                   >
                     {index + 1}
                   </div>
@@ -910,8 +983,8 @@ const CampaignPage = () => {
                       {selectedQuotas.sort((a, b) => a - b).map(quota => (
                         <span
                           key={quota}
-                          className="px-2 py-1 text-white rounded text-xs font-medium"
-                          style={{ backgroundColor: primaryColor }}
+                          className={getColorClassName("px-2 py-1 text-white rounded text-xs font-medium")}
+                          style={getColorStyle(true)}
                         >
                           {quota.toString().padStart(3, '0')}
                         </span>
@@ -943,9 +1016,9 @@ const CampaignPage = () => {
                           {formatCurrency(currentPromotionInfo.originalTotal)}
                         </div>
                       )}
-                      <div 
-                        className={`text-xl font-bold ${currentPromotionInfo ? 'text-green-600' : ''}`}
-                        style={!currentPromotionInfo ? { color: primaryColor } : {}}
+                      <div
+                        className={currentPromotionInfo ? 'text-xl font-bold text-green-600' : getColorClassName('text-xl font-bold bg-clip-text text-transparent')}
+                        style={!currentPromotionInfo ? getColorStyle(true) : {}}
                       >
                         {formatCurrency(getCurrentTotalValue())}
                       </div>
@@ -955,8 +1028,8 @@ const CampaignPage = () => {
                   <button
                     onClick={handleOpenReservationModal}
                     disabled={selectedQuotas.length === 0}
-                    className="w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ backgroundColor: primaryColor }}
+                    className={getColorClassName("w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed")}
+                    style={getColorStyle(true)}
                   >
                     {isCampaignAvailable ? 'Reservar Cotas Selecionadas' : 'Campanha Indisponível'}
                   </button>
@@ -1038,11 +1111,11 @@ const CampaignPage = () => {
                 </span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                <div 
-                  className="h-3 rounded-full transition-all duration-300"
-                  style={{ 
+                <div
+                  className={getColorClassName("h-3 rounded-full transition-all duration-300")}
+                  style={{
                     width: `${getProgressPercentage()}%`,
-                    backgroundColor: primaryColor 
+                    ...getColorStyle(true)
                   }}
                 />
               </div>
@@ -1086,9 +1159,9 @@ const CampaignPage = () => {
               </h3>
               
               <div className="flex items-center justify-center space-x-2">
-                <div 
-                  className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
-                  style={{ backgroundColor: primaryColor }}
+                <div
+                  className={getColorClassName("w-10 h-10 rounded-lg flex items-center justify-center text-white")}
+                  style={getColorStyle(true)}
                 >
                   <Trophy className="h-5 w-5" />
                 </div>
