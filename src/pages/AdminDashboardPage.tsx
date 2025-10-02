@@ -1,21 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Users,
-  BarChart3,
-  Settings,
-  Shield,
-  TrendingUp,
-  UserCheck,
-  UserX,
-  Eye,
-  Edit,
-  Trash2,
-  Search,
-  Filter,
-  Download,
-  RefreshCw,
-  LogOut
-} from 'lucide-react';
+import { Users, BarChart3, Settings, Shield, TrendingUp, UserCheck, UserX, Eye, CreditCard as Edit, Trash2, Search, Filter, Download, RefreshCw, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
