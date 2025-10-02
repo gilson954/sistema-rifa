@@ -44,7 +44,7 @@ interface OrganizerProfile {
   theme?: string;
 }
 
-const CampaignPage: React.FC = () => {
+const CampaignPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -480,8 +480,6 @@ const CampaignPage: React.FC = () => {
 
   // 🔥 Funções para gradiente personalizado ou predefinido
   const getColorClassName = () => {
-    // campaign.gradientClasses is expected to be a string with Tailwind gradient classes
-    // For pre-defined gradients we return that class string (e.g. "bg-gradient-to-r from-purple-500 to-pink-500 animate-[...]")
     if (campaign?.gradientClasses && campaign.gradientClasses !== 'custom') {
       return campaign.gradientClasses;
     }
@@ -489,31 +487,28 @@ const CampaignPage: React.FC = () => {
   };
 
   const getColorStyle = (isText = false) => {
-    // When campaign stores a custom gradient, it should provide an array of color strings in campaign.customGradientColors
-    // Example: ['#ff7a18', '#af002d', '#319197']
-    if (campaign?.gradientClasses === 'custom' && Array.isArray(campaign?.customGradientColors) && campaign.customGradientColors.length > 0) {
+    if (campaign?.gradientClasses === 'custom' && Array.isArray(campaign.customGradientColors) && campaign.customGradientColors.length > 0) {
       const gradient = `linear-gradient(90deg, ${campaign.customGradientColors.join(', ')})`;
-      return {
+      const style: React.CSSProperties = {
         background: gradient,
         backgroundSize: '200% 200%',
-        animation: 'gradientMove 4s ease infinite',
-        WebkitBackgroundClip: isText ? 'text' : undefined,
-        backgroundClip: isText ? 'text' : undefined,
-        color: isText ? 'transparent' : undefined
-      } as React.CSSProperties;
+        animation: 'gradientMove 4s ease infinite'
+      };
+      if (isText) {
+        // For bg-clip-text to work we need to set text transparent and background-clip: text
+        (style as any).WebkitBackgroundClip = 'text';
+        (style as any).backgroundClip = 'text';
+        style.color = 'transparent';
+      }
+      return style;
     }
-
-    // No custom style for non-custom gradients
-    return {} as React.CSSProperties;
+    return {};
   };
 
   // Small helper component to render text with gradient when configured
   const GradientText: React.FC<{ className?: string; children: React.ReactNode }> = ({ className = '', children }) => {
-    // If campaign.gradientClasses points to a pre-defined tailwind gradient, we apply it via className
-    // If campaign.gradientClasses === 'custom', getColorStyle will provide inline background gradient compatible with bg-clip-text
     const predefClasses = getColorClassName();
     const needsInlineStyle = campaign?.gradientClasses === 'custom';
-
     return (
       <span
         className={`bg-clip-text text-transparent ${predefClasses} ${className}`}
@@ -735,7 +730,7 @@ const CampaignPage: React.FC = () => {
               </div>
             )}
 
-            {/* Price Badge - agora com suporte a gradiente (predefinido ou custom) */}
+            {/* Price Badge - now supports predef/custom gradient */}
             <div className="absolute top-4 left-4 bg-white bg-opacity-95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-600">Participe por apenas</span>
@@ -959,3 +954,351 @@ const CampaignPage: React.FC = () => {
               {/* Manual Mode - Selection Summary */}
               {selectedQuotas.length > 0 && (
                 <div className={`${themeClasses.background} rounded-xl p-4 border ${themeClasses.border}`}>
+                  <h3 className={`text-base font-bold ${themeClasses.text} mb-3`}>
+                    Cotas Selecionadas
+                  </h3>
+
+                  <div className="mb-3">
+                    <div className={`text-sm ${themeClasses.textSecondary} mb-2`}>
+                      Números selecionados:
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedQuotas.sort((a, b) => a - b).map(quota => (
+                        <span
+                          key={quota}
+                          className="px-2 py-1 text-white rounded text-xs font-medium"
+                          style={{ backgroundColor: primaryColor }}
+                        >
+                          {quota.toString().padStart(3, '0')}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Promotion Info */}
+                  {currentPromotionInfo && (
+                    <div className="mb-3 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="text-center">
+                        <div className="text-xs font-medium text-green-800 dark:text-green-200 mb-1">
+                          🎉 Promoção Aplicada: {currentPromotionInfo.discountPercentage}% OFF
+                        </div>
+                        <div className="text-xs text-green-700 dark:text-green-300">
+                          Economia de {formatCurrency(currentPromotionInfo.savings)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center mb-6">
+                    <span className={`font-medium ${themeClasses.text}`}>
+                      {selectedQuotas.length} {selectedQuotas.length === 1 ? 'cota' : 'cotas'}
+                    </span>
+                    <div className="text-right">
+                      {currentPromotionInfo && (
+                        <div className={`text-xs ${themeClasses.textSecondary} line-through`}>
+                          {formatCurrency(currentPromotionInfo.originalTotal)}
+                        </div>
+                      )}
+
+                      {/* Total value - use gradient when no promotion is applied */}
+                      {currentPromotionInfo ? (
+                        <div className="text-xl font-bold text-green-600">
+                          {formatCurrency(getCurrentTotalValue())}
+                        </div>
+                      ) : (
+                        <GradientText className="text-xl font-bold">
+                          {formatCurrency(getCurrentTotalValue())}
+                        </GradientText>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleOpenReservationModal}
+                    disabled={selectedQuotas.length === 0}
+                    className="w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    {isCampaignAvailable ? 'Reservar Cotas Selecionadas' : 'Campanha Indisponível'}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Campaign Unavailable Alert */}
+              {!isCampaignAvailable && (
+                <div className="bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-800 rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <AlertTriangle className="h-6 w-6 text-orange-700 dark:text-orange-400 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
+                        Campanha Indisponível
+                      </h4>
+                      <p className="text-sm text-orange-700 dark:text-orange-300">
+                        Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            <QuotaSelector
+              ticketPrice={campaign.ticket_price}
+              minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
+              maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 1000}
+              onQuantityChange={handleQuantityChange}
+              initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
+              mode="automatic"
+              promotionInfo={currentPromotionInfo}
+              promotions={campaign.promotions || []}
+              primaryColor={primaryColor}
+              campaignTheme={campaignTheme}
+              onReserve={isCampaignAvailable ? handleOpenReservationModal : undefined}
+              reserving={reserving}
+              disabled={!isCampaignAvailable}
+            />
+            </>
+          )}
+        </section>
+
+        {/* 6. Descrição/Regulamento - Full width card */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4`}>
+          <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center`}>
+            Descrição/Regulamento
+          </h3>
+
+          {/* Campaign Description */}
+          {campaign.description && isValidDescription(campaign.description) ? (
+            <div 
+              className={`${themeClasses.textSecondary} mb-4 prose prose-base max-w-none ql-editor`}
+              dangerouslySetInnerHTML={{ __html: campaign.description }}
+            />
+          ) : (
+            <div className={`${themeClasses.textSecondary} mb-4 text-center italic`}>
+              <p>Nenhuma descrição fornecida para esta campanha.</p>
+            </div>
+          )}
+
+          {/* Draw Date */}
+          {campaign.show_draw_date && campaign.draw_date && (
+            <div className="flex items-center justify-center space-x-2 mb-4">
+              <Calendar className={`h-5 w-5 ${themeClasses.textSecondary}`} />
+              <span className={`text-base ${themeClasses.text}`}>
+                Data de sorteio: <strong>{formatDate(campaign.draw_date)}</strong>
+              </span>
+            </div>
+          )}
+
+          {/* Progress Bar - Only show if show_percentage is enabled */}
+          {campaign.show_percentage && (
+            <div className="max-w-xl mx-auto">
+              <div className="flex justify-center items-center mb-3">
+                <span className={`text-base font-bold ${themeClasses.text}`}>
+                  {getProgressPercentage()}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                <div 
+                  className="h-3 rounded-full transition-all duration-300"
+                  style={{ 
+                    width: `${getProgressPercentage()}%`,
+                    backgroundColor: primaryColor 
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* 7. Métodos de Pagamento e Método de Sorteio - Side by side layout */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          {/* Payment Methods Card - Left */}
+          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
+              Seção de Métodos de Pagamento
+            </h3>
+
+            <div className="space-y-2">
+              {getConfiguredPaymentMethods().map((method, index) => (
+                <div
+                  key={index}
+                  className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}>
+                  <div 
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                    style={{ backgroundColor: method.color }}
+                  >
+                    {method.icon}
+                  </div>
+                  <span className={`font-medium text-sm ${themeClasses.text}`}>
+                    {method.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Draw Method Card - Right */}
+          <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
+              Seção de Método de Sorteio
+            </h3>
+
+            <div className="flex items-center justify-center space-x-2">
+              <div 
+                className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
+                style={{ backgroundColor: primaryColor }}
+              >
+                <Trophy className="h-5 w-5" />
+              </div>
+              <div className="text-center">
+                <p className={`font-medium text-sm ${themeClasses.text}`}>
+                  {campaign.draw_method}
+                </p>
+                <p className={`text-xs ${themeClasses.textSecondary}`}>
+                  Sorteio transparente e confiável
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Share Campaign Section - Full width at bottom */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
+          <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
+            Compartilhar Campanha
+          </h3>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto">
+            {Object.entries(shareSectionConfig).map(([platform, config]) => {
+              const IconComponent = config.icon;
+              return (
+                <button
+                  key={platform}
+                  onClick={() => handleShare(platform)}
+                  className={`flex flex-col items-center space-y-1.5 p-3 rounded-lg border ${themeClasses.border} hover:shadow-lg transition-all duration-200 group`}
+                  style={{ 
+                    backgroundColor: themeClasses.cardBg === 'bg-white' ? '#ffffff' : '#1f2937',
+                    borderColor: config.color + '20'
+                  }}
+                >
+                  <div 
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-200"
+                    style={{ backgroundColor: config.color }}
+                  >
+                    <IconComponent size={20} />
+                  </div>
+                  <span className={`text-xs font-medium ${themeClasses.text}`}>
+                    {config.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* REMOVED CONFIDENTIAL SECTIONS */}
+        {/* 
+          The following sections have been removed from public view as they contain confidential information:
+          - Campaign Stats Card (total_tickets, sold_tickets, available_tickets, reservation_timeout_minutes)
+          - Campaign Details Card (ticket_price, min_tickets_per_purchase, max_tickets_per_purchase, campaign_model)
+
+          These sections are only appropriate for the campaign organizer's dashboard view.
+        */}
+      </main>
+
+      {/* Fullscreen Image Modal */}
+      {fullscreenImageIndex !== null && campaign?.prize_image_urls && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
+          onClick={handleCloseFullscreen}
+        >
+          <div 
+            className="relative max-w-full max-h-full"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <img
+              src={campaign.prize_image_urls[fullscreenImageIndex]}
+              alt={campaign.title}
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+
+            {/* Navigation Buttons - Only show if multiple images */}
+            {campaign.prize_image_urls.length > 1 && (
+              <>
+                {/* Previous Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToPreviousFullscreenImage();
+                  }}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
+                  aria-label="Imagem anterior"
+                >
+                  <ChevronLeft className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
+                </button>
+
+                {/* Next Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToNextFullscreenImage();
+                  }}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
+                  aria-label="Próxima imagem"
+                >
+                  <ChevronRight className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
+                </button>
+              </>
+            )}
+
+            {/* Image Counter */}
+            {campaign.prize_image_urls.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm font-medium">
+                {fullscreenImageIndex + 1} / {campaign.prize_image_urls.length}
+              </div>
+            )}
+
+            <button
+              onClick={handleCloseFullscreen}
+              className="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-colors duration-200 flex items-center justify-center"
+              aria-label="Fechar imagem em tela cheia"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Reservation Modal */}
+      <ReservationModal
+        isOpen={showReservationModal}
+        onClose={() => setShowReservationModal(false)}
+        onReserve={handleReservationSubmit}
+        quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
+        totalValue={getCurrentTotalValue()}
+        selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
+        campaignTitle={campaign.title}
+        primaryColor={primaryColor}
+        campaignTheme={campaignTheme}
+        reserving={reserving}
+        reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
+      />
+
+      {/* Inline note: add the following CSS to your globals.css/index.css to animate custom gradients
+         @keyframes gradientMove {
+           0% { background-position: 0% 50%; }
+           50% { background-position: 100% 50%; }
+           100% { background-position: 0% 50%; }
+         }
+      */}
+    </div>
+  );
+};
+
+export default CampaignPage;
