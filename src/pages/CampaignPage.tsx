@@ -803,17 +803,45 @@ const CampaignPage = () => {
               {/* Avatar / Logo à esquerda */}
               <div className="flex-shrink-0">
                 {organizerProfile.logo_url ? (
-                  <img
-                    src={organizerProfile.logo_url}
-                    alt={organizerProfile.name}
-                    className="w-24 h-24 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 border-purple-500 shadow-md"
-                  />
+                  organizerProfile.color_mode === 'gradient' ? (
+                    <div
+                      className={getColorClassName("p-1 rounded-lg shadow-md")}
+                      style={getColorStyle(true)}
+                    >
+                      <img
+                        src={organizerProfile.logo_url}
+                        alt={organizerProfile.name}
+                        className="w-[88px] h-[88px] rounded-md object-contain bg-white dark:bg-gray-800"
+                      />
+                    </div>
+                  ) : (
+                    <img
+                      src={organizerProfile.logo_url}
+                      alt={organizerProfile.name}
+                      className="w-24 h-24 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
+                      style={{ borderColor: organizerProfile.primary_color || '#3B82F6' }}
+                    />
+                  )
                 ) : organizerProfile.avatar_url ? (
-                  <img
-                    src={organizerProfile.avatar_url}
-                    alt={organizerProfile.name}
-                    className="w-16 h-16 rounded-full object-cover border-4 border-purple-500 shadow-md"
-                  />
+                  organizerProfile.color_mode === 'gradient' ? (
+                    <div
+                      className={getColorClassName("p-1 rounded-full shadow-md")}
+                      style={getColorStyle(true)}
+                    >
+                      <img
+                        src={organizerProfile.avatar_url}
+                        alt={organizerProfile.name}
+                        className="w-14 h-14 rounded-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <img
+                      src={organizerProfile.avatar_url}
+                      alt={organizerProfile.name}
+                      className="w-16 h-16 rounded-full object-cover border-4 shadow-md"
+                      style={{ borderColor: organizerProfile.primary_color || '#3B82F6' }}
+                    />
+                  )
                 ) : (
                   <div
                     className={getColorClassName("w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md")}
@@ -880,33 +908,48 @@ const CampaignPage = () => {
                 const originalValue = promo.ticketQuantity * campaign.ticket_price;
                 const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0;
                 const colorMode = organizerProfile?.color_mode || 'solid';
-                const gradientClasses = organizerProfile?.gradient_classes;
-                const customGradientColors = organizerProfile?.custom_gradient_colors;
-
-                // Determinar se deve usar gradiente
-                const useGradient = colorMode === 'gradient';
-                const isCustomGradient = useGradient && gradientClasses === 'custom' && customGradientColors;
 
                 return (
-                  <button
-                    key={promo.id}
-                    type="button"
-                    onClick={() => {
-                    }}
-                    className={`flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 shadow-sm border-2 ${
-                      campaignTheme === 'claro' ? 'border-gray-300' : 'border-gray-600'
-                    }`}
-                    style={{
-                      background: 'transparent',
-                      }}
-                    >
-                    <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
-                      {promo.ticketQuantity} cotas por {formatCurrency(originalValue)}
-                      </span>
-                      <span className="ml-3 text-sm font-extrabold text-green-500 dark:text-green-300">
-                        {discountPercentage}%
-                      </span>
-                    </button>
+                  <div key={promo.id}>
+                    {colorMode === 'gradient' ? (
+                      <div
+                        className={getColorClassName("p-0.5 rounded-lg shadow-sm")}
+                        style={getColorStyle(true)}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {}}
+                          className={`flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 ${
+                            themeClasses.cardBg
+                          }`}
+                        >
+                          <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
+                            {promo.ticketQuantity} cotas por {formatCurrency(originalValue)}
+                          </span>
+                          <span className="ml-3 text-sm font-extrabold text-green-500 dark:text-green-300">
+                            {discountPercentage}%
+                          </span>
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {}}
+                        className={`flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 shadow-sm border-2`}
+                        style={{
+                          background: 'transparent',
+                          borderColor: organizerProfile?.primary_color || (campaignTheme === 'claro' ? '#d1d5db' : '#4b5563')
+                        }}
+                      >
+                        <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
+                          {promo.ticketQuantity} cotas por {formatCurrency(originalValue)}
+                        </span>
+                        <span className="ml-3 text-sm font-extrabold text-green-500 dark:text-green-300">
+                          {discountPercentage}%
+                        </span>
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>
