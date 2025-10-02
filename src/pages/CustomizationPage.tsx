@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Plus, ArrowRight, X, Loader2, Trash2, ExternalLink, CheckCircle, AlertCircle, Clock, Sparkles, Palette } from 'lucide-react';
+import { Upload, Plus, ArrowRight, X, Loader2, Trash2, ExternalLink, CheckCircle, AlertCircle, Clock, Sparkles, Palette, Eye } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { CustomDomainsAPI, CustomDomain } from '../lib/api/customDomains';
@@ -506,23 +506,7 @@ const CustomizationPage = () => {
                         <div className={`text-xs ${getThemeClasses('claro').textSecondary}`}>
                           R$ 5,00 por bilhete
                         </div>
-                        <div className={`${getThemeClasses('escuro-preto').cardBg} rounded-lg p-3 space-y-2`}>
-                          <div className={`text-xs font-medium ${getThemeClasses('escuro-preto').textSecondary}`}>
-                            Progresso
-                          </div>
-                          <div className="bg-gray-700 rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full w-2/3 ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                              style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                            ></div>
-                          </div>
-                        </div>
-                        <div 
-                          className={`text-white text-xs py-2 px-3 rounded-lg text-center font-semibold shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                        >
-                          Participar
-                        </div>getThemeClasses('claro').cardBg} rounded-lg p-3 space-y-2`}>
+                        <div className={`${getThemeClasses('claro').cardBg} rounded-lg p-3 space-y-2`}>
                           <div className={`text-xs font-medium ${getThemeClasses('claro').textSecondary}`}>
                             Progresso
                           </div>
