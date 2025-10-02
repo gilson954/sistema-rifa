@@ -147,6 +147,8 @@ const LoginPage = () => {
               background: 'linear-gradient(140deg, #af4e2b, #8a5f1, #9373f0)',
               backgroundSize: '180% 180%'
             }}
+          />
+        </div>
 
         <motion.div
           className="max-w-md w-full"
