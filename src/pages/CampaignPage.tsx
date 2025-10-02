@@ -43,7 +43,7 @@ interface OrganizerProfile {
   payment_integrations_config?: any;
   primary_color?: string;
   theme?: string;
-  // Adição para o plano do bolt
+  // **CORREÇÃO APLICADA AQUI:** Adição da interface de configuração do gradiente
   gradient_config?: {
     gradientClasses: 'solid' | 'preset' | 'custom';
     customGradientColors: string[];
@@ -154,7 +154,7 @@ const CampaignPage = () => {
         try {
           const { data, error } = await supabase
             .from('profiles')
-            // CORREÇÃO: Adicionando 'logo_url' e 'gradient_config'
+            // **CORREÇÃO APLICADA AQUI:** Adicionando 'logo_url' e 'gradient_config' na consulta
             .select('id, name, email, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, gradient_config')
             .eq('id', campaign.user_id)
             .single();
@@ -179,15 +179,19 @@ const CampaignPage = () => {
   const primaryColor = organizerProfile?.primary_color || '#3B82F6'; // Default blue
   const themeClasses = getThemeClasses(campaignTheme);
   
-  // --- Funções de Ajuda para o Tema/Gradiente (Conforme plano do Bolt) ---
+  // --- Funções de Ajuda para o Tema/Gradiente (Plano do Bolt) ---
   
-  // Variáveis simuladas para o estado do gradiente customizado (devem vir do profile/campaign)
   const gradientConfig = organizerProfile?.gradient_config || {
     gradientClasses: 'solid', // Default para sólido
     customGradientColors: ['#9333EA', '#EC4899', '#3B82F6'], // Cores de exemplo (Fallback)
     selectedGradient: 'from-purple-600 via-pink-500 to-blue-600'
   };
 
+  /**
+   * Retorna os estilos CSS diretos para a cor ou gradiente.
+   * Usado para aplicar o gradiente customizado (que é mais complexo que as classes do Tailwind).
+   * @param isGradientText Se o estilo é para ser aplicado a um texto com gradiente (bg-clip-text text-transparent).
+   */
   const getColorStyle = (isGradientText: boolean): React.CSSProperties => {
     // Se não for para aplicar o gradiente no texto, retorna a cor primária sólida.
     if (!isGradientText) {
@@ -212,11 +216,16 @@ const CampaignPage = () => {
     return { color: primaryColor };
   };
 
+  /**
+   * Retorna as classes CSS adicionais (principalmente para gradientes predefinidos e animação).
+   * @param baseClasses As classes CSS base para o elemento.
+   */
   const getColorClassName = (baseClasses: string): string => {
     let finalClasses = baseClasses;
 
     if (gradientConfig.gradientClasses === 'custom') {
       // Adiciona a classe de animação para gradiente customizado
+      // O estilo de background é injetado via `getColorStyle`
       finalClasses = `${finalClasses} animate-gradient-x`;
       
     } else if (gradientConfig.gradientClasses === 'preset' && gradientConfig.selectedGradient) {
@@ -754,7 +763,7 @@ const CampaignPage = () => {
             <div className="absolute top-4 left-4 bg-white bg-opacity-95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-600">Participe por apenas</span>
-                {/* [CORREÇÃO DO BUG]: Aplicando as funções auxiliares conforme o plano do bolt */}
+                {/* **CORREÇÃO APLICADA AQUI:** Uso das funções de gradiente */}
                 <span
                   className={getColorClassName("font-bold text-base bg-clip-text text-transparent")}
                   style={getColorStyle(true)}
