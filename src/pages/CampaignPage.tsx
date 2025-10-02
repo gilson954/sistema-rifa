@@ -148,7 +148,7 @@ const CampaignPage = () => {
   };
 
   // Function to get style object for gradient or solid color
-  const getColorStyle = (isBackground: boolean = true) => {
+  const getColorStyle = (isBackground: boolean = true, isText: boolean = false) => {
     const colorMode = organizerProfile?.color_mode || 'solid';
     const primaryColor = organizerProfile?.primary_color || '#3B82F6';
 
@@ -162,7 +162,13 @@ const CampaignPage = () => {
         if (gradientStyle) {
           return {
             background: gradientStyle,
-            backgroundSize: '200% 200%'
+            backgroundSize: '200% 200%',
+            ...(isText && {
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              color: 'transparent'
+            })
           };
         }
       }
@@ -756,8 +762,8 @@ const CampaignPage = () => {
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <span className="text-xs sm:text-sm text-gray-600">Participe por apenas</span>
                 <span
-                  className={getColorClassName("font-bold text-sm sm:text-base md:text-lg bg-clip-text text-transparent")}
-                  style={getColorStyle(true)}
+                  className={getColorClassName("font-bold text-sm sm:text-base md:text-lg")}
+                  style={getColorStyle(true, true)}
                 >
                   {formatCurrency(campaign.ticket_price)}
                 </span>
@@ -1069,8 +1075,8 @@ const CampaignPage = () => {
                         </div>
                       )}
                       <div
-                        className={currentPromotionInfo ? 'text-xl font-bold text-green-600' : getColorClassName('text-xl font-bold bg-clip-text text-transparent')}
-                        style={!currentPromotionInfo ? getColorStyle(true) : {}}
+                        className={currentPromotionInfo ? 'text-xl font-bold text-green-600' : getColorClassName('text-xl font-bold')}
+                        style={!currentPromotionInfo ? getColorStyle(true, true) : {}}
                       >
                         {formatCurrency(getCurrentTotalValue())}
                       </div>
