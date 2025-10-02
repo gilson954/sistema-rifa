@@ -1,4 +1,3 @@
-// src/pages/LoginPage.tsx
 import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react'
