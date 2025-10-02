@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  BarChart3, 
-  Settings, 
-  Shield, 
-  TrendingUp, 
-  UserCheck, 
+import {
+  Users,
+  BarChart3,
+  Settings,
+  Shield,
+  TrendingUp,
+  UserCheck,
   UserX,
   Eye,
   Edit,
@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import { supabase } from '../lib/supabase';
 
 interface UserProfile {
@@ -39,6 +40,7 @@ interface DashboardStats {
 const AdminDashboardPage = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { showSuccess, showError, showWarning } = useNotification();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
@@ -128,22 +130,22 @@ const AdminDashboardPage = () => {
 
       if (error) {
         console.error('Error updating user admin status:', error);
-        alert('Erro ao atualizar status de administrador');
+        showError('Erro ao atualizar status de administrador');
       } else {
         // Refresh users list
         await fetchUsers();
-        alert(`Usuário ${!currentAdminStatus ? 'promovido a' : 'removido de'} administrador com sucesso`);
+        showSuccess(`Usuário ${!currentAdminStatus ? 'promovido a' : 'removido de'} administrador com sucesso`);
       }
     } catch (error) {
       console.error('Error updating user admin status:', error);
-      alert('Erro ao atualizar status de administrador');
+      showError('Erro ao atualizar status de administrador');
     }
   };
 
   // Delete user
   const deleteUser = async (userId: string, userName: string) => {
     if (userId === user?.id) {
-      alert('Você não pode deletar sua própria conta');
+      showWarning('Você não pode deletar sua própria conta');
       return;
     }
 
@@ -153,15 +155,15 @@ const AdminDashboardPage = () => {
 
         if (error) {
           console.error('Error deleting user:', error);
-          alert('Erro ao deletar usuário');
+          showError('Erro ao deletar usuário');
         } else {
           // Refresh users list
           await fetchUsers();
-          alert('Usuário deletado com sucesso');
+          showSuccess('Usuário deletado com sucesso');
         }
       } catch (error) {
         console.error('Error deleting user:', error);
-        alert('Erro ao deletar usuário');
+        showError('Erro ao deletar usuário');
       }
     }
   };

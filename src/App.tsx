@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import Layout from './components/Layout';
 import DashboardLayout from './components/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -42,8 +43,9 @@ import EmailConfirmationSuccessPage from './pages/EmailConfirmationSuccessPage';
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
+      <NotificationProvider>
+        <Router>
+          <Routes>
           {/* Rotas Públicas */}
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
@@ -116,7 +118,8 @@ function App() {
             />
           </Route>
         </Routes>
-      </Router>
+        </Router>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

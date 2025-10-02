@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, X, ArrowRight, Trash2, AlertCircle, CheckCircle, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import { PaymentsAPI, PaymentIntegrationConfig } from '../lib/api/payments';
+import ConfirmModal from '../components/ConfirmModal';
 
 const PaymentIntegrationsPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showSuccess, showError, showWarning } = useNotification();
 
   // Modal states
   const [showFluxsisModal, setShowFluxsisModal] = useState(false);
@@ -29,6 +32,12 @@ const PaymentIntegrationsPage = () => {
   // Loading states
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Confirm modal states
+  const [showDeleteFluxsisConfirm, setShowDeleteFluxsisConfirm] = useState(false);
+  const [showDeletePay2mConfirm, setShowDeletePay2mConfirm] = useState(false);
+  const [showDeletePaggueConfirm, setShowDeletePaggueConfirm] = useState(false);
+  const [showDeleteEfiBankConfirm, setShowDeleteEfiBankConfirm] = useState(false);
 
   // Load payment configurations when component mounts
   useEffect(() => {
@@ -99,7 +108,7 @@ const PaymentIntegrationsPage = () => {
 
   const handleSaveFluxsisConfig = async () => {
     if (!user || !fluxsisConfig.api_key.trim() || !fluxsisConfig.secret_key.trim()) {
-      alert('Por favor, preencha todos os campos obrigatórios');
+      showWarning('Por favor, preencha todos os campos obrigatórios');
       return;
     }
 
@@ -120,27 +129,27 @@ const PaymentIntegrationsPage = () => {
       
       if (error) {
         console.error('Error saving Fluxsis config:', error);
-        alert('Erro ao salvar configuração. Tente novamente.');
+        showError('Erro ao salvar configuração. Tente novamente.');
       } else {
         setIsFluxsisConfigured(true);
         setShowFluxsisModal(false);
-        alert('Configuração do Fluxsis salva com sucesso!');
+        showSuccess('Configuração do Fluxsis salva com sucesso!');
         localStorage.setItem('isPaymentConfigured', 'true');
       }
     } catch (error) {
       console.error('Error saving Fluxsis config:', error);
-      alert('Erro ao salvar configuração. Tente novamente.');
+      showError('Erro ao salvar configuração. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteFluxsisConfig = async () => {
-    if (!user) return;
+  const handleDeleteFluxsisConfig = () => {
+    setShowDeleteFluxsisConfirm(true);
+  };
 
-    if (!window.confirm('Tem certeza que deseja remover a configuração do Fluxsis?')) {
-      return;
-    }
+  const confirmDeleteFluxsisConfig = async () => {
+    if (!user) return;
 
     setDeleting(true);
     try {
@@ -152,18 +161,20 @@ const PaymentIntegrationsPage = () => {
       
       if (error) {
         console.error('Error deleting Fluxsis config:', error);
-        alert('Erro ao remover configuração. Tente novamente.');
+        showError('Erro ao remover configuração. Tente novamente.');
       } else {
         setIsFluxsisConfigured(false);
         setFluxsisConfig({ api_key: '', secret_key: '', webhook_url: '' });
         setShowFluxsisModal(false);
-        alert('Configuração do Fluxsis removida com sucesso!');
+        setShowDeleteFluxsisConfirm(false);
+        showSuccess('Configuração do Fluxsis removida com sucesso!');
       }
     } catch (error) {
       console.error('Error deleting Fluxsis config:', error);
-      alert('Erro ao remover configuração. Tente novamente.');
+      showError('Erro ao remover configuração. Tente novamente.');
     } finally {
       setDeleting(false);
+      setShowDeleteFluxsisConfirm(false);
     }
   };
 
@@ -174,7 +185,7 @@ const PaymentIntegrationsPage = () => {
 
   const handleSavePay2mConfig = async () => {
     if (!user || !pay2mConfig.api_key.trim() || !pay2mConfig.secret_key.trim()) {
-      alert('Por favor, preencha todos os campos obrigatórios');
+      showWarning('Por favor, preencha todos os campos obrigatórios');
       return;
     }
 
@@ -195,27 +206,27 @@ const PaymentIntegrationsPage = () => {
       
       if (error) {
         console.error('Error saving Pay2m config:', error);
-        alert('Erro ao salvar configuração. Tente novamente.');
+        showError('Erro ao salvar configuração. Tente novamente.');
       } else {
         setIsPay2mConfigured(true);
         setShowPay2mModal(false);
-        alert('Configuração do Pay2m salva com sucesso!');
+        showSuccess('Configuração do Pay2m salva com sucesso!');
         localStorage.setItem('isPaymentConfigured', 'true');
       }
     } catch (error) {
       console.error('Error saving Pay2m config:', error);
-      alert('Erro ao salvar configuração. Tente novamente.');
+      showError('Erro ao salvar configuração. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeletePay2mConfig = async () => {
-    if (!user) return;
+  const handleDeletePay2mConfig = () => {
+    setShowDeletePay2mConfirm(true);
+  };
 
-    if (!window.confirm('Tem certeza que deseja remover a configuração do Pay2m?')) {
-      return;
-    }
+  const confirmDeletePay2mConfig = async () => {
+    if (!user) return;
 
     setDeleting(true);
     try {
@@ -227,18 +238,20 @@ const PaymentIntegrationsPage = () => {
       
       if (error) {
         console.error('Error deleting Pay2m config:', error);
-        alert('Erro ao remover configuração. Tente novamente.');
+        showError('Erro ao remover configuração. Tente novamente.');
       } else {
         setIsPay2mConfigured(false);
         setPay2mConfig({ api_key: '', secret_key: '', webhook_url: '' });
         setShowPay2mModal(false);
-        alert('Configuração do Pay2m removida com sucesso!');
+        setShowDeletePay2mConfirm(false);
+        showSuccess('Configuração do Pay2m removida com sucesso!');
       }
     } catch (error) {
       console.error('Error deleting Pay2m config:', error);
-      alert('Erro ao remover configuração. Tente novamente.');
+      showError('Erro ao remover configuração. Tente novamente.');
     } finally {
       setDeleting(false);
+      setShowDeletePay2mConfirm(false);
     }
   };
 
@@ -249,7 +262,7 @@ const PaymentIntegrationsPage = () => {
 
   const handleSavePaggueConfig = async () => {
     if (!user || !paggueConfig.api_key.trim() || !paggueConfig.secret_key.trim()) {
-      alert('Por favor, preencha todos os campos obrigatórios');
+      showWarning('Por favor, preencha todos os campos obrigatórios');
       return;
     }
 
@@ -270,27 +283,27 @@ const PaymentIntegrationsPage = () => {
       
       if (error) {
         console.error('Error saving Paggue config:', error);
-        alert('Erro ao salvar configuração. Tente novamente.');
+        showError('Erro ao salvar configuração. Tente novamente.');
       } else {
         setIsPaggueConfigured(true);
         setShowPaggueModal(false);
-        alert('Configuração do Paggue salva com sucesso!');
+        showSuccess('Configuração do Paggue salva com sucesso!');
         localStorage.setItem('isPaymentConfigured', 'true');
       }
     } catch (error) {
       console.error('Error saving Paggue config:', error);
-      alert('Erro ao salvar configuração. Tente novamente.');
+      showError('Erro ao salvar configuração. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeletePaggueConfig = async () => {
-    if (!user) return;
+  const handleDeletePaggueConfig = () => {
+    setShowDeletePaggueConfirm(true);
+  };
 
-    if (!window.confirm('Tem certeza que deseja remover a configuração do Paggue?')) {
-      return;
-    }
+  const confirmDeletePaggueConfig = async () => {
+    if (!user) return;
 
     setDeleting(true);
     try {
@@ -302,18 +315,20 @@ const PaymentIntegrationsPage = () => {
       
       if (error) {
         console.error('Error deleting Paggue config:', error);
-        alert('Erro ao remover configuração. Tente novamente.');
+        showError('Erro ao remover configuração. Tente novamente.');
       } else {
         setIsPaggueConfigured(false);
         setPaggueConfig({ api_key: '', secret_key: '', webhook_url: '' });
         setShowPaggueModal(false);
-        alert('Configuração do Paggue removida com sucesso!');
+        setShowDeletePaggueConfirm(false);
+        showSuccess('Configuração do Paggue removida com sucesso!');
       }
     } catch (error) {
       console.error('Error deleting Paggue config:', error);
-      alert('Erro ao remover configuração. Tente novamente.');
+      showError('Erro ao remover configuração. Tente novamente.');
     } finally {
       setDeleting(false);
+      setShowDeletePaggueConfirm(false);
     }
   };
 
@@ -324,7 +339,7 @@ const PaymentIntegrationsPage = () => {
 
   const handleSaveEfiBankConfig = async () => {
     if (!user || !efiBankConfig.client_id.trim() || !efiBankConfig.client_secret.trim()) {
-      alert('Por favor, preencha todos os campos obrigatórios');
+      showWarning('Por favor, preencha todos os campos obrigatórios');
       return;
     }
 
@@ -345,27 +360,27 @@ const PaymentIntegrationsPage = () => {
       
       if (error) {
         console.error('Error saving Efi Bank config:', error);
-        alert('Erro ao salvar configuração. Tente novamente.');
+        showError('Erro ao salvar configuração. Tente novamente.');
       } else {
         setIsEfiBankConfigured(true);
         setShowEfiBankModal(false);
-        alert('Configuração do Efi Bank salva com sucesso!');
+        showSuccess('Configuração do Efi Bank salva com sucesso!');
         localStorage.setItem('isPaymentConfigured', 'true');
       }
     } catch (error) {
       console.error('Error saving Efi Bank config:', error);
-      alert('Erro ao salvar configuração. Tente novamente.');
+      showError('Erro ao salvar configuração. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteEfiBankConfig = async () => {
-    if (!user) return;
+  const handleDeleteEfiBankConfig = () => {
+    setShowDeleteEfiBankConfirm(true);
+  };
 
-    if (!window.confirm('Tem certeza que deseja remover a configuração do Efi Bank?')) {
-      return;
-    }
+  const confirmDeleteEfiBankConfig = async () => {
+    if (!user) return;
 
     setDeleting(true);
     try {
@@ -377,18 +392,20 @@ const PaymentIntegrationsPage = () => {
       
       if (error) {
         console.error('Error deleting Efi Bank config:', error);
-        alert('Erro ao remover configuração. Tente novamente.');
+        showError('Erro ao remover configuração. Tente novamente.');
       } else {
         setIsEfiBankConfigured(false);
         setEfiBankConfig({ client_id: '', client_secret: '', webhook_url: '' });
         setShowEfiBankModal(false);
-        alert('Configuração do Efi Bank removida com sucesso!');
+        setShowDeleteEfiBankConfirm(false);
+        showSuccess('Configuração do Efi Bank removida com sucesso!');
       }
     } catch (error) {
       console.error('Error deleting Efi Bank config:', error);
-      alert('Erro ao remover configuração. Tente novamente.');
+      showError('Erro ao remover configuração. Tente novamente.');
     } finally {
       setDeleting(false);
+      setShowDeleteEfiBankConfirm(false);
     }
   };
 
@@ -916,6 +933,55 @@ const PaymentIntegrationsPage = () => {
           </div>
         </div>
       )}
+
+      {/* Confirm Delete Modals */}
+      <ConfirmModal
+        isOpen={showDeleteFluxsisConfirm}
+        title="Remover Configuração"
+        message="Tem certeza que deseja remover a configuração do Fluxsis? Esta ação não pode ser desfeita."
+        confirmText="Remover"
+        cancelText="Cancelar"
+        type="danger"
+        loading={deleting}
+        onConfirm={confirmDeleteFluxsisConfig}
+        onCancel={() => setShowDeleteFluxsisConfirm(false)}
+      />
+
+      <ConfirmModal
+        isOpen={showDeletePay2mConfirm}
+        title="Remover Configuração"
+        message="Tem certeza que deseja remover a configuração do Pay2m? Esta ação não pode ser desfeita."
+        confirmText="Remover"
+        cancelText="Cancelar"
+        type="danger"
+        loading={deleting}
+        onConfirm={confirmDeletePay2mConfig}
+        onCancel={() => setShowDeletePay2mConfirm(false)}
+      />
+
+      <ConfirmModal
+        isOpen={showDeletePaggueConfirm}
+        title="Remover Configuração"
+        message="Tem certeza que deseja remover a configuração do Paggue? Esta ação não pode ser desfeita."
+        confirmText="Remover"
+        cancelText="Cancelar"
+        type="danger"
+        loading={deleting}
+        onConfirm={confirmDeletePaggueConfig}
+        onCancel={() => setShowDeletePaggueConfirm(false)}
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteEfiBankConfirm}
+        title="Remover Configuração"
+        message="Tem certeza que deseja remover a configuração do Efi Bank? Esta ação não pode ser desfeita."
+        confirmText="Remover"
+        cancelText="Cancelar"
+        type="danger"
+        loading={deleting}
+        onConfirm={confirmDeleteEfiBankConfig}
+        onCancel={() => setShowDeleteEfiBankConfirm(false)}
+      />
     </div>
   );
 };

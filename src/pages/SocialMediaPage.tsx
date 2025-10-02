@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Plus, X, ArrowRight, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useNotification } from "../context/NotificationContext";
 import { supabase } from "../lib/supabase";
 import { socialMediaConfig } from "../components/SocialMediaIcons";
 
@@ -15,6 +16,7 @@ interface SocialNetwork {
 const SocialMediaPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showSuccess, showError } = useNotification();
   const [showModal, setShowModal] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState<SocialNetwork | null>(null);
   const [linkInput, setLinkInput] = useState("");
@@ -86,7 +88,7 @@ const SocialMediaPage = () => {
         .single();
 
       if (fetchError) {
-        alert("Erro ao carregar dados. Tente novamente.");
+        showError("Erro ao carregar dados. Tente novamente.");
         return;
       }
 
@@ -102,7 +104,7 @@ const SocialMediaPage = () => {
         .eq("id", user.id);
 
       if (updateError) {
-        alert("Erro ao salvar link. Tente novamente.");
+        showError("Erro ao salvar link. Tente novamente.");
         return;
       }
 
@@ -114,6 +116,7 @@ const SocialMediaPage = () => {
         )
       );
 
+      showSuccess(`Link do ${selectedNetwork.name} salvo com sucesso!`);
       setShowModal(false);
       setSelectedNetwork(null);
       setLinkInput("");
@@ -145,7 +148,7 @@ const SocialMediaPage = () => {
         .eq("id", user.id);
 
       if (updateError) {
-        alert("Erro ao excluir link. Tente novamente.");
+        showError("Erro ao excluir link. Tente novamente.");
         return;
       }
 
@@ -157,6 +160,7 @@ const SocialMediaPage = () => {
         )
       );
 
+      showSuccess(`Link do ${selectedNetwork.name} removido com sucesso!`);
       setShowModal(false);
       setSelectedNetwork(null);
       setLinkInput("");

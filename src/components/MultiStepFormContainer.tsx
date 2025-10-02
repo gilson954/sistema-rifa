@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle, AlertCircle, Save } from 'lucide-react';
 import { useMultiStepForm } from '../context/MultiStepFormContext';
+import { useNotification } from '../context/NotificationContext';
 import { schemas } from '../lib/validations/formSteps';
 import Step1 from '../pages/FormStep1';
 import Step2 from '../pages/FormStep2';
@@ -9,15 +10,16 @@ import Step3 from '../pages/FormStep3';
 const MultiStepFormContainer: React.FC = () => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const { 
-    formData, 
-    validateStep, 
-    validateAllSteps, 
-    resetForm, 
-    setErrors, 
+  const { showSuccess, showError, showWarning } = useNotification();
+
+  const {
+    formData,
+    validateStep,
+    validateAllSteps,
+    resetForm,
+    setErrors,
     getStepProgress,
-    isStepValid 
+    isStepValid
   } = useMultiStepForm();
 
   // Configuração das etapas
@@ -90,7 +92,7 @@ const MultiStepFormContainer: React.FC = () => {
     if (canNavigate) {
       setCurrentStepIndex(stepIndex);
     } else {
-      alert('Complete as etapas anteriores antes de prosseguir.');
+      showWarning('Complete as etapas anteriores antes de prosseguir.');
     }
   };
 
@@ -102,7 +104,7 @@ const MultiStepFormContainer: React.FC = () => {
       const isAllValid = validateAllSteps();
       
       if (!isAllValid) {
-        alert('Por favor, corrija os erros no formulário antes de continuar.');
+        showError('Por favor, corrija os erros no formulário antes de continuar.');
         setIsSubmitting(false);
         return;
       }
@@ -117,7 +119,7 @@ const MultiStepFormContainer: React.FC = () => {
       const success = Math.random() > 0.2; // 80% de chance de sucesso
       
       if (success) {
-        alert('✅ Formulário enviado com sucesso!');
+        showSuccess('Formulário enviado com sucesso!');
         resetForm();
         setCurrentStepIndex(0);
       } else {
@@ -126,7 +128,7 @@ const MultiStepFormContainer: React.FC = () => {
       
     } catch (error) {
       console.error('❌ Erro ao enviar formulário:', error);
-      alert('❌ Erro ao enviar formulário. Tente novamente.');
+      showError('Erro ao enviar formulário. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -236,7 +238,7 @@ const MultiStepFormContainer: React.FC = () => {
             <button
               onClick={() => {
                 console.log('💾 Salvando rascunho:', formData);
-                alert('Rascunho salvo!');
+                showSuccess('Rascunho salvo!');
               }}
               className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors duration-200"
             >

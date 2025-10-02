@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { Upload, Plus, ArrowRight, X, Loader2, Trash2, ExternalLink, CheckCircle, AlertCircle, Clock, Sparkles, Palette, Eye } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import { supabase } from '../lib/supabase';
 import { CustomDomainsAPI, CustomDomain } from '../lib/api/customDomains';
+import ConfirmModal from '../components/ConfirmModal';
 
 const CustomizationPage = () => {
   const { user } = useAuth();
+  const { showSuccess, showError, showWarning } = useNotification();
   const [activeTab, setActiveTab] = useState('cores-tema');
   const [selectedTheme, setSelectedTheme] = useState('claro');
   const [colorMode, setColorMode] = useState<'solid' | 'gradient'>('solid');
@@ -24,6 +27,9 @@ const CustomizationPage = () => {
   const [currentLogoUrl, setCurrentLogoUrl] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const logoInputRef = React.useRef<HTMLInputElement>(null);
+  const [showRemoveLogoConfirm, setShowRemoveLogoConfirm] = useState(false);
+  const [showDeleteDomainConfirm, setShowDeleteDomainConfirm] = useState(false);
+  const [selectedDomainToDelete, setSelectedDomainToDelete] = useState<{ id: string; name: string } | null>(null);
 
   const solidColors = [
     '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16', '#22C55E',
@@ -112,12 +118,12 @@ const CustomizationPage = () => {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith('image/')) {
-        alert('Por favor, selecione apenas arquivos de imagem.');
+        showError('Por favor, selecione apenas arquivos de imagem.');
         return;
       }
-      
+
       if (file.size > 5 * 1024 * 1024) {
-        alert('A imagem deve ter no máximo 5MB.');
+        showError('A imagem deve ter no máximo 5MB.');
         return;
       }
       
@@ -134,7 +140,7 @@ const CustomizationPage = () => {
 
   const handleUploadLogo = async () => {
     if (!logoFile || !user) {
-      alert('Por favor, selecione uma imagem primeiro.');
+      showWarning('Por favor, selecione uma imagem primeiro.');
       return;
     }
 
@@ -167,11 +173,11 @@ const CustomizationPage = () => {
       setCurrentLogoUrl(publicUrl);
       setLogoFile(null);
       setLogoPreviewUrl(null);
-      
-      alert('Logo atualizada com sucesso!');
+
+      showSuccess('Logo atualizada com sucesso!');
     } catch (error) {
       console.error('Erro ao fazer upload da logo:', error);
-      alert('Erro ao fazer upload da imagem. Tente novamente.');
+      showError('Erro ao fazer upload da imagem. Tente novamente.');
     } finally {
       setUploadingLogo(false);
     }
@@ -179,10 +185,11 @@ const CustomizationPage = () => {
 
   const handleRemoveLogo = async () => {
     if (!currentLogoUrl || !user) return;
+    setShowRemoveLogoConfirm(true);
+  };
 
-    if (!window.confirm('Tem certeza que deseja remover sua logo?')) {
-      return;
-    }
+  const confirmRemoveLogo = async () => {
+    if (!currentLogoUrl || !user) return;
 
     setUploadingLogo(true);
     try {
@@ -206,18 +213,20 @@ const CustomizationPage = () => {
       if (updateError) throw updateError;
 
       setCurrentLogoUrl(null);
-      alert('Logo removida com sucesso!');
+      setShowRemoveLogoConfirm(false);
+      showSuccess('Logo removida com sucesso!');
     } catch (error) {
       console.error('Erro ao remover logo:', error);
-      alert('Erro ao remover logo. Tente novamente.');
+      showError('Erro ao remover logo. Tente novamente.');
     } finally {
       setUploadingLogo(false);
+      setShowRemoveLogoConfirm(false);
     }
   };
 
   const handleSaveChanges = async () => {
     if (!user) {
-      alert('Você precisa estar logado para salvar as alterações');
+      showWarning('Você precisa estar logado para salvar as alterações');
       return;
     }
 
@@ -236,13 +245,13 @@ const CustomizationPage = () => {
 
       if (error) {
         console.error('Error saving settings:', error);
-        alert('Erro ao salvar as configurações. Tente novamente.');
+        showError('Erro ao salvar as configurações. Tente novamente.');
       } else {
-        alert('Configurações salvas com sucesso!');
+        showSuccess('Configurações salvas com sucesso!');
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert('Erro ao salvar as configurações. Tente novamente.');
+      showError('Erro ao salvar as configurações. Tente novamente.');
     } finally {
       setSaving(false);
     }
@@ -297,16 +306,16 @@ const CustomizationPage = () => {
 
       if (error) {
         console.error('Error creating custom domain:', error);
-        alert('Erro ao adicionar domínio. Verifique se o formato está correto e tente novamente.');
+        showError('Erro ao adicionar domínio. Verifique se o formato está correto e tente novamente.');
       } else {
         setCustomDomains(prev => [data!, ...prev]);
         setShowDomainModal(false);
         setNewDomain('');
-        alert('Domínio adicionado com sucesso! Siga as instruções DNS para ativá-lo.');
+        showSuccess('Domínio adicionado com sucesso! Siga as instruções DNS para ativá-lo.');
       }
     } catch (error) {
       console.error('Error saving domain:', error);
-      alert('Erro ao salvar domínio. Tente novamente.');
+      showError('Erro ao salvar domínio. Tente novamente.');
     } finally {
       setSaving(false);
     }
@@ -319,45 +328,54 @@ const CustomizationPage = () => {
       
       if (error) {
         console.error('Error verifying domain:', error);
-        alert('Erro ao verificar domínio. Tente novamente.');
+        showError('Erro ao verificar domínio. Tente novamente.');
       } else if (data?.verified) {
-        alert('Domínio verificado com sucesso! SSL será ativado automaticamente.');
-        setCustomDomains(prev => 
-          prev.map(domain => 
-            domain.id === domainId 
+        showSuccess('Domínio verificado com sucesso! SSL será ativado automaticamente.');
+        setCustomDomains(prev =>
+          prev.map(domain =>
+            domain.id === domainId
               ? { ...domain, is_verified: true, ssl_status: 'active' as const }
               : domain
           )
         );
       } else {
-        alert('Domínio ainda não está apontando corretamente. Verifique as configurações DNS e tente novamente em alguns minutos.');
+        showWarning('Domínio ainda não está apontando corretamente. Verifique as configurações DNS e tente novamente em alguns minutos.');
       }
     } catch (error) {
       console.error('Error verifying domain:', error);
-      alert('Erro ao verificar domínio. Tente novamente.');
+      showError('Erro ao verificar domínio. Tente novamente.');
     } finally {
       setVerifyingDomain(null);
     }
   };
 
   const handleDeleteDomain = async (domainId: string, domainName: string) => {
-    if (!window.confirm(`Tem certeza que deseja remover o domínio ${domainName}?`)) {
-      return;
-    }
+    setSelectedDomainToDelete({ id: domainId, name: domainName });
+    setShowDeleteDomainConfirm(true);
+  };
+
+  const confirmDeleteDomain = async () => {
+    if (!selectedDomainToDelete || !user) return;
+    const { id: domainId } = selectedDomainToDelete;
 
     try {
       const { error } = await CustomDomainsAPI.deleteCustomDomain(domainId, user!.id);
       
       if (error) {
         console.error('Error deleting domain:', error);
-        alert('Erro ao remover domínio. Tente novamente.');
+        showError('Erro ao remover domínio. Tente novamente.');
       } else {
         setCustomDomains(prev => prev.filter(domain => domain.id !== domainId));
-        alert('Domínio removido com sucesso.');
+        setShowDeleteDomainConfirm(false);
+        setSelectedDomainToDelete(null);
+        showSuccess('Domínio removido com sucesso.');
       }
     } catch (error) {
       console.error('Error deleting domain:', error);
-      alert('Erro ao remover domínio. Tente novamente.');
+      showError('Erro ao remover domínio. Tente novamente.');
+    } finally {
+      setShowDeleteDomainConfirm(false);
+      setSelectedDomainToDelete(null);
     }
   };
 
@@ -1329,6 +1347,35 @@ const CustomizationPage = () => {
           </div>
         </div>
       )}
+
+      {/* Confirm Remove Logo Modal */}
+      <ConfirmModal
+        isOpen={showRemoveLogoConfirm}
+        title="Remover Logo"
+        message="Tem certeza que deseja remover sua logo? Esta ação não pode ser desfeita."
+        confirmText="Remover"
+        cancelText="Cancelar"
+        type="danger"
+        loading={uploadingLogo}
+        onConfirm={confirmRemoveLogo}
+        onCancel={() => setShowRemoveLogoConfirm(false)}
+      />
+
+      {/* Confirm Delete Domain Modal */}
+      <ConfirmModal
+        isOpen={showDeleteDomainConfirm}
+        title="Remover Domínio"
+        message={`Tem certeza que deseja remover o domínio ${selectedDomainToDelete?.name}? Esta ação não pode ser desfeita.`}
+        confirmText="Remover"
+        cancelText="Cancelar"
+        type="danger"
+        loading={deleting}
+        onConfirm={confirmDeleteDomain}
+        onCancel={() => {
+          setShowDeleteDomainConfirm(false);
+          setSelectedDomainToDelete(null);
+        }}
+      />
     </div>
   );
 };

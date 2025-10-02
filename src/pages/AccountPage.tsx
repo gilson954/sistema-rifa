@@ -11,10 +11,12 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import { supabase } from '../lib/supabase';
 import CountryPhoneSelect from '../components/CountryPhoneSelect';
 import { useStripe } from '../hooks/useStripe';
 import { translateAuthError } from '../utils/errorTranslators';
+import ConfirmModal from '../components/ConfirmModal';
 
 interface Country {
   code: string;
@@ -40,6 +42,7 @@ const countries: Country[] = [
 const AccountPage: React.FC = () => {
   const { user, signOut } = useAuth();
   const { orders, getCompletedOrders } = useStripe();
+  const { showSuccess, showError, showInfo } = useNotification();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
@@ -260,20 +263,20 @@ const AccountPage: React.FC = () => {
 
       if (error) {
         console.error('Error updating profile:', error);
-        alert(translateAuthError(error.message || 'Erro ao salvar dados. Tente novamente.'));
+        showError(translateAuthError(error.message || 'Erro ao salvar dados. Tente novamente.'));
       } else {
         setShowEditModal(false);
-        alert('Dados salvos com sucesso!');
+        showSuccess('Dados salvos com sucesso!');
       }
     } catch (err: any) {
       console.error('Error saving user data:', err);
-      alert(translateAuthError(err.message || 'Erro ao salvar dados. Tente novamente.'));
+      showError(translateAuthError(err.message || 'Erro ao salvar dados. Tente novamente.'));
     }
   };
 
   const handleSendResetLink = async () => {
     if (!user?.email) {
-      alert('Email do usuário não encontrado');
+      showError('Email do usuário não encontrado');
       return;
     }
 
@@ -287,14 +290,14 @@ const AccountPage: React.FC = () => {
 
       if (error) {
         console.error('Error sending reset link:', error);
-        alert(translateAuthError(error.message));
+        showError(translateAuthError(error.message));
       } else {
         setResetLinkSent(true);
-        alert(`✅ Link de redefinição enviado para ${user.email}!\n\nVerifique sua caixa de entrada (e também a pasta de spam).`);
+        showSuccess(`Link de redefinição enviado para ${user.email}! Verifique sua caixa de entrada (e também a pasta de spam).`);
       }
     } catch (err: any) {
       console.error('Error sending reset link:', err);
-      alert(translateAuthError(err.message || 'Erro ao enviar link de redefinição. Tente novamente.'));
+      showError(translateAuthError(err.message || 'Erro ao enviar link de redefinição. Tente novamente.'));
     } finally {
       setSendingResetLink(false);
     }
@@ -325,12 +328,12 @@ const AccountPage: React.FC = () => {
         throw new Error(translateAuthError(result.message || 'Erro ao excluir conta'));
       }
 
-      alert('Conta excluída com sucesso');
+      showSuccess('Conta excluída com sucesso');
       await signOut();
       window.location.href = '/login';
     } catch (err: any) {
       console.error('Error deleting account:', err);
-      alert(translateAuthError(err.message || 'Erro ao excluir conta. Tente novamente.'));
+      showError(translateAuthError(err.message || 'Erro ao excluir conta. Tente novamente.'));
     } finally {
       setDeleting(false);
       setShowDeleteConfirmModal(false);
