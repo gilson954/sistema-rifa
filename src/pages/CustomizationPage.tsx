@@ -30,6 +30,7 @@ const CustomizationPage = () => {
   const [showRemoveLogoConfirm, setShowRemoveLogoConfirm] = useState(false);
   const [showDeleteDomainConfirm, setShowDeleteDomainConfirm] = useState(false);
   const [selectedDomainToDelete, setSelectedDomainToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const solidColors = [
     '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16', '#22C55E',
@@ -358,9 +359,10 @@ const CustomizationPage = () => {
     if (!selectedDomainToDelete || !user) return;
     const { id: domainId } = selectedDomainToDelete;
 
+    setDeleting(true);
     try {
       const { error } = await CustomDomainsAPI.deleteCustomDomain(domainId, user!.id);
-      
+
       if (error) {
         console.error('Error deleting domain:', error);
         showError('Erro ao remover domínio. Tente novamente.');
@@ -374,6 +376,7 @@ const CustomizationPage = () => {
       console.error('Error deleting domain:', error);
       showError('Erro ao remover domínio. Tente novamente.');
     } finally {
+      setDeleting(false);
       setShowDeleteDomainConfirm(false);
       setSelectedDomainToDelete(null);
     }
