@@ -86,16 +86,16 @@ const LoginPage = () => {
         }
 
         .wave-button .wave1 {
-          background: linear-gradient(135deg, rgba(236,72,153,0.95), rgba(139,92,246,0.95));
+          background: linear-gradient(90deg, rgba(236,72,153,0.95), rgba(139,92,246,0.95));
           animation: waveMove1 6s linear infinite;
         }
         .wave-button .wave2 {
-          background: linear-gradient(135deg, rgba(139,92,246,0.85), rgba(59,130,246,0.85));
+          background: linear-gradient(90deg, rgba(139,92,246,0.85), rgba(59,130,246,0.85));
           animation: waveMove2 8s linear infinite;
           opacity: 0.65;
         }
         .wave-button .wave3 {
-          background: linear-gradient(135deg, rgba(59,130,246,0.75), rgba(236,72,153,0.75));
+          background: linear-gradient(90deg, rgba(59,130,246,0.75), rgba(236,72,153,0.75));
           animation: waveMove3 10s linear infinite;
           opacity: 0.6;
           mix-blend-mode: overlay;
