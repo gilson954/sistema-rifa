@@ -57,13 +57,12 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     code: 'BR',
     name: 'Brasil',
     dialCode: '+55',
-    flag: 'ðŸ‡§ðŸ‡·'
+    flag: '🇧🇷'
   });
 
   const [confirmPhoneNumber, setConfirmPhoneNumber] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Reset form when modal opens/closes
   React.useEffect(() => {
     if (isOpen) {
       setFormData({
@@ -78,40 +77,53 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     }
   }, [isOpen]);
 
-  // Function to get theme classes
   const getThemeClasses = (theme: string) => {
     switch (theme) {
       case 'claro':
         return {
           background: 'bg-white',
           text: 'text-gray-900',
-          textSecondary: 'text-gray-600',
+          textSecondary: 'text-gray-700',
           cardBg: 'bg-gray-50',
-          border: 'border-gray-200'
+          border: 'border-gray-300',
+          inputBg: 'bg-white',
+          inputBorder: 'border-gray-300',
+          inputText: 'text-gray-900',
+          inputPlaceholder: 'placeholder-gray-500',
+          labelText: 'text-gray-900',
+          iconColor: 'text-gray-600',
+          hoverBg: 'hover:bg-gray-100'
         };
       case 'escuro':
-        return {
-          background: 'bg-gray-900',
-          text: 'text-white',
-          textSecondary: 'text-gray-300',
-          cardBg: 'bg-gray-800',
-          border: 'border-gray-700'
-        };
       case 'escuro-preto':
         return {
           background: 'bg-gray-900',
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-800',
-          border: 'border-gray-700'
+          border: 'border-gray-600',
+          inputBg: 'bg-gray-800',
+          inputBorder: 'border-gray-600',
+          inputText: 'text-white',
+          inputPlaceholder: 'placeholder-gray-400',
+          labelText: 'text-gray-100',
+          iconColor: 'text-gray-400',
+          hoverBg: 'hover:bg-gray-800'
         };
       default:
         return {
           background: 'bg-white',
           text: 'text-gray-900',
-          textSecondary: 'text-gray-600',
+          textSecondary: 'text-gray-700',
           cardBg: 'bg-gray-50',
-          border: 'border-gray-200'
+          border: 'border-gray-300',
+          inputBg: 'bg-white',
+          inputBorder: 'border-gray-300',
+          inputText: 'text-gray-900',
+          inputPlaceholder: 'placeholder-gray-500',
+          labelText: 'text-gray-900',
+          iconColor: 'text-gray-600',
+          hoverBg: 'hover:bg-gray-100'
         };
     }
   };
@@ -119,44 +131,39 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // Name validation
     if (!formData.name.trim()) {
-      newErrors.name = 'Nome Ã© obrigatÃ³rio';
+      newErrors.name = 'Nome é obrigatório';
     } else if (formData.name.trim().length < 2) {
       newErrors.name = 'Nome deve ter pelo menos 2 caracteres';
     }
 
-    // Email validation
     if (!formData.email.trim()) {
-      newErrors.email = 'Email Ã© obrigatÃ³rio';
+      newErrors.email = 'Email é obrigatório';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email invÃ¡lido';
+      newErrors.email = 'Email inválido';
     }
 
-    // Phone validation
     if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = 'NÃºmero de celular Ã© obrigatÃ³rio';
+      newErrors.phoneNumber = 'Número de celular é obrigatório';
     } else {
       const phoneNumbers = formData.phoneNumber.replace(/\D/g, '');
       if (selectedCountry.code === 'BR' && phoneNumbers.length !== 11) {
-        newErrors.phoneNumber = 'NÃºmero de celular deve ter 11 dÃ­gitos';
+        newErrors.phoneNumber = 'Número de celular deve ter 11 dígitos';
       } else if ((selectedCountry.code === 'US' || selectedCountry.code === 'CA') && phoneNumbers.length !== 10) {
-        newErrors.phoneNumber = 'NÃºmero de telefone deve ter 10 dÃ­gitos';
+        newErrors.phoneNumber = 'Número de telefone deve ter 10 dígitos';
       } else if (phoneNumbers.length < 7) {
-        newErrors.phoneNumber = 'NÃºmero de telefone invÃ¡lido';
+        newErrors.phoneNumber = 'Número de telefone inválido';
       }
     }
 
-    // Confirm phone validation
     if (!confirmPhoneNumber.trim()) {
-      newErrors.confirmPhoneNumber = 'ConfirmaÃ§Ã£o do nÃºmero Ã© obrigatÃ³ria';
+      newErrors.confirmPhoneNumber = 'Confirmação do número é obrigatória';
     } else if (formData.phoneNumber !== confirmPhoneNumber) {
-      newErrors.confirmPhoneNumber = 'O nÃºmero de celular nÃ£o confere. Por favor, digite o mesmo nÃºmero nos dois campos.';
+      newErrors.confirmPhoneNumber = 'O número de celular não confere. Por favor, digite o mesmo número nos dois campos.';
     }
 
-    // Terms validation
     if (!formData.acceptTerms) {
-      newErrors.acceptTerms = 'VocÃª deve aceitar os termos de uso';
+      newErrors.acceptTerms = 'Você deve aceitar os termos de uso';
     }
 
     setErrors(newErrors);
@@ -198,22 +205,23 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
 
+  const theme = getThemeClasses(campaignTheme);
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className={`rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto ${getThemeClasses(campaignTheme).background} ${getThemeClasses(campaignTheme).border} border`}>
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+      <div className={`rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto ${theme.background} border-2 ${theme.border}`}>
+        <div className={`flex items-center justify-between p-6 border-b-2 ${theme.border}`}>
           <div className="flex items-center space-x-3">
             <div 
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-lg"
               style={{ backgroundColor: primaryColor || '#3B82F6' }}
             >
               <CheckCircle className="h-5 w-5" />
             </div>
-            <h2 className={`text-xl font-bold ${getThemeClasses(campaignTheme).text}`}>
-              Reservar
+            <h2 className={`text-xl font-bold ${theme.text}`}>
+              Reservar Cotas
             </h2>
           </div>
           <button
@@ -222,21 +230,26 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             className={`p-2 rounded-full transition-colors duration-200 ${
               reserving 
                 ? 'cursor-not-allowed opacity-50' 
-                : `hover:${getThemeClasses(campaignTheme).cardBg}`
+                : `${theme.hoverBg}`
             }`}
           >
-            <X className={`h-5 w-5 ${getThemeClasses(campaignTheme).textSecondary}`} />
+            <X className={`h-5 w-5 ${theme.iconColor}`} />
           </button>
         </div>
 
-        {/* Campaign Summary */}
-        <div className={`p-4 ${getThemeClasses(campaignTheme).cardBg} border-b ${getThemeClasses(campaignTheme).border}`}>
+        <div className="px-6 pt-4">
+          <p className={`text-sm ${theme.textSecondary}`}>
+            Complete seus dados para continuar
+          </p>
+        </div>
+
+        <div className={`m-6 p-4 ${theme.cardBg} border-2 ${theme.border} rounded-xl`}>
           <div className="text-center">
-            <h3 className={`font-semibold ${getThemeClasses(campaignTheme).text} mb-2`}>
+            <h3 className={`font-semibold ${theme.text} mb-2`}>
               {campaignTitle}
             </h3>
             <div className="flex items-center justify-between text-sm">
-              <span className={getThemeClasses(campaignTheme).textSecondary}>
+              <span className={`font-medium ${theme.textSecondary}`}>
                 {quotaCount} {quotaCount === 1 ? 'cota' : 'cotas'}
               </span>
               <span 
@@ -247,45 +260,48 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               </span>
             </div>
             {selectedQuotas && selectedQuotas.length > 0 && (
-              <div className={`text-xs ${getThemeClasses(campaignTheme).textSecondary} mt-2`}>
-                NÃºmeros: {selectedQuotas.sort((a, b) => a - b).join(', ')}
+              <div className={`text-xs ${theme.textSecondary} mt-2`}>
+                Números: {selectedQuotas.sort((a, b) => a - b).join(', ')}
               </div>
             )}
           </div>
         </div>
 
-        {/* Reservation Warning */}
-        <div className={`p-4 ${getThemeClasses(campaignTheme).cardBg} border ${getThemeClasses(campaignTheme).border} rounded-lg mb-4`}>
+        <div className={`mx-6 mb-4 p-4 border-2 rounded-xl ${
+          campaignTheme === 'claro' 
+            ? 'bg-orange-50 border-orange-300' 
+            : 'bg-orange-900/20 border-orange-700'
+        }`}>
           <div className="flex items-start space-x-3">
             <Clock className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
             <div>
-              <p className={`text-sm font-medium ${getThemeClasses(campaignTheme).text} mb-1`}>
+              <p className={`text-sm font-semibold ${theme.text} mb-1`}>
                 Tempo de Reserva
               </p>
-              <p className={`text-sm ${getThemeClasses(campaignTheme).textSecondary}`}>
-                Suas cotas ficarÃ£o reservadas por <span className="font-bold text-orange-600">{formatReservationTime(reservationTimeoutMinutes)}</span>. 
-                Complete o pagamento via Pix para confirmar sua participaÃ§Ã£o.
+              <p className={`text-sm ${theme.textSecondary}`}>
+                Suas cotas ficarão reservadas por <span className="font-bold text-orange-600">
+                  {formatReservationTime(reservationTimeoutMinutes)}
+                </span>. 
+                Complete o pagamento via Pix para confirmar sua participação.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Name Field */}
           <div>
-            <label className={`block text-sm font-medium ${getThemeClasses(campaignTheme).text} mb-2`}>
+            <label className={`block text-sm font-semibold ${theme.labelText} mb-2`}>
               Nome completo *
             </label>
             <div className="relative">
-              <User className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${getThemeClasses(campaignTheme).textSecondary}`} />
+              <User className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${theme.iconColor}`} />
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Seu nome completo"
-                className={`w-full pl-10 pr-4 py-3 border rounded-lg ${getThemeClasses(campaignTheme).background} ${getThemeClasses(campaignTheme).text} placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-200 ${
-                  errors.name ? 'border-red-500' : getThemeClasses(campaignTheme).border
+                className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg ${theme.inputBg} ${theme.inputText} ${theme.inputPlaceholder} focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-200 ${
+                  errors.name ? 'border-red-500' : theme.inputBorder
                 }`}
                 style={{ '--tw-ring-color': primaryColor || '#3B82F6' } as React.CSSProperties}
                 disabled={reserving}
@@ -293,24 +309,23 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               />
             </div>
             {errors.name && (
-              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              <p className="text-red-500 text-sm mt-1 font-medium">{errors.name}</p>
             )}
           </div>
 
-          {/* Email Field */}
           <div>
-            <label className={`block text-sm font-medium ${getThemeClasses(campaignTheme).text} mb-2`}>
-              Email (obrigatÃ³rio) *
+            <label className={`block text-sm font-semibold ${theme.labelText} mb-2`}>
+              Email (obrigatório) *
             </label>
             <div className="relative">
-              <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${getThemeClasses(campaignTheme).textSecondary}`} />
+              <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${theme.iconColor}`} />
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="seu@email.com"
-                className={`w-full pl-10 pr-4 py-3 border rounded-lg ${getThemeClasses(campaignTheme).background} ${getThemeClasses(campaignTheme).text} placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-200 ${
-                  errors.email ? 'border-red-500' : getThemeClasses(campaignTheme).border
+                className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg ${theme.inputBg} ${theme.inputText} ${theme.inputPlaceholder} focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-200 ${
+                  errors.email ? 'border-red-500' : theme.inputBorder
                 }`}
                 style={{ '--tw-ring-color': primaryColor || '#3B82F6' } as React.CSSProperties}
                 disabled={reserving}
@@ -318,11 +333,10 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               />
             </div>
             {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+              <p className="text-red-500 text-sm mt-1 font-medium">{errors.email}</p>
             )}
           </div>
 
-          {/* Phone Number Field */}
           <div>
             <CountryPhoneSelect
               selectedCountry={selectedCountry}
@@ -332,80 +346,89 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               }}
               phoneNumber={formData.phoneNumber}
               onPhoneChange={(phone) => setFormData({ ...formData, phoneNumber: phone })}
-              placeholder="NÃºmero de celular"
+              placeholder="Número de celular"
               error={errors.phoneNumber}
             />
           </div>
 
-          {/* Confirm Phone Number Field */}
           <div>
             <CountryPhoneSelect
               selectedCountry={selectedCountry}
               onCountryChange={(country) => {
                 setSelectedCountry(country);
-                // Note: We don't update formData.countryCode here since it should match the first field
               }}
               phoneNumber={confirmPhoneNumber}
               onPhoneChange={setConfirmPhoneNumber}
-              placeholder="Confirme seu nÃºmero"
+              placeholder="Confirme seu número"
               error={errors.confirmPhoneNumber}
             />
           </div>
 
-          {/* Terms Acceptance */}
           <div className="space-y-4">
-            {/* Terms Checkbox */}
-            <div className="flex items-start space-x-3">
+            <div className={`flex items-start space-x-3 p-4 rounded-lg border-2 ${theme.border} ${theme.cardBg}`}>
               <input
                 type="checkbox"
                 id="acceptTerms"
                 checked={formData.acceptTerms}
                 onChange={(e) => setFormData({ ...formData, acceptTerms: e.target.checked })}
-                className="w-4 h-4 text-purple-600 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 focus:ring-2 mt-1"
+                className="w-5 h-5 text-purple-600 border-2 border-gray-400 rounded focus:ring-purple-500 focus:ring-2 mt-0.5"
                 disabled={reserving}
                 required
               />
-              <label htmlFor="acceptTerms" className={`text-sm ${getThemeClasses(campaignTheme).textSecondary} leading-relaxed`}>
+              <label htmlFor="acceptTerms" className={`text-sm ${theme.textSecondary} leading-relaxed`}>
                 Ao reservar nesta campanha, declaro ter lido e concordado com os{' '}
-                <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">
+                <a href="#" className="text-blue-600 hover:underline font-medium">
                   termos de uso
                 </a>{' '}
                 e a{' '}
-                <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">
-                  polÃ­tica de privacidade
+                <a href="#" className="text-blue-600 hover:underline font-medium">
+                  política de privacidade
                 </a>
                 .
               </label>
             </div>
             {errors.acceptTerms && (
-              <p className="text-red-500 text-sm">{errors.acceptTerms}</p>
+              <p className="text-red-500 text-sm font-medium">{errors.acceptTerms}</p>
             )}
 
-            {/* Important Notice */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+            <div className={`border-2 rounded-xl p-4 ${
+              campaignTheme === 'claro'
+                ? 'bg-blue-50 border-blue-300'
+                : 'bg-blue-900/20 border-blue-700'
+            }`}>
               <div className="flex items-start space-x-2">
-                <AlertTriangle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <AlertTriangle className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
+                  campaignTheme === 'claro' ? 'text-blue-600' : 'text-blue-400'
+                }`} />
                 <div>
-                  <p className="text-sm text-blue-800 dark:text-blue-200 font-medium mb-1">
+                  <p className={`text-sm font-bold mb-1 ${
+                    campaignTheme === 'claro' ? 'text-blue-900' : 'text-blue-100'
+                  }`}>
                     Importante
                   </p>
-                  <p className="text-xs text-blue-700 dark:text-blue-300">
-                    ApÃ³s confirmar a reserva, vocÃª terÃ¡ {formatReservationTime(reservationTimeoutMinutes)} para efetuar o pagamento. 
-                    Caso contrÃ¡rio, suas cotas serÃ£o liberadas automaticamente.
+                  <p className={`text-sm ${
+                    campaignTheme === 'claro' ? 'text-blue-800' : 'text-blue-200'
+                  }`}>
+                    Após confirmar a reserva, você terá {formatReservationTime(reservationTimeoutMinutes)} para efetuar o pagamento. 
+                    Caso contrário, suas cotas serão liberadas automaticamente.
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Summary */}
-          <div className={`${getThemeClasses(campaignTheme).cardBg} rounded-lg p-4 border ${getThemeClasses(campaignTheme).border}`}>
+          <div className={`${theme.cardBg} rounded-xl p-4 border-2 ${theme.border}`}>
             <div className="flex items-center justify-between">
-              <span className={`font-medium ${getThemeClasses(campaignTheme).text}`}>
+              <span className={`font-semibold ${theme.text}`}>
+                Total a pagar
+              </span>
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <span className={`font-medium ${theme.textSecondary}`}>
                 {quotaCount} {quotaCount === 1 ? 'cota' : 'cotas'}
               </span>
               <span 
-                className="font-bold text-xl"
+                className="font-bold text-2xl"
                 style={{ color: primaryColor || '#3B82F6' }}
               >
                 {formatCurrency(totalValue)}
@@ -413,11 +436,10 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={reserving}
-            className="w-full text-white py-4 rounded-lg font-bold text-lg transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-105 active:scale-95"
             style={{ backgroundColor: primaryColor || '#3B82F6' }}
           >
             {reserving ? (
@@ -433,12 +455,11 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             )}
           </button>
 
-          {/* Cancel Button */}
           <button
             type="button"
             onClick={onClose}
             disabled={reserving}
-            className={`w-full py-3 rounded-lg font-medium transition-colors duration-200 border ${getThemeClasses(campaignTheme).border} ${getThemeClasses(campaignTheme).text} hover:${getThemeClasses(campaignTheme).cardBg} disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 border-2 ${theme.border} ${theme.text} ${theme.hoverBg} disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             Cancelar
           </button>
