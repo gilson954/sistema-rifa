@@ -11,7 +11,7 @@ import {
   ExternalLink,
   AlertTriangle
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion'; // ADICIONADO: Framer Motion
+import { motion, AnimatePresence } from 'framer-motion'; // Framer Motion
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -53,21 +53,21 @@ const formatNumber = (num: number): string => {
   return new Intl.NumberFormat('pt-BR').format(num);
 };
 
-// VARIANTS DE ANIMAÇÃO PARA O SLIDESHOW
+// VARIANTS DE ANIMAÇÃO PARA O SLIDESHOW (Ajustado para 0.3s)
 const slideVariants = {
   enter: (direction: number) => ({
     // Entra da direita se 'direction' for 1 (próximo), ou da esquerda se for -1 (anterior)
     x: direction > 0 ? 300 : -300,
     opacity: 0,
     transition: {
-      duration: 0.1
+      duration: 0.3 // Duração reduzida para 0.3s
     }
   }),
   center: {
     x: 0, // Posição central (onde a imagem fica)
     opacity: 1,
     transition: {
-      duration: 0.1
+      duration: 0.3 // Duração reduzida para 0.3s
     }
   },
   exit: (direction: number) => ({
@@ -75,7 +75,7 @@ const slideVariants = {
     x: direction > 0 ? -300 : 300,
     opacity: 0,
     transition: {
-      duration: 0.1
+      duration: 0.3 // Duração reduzida para 0.3s
     }
   })
 };
@@ -148,16 +148,20 @@ const CampaignPage = () => {
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [fullscreenImageIndex, setFullscreenImageIndex] = useState<number | null>(null);
-  const [isAutoPlayPaused, setIsAutoPlayPaused] = useState(false);
+  
+  // ESTADOS DE PAUSA INTELIGENTE E MANUAL - ATUALIZADOS
+  const [isAutoPlayPaused, setIsAutoPlayPaused] = useState(false); // Pausa por hover (temporária)
+  const [isManualPaused, setIsManualPaused] = useState(false); // Pausa por clique em setas (permanente até recarregar)
   
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
   
-  const [direction, setDirection] = useState(1); // NOVO ESTADO: 1 para Próximo, -1 para Anterior
+  const [direction, setDirection] = useState(1); // 1 para Próximo, -1 para Anterior
 
-  // Auto-play carrossel de imagens a cada 6 segundos
+  // Auto-play carrossel de imagens a cada 6 segundos - ATUALIZADO
   useEffect(() => {
-    if (!campaign?.prize_image_urls || campaign.prize_image_urls.length <= 1 || isAutoPlayPaused) {
+    // Parar se: não houver imagens, apenas 1 imagem, ou se estiver em pausa (hover ou manual)
+    if (!campaign?.prize_image_urls || campaign.prize_image_urls.length <= 1 || isAutoPlayPaused || isManualPaused) {
       return;
     }
 
@@ -168,8 +172,9 @@ const CampaignPage = () => {
       );
     }, 6000); // 6 segundos
 
+    // O useEffect só rodará se isAutoPlayPaused e isManualPaused forem FALSE
     return () => clearInterval(interval);
-  }, [campaign?.prize_image_urls, isAutoPlayPaused]);
+  }, [campaign?.prize_image_urls, isAutoPlayPaused, isManualPaused]); // Adicionado isManualPaused como dependência
 
   const getCustomGradientStyle = (customColorsJson: string) => {
     try {
@@ -276,7 +281,7 @@ const CampaignPage = () => {
   }, [campaign?.user_id]);
 
   const getBestPromotionForDisplay = useCallback((quotaCount: number): PromotionInfo | null => {
-    if (!campaign?.promotions || !Array.isArray(campaign.promotions) || campaign.promotions.length === 0) {
+    if (!campaign?.promotions || !ArrayOf(campaign.promotions) || campaign.promotions.length === 0) {
       return null;
     }
 
@@ -431,21 +436,38 @@ const CampaignPage = () => {
     setShowReservationModal(true);
   }, [user, campaign, selectedQuotas, quantity, navigate]);
 
+  // FUNÇÕES DE PAUSA INTELIGENTE (HOVER) - NOVAS
+  const handleMouseEnter = () => {
+    // Pausa o carrossel enquanto o mouse está sobre ele (Pausa Temporária)
+    setIsAutoPlayPaused(true);
+  };
+
+  const handleMouseLeave = () => {
+    // Retoma o carrossel se a pausa temporária (Hover) for desfeita.
+    // O useEffect só vai rodar se isManualPaused for FALSE.
+    setIsAutoPlayPaused(false);
+  };
+  
+  // FUNÇÕES DE NAVEGAÇÃO - ATUALIZADAS PARA PAUSA MANUAL
   const handlePreviousImage = () => {
     if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
-      setDirection(-1); // NOVO: Define a direção para 'anterior'
+      setDirection(-1); // Define a direção para 'anterior'
       setCurrentImageIndex(prev => 
         prev === 0 ? campaign.prize_image_urls!.length - 1 : prev - 1
       );
+      setIsManualPaused(true); // Pausa permanentemente após clique manual
+      setIsAutoPlayPaused(false); // Reseta a pausa temporária
     }
   };
 
   const handleNextImage = () => {
     if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
-      setDirection(1); // NOVO: Define a direção para 'próximo'
+      setDirection(1); // Define a direção para 'próximo'
       setCurrentImageIndex(prev => 
         prev === campaign.prize_image_urls!.length - 1 ? 0 : prev + 1
       );
+      setIsManualPaused(true); // Pausa permanentemente após clique manual
+      setIsAutoPlayPaused(false); // Reseta a pausa temporária
     }
   };
 
@@ -695,7 +717,6 @@ const CampaignPage = () => {
   const primaryColor = organizerProfile?.primary_color || '#3B82F6';
   const themeClasses = getThemeClasses(campaignTheme);
 
-  // NOVO: URL da imagem atual e URL de fallback
   const currentImageUrl = campaign?.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1';
 
   return (
@@ -734,15 +755,21 @@ const CampaignPage = () => {
           {campaign.title}
         </h1>
 
-        {/* 1. Seção de galeria de imagens - card com largura limitada - SEM THUMBNAILS */}
+        {/* 1. Seção de galeria de imagens - card com largura limitada */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}>
-          {/* O container deve ter altura definida e overflow-hidden para o carrossel */}
-          <div className="relative group w-full h-[300px] sm:h-[500px] overflow-hidden"> 
+          {/* O container com a lógica de PAUSA INTELIGENTE - ATUALIZADO */}
+          <div 
+            className="relative group w-full h-[300px] sm:h-[500px] overflow-hidden"
+            onMouseEnter={handleMouseEnter} // Pausa ao passar o mouse
+            onMouseLeave={handleMouseLeave} // Retoma ao remover o mouse
+            onTouchStart={handleMouseEnter} // Pausa ao tocar
+            onTouchEnd={handleMouseLeave} // Retoma ao remover o toque
+          > 
             
             {/* AnimatePresence para controlar a entrada/saída */}
             <AnimatePresence initial={false} mode="wait" custom={direction}> 
               <motion.img
-                key={currentImageUrl} // CHAVE ÚNICA: Força o React a desmontar/remontar o componente a cada mudança
+                key={currentImageUrl} // CHAVE ÚNICA: Força o Framer Motion a animar
                 src={currentImageUrl}
                 alt={campaign.title}
                 // Classes para sobrepor as imagens e cobrir o container pai
