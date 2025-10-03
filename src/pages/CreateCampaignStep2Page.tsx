@@ -418,7 +418,7 @@ const CreateCampaignStep2Page = () => {
                 <div className="space-y-3">
                   {promotions.map((promo) => {
                     const originalValue = promo.ticketQuantity * (campaign?.ticket_price || 0);
-                    const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0);
+                    const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0;
                     
                     return (
                       <div
