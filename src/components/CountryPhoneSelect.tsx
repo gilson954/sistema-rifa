@@ -148,11 +148,14 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className={`group flex items-center space-x-2 px-4 h-[56px] bg-white dark:bg-gray-800 border-2 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md ${
+            style={{
+              backgroundColor: isOpen ? undefined : 'white',
+            }}
+            className={`group flex items-center space-x-2 px-4 h-[56px] dark:bg-gray-800 border-2 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md ${
               error 
                 ? 'border-red-500 hover:border-red-600' 
                 : isOpen
-                ? 'border-purple-500 ring-2 ring-purple-500/20'
+                ? 'border-purple-500 ring-2 ring-purple-500/20 !bg-white dark:!bg-gray-800'
                 : 'border-gray-300 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500'
             } focus:outline-none`}
           >
@@ -176,7 +179,8 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Buscar país..."
-                    className="w-full pl-12 pr-10 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm"
+                    style={{ backgroundColor: 'white' }}
+                    className="w-full pl-12 pr-10 py-3 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm"
                   />
                   {searchTerm && (
                     <button
@@ -257,7 +261,8 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
             value={phoneNumber}
             onChange={handlePhoneChange}
             placeholder={placeholder}
-            className={`w-full h-[56px] px-5 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-200 shadow-sm hover:shadow-md ${
+            style={{ backgroundColor: 'white' }}
+            className={`w-full h-[56px] px-5 border-2 rounded-xl dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-200 shadow-sm hover:shadow-md ${
               error 
                 ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20' 
                 : 'border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20'
