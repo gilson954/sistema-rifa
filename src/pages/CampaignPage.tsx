@@ -24,6 +24,7 @@ import { formatCurrency } from '../utils/currency';
 import { calculateTotalWithPromotions } from '../utils/currency';
 import { socialMediaConfig, shareSectionConfig } from '../components/SocialMediaIcons';
 import { supabase } from '../lib/supabase';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface PromotionInfo {
   promotion: Promotion;
@@ -710,13 +711,20 @@ const CampaignPage = () => {
             onMouseEnter={() => setIsAutoPlayPaused(true)}
             onMouseLeave={() => setIsAutoPlayPaused(false)}
           >
-            <img
-              src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
-              alt={campaign.title}
-              className="w-full h-[300px] sm:h-[500px] object-cover rounded-t-xl"
-              onClick={() => handleImageClick(currentImageIndex)}
-              style={{ cursor: 'pointer' }}
-            />
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={currentImageIndex}
+                src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
+                alt={campaign.title}
+                className="w-full h-[300px] sm:h-[500px] object-cover rounded-t-xl"
+                onClick={() => handleImageClick(currentImageIndex)}
+                style={{ cursor: 'pointer' }}
+                initial={{ opacity: 0, x: 300 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -300 }}
+                transition={{ duration: 0.5 }}
+              />
+            </AnimatePresence>
             
             {/* Navigation Arrows */}
             {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
