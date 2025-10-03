@@ -1,21 +1,17 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Edit, Eye, CreditCard, TrendingUp, AlertCircle, ChevronLeft, ChevronRight, Copy, CheckCircle, QrCode, Loader2, Crown, Clock } from 'lucide-react';
+import { ArrowLeft, Edit, Eye, CreditCard, TrendingUp, AlertCircle, ChevronLeft, ChevronRight, Copy, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaign } from '../hooks/useCampaigns';
 import { StripeAPI } from '../lib/api/stripe';
 import { STRIPE_PRODUCTS, formatPrice } from '../stripe-config';
 import { translateAuthError } from '../utils/errorTranslators';
 
-// Declare Stripe global variable
 declare global {
   interface Window {
     Stripe: any;
   }
 }
 
-/**
- * Utility function to calculate time remaining until expiration
- */
 const getTimeRemaining = (expiresAt: string) => {
   const now = new Date().getTime();
   const expiration = new Date(expiresAt).getTime();
@@ -50,13 +46,9 @@ const CreateCampaignStep3Page = () => {
   const [pixCopyPasteCode, setPixCopyPasteCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   
-  // Extrai o ID da campanha da URL
   const campaignId = new URLSearchParams(location.search).get('id') || '';
-  
-  // Fetch campaign data using the hook
   const { campaign, loading: isLoading } = useCampaign(campaignId || '');
 
-  // Initialize Stripe
   React.useEffect(() => {
     if (window.Stripe && import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY) {
       const stripeInstance = window.Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -64,7 +56,6 @@ const CreateCampaignStep3Page = () => {
     }
   }, []);
 
-  // Mock data - em produção, estes dados viriam do contexto ou props
   const campaignTitle = campaign?.title || 'Sua Campanha';
   const totalTickets = campaign?.total_tickets || 0;
   const ticketPrice = campaign?.ticket_price || 0;
@@ -81,11 +72,9 @@ const CreateCampaignStep3Page = () => {
   };
 
   const handlePreview = () => {
-    // Navigate to campaign page using slug
     if (campaign?.public_id) {
       window.open(`/c/${campaign.public_id}`, '_blank');
     } else {
-      // Fallback to ID if no public_id exists
       window.open(`/c/${campaignId}`, '_blank');
     }
   };
@@ -101,7 +90,6 @@ const CreateCampaignStep3Page = () => {
     setProcessing(true);
     setPaymentStatusMessage('Redirecionando para pagamento...');
 
-    // Calculate estimated revenue to get the correct publication product
     const estimatedRevenue = totalTickets * ticketPrice;
     const publicationProduct = STRIPE_PRODUCTS.find(p => p.mode === 'payment' && estimatedRevenue >= (p.minRevenue || 0) && estimatedRevenue <= (p.maxRevenue || Infinity));
 
@@ -112,7 +100,6 @@ const CreateCampaignStep3Page = () => {
     }
 
     try {
-      // Create Stripe checkout session
       const { data: checkoutData, error: stripeError } = await StripeAPI.createCheckoutSession({
         priceId: publicationProduct.priceId,
         campaignId: campaignId,
@@ -124,7 +111,6 @@ const CreateCampaignStep3Page = () => {
         throw new Error(translateAuthError(stripeError?.message || checkoutData?.error || 'Erro ao criar checkout'));
       }
 
-      // Redirect to Stripe checkout
       if (checkoutData.checkout_url) {
         window.location.href = checkoutData.checkout_url;
       } else {
@@ -136,14 +122,10 @@ const CreateCampaignStep3Page = () => {
       setPaymentStatusMessage('Falha no pagamento');
       alert(translateAuthError(error?.message || 'Erro ao processar pagamento. Tente novamente.'));
       setProcessing(false);
-    } finally {
-      // Não alteramos processing aqui porque normalmente redirecionamos para o Stripe
     }
   };
 
   const startPaymentStatusPolling = (paymentId: string) => {
-    // In production, you would poll the payment status or use real-time subscriptions
-    // For demo, we'll simulate payment confirmation after 10 seconds
     setTimeout(() => {
       setPaymentStatusMessage('Pagamento confirmado!');
       setTimeout(() => {
@@ -179,16 +161,13 @@ const CreateCampaignStep3Page = () => {
         : 'Preparando pagamento...'
     );
 
-    // Simulate Stripe checkout creation
     setTimeout(async () => {
       try {
         if (selectedPaymentMethod === 'pix') {
-          // Simulate PIX QR Code generation
           setQrCodeImage('https://via.placeholder.com/200x200/000000/FFFFFF?text=QR+CODE');
           setPixCopyPasteCode(`00020126580014br.gov.bcb.pix0136${campaignId}5204000053039865802BR5925RIFAQUI PAGAMENTOS LTDA6009SAO PAULO62070503***6304ABCD`);
           setPaymentStatusMessage('Aguardando pagamento PIX...');
           
-          // Simulate payment confirmation after 10 seconds
           setTimeout(() => {
             setPaymentStatusMessage('Pagamento confirmado!');
             setTimeout(() => {
@@ -197,10 +176,8 @@ const CreateCampaignStep3Page = () => {
           }, 10000);
           
         } else {
-          // Simulate card payment processing
           setPaymentStatusMessage('Processando pagamento...');
           
-          // Simulate successful card payment
           setTimeout(() => {
             setPaymentStatusMessage('Pagamento confirmado!');
             setTimeout(() => {
@@ -231,47 +208,50 @@ const CreateCampaignStep3Page = () => {
   };
 
   const currentImage = prizeImages[currentImageIndex];
-
-  // Cálculos dinâmicos
   const estimatedRevenue = totalTickets * ticketPrice;
   const publicationTaxProduct = STRIPE_PRODUCTS.find(p => p.mode === 'payment' && estimatedRevenue >= (p.minRevenue || 0) && estimatedRevenue <= (p.maxRevenue || Infinity));
 
   if (isLoading) {
-    return <div className="flex items-center justify-center py-12">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-    </div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800 transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+    <div className="dashboard-page min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
             <div className="flex items-center space-x-4">
               <button
                 onClick={handleGoBack}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
+                className="p-3 hover:bg-white/60 dark:hover:bg-gray-800/60 rounded-xl transition-all duration-200 border border-transparent hover:border-gray-200/20 dark:hover:border-gray-700/30"
               >
-                <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               </button>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Voltar
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                  Publicar campanha
                 </h1>
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  {campaignTitle}
+                </p>
               </div>
             </div>
             
-            {/* Payment Deadline Notice - Only show for draft campaigns that are not paid */}
+            {/* Payment Deadline Notice */}
             {campaign?.status === 'draft' && campaign.expires_at && !campaign.is_paid && (
-              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+              <div>
                 {(() => {
                   const timeRemaining = getTimeRemaining(campaign.expires_at);
                   const isUrgent = !timeRemaining.expired && campaign.expires_at && 
-                    new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000; // Less than 24 hours
+                    new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000;
                   
                   return (
-                    <div className={`flex items-center space-x-2 p-2 rounded-lg text-sm ${
+                    <div className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium ${
                       timeRemaining.expired
                         ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                         : isUrgent
@@ -291,12 +271,33 @@ const CreateCampaignStep3Page = () => {
               </div>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Progress Steps */}
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
+                ✓
+              </div>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Básico</span>
+            </div>
+            <div className="flex-1 h-1 bg-green-600 rounded-full"></div>
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
+                ✓
+              </div>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Detalhes</span>
+            </div>
+            <div className="flex-1 h-1 bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 rounded-full animate-gradient-x bg-[length:200%_200%]"></div>
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-full animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 flex items-center justify-center text-white text-sm font-bold shadow-lg">
+                3
+              </div>
+              <span className="text-sm font-bold text-purple-600 dark:text-purple-400">Pagamento</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column - Payment Form */}
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -305,15 +306,15 @@ const CreateCampaignStep3Page = () => {
 
             {/* Payment Status Message */}
             {paymentStatusMessage && (
-              <div className={`p-4 rounded-lg border ${
+              <div className={`rounded-xl p-5 border backdrop-blur-sm ${
                 paymentStatusMessage.includes('confirmado') 
-                  ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
+                  ? 'bg-green-50/60 dark:bg-green-900/20 border-green-200/20 dark:border-green-800/30 text-green-800 dark:text-green-200'
                   : paymentStatusMessage.includes('Falha') 
-                  ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
-                  : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200'
+                  ? 'bg-red-50/60 dark:bg-red-900/20 border-red-200/20 dark:border-red-800/30 text-red-800 dark:text-red-200'
+                  : 'bg-blue-50/60 dark:bg-blue-900/20 border-blue-200/20 dark:border-blue-800/30 text-blue-800 dark:text-blue-200'
               }`}>
-                <div className="flex items-center space-x-2">
-                  {processing && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>}
+                <div className="flex items-center space-x-3">
+                  {processing && <Loader2 className="h-5 w-5 animate-spin" />}
                   <span className="font-medium">{paymentStatusMessage}</span>
                 </div>
               </div>
@@ -321,24 +322,22 @@ const CreateCampaignStep3Page = () => {
 
             {/* PIX Payment Display */}
             {selectedPaymentMethod === 'pix' && qrCodeImage && (
-              <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6">
+              <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">
                   Pagamento PIX
                 </h3>
                 
-                {/* QR Code */}
                 <div className="text-center mb-6">
-                  <div className="w-48 h-48 mx-auto bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
-                    <img src={qrCodeImage} alt="QR Code PIX" className="w-full h-full object-contain rounded-lg" />
+                  <div className="w-48 h-48 mx-auto bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center mb-4 shadow-md">
+                    <img src={qrCodeImage} alt="QR Code PIX" className="w-full h-full object-contain rounded-xl" />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Escaneie o QR Code com o app do seu banco
                   </p>
                 </div>
 
-                {/* PIX Copy and Paste */}
                 {pixCopyPasteCode && (
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Código PIX (Copia e Cola)
@@ -352,10 +351,10 @@ const CreateCampaignStep3Page = () => {
                         ) : (
                           <Copy className="h-4 w-4" />
                         )}
-                        <span className="text-sm">{copied ? 'Copiado!' : 'Copiar'}</span>
+                        <span className="text-sm font-medium">{copied ? 'Copiado!' : 'Copiar'}</span>
                       </button>
                     </div>
-                    <div className="bg-white dark:bg-gray-700 rounded p-3 font-mono text-xs break-all text-gray-900 dark:text-white">
+                    <div className="bg-white dark:bg-gray-700 rounded-lg p-3 font-mono text-xs break-all text-gray-900 dark:text-white">
                       {pixCopyPasteCode}
                     </div>
                   </div>
@@ -364,32 +363,32 @@ const CreateCampaignStep3Page = () => {
             )}
 
             {/* Payment Summary */}
-            <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300">
+            <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm p-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
-                    <span className="text-gray-700 dark:text-gray-300">Arrecadação estimada</span>
+                    <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">Arrecadação estimada</span>
                   </div>
-                  <span className="font-medium text-gray-900 dark:text-white">
+                  <span className="font-bold text-gray-900 dark:text-white">
                     {formatPrice(estimatedRevenue)}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                    <span className="text-gray-700 dark:text-gray-300">Taxa de publicação</span>
+                    <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">Taxa de publicação</span>
                   </div>
-                  <span className="font-medium text-red-600 dark:text-red-400">
+                  <span className="font-bold text-red-600 dark:text-red-400">
                     {publicationTaxProduct ? formatPrice(publicationTaxProduct.price) : 'R$ 0,00'}
                   </span>
                 </div>
 
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                  <div className="flex items-center justify-between text-lg font-semibold">
-                    <span className="text-gray-900 dark:text-white">Total a pagar</span>
-                    <span className="text-gray-900 dark:text-white">
+                <div className="border-t-2 border-gray-200/20 dark:border-gray-700/30 pt-4">
+                  <div className="flex items-center justify-between text-lg">
+                    <span className="font-bold text-gray-900 dark:text-white">Total a pagar</span>
+                    <span className="font-bold text-gray-900 dark:text-white text-xl">
                       {publicationTaxProduct ? formatPrice(publicationTaxProduct.price) : 'R$ 0,00'}
                     </span>
                   </div>
@@ -398,8 +397,8 @@ const CreateCampaignStep3Page = () => {
             </div>
 
             {/* Tax Information */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 transition-colors duration-300">
-              <p className="text-sm text-blue-800 dark:text-blue-200">
+            <div className="rounded-xl border border-blue-200/20 dark:border-blue-800/30 bg-blue-50/60 dark:bg-blue-900/20 backdrop-blur-sm p-5">
+              <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
                 A taxa de publicação é cobrada uma única vez e permite que sua campanha seja 
                 publicada na plataforma.
               </p>
@@ -407,24 +406,24 @@ const CreateCampaignStep3Page = () => {
 
             {/* Payment Button or Active Message */}
             {campaign?.status === 'active' ? (
-              <div className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg flex items-center justify-center space-x-2 shadow-md">
-                <CheckCircle className="h-5 w-5" />
+              <div className="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center space-x-2 shadow-lg">
+                <CheckCircle className="h-6 w-6" />
                 <span>✅ Campanha Ativa</span>
               </div>
             ) : (
               <button
                 onClick={handlePayment}
                 disabled={processing}
-                className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white py-4 rounded-lg font-semibold text-lg transition-colors duration-200 shadow-md flex items-center justify-center space-x-2"
+                className="w-full inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white"
               >
                 {processing ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <Loader2 className="h-6 w-6 animate-spin" />
                     <span>Redirecionando...</span>
                   </>
                 ) : (
                   <>
-                    <CreditCard className="h-5 w-5" />
+                    <CreditCard className="h-6 w-6" />
                     <span>Pagar Taxa de Publicação</span>
                   </>
                 )}
@@ -434,28 +433,27 @@ const CreateCampaignStep3Page = () => {
 
           {/* Right Column - Campaign Summary */}
           <div className="space-y-6">
-            {/* Campaign Image with Edit/Preview buttons */}
-            <div className="relative group rounded-lg overflow-hidden">
-              {/* Image Gallery */}
+            {/* Campaign Image */}
+            <div className="relative group rounded-2xl overflow-hidden">
               <img
                 src={prizeImages[currentImageIndex]}
                 alt={campaignTitle}
-                className="w-full h-64 object-cover rounded-lg transition-opacity duration-300"
+                className="w-full h-64 object-cover rounded-2xl transition-opacity duration-300 shadow-lg"
               />
               
-              {/* Navigation Arrows (only show if multiple prizeImages) */}
+              {/* Navigation Arrows */}
               {prizeImages.length > 1 && (
                 <>
                   <button
                     onClick={handlePreviousImage}
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white p-2 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-black/70 shadow-lg"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
                   
                   <button
                     onClick={handleNextImage}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white p-2 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-black/70 shadow-lg"
                   >
                     <ChevronRight className="h-5 w-5" />
                   </button>
@@ -464,45 +462,23 @@ const CreateCampaignStep3Page = () => {
               
               {/* Image Counter */}
               {prizeImages.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-lg">
                   {currentImageIndex + 1} / {prizeImages.length}
                 </div>
               )}
               
-              {/* Thumbnail Strip */}
-              {prizeImages.length > 1 && (
-                <div className="flex space-x-2 mt-4 overflow-x-auto pb-2 px-2">
-                  {prizeImages.map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                        index === currentImageIndex
-                          ? 'border-purple-500 opacity-100'
-                          : 'border-gray-300 dark:border-gray-600 opacity-60 hover:opacity-80'
-                      }`}
-                    >
-                      <img
-                        src={image}
-                        alt={`Thumbnail ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-              
+              {/* Action Buttons */}
               <div className="absolute top-4 right-4 flex space-x-2">
                 <button
                   onClick={handleEdit}
-                  className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-1 shadow-md"
+                  className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-xl font-bold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
                 >
                   <Edit className="h-4 w-4" />
                   <span>Editar</span>
                 </button>
                 <button
                   onClick={handlePreview}
-                  className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-1 shadow-md"
+                  className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-xl font-bold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
                 >
                   <Eye className="h-4 w-4" />
                   <span>Visualizar</span>
@@ -510,71 +486,72 @@ const CreateCampaignStep3Page = () => {
               </div>
             </div>
 
+            {/* Thumbnail Strip */}
+            {prizeImages.length > 1 && (
+              <div className="flex space-x-3 overflow-x-auto pb-2">
+                {prizeImages.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-200 shadow-md hover:shadow-lg ${
+                      index === currentImageIndex
+                        ? 'border-purple-500 ring-2 ring-purple-500/50 opacity-100 scale-105'
+                        : 'border-gray-300 dark:border-gray-600 opacity-60 hover:opacity-80'
+                    }`}
+                  >
+                    <img
+                      src={image}
+                      alt={`Thumbnail ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+
             {/* Campaign Details */}
-            <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6 transition-colors duration-300">
+            <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm p-6">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                 {campaignTitle}
               </h3>
               
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-purple-600 rounded"></div>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {totalTickets.toLocaleString('pt-BR')} cotas
-                  </span>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="flex items-center space-x-3 p-3 rounded-xl bg-purple-50/50 dark:bg-purple-900/10">
+                  <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Cotas</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-white">
+                      {totalTickets.toLocaleString('pt-BR')}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-green-600 rounded"></div>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {formatPrice(ticketPrice)} por cota
-                  </span>
+                <div className="flex items-center space-x-3 p-3 rounded-xl bg-green-50/50 dark:bg-green-900/10">
+                  <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Por cota</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-white">
+                      {formatPrice(ticketPrice)}
+                    </p>
+                  </div>
                 </div>
               </div>
 
               {/* Revenue Display */}
-              <div className="bg-green-600 rounded-lg p-4 text-white">
+              <div className="rounded-xl p-5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-green-600 via-emerald-600 to-green-600 text-white shadow-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm opacity-90">ARRECADAÇÃO ESTIMADA</div>
-                    <div className="text-2xl font-bold">
+                    <div className="text-xs opacity-90 font-medium mb-1">ARRECADAÇÃO ESTIMADA</div>
+                    <div className="text-3xl font-bold">
                       {formatPrice(estimatedRevenue)}
-                    </div> 
+                    </div>
                   </div>
-                  <TrendingUp className="h-8 w-8 opacity-80" />
+                  <TrendingUp className="h-10 w-10 opacity-80" />
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Footer */}
-      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-6 mt-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-8">
-            <a
-              href="#"
-              className="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200"
-            >
-              Política de privacidade
-            </a>
-            <span className="hidden sm:block text-gray-300 dark:text-gray-600">•</span>
-            <a
-              href="#"
-              className="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200"
-            >
-              Termos de uso
-            </a>
-            <span className="hidden sm:block text-gray-300 dark:text-gray-600">•</span>
-            <a
-              href="#"
-              className="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200"
-            >
-              Suporte
-            </a>
-          </div>
-        </div>
-      </footer>
+      </main>
     </div>
   );
 };
