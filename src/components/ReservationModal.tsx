@@ -333,7 +333,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             {/* Email Field */}
             <div>
               <label className={`block text-sm font-bold ${themeClasses.text} mb-2`}>
-                Email *
+                Email (obrigatório) *
               </label>
               <div className="relative">
                 <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.textSecondary}`} />
