@@ -1108,7 +1108,9 @@ const CampaignPage = () => {
                   {getProgressPercentage()}%
                 </span>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+              <div className={`w-full rounded-full h-3 ${
+                campaignTheme === 'claro' ? 'bg-gray-200' : 'bg-gray-700'
+              }`}>
                 <div
                   className={getColorClassName("h-3 rounded-full transition-all duration-300")}
                   style={{
