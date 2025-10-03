@@ -104,13 +104,13 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto text-white shadow-2xl">
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-700 sticky top-0 bg-gray-900 z-10">
+      <div className="bg-gray-900 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden text-white shadow-2xl">
+        <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
               <Calendar className="w-5 h-5 text-white" />
             </div>
-            <h2 className="text-lg sm:text-xl font-bold">Selecione a data e hora do sorteio</h2>
+            <h2 className="text-xl font-bold">Selecione a data e hora do sorteio</h2>
           </div>
           <button
             onClick={handleClose}
@@ -120,9 +120,8 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
           </button>
         </div>
 
-        <div className="p-4 sm:p-6">
+        <div className="p-6">
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Calendário */}
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-4">
                 <Calendar className="w-5 h-5 text-blue-400" />
@@ -175,15 +174,14 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
               </div>
             </div>
 
-            {/* Horários */}
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-4">
                 <Clock className="w-5 h-5 text-blue-400" />
                 <h3 className="text-lg font-semibold text-gray-200">Horário</h3>
               </div>
               <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                <div className="max-h-[300px] lg:max-h-[400px] overflow-y-auto custom-scrollbar">
-                  <div className="p-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2 lg:gap-1">
+                <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+                  <div className="p-2 space-y-1">
                     {timeSlots.map((time) => {
                       const disabled = isTimeDisabled(time);
                       const isSelected = tempTime === time;
@@ -193,7 +191,7 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
                           key={time}
                           onClick={() => handleTimeSelect(time)}
                           disabled={disabled}
-                          className={`w-full px-3 py-2 lg:px-4 lg:py-2.5 rounded-lg text-center font-medium transition-all duration-200 text-sm lg:text-base ${
+                          className={`w-full px-4 py-2.5 rounded-lg text-center font-medium transition-all duration-200 ${
                             isSelected
                               ? 'bg-blue-600 text-white shadow-lg border-2 border-blue-400'
                               : disabled
@@ -212,19 +210,18 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 sm:p-6 border-t border-gray-700 bg-gray-800/50 sticky bottom-0">
-          <div className="mb-4">
-            <div className="text-sm">
+        <div className="p-6 border-t border-gray-700 bg-gray-800/50">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-sm text-gray-400">
               {tempDate && tempTime ? (
                 <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-blue-400" />
-                  <span className="text-blue-400 font-semibold">
+                  <Calendar className="w-4 h-4" />
+                  <span>
                     Selecionado: {tempDate.toLocaleDateString('pt-BR')} às {tempTime}
                   </span>
                 </div>
               ) : (
-                <span className="text-gray-400">Selecione uma data e horário</span>
+                <span>Selecione uma data e horário</span>
               )}
             </div>
           </div>
@@ -345,22 +342,6 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
 
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: #6b7280;
-        }
-
-        /* Responsividade adicional */
-        @media (max-width: 640px) {
-          .date-picker-modal-calendar .react-datepicker__day {
-            width: 2rem;
-            height: 2rem;
-            line-height: 2rem;
-            font-size: 0.875rem;
-          }
-          
-          .date-picker-modal-calendar .react-datepicker__day-name {
-            width: 2rem;
-            line-height: 2rem;
-            font-size: 0.75rem;
-          }
         }
       `}</style>
     </div>
