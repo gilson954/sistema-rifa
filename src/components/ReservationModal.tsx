@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle, Sparkles } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { formatReservationTime } from '../utils/timeFormatters';
 
@@ -84,15 +84,16 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
           background: 'bg-white',
           text: 'text-gray-900',
           textSecondary: 'text-gray-700',
-          cardBg: 'bg-gray-50',
-          border: 'border-gray-300',
+          cardBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
+          border: 'border-gray-200/50',
           inputBg: 'bg-white',
           inputBorder: 'border-gray-300',
           inputText: 'text-gray-900',
           inputPlaceholder: 'placeholder-gray-500',
           labelText: 'text-gray-900',
           iconColor: 'text-gray-600',
-          hoverBg: 'hover:bg-gray-100'
+          hoverBg: 'hover:bg-gray-100',
+          overlayBg: 'bg-gray-900/40'
         };
       case 'escuro':
       case 'escuro-preto':
@@ -100,30 +101,32 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
           background: 'bg-gray-900',
           text: 'text-white',
           textSecondary: 'text-gray-300',
-          cardBg: 'bg-gray-800',
-          border: 'border-gray-600',
+          cardBg: 'bg-gradient-to-br from-gray-800 to-gray-900',
+          border: 'border-gray-700/50',
           inputBg: 'bg-gray-800',
           inputBorder: 'border-gray-600',
           inputText: 'text-white',
           inputPlaceholder: 'placeholder-gray-400',
           labelText: 'text-gray-100',
           iconColor: 'text-gray-400',
-          hoverBg: 'hover:bg-gray-800'
+          hoverBg: 'hover:bg-gray-800',
+          overlayBg: 'bg-black/60'
         };
       default:
         return {
           background: 'bg-white',
           text: 'text-gray-900',
           textSecondary: 'text-gray-700',
-          cardBg: 'bg-gray-50',
-          border: 'border-gray-300',
+          cardBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
+          border: 'border-gray-200/50',
           inputBg: 'bg-white',
           inputBorder: 'border-gray-300',
           inputText: 'text-gray-900',
           inputPlaceholder: 'placeholder-gray-500',
           labelText: 'text-gray-900',
           iconColor: 'text-gray-600',
-          hoverBg: 'hover:bg-gray-100'
+          hoverBg: 'hover:bg-gray-100',
+          overlayBg: 'bg-gray-900/40'
         };
     }
   };
@@ -210,134 +213,174 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className={`rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto ${theme.background} border-2 ${theme.border}`}>
-        <div className={`flex items-center justify-between p-6 border-b-2 ${theme.border}`}>
-          <div className="flex items-center space-x-3">
-            <div 
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-lg"
-              style={{ backgroundColor: primaryColor || '#3B82F6' }}
-            >
-              <CheckCircle className="h-5 w-5" />
-            </div>
-            <h2 className={`text-xl font-bold ${theme.text}`}>
-              Reservar Cotas
-            </h2>
-          </div>
-          <button
-            onClick={handleClose}
-            disabled={reserving}
-            className={`p-2 rounded-full transition-colors duration-200 ${
-              reserving 
-                ? 'cursor-not-allowed opacity-50' 
-                : `${theme.hoverBg}`
-            }`}
-          >
-            <X className={`h-5 w-5 ${theme.iconColor}`} />
-          </button>
-        </div>
-
-        <div className="px-6 pt-4">
-          <p className={`text-sm ${theme.textSecondary}`}>
-            Complete seus dados para continuar
-          </p>
-        </div>
-
-        <div className={`m-6 p-4 ${theme.cardBg} border-2 ${theme.border} rounded-xl`}>
-          <div className="text-center">
-            <h3 className={`font-semibold ${theme.text} mb-2`}>
-              {campaignTitle}
-            </h3>
-            <div className="flex items-center justify-between text-sm">
-              <span className={`font-medium ${theme.textSecondary}`}>
-                {quotaCount} {quotaCount === 1 ? 'cota' : 'cotas'}
-              </span>
-              <span 
-                className="font-bold text-lg"
-                style={{ color: primaryColor || '#3B82F6' }}
+    <div className={`fixed inset-0 ${theme.overlayBg} backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300`}>
+      <div className={`rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto ${theme.background} border ${theme.border} transform transition-all duration-300 animate-in slide-in-from-bottom-4`}>
+        
+        {/* Header com gradiente e efeito moderno */}
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r opacity-10" style={{ 
+            background: `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}99 100%)` 
+          }}></div>
+          
+          <div className={`relative flex items-center justify-between p-6 border-b ${theme.border}`}>
+            <div className="flex items-center space-x-4">
+              <div 
+                className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg transform hover:scale-105 transition-transform duration-200"
+                style={{ 
+                  background: `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}dd 100%)` 
+                }}
               >
-                {formatCurrency(totalValue)}
-              </span>
-            </div>
-            {selectedQuotas && selectedQuotas.length > 0 && (
-              <div className={`text-xs ${theme.textSecondary} mt-2`}>
-                Números: {selectedQuotas.sort((a, b) => a - b).join(', ')}
+                <Sparkles className="h-6 w-6" />
               </div>
-            )}
+              <div>
+                <h2 className={`text-2xl font-bold ${theme.text}`}>
+                  Reservar Cotas
+                </h2>
+                <p className={`text-sm ${theme.textSecondary} mt-0.5`}>
+                  Complete seus dados para continuar
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleClose}
+              disabled={reserving}
+              className={`p-2.5 rounded-xl transition-all duration-200 ${
+                reserving 
+                  ? 'cursor-not-allowed opacity-50' 
+                  : `${theme.hoverBg} hover:scale-105`
+              }`}
+            >
+              <X className={`h-5 w-5 ${theme.iconColor}`} />
+            </button>
           </div>
         </div>
 
-        <div className={`mx-6 mb-4 p-4 border-2 rounded-xl ${
-          campaignTheme === 'claro' 
-            ? 'bg-orange-50 border-orange-300' 
-            : 'bg-orange-900/20 border-orange-700'
-        }`}>
-          <div className="flex items-start space-x-3">
-            <Clock className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className={`text-sm font-semibold ${theme.text} mb-1`}>
-                Tempo de Reserva
-              </p>
-              <p className={`text-sm ${theme.textSecondary}`}>
-                Suas cotas ficarão reservadas por <span className="font-bold text-orange-600">
-                  {formatReservationTime(reservationTimeoutMinutes)}
-                </span>. 
-                Complete o pagamento via Pix para confirmar sua participação.
-              </p>
+        {/* Card de resumo da campanha - Design moderno */}
+        <div className="px-6 pt-6">
+          <div className={`p-5 ${theme.cardBg} border ${theme.border} rounded-2xl shadow-sm`}>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h3 className={`font-bold text-lg ${theme.text} mb-3`}>
+                  {campaignTitle}
+                </h3>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/30 dark:border-gray-700/30">
+                    <CheckCircle className="h-4 w-4" style={{ color: primaryColor || '#3B82F6' }} />
+                    <span className={`text-sm font-semibold ${theme.text}`}>
+                      {quotaCount} {quotaCount === 1 ? 'cota' : 'cotas'}
+                    </span>
+                  </div>
+                  <div 
+                    className="px-4 py-1.5 rounded-lg font-bold text-lg shadow-sm"
+                    style={{ 
+                      backgroundColor: `${primaryColor || '#3B82F6'}15`,
+                      color: primaryColor || '#3B82F6'
+                    }}
+                  >
+                    {formatCurrency(totalValue)}
+                  </div>
+                </div>
+                {selectedQuotas && selectedQuotas.length > 0 && (
+                  <div className={`text-xs ${theme.textSecondary} mt-3 p-2 rounded-lg bg-white/30 dark:bg-gray-800/30`}>
+                    <span className="font-semibold">Números selecionados:</span> {selectedQuotas.sort((a, b) => a - b).join(', ')}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        {/* Aviso de tempo de reserva - Melhorado */}
+        <div className="px-6 pt-4">
+          <div className={`relative overflow-hidden p-4 border-2 rounded-2xl ${
+            campaignTheme === 'claro' 
+              ? 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-300/50' 
+              : 'bg-gradient-to-br from-orange-900/20 to-amber-900/20 border-orange-700/50'
+          }`}>
+            <div className="flex items-start space-x-3">
+              <div className="p-2 rounded-xl bg-orange-500/10">
+                <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div className="flex-1">
+                <p className={`text-sm font-bold ${theme.text} mb-1`}>
+                  Tempo de Reserva
+                </p>
+                <p className={`text-sm ${theme.textSecondary} leading-relaxed`}>
+                  Suas cotas ficarão reservadas por{' '}
+                  <span className="font-bold text-orange-600 dark:text-orange-400">
+                    {formatReservationTime(reservationTimeoutMinutes)}
+                  </span>. 
+                  Complete o pagamento via Pix para confirmar sua participação.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Formulário */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          
+          {/* Campo Nome */}
           <div>
-            <label className={`block text-sm font-semibold ${theme.labelText} mb-2`}>
-              Nome completo *
+            <label className={`block text-sm font-bold ${theme.labelText} mb-2`}>
+              Nome completo <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <User className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${theme.iconColor}`} />
+              <User className={`absolute left-3.5 top-1/2 transform -translate-y-1/2 h-5 w-5 ${theme.iconColor}`} />
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Seu nome completo"
-                className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg ${theme.inputBg} ${theme.inputText} ${theme.inputPlaceholder} focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-200 ${
-                  errors.name ? 'border-red-500' : theme.inputBorder
+                placeholder="Digite seu nome completo"
+                className={`w-full pl-11 pr-4 py-3.5 border-2 rounded-xl ${theme.inputBg} ${theme.inputText} ${theme.inputPlaceholder} focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${
+                  errors.name ? 'border-red-500 focus:ring-red-500/20' : `${theme.inputBorder} focus:ring-opacity-20`
                 }`}
-                style={{ '--tw-ring-color': primaryColor || '#3B82F6' } as React.CSSProperties}
+                style={{ '--tw-ring-color': `${primaryColor || '#3B82F6'}33` } as React.CSSProperties}
                 disabled={reserving}
                 required
               />
             </div>
             {errors.name && (
-              <p className="text-red-500 text-sm mt-1 font-medium">{errors.name}</p>
+              <p className="text-red-500 text-sm mt-2 font-medium flex items-center gap-1">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                {errors.name}
+              </p>
             )}
           </div>
 
+          {/* Campo Email */}
           <div>
-            <label className={`block text-sm font-semibold ${theme.labelText} mb-2`}>
-              Email (obrigatório) *
+            <label className={`block text-sm font-bold ${theme.labelText} mb-2`}>
+              E-mail <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${theme.iconColor}`} />
+              <Mail className={`absolute left-3.5 top-1/2 transform -translate-y-1/2 h-5 w-5 ${theme.iconColor}`} />
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="seu@email.com"
-                className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg ${theme.inputBg} ${theme.inputText} ${theme.inputPlaceholder} focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-200 ${
-                  errors.email ? 'border-red-500' : theme.inputBorder
+                className={`w-full pl-11 pr-4 py-3.5 border-2 rounded-xl ${theme.inputBg} ${theme.inputText} ${theme.inputPlaceholder} focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${
+                  errors.email ? 'border-red-500 focus:ring-red-500/20' : `${theme.inputBorder} focus:ring-opacity-20`
                 }`}
-                style={{ '--tw-ring-color': primaryColor || '#3B82F6' } as React.CSSProperties}
+                style={{ '--tw-ring-color': `${primaryColor || '#3B82F6'}33` } as React.CSSProperties}
                 disabled={reserving}
                 required
               />
             </div>
             {errors.email && (
-              <p className="text-red-500 text-sm mt-1 font-medium">{errors.email}</p>
+              <p className="text-red-500 text-sm mt-2 font-medium flex items-center gap-1">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                {errors.email}
+              </p>
             )}
           </div>
 
+          {/* Campo Telefone */}
           <div>
+            <label className={`block text-sm font-bold ${theme.labelText} mb-2`}>
+              Número de celular <span className="text-red-500">*</span>
+            </label>
             <CountryPhoneSelect
               selectedCountry={selectedCountry}
               onCountryChange={(country) => {
@@ -346,89 +389,106 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               }}
               phoneNumber={formData.phoneNumber}
               onPhoneChange={(phone) => setFormData({ ...formData, phoneNumber: phone })}
-              placeholder="Número de celular"
+              placeholder="Digite seu número"
               error={errors.phoneNumber}
             />
           </div>
 
+          {/* Campo Confirmar Telefone */}
           <div>
+            <label className={`block text-sm font-bold ${theme.labelText} mb-2`}>
+              Confirme seu número <span className="text-red-500">*</span>
+            </label>
             <CountryPhoneSelect
               selectedCountry={selectedCountry}
-              onCountryChange={(country) => {
-                setSelectedCountry(country);
-              }}
+              onCountryChange={(country) => setSelectedCountry(country)}
               phoneNumber={confirmPhoneNumber}
               onPhoneChange={setConfirmPhoneNumber}
-              placeholder="Confirme seu número"
+              placeholder="Digite novamente seu número"
               error={errors.confirmPhoneNumber}
             />
           </div>
 
+          {/* Termos e Avisos */}
           <div className="space-y-4">
-            <div className={`flex items-start space-x-3 p-4 rounded-lg border-2 ${theme.border} ${theme.cardBg}`}>
+            
+            {/* Checkbox de Termos */}
+            <div className={`flex items-start space-x-3 p-4 rounded-xl border-2 ${theme.border} ${theme.cardBg}`}>
               <input
                 type="checkbox"
                 id="acceptTerms"
                 checked={formData.acceptTerms}
                 onChange={(e) => setFormData({ ...formData, acceptTerms: e.target.checked })}
-                className="w-5 h-5 text-purple-600 border-2 border-gray-400 rounded focus:ring-purple-500 focus:ring-2 mt-0.5"
+                className="w-5 h-5 rounded-lg border-2 border-gray-400 focus:ring-2 mt-0.5 cursor-pointer"
+                style={{ 
+                  accentColor: primaryColor || '#3B82F6',
+                  '--tw-ring-color': `${primaryColor || '#3B82F6'}33`
+                } as React.CSSProperties}
                 disabled={reserving}
                 required
               />
-              <label htmlFor="acceptTerms" className={`text-sm ${theme.textSecondary} leading-relaxed`}>
-                Ao reservar nesta campanha, declaro ter lido e concordado com os{' '}
-                <a href="#" className="text-blue-600 hover:underline font-medium">
+              <label htmlFor="acceptTerms" className={`text-sm ${theme.textSecondary} leading-relaxed cursor-pointer`}>
+                Ao reservar, declaro ter lido e concordado com os{' '}
+                <a href="#" className="font-semibold hover:underline" style={{ color: primaryColor || '#3B82F6' }}>
                   termos de uso
                 </a>{' '}
                 e a{' '}
-                <a href="#" className="text-blue-600 hover:underline font-medium">
+                <a href="#" className="font-semibold hover:underline" style={{ color: primaryColor || '#3B82F6' }}>
                   política de privacidade
                 </a>
                 .
               </label>
             </div>
             {errors.acceptTerms && (
-              <p className="text-red-500 text-sm font-medium">{errors.acceptTerms}</p>
+              <p className="text-red-500 text-sm font-medium flex items-center gap-1">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                {errors.acceptTerms}
+              </p>
             )}
 
-            <div className={`border-2 rounded-xl p-4 ${
+            {/* Aviso Importante */}
+            <div className={`relative overflow-hidden border-2 rounded-2xl p-4 ${
               campaignTheme === 'claro'
-                ? 'bg-blue-50 border-blue-300'
-                : 'bg-blue-900/20 border-blue-700'
+                ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-300/50'
+                : 'bg-gradient-to-br from-blue-900/20 to-indigo-900/20 border-blue-700/50'
             }`}>
-              <div className="flex items-start space-x-2">
-                <AlertTriangle className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
-                  campaignTheme === 'claro' ? 'text-blue-600' : 'text-blue-400'
-                }`} />
-                <div>
+              <div className="flex items-start space-x-3">
+                <div className="p-2 rounded-xl bg-blue-500/10">
+                  <AlertTriangle className={`h-5 w-5 ${
+                    campaignTheme === 'claro' ? 'text-blue-600' : 'text-blue-400'
+                  }`} />
+                </div>
+                <div className="flex-1">
                   <p className={`text-sm font-bold mb-1 ${
                     campaignTheme === 'claro' ? 'text-blue-900' : 'text-blue-100'
                   }`}>
                     Importante
                   </p>
-                  <p className={`text-sm ${
+                  <p className={`text-sm leading-relaxed ${
                     campaignTheme === 'claro' ? 'text-blue-800' : 'text-blue-200'
                   }`}>
-                    Após confirmar a reserva, você terá {formatReservationTime(reservationTimeoutMinutes)} para efetuar o pagamento. 
-                    Caso contrário, suas cotas serão liberadas automaticamente.
+                    Após confirmar, você terá{' '}
+                    <span className="font-bold">{formatReservationTime(reservationTimeoutMinutes)}</span>{' '}
+                    para efetuar o pagamento. Caso contrário, suas cotas serão liberadas automaticamente.
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className={`${theme.cardBg} rounded-xl p-4 border-2 ${theme.border}`}>
-            <div className="flex items-center justify-between">
-              <span className={`font-semibold ${theme.text}`}>
+          {/* Card Total a Pagar */}
+          <div className={`${theme.cardBg} rounded-2xl p-5 border-2 ${theme.border} shadow-sm`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className={`font-bold text-lg ${theme.text}`}>
                 Total a pagar
               </span>
             </div>
-            <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center justify-between">
               <span className={`font-medium ${theme.textSecondary}`}>
                 {quotaCount} {quotaCount === 1 ? 'cota' : 'cotas'}
               </span>
               <span 
-                className="font-bold text-2xl"
+                className="font-bold text-3xl"
                 style={{ color: primaryColor || '#3B82F6' }}
               >
                 {formatCurrency(totalValue)}
@@ -436,33 +496,40 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={reserving}
-            className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-105 active:scale-95"
-            style={{ backgroundColor: primaryColor || '#3B82F6' }}
-          >
-            {reserving ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                <span>Processando reserva...</span>
-              </>
-            ) : (
-              <>
-                <Shield className="h-5 w-5" />
-                <span>Concluir reserva</span>
-              </>
-            )}
-          </button>
+          {/* Botões de Ação */}
+          <div className="space-y-3 pt-2">
+            <button
+              type="submit"
+              disabled={reserving}
+              className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-[1.02] active:scale-[0.98]"
+              style={{ 
+                background: reserving 
+                  ? '#9CA3AF' 
+                  : `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}dd 100%)` 
+              }}
+            >
+              {reserving ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Processando reserva...</span>
+                </>
+              ) : (
+                <>
+                  <Shield className="h-5 w-5" />
+                  <span>Concluir reserva</span>
+                </>
+              )}
+            </button>
 
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={reserving}
-            className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 border-2 ${theme.border} ${theme.text} ${theme.hoverBg} disabled:opacity-50 disabled:cursor-not-allowed`}
-          >
-            Cancelar
-          </button>
+            <button
+              type="button"
+              onClick={handleClose}
+              disabled={reserving}
+              className={`w-full py-3.5 rounded-xl font-semibold transition-all duration-300 border-2 ${theme.border} ${theme.text} ${theme.hoverBg} disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99]`}
+            >
+              Cancelar
+            </button>
+          </div>
         </form>
       </div>
     </div>
