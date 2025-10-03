@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { calculateTotalWithPromotions } from '../utils/currency';
+import { motion } from 'framer-motion'; // IMPORTADO: Framer Motion
 
 interface PromotionInfo {
   promotion: any;
@@ -28,6 +29,24 @@ interface QuotaSelectorProps {
   gradientClasses?: string;
   customGradientColors?: string;
 }
+
+// NOVO COMPONENTE: Counter
+// Componente para animar a mudança de número, como sugerido pelo link do Framer Motion
+const AnimatedCounter: React.FC<{ value: number, className: string }> = ({ value, className }) => {
+  return (
+    <motion.span
+      key={value}
+      initial={{ y: 20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: -20, opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className={className}
+    >
+      {value.toLocaleString('pt-BR')}
+    </motion.span>
+  );
+};
+
 
 const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   ticketPrice,
@@ -66,7 +85,9 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
           cardBg: 'bg-white',
-          border: 'border-gray-200'
+          border: 'border-gray-200',
+          inputBg: 'bg-white', // Cor para o input no tema claro
+          inputBorderFocus: 'focus:border-blue-500',
         };
       case 'escuro':
         return {
@@ -74,7 +95,9 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
-          border: 'border-gray-800'
+          border: 'border-gray-800',
+          inputBg: 'bg-gray-800', // Cor para o input no tema escuro
+          inputBorderFocus: 'focus:border-blue-400',
         };
       case 'escuro-preto':
         return {
@@ -82,7 +105,9 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
-          border: 'border-gray-800'
+          border: 'border-gray-800',
+          inputBg: 'bg-gray-800', // Cor para o input no tema preto
+          inputBorderFocus: 'focus:border-blue-400',
         };
       default:
         return {
@@ -90,7 +115,9 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
           cardBg: 'bg-white',
-          border: 'border-gray-200'
+          border: 'border-gray-200',
+          inputBg: 'bg-white',
+          inputBorderFocus: 'focus:border-blue-500',
         };
     }
   };
@@ -129,7 +156,9 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   };
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || minTicketsPerPurchase;
+    // Certifica que o valor é um número válido, mínimo ou o valor do input
+    const rawValue = e.target.value;
+    const value = parseInt(rawValue.replace(/\D/g, '')) || minTicketsPerPurchase;
     handleUpdateQuantity(value);
   };
 
@@ -203,26 +232,28 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     return baseClasses;
   };
 
+  const themeClasses = getThemeClasses(campaignTheme);
+
   if (mode === 'manual') {
     return null; // Manual mode uses the quota grid for selection
   }
 
   return (
-    <div className={`quota-selector rounded-xl shadow-md p-4 sm:p-5 border transition-colors duration-300 ${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).border}`}>
-      <h2 className={`text-lg font-bold ${getThemeClasses(campaignTheme).text} mb-4 text-center`}>
-        <span className={getThemeClasses(campaignTheme).text}>SELECIONE A QUANTIDADE DE COTAS</span>
+    <div className={`quota-selector rounded-xl shadow-md p-4 sm:p-5 border transition-colors duration-300 ${themeClasses.cardBg} ${themeClasses.border}`}>
+      <h2 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
+        <span className={themeClasses.text}>SELECIONE A QUANTIDADE DE COTAS</span>
       </h2>
 
       {/* Indicador de Promoção Ativa no Seletor */}
       {promotionInfo && (
-        <div className={`mb-4 ${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).border} border rounded-lg p-3`}>
+        <div className={`mb-4 ${themeClasses.cardBg} ${themeClasses.border} border rounded-lg p-3`}>
           <div className="text-center">
-            <div className={`text-xs font-medium ${getThemeClasses(campaignTheme).text} mb-1`}>
+            <div className={`text-xs font-medium ${themeClasses.text} mb-1`}>
               🎉 Promoção Aplicada: {promotionInfo.discountPercentage}% OFF
             </div>
           </div>
-        </div>
-      )}
+        )}
+        
       {/* Increment Buttons */}
       <div className="grid grid-cols-4 sm:grid-cols-4 gap-2 sm:gap-2.5 mb-4">
         {incrementButtons.map((button, index) => (
@@ -237,31 +268,62 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         ))}
       </div>
 
-      {/* Quantity Input */}
-      <div className="flex items-center justify-center space-x-3 mb-4">
-        <button
-          onClick={() => handleIncrement(-1)}
-          className={`w-8 h-8 ${getThemeClasses(campaignTheme).cardBg} rounded-lg flex items-center justify-center transition-colors duration-200 hover:opacity-80 border ${getThemeClasses(campaignTheme).border}`}
+      {/* Quantity Input - REESTILIZADO para ser minimalista e moderno */}
+      <div className="flex items-center justify-center mb-4">
+        {/* Container principal para o input e botões, com borda arredondada */}
+        <div 
+          className={`flex items-center rounded-xl overflow-hidden border ${themeClasses.border}`}
+          style={{ 
+            boxShadow: campaignTheme === 'claro' 
+              ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' 
+              : '0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1)',
+            // Usa a cor primária para um destaque sutil na borda
+            borderColor: primaryColor && colorMode === 'solid' ? primaryColor : themeClasses.border
+          }}
         >
-          <Minus className={`h-3 w-3 ${getThemeClasses(campaignTheme).textSecondary}`} />
-        </button>
-        
-        <input
-          type="number"
-          value={quantity}
-          onChange={handleQuantityChange}
-          min={minTicketsPerPurchase}
-          max={maxTicketsPerPurchase}
-          className={`w-16 text-center py-1.5 text-sm ${getThemeClasses(campaignTheme).cardBg} border ${getThemeClasses(campaignTheme).border} rounded-lg ${getThemeClasses(campaignTheme).text} focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-200`}
-          style={{ '--tw-ring-color': primaryColor || '#3B82F6' } as React.CSSProperties}
-        />
-        
-        <button
-          onClick={() => handleIncrement(1)}
-          className={`w-8 h-8 ${getThemeClasses(campaignTheme).cardBg} rounded-lg flex items-center justify-center transition-colors duration-200 hover:opacity-80 border ${getThemeClasses(campaignTheme).border}`}
-        >
-          <Plus className={`h-3 w-3 ${getThemeClasses(campaignTheme).textSecondary}`} />
-        </button>
+          {/* Botão Decremento */}
+          <button
+            onClick={() => handleIncrement(-1)}
+            className={`w-12 h-12 flex items-center justify-center transition-colors duration-200 hover:opacity-90 ${themeClasses.cardBg} ${themeClasses.textSecondary}`}
+            disabled={quantity <= minTicketsPerPurchase}
+          >
+            <Minus className="h-4 w-4" />
+          </button>
+          
+          {/* Input/Display de Quantidade */}
+          <div className={`relative w-24 h-12 flex items-center justify-center ${themeClasses.inputBg}`}>
+            <input
+              type="number"
+              value={quantity}
+              onChange={handleQuantityChange}
+              onBlur={() => handleUpdateQuantity(quantity)} // Garante min/max ao sair
+              min={minTicketsPerPurchase}
+              max={maxTicketsPerPurchase}
+              className={`absolute inset-0 w-full h-full text-center text-xl font-bold transition-all duration-200 focus:outline-none appearance-none bg-transparent ${themeClasses.text}`}
+              // Estilos para esconder o seletor numérico padrão no Chrome/Edge/Firefox
+              style={{
+                MozAppearance: 'textfield',
+                WebkitAppearance: 'none',
+                padding: 0
+              } as React.CSSProperties}
+            />
+            {/* NOVO: Animando o número (Opcional, pois a animação de input é complexa. Usamos o input acima e essa div como fallback/alternativa se o input for apenas display) */}
+             {/* <motion.div 
+               className={`absolute inset-0 w-full h-full flex items-center justify-center text-xl font-bold ${themeClasses.text}`}
+             >
+               <AnimatedCounter value={quantity} className="relative block" />
+             </motion.div> */}
+          </div>
+          
+          {/* Botão Incremento */}
+          <button
+            onClick={() => handleIncrement(1)}
+            className={`w-12 h-12 flex items-center justify-center transition-colors duration-200 hover:opacity-90 ${themeClasses.cardBg} ${themeClasses.textSecondary}`}
+            disabled={quantity >= maxTicketsPerPurchase}
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Error Message */}
@@ -277,15 +339,15 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       <div className="text-center mb-4">
         {/* Exibição do preço original riscado se houver promoção */}
         {promotionInfo && (
-          <div className={`text-xs ${getThemeClasses(campaignTheme).textSecondary} mb-1`}>
+          <div className={`text-xs ${themeClasses.textSecondary} mb-1`}>
             <span className="line-through">
               {formatCurrency(promotionInfo.originalTotal)}
             </span>
           </div>
         )}
-        <div className={`text-xs ${getThemeClasses(campaignTheme).textSecondary} mb-1`}>Valor final</div>
+        <div className={`text-xs ${themeClasses.textSecondary} mb-1`}>Valor final</div>
         <div 
-          className={`text-xl font-bold ${promotionInfo ? '' : getThemeClasses(campaignTheme).text}`}
+          className={`text-xl font-bold ${promotionInfo ? '' : themeClasses.text}`}
           style={promotionInfo ? { color: "#10B981" } : {}}
         >
           R$ {calculateTotal()}
