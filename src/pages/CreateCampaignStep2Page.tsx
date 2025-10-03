@@ -8,14 +8,9 @@ import { useImageUpload } from '../hooks/useImageUpload';
 import RichTextEditor from '../components/RichTextEditor';
 import PromotionModal from '../components/PromotionModal';
 import PrizesModal from '../components/PrizesModal';
+import DateTimePickerModal from '../components/DateTimePickerModal';
 import { Promotion, Prize } from '../types/promotion';
-import DatePicker from 'react-datepicker';
-import { registerLocale, setDefaultLocale } from 'react-datepicker';
-import { ptBR } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
-
-registerLocale('pt-BR', ptBR);
-setDefaultLocale('pt-BR');
 
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
@@ -49,6 +44,7 @@ const CreateCampaignStep2Page = () => {
   });
 
   const [showInlineDatePicker, setShowInlineDatePicker] = useState(false);
+  const [showDateTimeModal, setShowDateTimeModal] = useState(false);
   const [showPromotionModal, setShowPromotionModal] = useState(false);
   const [showPrizesModal, setShowPrizesModal] = useState(false);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
@@ -165,6 +161,26 @@ const CreateCampaignStep2Page = () => {
 
   const handleDrawDateChange = (date: Date | null) => {
     setFormData(prev => ({ ...prev, drawDate: date }));
+  };
+
+  const handleOpenDateTimeModal = () => {
+    setShowDateTimeModal(true);
+  };
+
+  const handleDateTimeConfirm = (date: Date) => {
+    setFormData(prev => ({ ...prev, drawDate: date }));
+    setShowDateTimeModal(false);
+  };
+
+  const formatDateTimeDisplay = (date: Date | null): string => {
+    if (!date) return '';
+    return date.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const handleSavePromotions = (newPromotions: Promotion[]) => {
@@ -584,56 +600,18 @@ const CreateCampaignStep2Page = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Selecione a data e hora do sorteio
                   </label>
-                  <div className="date-picker-modern">
-                    <DatePicker
-                      selected={formData.drawDate}
-                      onChange={handleDrawDateChange}
-                      showTimeSelect
-                      timeFormat="HH:mm"
-                      dateFormat="dd/MM/yyyy HH:mm"
-                      timeIntervals={15}
-                      minDate={new Date()}
-                      locale="pt-BR"
-                      placeholderText="Clique para selecionar data e hora"
-                      className="w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 border-gray-300 dark:border-gray-600 font-medium shadow-sm"
-                      calendarClassName="modern-calendar"
-                      renderCustomHeader={({
-                        date,
-                        decreaseMonth,
-                        increaseMonth,
-                        prevMonthButtonDisabled,
-                        nextMonthButtonDisabled,
-                      }) => (
-                        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-t-xl">
-                          <button
-                            onClick={decreaseMonth}
-                            disabled={prevMonthButtonDisabled}
-                            type="button"
-                            className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
-                          >
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                          </button>
-                          
-                          <span className="text-white font-bold text-base capitalize">
-                            {date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-                          </span>
-                          
-                          <button
-                            onClick={increaseMonth}
-                            disabled={nextMonthButtonDisabled}
-                            type="button"
-                            className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
-                          >
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                          </button>
-                        </div>
-                      )}
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handleOpenDateTimeModal}
+                    className="w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 border-gray-300 dark:border-gray-600 font-medium shadow-sm text-left cursor-pointer hover:shadow-md"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={formData.drawDate ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}>
+                        {formData.drawDate ? formatDateTimeDisplay(formData.drawDate) : 'Clique para selecionar data e hora'}
+                      </span>
+                      <Calendar className="w-5 h-5 text-blue-500" />
+                    </div>
+                  </button>
                   <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-2">
                     <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
                     <span>A data será exibida publicamente na página da campanha</span>
@@ -851,6 +829,15 @@ const CreateCampaignStep2Page = () => {
           onClose={() => setShowPrizesModal(false)}
           prizes={prizes}
           onSavePrizes={handleSavePrizes}
+        />
+
+        {/* DateTime Picker Modal */}
+        <DateTimePickerModal
+          isOpen={showDateTimeModal}
+          onClose={() => setShowDateTimeModal(false)}
+          onConfirm={handleDateTimeConfirm}
+          selectedDate={formData.drawDate}
+          minDate={new Date()}
         />
       </main>
     </div>
