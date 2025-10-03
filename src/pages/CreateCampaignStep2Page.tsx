@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Upload, X, Plus, Trash2, AlertTriangle, ChevronDown, Calendar, Gift, Trophy, Settings, Image as ImageIcon, FileText } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Plus, Trash2, AlertTriangle, ChevronDown, Calendar, Gift, Trophy, Settings, Image as ImageIcon, FileText } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaignWithRefetch } from '../hooks/useCampaigns';
 import { CampaignAPI } from '../lib/api/campaigns';
@@ -14,7 +14,6 @@ import { registerLocale, setDefaultLocale } from 'react-datepicker';
 import { ptBR } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
 
-// Register Portuguese locale
 registerLocale('pt-BR', ptBR);
 setDefaultLocale('pt-BR');
 
@@ -22,13 +21,9 @@ const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Extract campaign ID from URL
   const campaignId = new URLSearchParams(location.search).get('id');
-  
-  // Fetch campaign data
   const { campaign, loading: campaignLoading, refetch } = useCampaignWithRefetch(campaignId || '');
   
-  // Image upload hook
   const {
     images,
     uploading: uploadingImages,
@@ -40,7 +35,6 @@ const CreateCampaignStep2Page = () => {
     setExistingImages
   } = useImageUpload();
 
-  // Form state
   const [formData, setFormData] = useState({
     description: '',
     requireEmail: true,
@@ -54,25 +48,15 @@ const CreateCampaignStep2Page = () => {
     showDrawDateOption: 'no-date' as 'show-date' | 'no-date'
   });
 
-  // State for inline date picker visibility
   const [showInlineDatePicker, setShowInlineDatePicker] = useState(false);
-
-  // Modal states
   const [showPromotionModal, setShowPromotionModal] = useState(false);
   const [showPrizesModal, setShowPrizesModal] = useState(false);
-  
-  // Promotions and prizes state
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [prizes, setPrizes] = useState<Prize[]>([]);
-  
-  // Loading and error states
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  // Campaign model validation error state
   const [campaignModelError, setCampaignModelError] = useState<string>('');
 
-  // Load existing campaign data when component mounts
   useEffect(() => {
     if (campaign) {
       setFormData({
@@ -104,7 +88,6 @@ const CreateCampaignStep2Page = () => {
     }
   }, [campaign, setExistingImages]);
 
-  // Validate campaign model when it changes or when total_tickets is available
   useEffect(() => {
     if (campaign?.total_tickets && formData.campaignModel === 'manual' && campaign.total_tickets > 10000) {
       setCampaignModelError('O modelo manual não é permitido para campanhas com mais de 10.000 cotas.');
@@ -293,24 +276,16 @@ const CreateCampaignStep2Page = () => {
 
   if (campaignLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-purple-200 dark:border-purple-900 rounded-full"></div>
-          <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-purple-600 rounded-full animate-spin"></div>
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     );
   }
 
   if (!campaign) {
     return (
-      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl text-gray-900 dark:text-white p-8 rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-xl">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertTriangle className="w-8 h-8 text-white" />
-          </div>
-          <p className="text-gray-600 dark:text-gray-400">Campanha não encontrada.</p>
-        </div>
+      <div className="rounded-2xl p-6 text-center border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm">
+        <p className="text-gray-600 dark:text-gray-400">Campanha não encontrada.</p>
       </div>
     );
   }
@@ -318,19 +293,19 @@ const CreateCampaignStep2Page = () => {
   const isFormValid = !campaignModelError && Object.keys(errors).length === 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/20 dark:from-gray-950 dark:via-purple-950/20 dark:to-pink-950/10 transition-colors duration-300">
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        {/* Header */}
+    <div className="dashboard-page min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header com Progress */}
         <div className="mb-8">
           <div className="flex items-center space-x-4 mb-6">
             <button
               onClick={handleGoBack}
-              className="group p-3 hover:bg-white/80 dark:hover:bg-gray-800/80 rounded-xl transition-all duration-200 border border-transparent hover:border-purple-200 dark:hover:border-purple-800/50"
+              className="p-3 hover:bg-white/60 dark:hover:bg-gray-800/60 rounded-xl transition-all duration-200 border border-transparent hover:border-gray-200/20 dark:hover:border-gray-700/30"
             >
-              <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
+              <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             </button>
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                 Editar campanha
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -339,27 +314,27 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
-          {/* Progress Steps */}
-          <div className="flex items-center space-x-4">
+          {/* Progress Steps - Estilo Dashboard */}
+          <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white text-sm font-bold shadow-lg">
+              <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
                 ✓
               </div>
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Básico</span>
             </div>
-            <div className="flex-1 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+            <div className="flex-1 h-1 bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 rounded-full animate-gradient-x bg-[length:200%_200%]"></div>
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white text-sm font-bold shadow-lg animate-pulse">
+              <div className="w-8 h-8 rounded-full animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 flex items-center justify-center text-white text-sm font-bold shadow-lg">
                 2
               </div>
-              <span className="text-sm font-medium text-purple-600 dark:text-purple-400">Detalhes</span>
+              <span className="text-sm font-bold text-purple-600 dark:text-purple-400">Detalhes</span>
             </div>
-            <div className="flex-1 h-1 bg-gray-200 dark:bg-gray-800 rounded-full"></div>
+            <div className="flex-1 h-1 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-500 text-sm font-bold">
+              <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 text-sm font-bold">
                 3
               </div>
-              <span className="text-sm text-gray-500 dark:text-gray-500">Pagamento</span>
+              <span className="text-sm text-gray-500">Pagamento</span>
             </div>
           </div>
         </div>
@@ -367,27 +342,25 @@ const CreateCampaignStep2Page = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Error Message */}
           {errors.submit && (
-            <div className="bg-red-50/80 dark:bg-red-900/20 backdrop-blur-xl border border-red-200 dark:border-red-800/50 rounded-2xl p-5 shadow-lg">
+            <div className="rounded-2xl p-5 border border-red-200/20 dark:border-red-800/30 bg-red-50/60 dark:bg-red-900/20 backdrop-blur-sm">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
                   <AlertTriangle className="w-5 h-5 text-white" />
                 </div>
-                <p className="text-red-700 dark:text-red-300">{errors.submit}</p>
+                <p className="text-red-700 dark:text-red-300 font-medium">{errors.submit}</p>
               </div>
             </div>
           )}
 
           {/* Campaign Images Section */}
-          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                  <ImageIcon className="w-5 h-5 text-white" />
-                </div>
-                <h2 className="text-xl font-bold text-white">
-                  Imagens do prêmio
-                </h2>
+          <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
+            <div className="flex items-center space-x-3 p-5 border-b border-gray-200/20 dark:border-gray-700/30">
+              <div className="w-10 h-10 rounded-xl animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 flex items-center justify-center shadow-md">
+                <ImageIcon className="w-5 h-5 text-white" />
               </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Imagens do prêmio
+              </h2>
             </div>
             <div className="p-6">
               <ImageUpload
@@ -402,16 +375,14 @@ const CreateCampaignStep2Page = () => {
           </div>
 
           {/* Campaign Description Section */}
-          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-white" />
-                </div>
-                <h2 className="text-xl font-bold text-white">
-                  Descrição da campanha
-                </h2>
+          <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
+            <div className="flex items-center space-x-3 p-5 border-b border-gray-200/20 dark:border-gray-700/30">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
+                <FileText className="w-5 h-5 text-white" />
               </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Descrição da campanha
+              </h2>
             </div>
             <div className="p-6">
               <RichTextEditor
@@ -423,49 +394,46 @@ const CreateCampaignStep2Page = () => {
           </div>
 
           {/* Promotions Section */}
-          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                    <Gift className="w-5 h-5 text-white" />
-                  </div>
-                  <h2 className="text-xl font-bold text-white">
-                    Promoções
-                  </h2>
+          <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-gray-200/20 dark:border-gray-700/30">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center shadow-md">
+                  <Gift className="w-5 h-5 text-white" />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowPromotionModal(true)}
-                  className="group relative bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                  <Plus className="h-4 w-4 relative z-10" />
-                  <span className="relative z-10">Adicionar</span>
-                </button>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Promoções
+                </h2>
               </div>
+              <button
+                type="button"
+                onClick={() => setShowPromotionModal(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 text-white"
+              >
+                <Plus className="h-4 w-4" />
+                Adicionar
+              </button>
             </div>
             <div className="p-6">
               {promotions.length > 0 ? (
                 <div className="space-y-3">
                   {promotions.map((promo) => {
                     const originalValue = promo.ticketQuantity * (campaign?.ticket_price || 0);
-                    const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0;
+                    const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0);
                     
                     return (
                       <div
                         key={promo.id}
-                        className="group relative bg-gradient-to-r from-purple-50/50 to-pink-50/50 dark:from-purple-900/10 dark:to-pink-900/10 p-5 rounded-xl border border-purple-100 dark:border-purple-900/30 hover:border-purple-300 dark:hover:border-purple-700/50 transition-all duration-200 hover:shadow-lg"
+                        className="rounded-xl p-5 border border-purple-100/20 dark:border-purple-900/30 bg-purple-50/50 dark:bg-purple-900/10 backdrop-blur-sm hover:shadow-md transition-all duration-300"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
                               <span className="text-2xl">🎁</span>
-                              <span className="font-bold text-lg bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                              <span className="font-bold text-lg text-gray-900 dark:text-white">
                                 {promo.ticketQuantity} Bilhetes
                               </span>
                             </div>
-                            <div className="flex items-center space-x-3 text-sm">
+                            <div className="flex items-center space-x-3 text-sm mb-2">
                               <span className="text-gray-500 dark:text-gray-400">De:</span>
                               <span className="line-through text-gray-500 dark:text-gray-400">
                                 {formatCurrency(originalValue)}
@@ -476,16 +444,16 @@ const CreateCampaignStep2Page = () => {
                                 {formatCurrency(promo.discountedTotalValue)}
                               </span>
                             </div>
-                            <div className="mt-2 inline-flex items-center px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
-                              <span className="text-xs font-medium text-green-700 dark:text-green-400">
-                                💰 Desconto: {formatCurrency(promo.fixedDiscountAmount)} ({discountPercentage}%)
+                            <div className="inline-flex items-center px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+                              <span className="text-xs font-bold text-green-700 dark:text-green-400">
+                                Desconto: {formatCurrency(promo.fixedDiscountAmount)} ({discountPercentage}%)
                               </span>
                             </div>
                           </div>
                           <button
                             type="button"
                             onClick={() => setPromotions(prev => prev.filter(p => p.id !== promo.id))}
-                            className="p-3 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-all duration-200 opacity-0 group-hover:opacity-100"
+                            className="p-3 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-all duration-200"
                           >
                             <Trash2 className="h-5 w-5" />
                           </button>
@@ -495,7 +463,7 @@ const CreateCampaignStep2Page = () => {
                   })}
                 </div>
               ) : (
-                <div className="bg-gradient-to-br from-gray-50 to-purple-50/30 dark:from-gray-800/50 dark:to-purple-900/10 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-700">
+                <div className="rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
                   <div className="text-6xl mb-3">🎁</div>
                   <p className="text-gray-500 dark:text-gray-400 font-medium">
                     Nenhuma promoção adicionada
@@ -509,27 +477,24 @@ const CreateCampaignStep2Page = () => {
           </div>
 
           {/* Prizes Section */}
-          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                    <Trophy className="w-5 h-5 text-white" />
-                  </div>
-                  <h2 className="text-xl font-bold text-white">
-                    Prêmios
-                  </h2>
+          <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-gray-200/20 dark:border-gray-700/30">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-yellow-600 flex items-center justify-center shadow-md">
+                  <Trophy className="w-5 h-5 text-white" />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowPrizesModal(true)}
-                  className="group relative bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                  <Plus className="h-4 w-4 relative z-10" />
-                  <span className="relative z-10">Adicionar</span>
-                </button>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Prêmios
+                </h2>
               </div>
+              <button
+                type="button"
+                onClick={() => setShowPrizesModal(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Plus className="h-4 w-4" />
+                Adicionar
+              </button>
             </div>
             <div className="p-6">
               {prizes.length > 0 ? (
@@ -537,11 +502,11 @@ const CreateCampaignStep2Page = () => {
                   {prizes.map((prize, index) => (
                     <div
                       key={prize.id}
-                      className="group relative bg-gradient-to-r from-yellow-50/50 to-orange-50/50 dark:from-yellow-900/10 dark:to-orange-900/10 p-5 rounded-xl border border-yellow-100 dark:border-yellow-900/30 hover:border-yellow-300 dark:hover:border-yellow-700/50 transition-all duration-200 hover:shadow-lg"
+                      className="rounded-xl p-5 border border-yellow-100/20 dark:border-yellow-900/30 bg-yellow-50/50 dark:bg-yellow-900/10 backdrop-blur-sm hover:shadow-md transition-all duration-300"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+                          <div className="w-12 h-12 bg-yellow-600 rounded-xl flex items-center justify-center shadow-md">
                             <span className="text-white font-bold text-lg">
                               {index + 1}º
                             </span>
@@ -553,7 +518,7 @@ const CreateCampaignStep2Page = () => {
                         <button
                           type="button"
                           onClick={() => setPrizes(prev => prev.filter(p => p.id !== prize.id))}
-                          className="p-3 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-all duration-200 opacity-0 group-hover:opacity-100"
+                          className="p-3 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-all duration-200"
                         >
                           <Trash2 className="h-5 w-5" />
                         </button>
@@ -562,7 +527,7 @@ const CreateCampaignStep2Page = () => {
                   ))}
                 </div>
               ) : (
-                <div className="bg-gradient-to-br from-gray-50 to-yellow-50/30 dark:from-gray-800/50 dark:to-yellow-900/10 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-700">
+                <div className="rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
                   <div className="text-6xl mb-3">🏆</div>
                   <p className="text-gray-500 dark:text-gray-400 font-medium">
                     Nenhum prêmio adicionado
@@ -576,52 +541,41 @@ const CreateCampaignStep2Page = () => {
           </div>
 
           {/* Draw Date Section */}
-          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-white" />
-                </div>
-                <h2 className="text-xl font-bold text-white">
-                  Data do sorteio
-                </h2>
+          <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
+            <div className="flex items-center space-x-3 p-5 border-b border-gray-200/20 dark:border-gray-700/30">
+              <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-md">
+                <Calendar className="w-5 h-5 text-white" />
               </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Data do sorteio
+              </h2>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <button
                   type="button"
                   onClick={() => handleDrawDateOptionChange('show-date')}
-                  className={`group relative py-4 px-6 rounded-xl font-medium transition-all duration-200 border-2 overflow-hidden ${
+                  className={`py-4 px-6 rounded-xl font-bold transition-all duration-300 border-2 ${
                     formData.showDrawDateOption === 'show-date'
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-transparent shadow-lg shadow-purple-500/50'
-                      : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-purple-500 dark:hover:border-purple-500'
+                      ? 'animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 text-white border-transparent shadow-lg'
+                      : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-purple-500'
                   }`}
                 >
-                  {formData.showDrawDateOption === 'show-date' && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                  )}
-                  <span className="relative z-10 flex items-center justify-center space-x-2">
+                  <div className="flex items-center justify-center space-x-2">
                     <Calendar className="w-4 h-4" />
                     <span>Mostrar data</span>
-                  </span>
+                  </div>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDrawDateOptionChange('no-date')}
-                  className={`group relative py-4 px-6 rounded-xl font-medium transition-all duration-200 border-2 overflow-hidden ${
+                  className={`py-4 px-6 rounded-xl font-bold transition-all duration-300 border-2 ${
                     formData.showDrawDateOption === 'no-date'
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-transparent shadow-lg shadow-purple-500/50'
-                      : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-purple-500 dark:hover:border-purple-500'
+                      ? 'animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 text-white border-transparent shadow-lg'
+                      : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-purple-500'
                   }`}
                 >
-                  {formData.showDrawDateOption === 'no-date' && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                  )}
-                  <span className="relative z-10 flex items-center justify-center space-x-2">
-                    <X className="w-4 h-4" />
-                    <span>Não mostrar data</span>
-                  </span>
+                  Não mostrar data
                 </button>
               </div>
 
@@ -685,7 +639,7 @@ const CreateCampaignStep2Page = () => {
               )}
 
               {formData.showDrawDateOption === 'no-date' && (
-                <div className="bg-gradient-to-br from-gray-50 to-indigo-50/30 dark:from-gray-800/50 dark:to-indigo-900/10 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-700">
+                <div className="rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
                   <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-3" />
                   <p className="text-gray-500 dark:text-gray-400 font-medium">
                     A data do sorteio não será exibida publicamente
@@ -696,16 +650,14 @@ const CreateCampaignStep2Page = () => {
           </div>
 
           {/* Campaign Settings Section */}
-          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-gray-700 to-gray-900 px-6 py-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                  <Settings className="w-5 h-5 text-white" />
-                </div>
-                <h2 className="text-xl font-bold text-white">
-                  Configurações da campanha
-                </h2>
+          <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
+            <div className="flex items-center space-x-3 p-5 border-b border-gray-200/20 dark:border-gray-700/30">
+              <div className="w-10 h-10 rounded-xl bg-gray-700 flex items-center justify-center shadow-md">
+                <Settings className="w-5 h-5 text-white" />
               </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Configurações da campanha
+              </h2>
             </div>
             <div className="p-6 space-y-6">
               {/* Reservation Timeout */}
@@ -800,8 +752,8 @@ const CreateCampaignStep2Page = () => {
                 </div>
                 
                 {campaignModelError && (
-                  <div className="mt-3 flex items-start space-x-3 bg-orange-50/80 dark:bg-orange-900/20 backdrop-blur-sm border border-orange-200 dark:border-orange-800/50 rounded-xl px-4 py-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="mt-3 flex items-start space-x-3 rounded-xl p-4 border border-orange-200/20 dark:border-orange-800/30 bg-orange-50/60 dark:bg-orange-900/20 backdrop-blur-sm">
+                    <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md">
                       <AlertTriangle className="h-4 w-4 text-white" />
                     </div>
                     <span className="text-orange-800 dark:text-orange-200 text-sm font-medium pt-1">
@@ -812,8 +764,8 @@ const CreateCampaignStep2Page = () => {
               </div>
 
               {/* Checkboxes Section */}
-              <div className="space-y-4 pt-4 border-t-2 border-gray-200 dark:border-gray-800">
-                <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-purple-50/50 to-pink-50/50 dark:from-purple-900/10 dark:to-pink-900/10 rounded-xl border border-purple-100 dark:border-purple-900/30 hover:border-purple-300 dark:hover:border-purple-700/50 transition-all duration-200">
+              <div className="space-y-3 pt-4 border-t-2 border-gray-200/20 dark:border-gray-700/30">
+                <div className="flex items-center space-x-4 p-4 rounded-xl border border-purple-100/20 dark:border-purple-900/30 bg-purple-50/30 dark:bg-purple-900/10 backdrop-blur-sm hover:border-purple-300/50 dark:hover:border-purple-700/50 transition-all duration-200">
                   <input
                     type="checkbox"
                     id="requireEmail"
@@ -822,12 +774,12 @@ const CreateCampaignStep2Page = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 text-purple-600 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-purple-500 focus:ring-2 cursor-pointer"
                   />
-                  <label htmlFor="requireEmail" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1">
+                  <label htmlFor="requireEmail" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1 font-medium">
                     Exigir email dos compradores
                   </label>
                 </div>
 
-                <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-blue-50/50 to-cyan-50/50 dark:from-blue-900/10 dark:to-cyan-900/10 rounded-xl border border-blue-100 dark:border-blue-900/30 hover:border-blue-300 dark:hover:border-blue-700/50 transition-all duration-200">
+                <div className="flex items-center space-x-4 p-4 rounded-xl border border-blue-100/20 dark:border-blue-900/30 bg-blue-50/30 dark:bg-blue-900/10 backdrop-blur-sm hover:border-blue-300/50 dark:hover:border-blue-700/50 transition-all duration-200">
                   <input
                     type="checkbox"
                     id="showRanking"
@@ -836,12 +788,12 @@ const CreateCampaignStep2Page = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 text-blue-600 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:ring-2 cursor-pointer"
                   />
-                  <label htmlFor="showRanking" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1">
+                  <label htmlFor="showRanking" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1 font-medium">
                     Mostrar ranking de compradores
                   </label>
                 </div>
 
-                <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-green-50/50 to-emerald-50/50 dark:from-green-900/10 dark:to-emerald-900/10 rounded-xl border border-green-100 dark:border-green-900/30 hover:border-green-300 dark:hover:border-green-700/50 transition-all duration-200">
+                <div className="flex items-center space-x-4 p-4 rounded-xl border border-green-100/20 dark:border-green-900/30 bg-green-50/30 dark:bg-green-900/10 backdrop-blur-sm hover:border-green-300/50 dark:hover:border-green-700/50 transition-all duration-200">
                   <input
                     type="checkbox"
                     id="showPercentage"
@@ -850,7 +802,7 @@ const CreateCampaignStep2Page = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 text-green-600 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-green-500 focus:ring-2 cursor-pointer"
                   />
-                  <label htmlFor="showPercentage" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1">
+                  <label htmlFor="showPercentage" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1 font-medium">
                     Mostrar porcentagem de vendas
                   </label>
                 </div>
@@ -863,20 +815,17 @@ const CreateCampaignStep2Page = () => {
             <button
               type="submit"
               disabled={loading || !isFormValid}
-              className="group relative bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white px-10 py-4 rounded-xl font-bold text-lg transition-all duration-200 flex items-center space-x-3 shadow-xl hover:shadow-2xl hover:scale-105 disabled:hover:scale-100 overflow-hidden"
+              className="inline-flex items-center gap-3 px-10 py-4 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white"
             >
-              {!loading && (
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-              )}
               {loading ? (
-                <div className="relative z-10 flex items-center space-x-3">
+                <>
                   <div className="animate-spin rounded-full h-6 w-6 border-3 border-white border-t-transparent"></div>
                   <span>Processando...</span>
-                </div>
+                </>
               ) : (
                 <>
-                  <span className="relative z-10">Finalizar e continuar</span>
-                  <ArrowRight className="h-6 w-6 relative z-10 group-hover:translate-x-1 transition-transform" />
+                  <span>Finalizar e continuar</span>
+                  <ArrowRight className="h-6 w-6" />
                 </>
               )}
             </button>
@@ -900,7 +849,7 @@ const CreateCampaignStep2Page = () => {
           prizes={prizes}
           onSavePrizes={handleSavePrizes}
         />
-      </div>
+      </main>
     </div>
   );
 };
