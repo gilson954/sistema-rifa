@@ -24,7 +24,6 @@ import { formatCurrency } from '../utils/currency';
 import { calculateTotalWithPromotions } from '../utils/currency';
 import { socialMediaConfig, shareSectionConfig } from '../components/SocialMediaIcons';
 import { supabase } from '../lib/supabase';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface PromotionInfo {
   promotion: Promotion;
@@ -402,23 +401,17 @@ const CampaignPage = () => {
 
   const handlePreviousImage = () => {
     if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
-      setIsAutoPlayPaused(true); // Pausa o autoplay quando usuário navega manualmente
       setCurrentImageIndex(prev => 
         prev === 0 ? campaign.prize_image_urls!.length - 1 : prev - 1
       );
-      // Retoma o autoplay após 10 segundos
-      setTimeout(() => setIsAutoPlayPaused(false), 10000);
     }
   };
 
   const handleNextImage = () => {
     if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
-      setIsAutoPlayPaused(true); // Pausa o autoplay quando usuário navega manualmente
       setCurrentImageIndex(prev => 
         prev === campaign.prize_image_urls!.length - 1 ? 0 : prev + 1
       );
-      // Retoma o autoplay após 10 segundos
-      setTimeout(() => setIsAutoPlayPaused(false), 10000);
     }
   };
 
@@ -706,25 +699,14 @@ const CampaignPage = () => {
 
         {/* 1. Seção de galeria de imagens - card com largura limitada - SEM THUMBNAILS */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}>
-          <div 
-            className="relative group w-full"
-            onMouseEnter={() => setIsAutoPlayPaused(true)}
-            onMouseLeave={() => setIsAutoPlayPaused(false)}
-          >
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={currentImageIndex}
-                src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
-                alt={campaign.title}
-                className="w-full h-[300px] sm:h-[500px] object-cover rounded-t-xl"
-                onClick={() => handleImageClick(currentImageIndex)}
-                style={{ cursor: 'pointer' }}
-                initial={{ opacity: 0, x: 300 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -300 }}
-                transition={{ duration: 0.5 }}
-              />
-            </AnimatePresence>
+          <div className="relative group w-full">
+            <img
+              src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
+              alt={campaign.title}
+              className="w-full h-[300px] sm:h-[500px] object-cover rounded-t-xl"
+              onClick={() => handleImageClick(currentImageIndex)}
+              style={{ cursor: 'pointer' }}
+            />
             
             {/* Navigation Arrows */}
             {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
