@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
-import { calculateTotalWithPromotions } from '../utils/currency';
+
+// Simulação da função de cálculo para o preview
+const calculateTotalWithPromotions = (quantity: number, price: number, promotions: any[]) => {
+  return { total: quantity * price };
+};
 
 interface PromotionInfo {
   promotion: any;
@@ -30,17 +34,17 @@ interface QuotaSelectorProps {
 }
 
 const QuotaSelector: React.FC<QuotaSelectorProps> = ({
-  ticketPrice,
-  minTicketsPerPurchase,
-  maxTicketsPerPurchase,
-  onQuantityChange,
+  ticketPrice = 10,
+  minTicketsPerPurchase = 1,
+  maxTicketsPerPurchase = 100,
+  onQuantityChange = () => {},
   initialQuantity = 1,
-  mode,
+  mode = 'automatic',
   promotionInfo,
   promotions = [],
-  primaryColor,
-  campaignTheme,
-  onReserve,
+  primaryColor = '#3B82F6',
+  campaignTheme = 'escuro',
+  onReserve = () => {},
   reserving = false,
   disabled = false,
   colorMode = 'solid',
@@ -229,7 +233,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           <button
             key={index}
             onClick={() => handleIncrement(button.value)}
-            className={getColorClassName("text-white py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg font-medium text-xs sm:text-sm hover:brightness-90 transition-all duration-200")}
+            className={getColorClassName("text-white py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg font-medium text-xs sm:text-sm hover:brightness-90 transition-all duration-200 hover:scale-105 active:scale-95")}
             style={getColorStyle()}
           >
             {button.label}
@@ -237,36 +241,94 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         ))}
       </div>
 
-      {/* Quantity Input */}
-      <div className="flex items-center justify-center space-x-3 mb-4">
+      {/* Quantity Input - DESIGN MELHORADO */}
+      <div className="flex items-center justify-center gap-3 mb-4">
         <button
           onClick={() => handleIncrement(-1)}
-          className={`w-8 h-8 ${getThemeClasses(campaignTheme).cardBg} rounded-lg flex items-center justify-center transition-colors duration-200 hover:opacity-80 border ${getThemeClasses(campaignTheme).border}`}
+          disabled={quantity <= minTicketsPerPurchase}
+          className={`
+            group relative w-12 h-12 rounded-xl flex items-center justify-center 
+            transition-all duration-200 
+            ${getThemeClasses(campaignTheme).cardBg} 
+            border-2 ${getThemeClasses(campaignTheme).border}
+            hover:scale-110 active:scale-95
+            disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100
+            shadow-sm hover:shadow-md
+          `}
+          style={{
+            borderColor: quantity > minTicketsPerPurchase ? primaryColor : undefined,
+          }}
         >
-          <Minus className={`h-3 w-3 ${getThemeClasses(campaignTheme).textSecondary}`} />
+          <Minus 
+            className={`h-5 w-5 transition-colors duration-200 ${
+              quantity > minTicketsPerPurchase 
+                ? getThemeClasses(campaignTheme).text 
+                : getThemeClasses(campaignTheme).textSecondary
+            }`}
+            style={{
+              color: quantity > minTicketsPerPurchase ? primaryColor : undefined,
+            }}
+          />
         </button>
         
-        <input
-          type="number"
-          value={quantity}
-          onChange={handleQuantityChange}
-          min={minTicketsPerPurchase}
-          max={maxTicketsPerPurchase}
-          className={`w-16 text-center py-1.5 text-sm ${getThemeClasses(campaignTheme).cardBg} border ${getThemeClasses(campaignTheme).border} rounded-lg ${getThemeClasses(campaignTheme).text} focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-200`}
-          style={{ '--tw-ring-color': primaryColor || '#3B82F6' } as React.CSSProperties}
-        />
+        <div className="relative">
+          <input
+            type="number"
+            value={quantity}
+            onChange={handleQuantityChange}
+            min={minTicketsPerPurchase}
+            max={maxTicketsPerPurchase}
+            className={`
+              w-24 h-12 text-center text-xl font-bold
+              ${getThemeClasses(campaignTheme).cardBg} 
+              border-2 rounded-xl
+              ${getThemeClasses(campaignTheme).text}
+              focus:outline-none focus:ring-2 focus:border-transparent 
+              transition-all duration-200
+              shadow-sm focus:shadow-md
+            `}
+            style={{ 
+              '--tw-ring-color': primaryColor || '#3B82F6',
+              borderColor: primaryColor,
+            } as React.CSSProperties}
+          />
+          <div className={`absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs ${getThemeClasses(campaignTheme).textSecondary} whitespace-nowrap`}>
+            cotas
+          </div>
+        </div>
         
         <button
           onClick={() => handleIncrement(1)}
-          className={`w-8 h-8 ${getThemeClasses(campaignTheme).cardBg} rounded-lg flex items-center justify-center transition-colors duration-200 hover:opacity-80 border ${getThemeClasses(campaignTheme).border}`}
+          disabled={quantity >= maxTicketsPerPurchase}
+          className={`
+            group relative w-12 h-12 rounded-xl flex items-center justify-center 
+            transition-all duration-200 
+            ${getThemeClasses(campaignTheme).cardBg} 
+            border-2 ${getThemeClasses(campaignTheme).border}
+            hover:scale-110 active:scale-95
+            disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100
+            shadow-sm hover:shadow-md
+          `}
+          style={{
+            borderColor: quantity < maxTicketsPerPurchase ? primaryColor : undefined,
+          }}
         >
-          <Plus className={`h-3 w-3 ${getThemeClasses(campaignTheme).textSecondary}`} />
+          <Plus 
+            className={`h-5 w-5 transition-colors duration-200 ${
+              quantity < maxTicketsPerPurchase 
+                ? getThemeClasses(campaignTheme).text 
+                : getThemeClasses(campaignTheme).textSecondary
+            }`}
+            style={{
+              color: quantity < maxTicketsPerPurchase ? primaryColor : undefined,
+            }}
+          />
         </button>
       </div>
 
       {/* Error Message */}
       {errorMessage && (
-        <div className="text-center mb-3">
+        <div className="text-center mb-3 mt-6">
           <p className="text-red-500 text-sm font-medium">
             {errorMessage}
           </p>
@@ -274,7 +336,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       )}
 
       {/* Total Value */}
-      <div className="text-center mb-4">
+      <div className="text-center mb-4 mt-8">
         {/* Exibição do preço original riscado se houver promoção */}
         {promotionInfo && (
           <div className={`text-xs ${getThemeClasses(campaignTheme).textSecondary} mb-1`}>
@@ -296,12 +358,16 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       <button
         onClick={onReserve}
         disabled={reserving || disabled || !onReserve}
-        className={getColorClassName(`w-full py-3 rounded-lg font-bold text-base transition-colors duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
-        promotionInfo
-          ? 'text-white hover:brightness-90'
-          : 'text-white hover:brightness-90'
-      }`)}
-      style={getColorStyle()}>
+        className={getColorClassName(`
+          w-full py-3 rounded-lg font-bold text-base 
+          transition-all duration-200 
+          shadow-md hover:shadow-lg
+          disabled:opacity-50 disabled:cursor-not-allowed 
+          text-white hover:brightness-90
+          hover:scale-[1.02] active:scale-[0.98]
+        `)}
+        style={getColorStyle()}
+      >
         {reserving ? 'RESERVANDO...' : disabled ? 'INDISPONÍVEL' : 'RESERVAR'}
       </button>
     </div>
