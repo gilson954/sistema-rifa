@@ -75,7 +75,7 @@ const slideVariants = {
     x: direction > 0 ? -300 : 300,
     opacity: 0,
     transition: {
-      duration: 0.10
+      duration: 0.9
     }
   })
 };
