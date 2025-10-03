@@ -47,26 +47,28 @@ interface OrganizerProfile {
   custom_gradient_colors?: string;
 }
 
+/* Helper para formatar números com separadores de milhares */
+const formatNumber = (num: number): string => {
+  return new Intl.NumberFormat('pt-BR').format(num);
+};
+
 const CampaignPage = () => {
   const { publicId } = useParams<{ publicId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme } = useTheme();
 
-  // Função para verificar se a descrição contém conteúdo válido
   const isValidDescription = (description: string): boolean => {
     if (!description || typeof description !== 'string') return false;
     
-    // Remove HTML tags e espaços para verificar se há conteúdo real
     const textContent = description
-      .replace(/<[^>]*>/g, '') // Remove todas as tags HTML
-      .replace(/&nbsp;/g, ' ') // Substitui &nbsp; por espaços
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
       .trim();
     
     return textContent.length > 0;
   };
   
-  // Check if this is a custom domain request
   const developmentHosts = [
     'localhost',
     '127.0.0.1',
@@ -83,25 +85,20 @@ const CampaignPage = () => {
   
   const isCustomDomain = !isDevelopmentHost && publicId;
   
-  // Use appropriate hook based on access method
   const { campaign: campaignByPublicId, loading: loadingByPublicId, error: errorByPublicId } = useCampaignByPublicId(publicId || '');
   const { campaign: campaignByDomain, loading: loadingByDomain, error: errorByDomain } = useCampaignByCustomDomain(
     isCustomDomain ? window.location.hostname : ''
   );
   
-  // Select the appropriate campaign data
   const campaign = isCustomDomain ? campaignByDomain : campaignByPublicId;
   const loading = isCustomDomain ? loadingByDomain : loadingByPublicId;
   const error = isCustomDomain ? errorByDomain : errorByPublicId;
 
-  // Check if campaign is available for purchases (paid and active)
   const isCampaignAvailable = campaign?.status === 'active' && campaign?.is_paid !== false;
 
-  // Organizer profile state
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
 
-  // Tickets management
   const {
     tickets,
     loading: ticketsLoading,
@@ -111,26 +108,21 @@ const CampaignPage = () => {
     reserving
   } = useTickets(campaign?.id || '');
 
-  // Local state for manual selection
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [activeFilter, setActiveFilter] = useState<'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers'>('all');
   
-  // Modal states
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
   const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
   const [reservationTotalValue, setReservationTotalValue] = useState(0);
 
-  // Image gallery state
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [fullscreenImageIndex, setFullscreenImageIndex] = useState<number | null>(null);
   
-  // Touch/swipe state for mobile navigation
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
-  // Function to generate gradient style from custom colors
   const getCustomGradientStyle = (customColorsJson: string) => {
     try {
       const colors = JSON.parse(customColorsJson);
@@ -147,7 +139,6 @@ const CampaignPage = () => {
     return null;
   };
 
-  // Function to get style object for gradient or solid color
   const getColorStyle = (isBackground: boolean = true, isText: boolean = false) => {
     const colorMode = organizerProfile?.color_mode || 'solid';
     const primaryColor = organizerProfile?.primary_color || '#3B82F6';
@@ -156,7 +147,6 @@ const CampaignPage = () => {
       const gradientClasses = organizerProfile?.gradient_classes;
       const customGradientColors = organizerProfile?.custom_gradient_colors;
 
-      // Custom gradient
       if (gradientClasses === 'custom' && customGradientColors) {
         const gradientStyle = getCustomGradientStyle(customGradientColors);
         if (gradientStyle) {
@@ -173,7 +163,6 @@ const CampaignPage = () => {
         }
       }
 
-      // Predefined gradient - return empty object if not text, for text return clipping styles
       if (isText) {
         return {
           WebkitBackgroundClip: 'text',
@@ -185,7 +174,6 @@ const CampaignPage = () => {
       return {};
     }
 
-    // Solid color - if isText is true, always return color property for text
     if (isText) {
       return { color: primaryColor };
     }
@@ -193,7 +181,6 @@ const CampaignPage = () => {
     return isBackground ? { backgroundColor: primaryColor } : { color: primaryColor };
   };
 
-  // Function to get className for gradients
   const getColorClassName = (baseClasses: string = '', isText: boolean = false) => {
     const colorMode = organizerProfile?.color_mode || 'solid';
 
@@ -201,12 +188,10 @@ const CampaignPage = () => {
       const gradientClasses = organizerProfile?.gradient_classes;
       const customGradientColors = organizerProfile?.custom_gradient_colors;
 
-      // Custom gradient
       if (gradientClasses === 'custom' && customGradientColors) {
         return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
       }
 
-      // Predefined gradient
       if (gradientClasses && gradientClasses !== 'custom') {
         return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
       }
@@ -215,7 +200,6 @@ const CampaignPage = () => {
     return baseClasses;
   };
 
-  // Load organizer profile
   useEffect(() => {
     if (campaign?.user_id) {
       const loadOrganizerProfile = async () => {
@@ -243,13 +227,11 @@ const CampaignPage = () => {
     }
   }, [campaign?.user_id]);
 
-  // Get applicable promotion for a given quantity
   const getBestPromotionForDisplay = useCallback((quotaCount: number): PromotionInfo | null => {
     if (!campaign?.promotions || !Array.isArray(campaign.promotions) || campaign.promotions.length === 0) {
       return null;
     }
 
-    // Find the best promotion that applies to this quantity
     const applicablePromotions = campaign.promotions.filter(
       (promo: Promotion) => promo.ticketQuantity <= quotaCount
     );
@@ -258,14 +240,12 @@ const CampaignPage = () => {
       return null;
     }
 
-    // Get the promotion with the highest ticket quantity (best deal)
     const applicablePromotion = applicablePromotions.reduce((best, current) => 
       current.ticketQuantity > best.ticketQuantity ? current : best
     );
 
     const originalTotal = quotaCount * campaign.ticket_price;
     
-    // Calculate total using the new block promotion logic
     const { total: promotionalTotal } = calculateTotalWithPromotions(
       quotaCount,
       campaign.ticket_price,
@@ -284,11 +264,9 @@ const CampaignPage = () => {
     };
   }, [campaign?.promotions, campaign?.ticket_price]);
 
-  // Handle manual quota selection
   const handleQuotaSelect = useCallback((quotaNumber: number) => {
     if (!campaign || campaign.campaign_model !== 'manual') return;
 
-    // Check if quota is available
     const availableTickets = getAvailableTickets();
     const isAvailable = availableTickets.some(ticket => ticket.quota_number === quotaNumber);
     
@@ -296,25 +274,21 @@ const CampaignPage = () => {
 
     setSelectedQuotas(prev => {
       if (prev.includes(quotaNumber)) {
-        // Remove if already selected
         return prev.filter(q => q !== quotaNumber);
       } else {
-        // Add if not selected and within limits
         const newSelection = [...prev, quotaNumber];
         if (newSelection.length <= (campaign.max_tickets_per_purchase || 1000)) {
           return newSelection;
         }
-        return prev; // Don't add if exceeds limit
+        return prev;
       }
     });
   }, [campaign, getAvailableTickets]);
 
-  // Handle automatic quantity change
   const handleQuantityChange = useCallback((newQuantity: number) => {
     setQuantity(newQuantity);
   }, []);
 
-  // Handle reservation submission
   const handleReservationSubmit = useCallback(async (customerData: CustomerData) => {
     if (!campaign) {
       alert('Erro: dados da campanha não encontrados');
@@ -325,14 +299,12 @@ const CampaignPage = () => {
       let quotasToReserve: number[] = [];
 
       if (campaign.campaign_model === 'manual') {
-        // Manual mode: use selected quotas
         if (selectedQuotas.length === 0) {
           alert('Selecione pelo menos uma cota para reservar');
           return;
         }
         quotasToReserve = selectedQuotas;
       } else {
-        // Automatic mode: generate random quotas
         if (quantity <= 0) {
           alert('Selecione uma quantidade válida de cotas');
           return;
@@ -346,38 +318,32 @@ const CampaignPage = () => {
           return;
         }
 
-        // Randomly select quotas from available ones
         const shuffled = [...availableQuotaNumbers].sort(() => 0.5 - Math.random());
         quotasToReserve = shuffled.slice(0, quantity);
       }
 
-      // Reserve the quotas
       const result = await reserveTickets(
         quotasToReserve,
-        user?.id || null, // Pass user ID if logged in, null if not
+        user?.id || null,
         customerData.name,
         customerData.email,
         `${customerData.countryCode} ${customerData.phoneNumber}`
       );
       
       if (result) {
-        // Calculate total value (considering promotions)
         const { total: totalValue } = calculateTotalWithPromotions(
           quotasToReserve.length,
           campaign.ticket_price,
           campaign.promotions || []
         );
 
-        // Set reservation data
         setReservationCustomerData(customerData);
         setReservationQuotas(quotasToReserve);
         setReservationTotalValue(totalValue);
 
-        // Clear selections
         setSelectedQuotas([]);
         setQuantity(Math.max(1, campaign.min_tickets_per_purchase || 1));
 
-        // Navigate to payment confirmation
         navigate('/payment-confirmation', {
           state: {
             reservationData: {
@@ -403,7 +369,6 @@ const CampaignPage = () => {
     }
   }, [campaign, user, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate]);
 
-  // Handle opening reservation modal
   const handleOpenReservationModal = useCallback(() => {
     if (campaign?.campaign_model === 'manual' && selectedQuotas.length === 0) {
       alert('Selecione pelo menos uma cota para reservar');
@@ -418,7 +383,6 @@ const CampaignPage = () => {
     setShowReservationModal(true);
   }, [user, campaign, selectedQuotas, quantity, navigate]);
 
-  // Image navigation
   const handlePreviousImage = () => {
     if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
       setCurrentImageIndex(prev => 
@@ -435,7 +399,6 @@ const CampaignPage = () => {
     }
   };
 
-  // Handle fullscreen image view
   const handleImageClick = (imageIndex: number) => {
     setFullscreenImageIndex(imageIndex);
   };
@@ -446,7 +409,6 @@ const CampaignPage = () => {
     setTouchEndX(null);
   };
 
-  // Fullscreen navigation functions
   const goToPreviousFullscreenImage = () => {
     if (fullscreenImageIndex === null || !campaign?.prize_image_urls) return;
     
@@ -469,7 +431,6 @@ const CampaignPage = () => {
     );
   };
 
-  // Keyboard navigation for fullscreen
   useEffect(() => {
     if (fullscreenImageIndex === null) return;
 
@@ -490,7 +451,6 @@ const CampaignPage = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [fullscreenImageIndex]);
 
-  // Touch/swipe handlers for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartX(e.targetTouches[0].clientX);
   };
@@ -512,11 +472,10 @@ const CampaignPage = () => {
       goToPreviousFullscreenImage();
     }
 
-    // Reset touch state
     setTouchStartX(null);
     setTouchEndX(null);
   };
-  // Get theme classes based on campaign theme
+
   const getThemeClasses = (campaignTheme: string) => {
     switch (campaignTheme) {
       case 'claro':
@@ -554,7 +513,6 @@ const CampaignPage = () => {
     }
   };
 
-  // Format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -565,24 +523,20 @@ const CampaignPage = () => {
     });
   };
 
-  // Calculate progress percentage
   const getProgressPercentage = () => {
     if (!campaign) return 0;
     return Math.round((campaign.sold_tickets / campaign.total_tickets) * 100);
   };
 
-  // Get current promotion info for selected/quantity
   const currentPromotionInfo = campaign?.campaign_model === 'manual' 
     ? getBestPromotionForDisplay(selectedQuotas.length)
     : getBestPromotionForDisplay(quantity);
 
-  // Calculate current total value
   const getCurrentTotalValue = () => {
     const currentQuantity = campaign?.campaign_model === 'manual' ? selectedQuotas.length : quantity;
     
     if (!campaign) return 0;
     
-    // Use the new block promotion calculation
     const { total } = calculateTotalWithPromotions(
       currentQuantity,
       campaign.ticket_price,
@@ -592,7 +546,6 @@ const CampaignPage = () => {
     return total;
   };
 
-  // Get configured payment methods
   const getConfiguredPaymentMethods = () => {
     if (!organizerProfile?.payment_integrations_config) return [];
     
@@ -615,19 +568,16 @@ const CampaignPage = () => {
       methods.push({ name: 'Efi Bank', icon: '🏦', color: '#EF4444' });
     }
     
-    // Always show PIX as it's the default
     methods.push({ name: 'PIX', icon: '₽', color: '#00BC63' });
     
     return methods;
   };
 
-  // Generate share URL
   const generateShareUrl = () => {
     const baseUrl = window.location.origin;
     return `${baseUrl}/c/${campaign?.public_id}`;
   };
 
-  // Handle social media sharing
   const handleShare = (platform: string) => {
     const shareUrl = generateShareUrl();
     const shareText = `Participe da ${campaign?.title}! Cotas por apenas ${formatCurrency(campaign?.ticket_price || 0)}`;
@@ -654,7 +604,6 @@ const CampaignPage = () => {
     window.open(url, '_blank', 'width=600,height=400');
   };
 
-  // Handle organizer social media click
   const handleOrganizerSocialClick = (platform: string, url: string) => {
     window.open(url, '_blank');
   };
@@ -732,7 +681,7 @@ const CampaignPage = () => {
           {campaign.title}
         </h1>
 
-        {/* 1. Seção de galeria de imagens - card com largura limitada */}
+        {/* 1. Seção de galeria de imagens - card com largura limitada - SEM THUMBNAILS */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}>
           <div className="relative group w-full">
             <img
@@ -762,55 +711,31 @@ const CampaignPage = () => {
               </>
             )}
             
-            {/* Image Counter */}
+            {/* Image Counter - DESIGN MELHORADO (Print 3) */}
             {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
-              <div className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+              <div className="absolute top-4 right-4 bg-gray-900/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-sm font-semibold">
                 {currentImageIndex + 1} / {campaign.prize_image_urls.length}
               </div>
             )}
 
-            {/* Price Badge */}
-            <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white bg-opacity-95 backdrop-blur-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-lg">
-              <div className="flex items-center space-x-1 sm:space-x-2">
-                <span className="text-xs sm:text-sm text-gray-600">Participe por apenas</span>
-                <span
-                  className={getColorClassName("font-bold text-sm sm:text-base md:text-lg", true)}
-                  style={getColorStyle(false, true)}
-                >
-                  {formatCurrency(campaign.ticket_price)}
-                </span>
+            {/* Price Badge - DESIGN MELHORADO (Print 1) */}
+            <div className="absolute top-4 left-4 bg-gray-900/80 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg">
+              <div className="flex items-center space-x-2">
+                <Gift className="h-4 w-4 text-purple-400" />
+                <div className="flex flex-col">
+                  <span className="text-xs text-gray-300 font-medium">Participe por apenas</span>
+                  <span className="font-bold text-lg text-cyan-400">
+                    {formatCurrency(campaign.ticket_price)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Thumbnail Strip */}
-          {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
-            <div className="p-3 bg-gray-50 dark:bg-gray-800">
-              <div className="flex space-x-2 overflow-x-auto pb-2">
-                {campaign.prize_image_urls.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentImageIndex(index)}
-                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                      index === currentImageIndex
-                        ? 'border-purple-500 opacity-100'
-                        : 'border-gray-300 dark:border-gray-600 opacity-60 hover:opacity-80'
-                    }`}
-                    onDoubleClick={() => handleImageClick(index)}
-                  >
-                    <img
-                      src={image}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* REMOVIDO: Thumbnail Strip - NÃO EXIBIR MAIS */}
         </section>
 
-        {/* 2. Seção de Organizador — layout ajustado ao wireframe (avatar à esquerda, "Organizador:" + nome à direita, ícones em linha abaixo do nome) */}
+        {/* 2. Seção de Organizador */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           {loadingOrganizer ? (
             <div className="flex items-center justify-center py-8">
@@ -818,7 +743,6 @@ const CampaignPage = () => {
             </div>
           ) : organizerProfile ? (
             <div className="flex items-start gap-4">
-              {/* Avatar / Logo à esquerda */}
               <div className="flex-shrink-0">
                 {organizerProfile.logo_url ? (
                   organizerProfile.color_mode === 'gradient' ? (
@@ -870,7 +794,6 @@ const CampaignPage = () => {
                 )}
               </div>
 
-              {/* Conteúdo à direita do avatar: label, nome e ícones sociais em linha abaixo */}
               <div className="flex-1 min-w-0">
                 <p className={`text-sm ${themeClasses.textSecondary} leading-tight`}>
                   Organizador:
@@ -879,7 +802,6 @@ const CampaignPage = () => {
                   {organizerProfile.name}
                 </h4>
 
-                {/* Ícones sociais em linha, logo abaixo do nome */}
                 {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
                   <div className="mt-2 flex items-center gap-2">
                     {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
@@ -920,7 +842,6 @@ const CampaignPage = () => {
               🎁 Promoções Disponíveis
             </h3>
 
-            {/* Layout ajustado: botões/pills com texto adaptado ao tema na esquerda e percentual em verde */}
             <div className="flex flex-wrap gap-3 justify-center">
               {campaign.promotions.map((promo: Promotion) => {
                 const originalValue = promo.ticketQuantity * campaign.ticket_price;
@@ -942,7 +863,7 @@ const CampaignPage = () => {
                           }`}
                         >
                           <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
-                            {promo.ticketQuantity} cotas por {formatCurrency(originalValue)}
+                            {promo.ticketQuantity} cotas por {formatCurrency(originalValue - promo.fixedDiscountAmount)}
                           </span>
                           <span className="ml-3 text-sm font-extrabold text-green-500 dark:text-green-300">
                             {discountPercentage}%
@@ -960,7 +881,7 @@ const CampaignPage = () => {
                         }}
                       >
                         <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
-                          {promo.ticketQuantity} cotas por {formatCurrency(originalValue)}
+                          {promo.ticketQuantity} cotas por {formatCurrency(originalValue - promo.fixedDiscountAmount)}
                         </span>
                         <span className="ml-3 text-sm font-extrabold text-green-500 dark:text-green-300">
                           {discountPercentage}%
@@ -1005,7 +926,6 @@ const CampaignPage = () => {
 
           {campaign.campaign_model === 'manual' ? (
             <div className="space-y-4">
-              {/* Campaign Unavailable Alert (manual) - ESTILO ATUALIZADO */}
               {!isCampaignAvailable && (
                 <div className="bg-gray-900 border border-orange-800 rounded-lg p-4 mb-4">
                   <div className="flex items-center space-x-3">
@@ -1038,7 +958,6 @@ const CampaignPage = () => {
                 customGradientColors={organizerProfile?.custom_gradient_colors}
               />
 
-              {/* Manual Mode - Selection Summary */}
               {selectedQuotas.length > 0 && (
                 <div className={`${themeClasses.background} rounded-xl p-4 border ${themeClasses.border}`}>
                   <h3 className={`text-base font-bold ${themeClasses.text} mb-3`}>
@@ -1062,7 +981,6 @@ const CampaignPage = () => {
                     </div>
                   </div>
 
-                  {/* Promotion Info */}
                   {currentPromotionInfo && (
                     <div className="mb-3 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                       <div className="text-center">
@@ -1108,7 +1026,6 @@ const CampaignPage = () => {
             </div>
           ) : (
             <>
-              {/* Campaign Unavailable Alert (automatic) - ESTILO ATUALIZADO */}
               {!isCampaignAvailable && (
                 <div className="bg-gray-900 border border-orange-800 rounded-lg p-4 mb-4">
                   <div className="flex items-center space-x-3">
@@ -1153,7 +1070,6 @@ const CampaignPage = () => {
             Descrição/Regulamento
           </h3>
           
-          {/* Campaign Description */}
           {campaign.description && isValidDescription(campaign.description) ? (
             <div 
               className={`${themeClasses.textSecondary} mb-4 prose prose-base max-w-none ql-editor`}
@@ -1165,17 +1081,16 @@ const CampaignPage = () => {
             </div>
           )}
 
-          {/* Draw Date */}
+          {/* Draw Date - DESIGN MELHORADO (Print 2) */}
           {campaign.show_draw_date && campaign.draw_date && (
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <Calendar className={`h-5 w-5 ${themeClasses.textSecondary}`} />
-              <span className={`text-base ${themeClasses.text}`}>
-                Data de sorteio: <strong>{formatDate(campaign.draw_date)}</strong>
+            <div className="flex items-center justify-center mb-4 p-4 rounded-xl bg-blue-950 border border-blue-800">
+              <Calendar className="h-5 w-5 text-blue-400 mr-3" />
+              <span className="text-base text-white font-semibold">
+                Data de sorteio: <strong className="text-cyan-400">{formatDate(campaign.draw_date)}</strong>
               </span>
             </div>
           )}
 
-          {/* Progress Bar - Only show if show_percentage is enabled */}
           {campaign.show_percentage && (
             <div className="max-w-3xl mx-auto">
               <div className="flex justify-center items-center mb-3">
@@ -1196,10 +1111,10 @@ const CampaignPage = () => {
           )}
         </section>
 
-        {/* 7. Métodos de Pagamento e Método de Sorteio - centralizados e com largura limitada */}
+        {/* 7. Métodos de Pagamento e Método de Sorteio */}
         <section className="mb-4">
           <div className="max-w-3xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Payment Methods Card - Left */}
+            {/* Payment Methods Card */}
             <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
               <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
                 Métodos de Pagamento
@@ -1225,7 +1140,7 @@ const CampaignPage = () => {
               </div>
             </div>
 
-            {/* Draw Method Card - Right */}
+            {/* Draw Method Card */}
             <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
               <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
                 Método de Sorteio
@@ -1251,7 +1166,7 @@ const CampaignPage = () => {
           </div>
         </section>
 
-        {/* Share Campaign Section - centralizado e com largura limitado */}
+        {/* Share Campaign Section */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-6`}>
           <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
             Compartilhar Campanha
@@ -1305,10 +1220,8 @@ const CampaignPage = () => {
               onClick={(e) => e.stopPropagation()}
             />
             
-            {/* Navigation Buttons - Only show if multiple images */}
             {campaign.prize_image_urls.length > 1 && (
               <>
-                {/* Previous Button */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1320,7 +1233,6 @@ const CampaignPage = () => {
                   <ChevronLeft className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
                 </button>
 
-                {/* Next Button */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1334,7 +1246,6 @@ const CampaignPage = () => {
               </>
             )}
 
-            {/* Image Counter */}
             {campaign.prize_image_urls.length > 1 && (
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm font-medium">
                 {fullscreenImageIndex + 1} / {campaign.prize_image_urls.length}
