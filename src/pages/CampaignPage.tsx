@@ -119,9 +119,25 @@ const CampaignPage = () => {
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [fullscreenImageIndex, setFullscreenImageIndex] = useState<number | null>(null);
+  const [isAutoPlayPaused, setIsAutoPlayPaused] = useState(false);
   
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
+
+  // Auto-play carrossel de imagens a cada 6 segundos
+  useEffect(() => {
+    if (!campaign?.prize_image_urls || campaign.prize_image_urls.length <= 1 || isAutoPlayPaused) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setCurrentImageIndex(prev => 
+        prev === campaign.prize_image_urls!.length - 1 ? 0 : prev + 1
+      );
+    }, 6000); // 6 segundos
+
+    return () => clearInterval(interval);
+  }, [campaign?.prize_image_urls, isAutoPlayPaused]);
 
   const getCustomGradientStyle = (customColorsJson: string) => {
     try {
@@ -385,17 +401,23 @@ const CampaignPage = () => {
 
   const handlePreviousImage = () => {
     if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
+      setIsAutoPlayPaused(true); // Pausa o autoplay quando usuário navega manualmente
       setCurrentImageIndex(prev => 
         prev === 0 ? campaign.prize_image_urls!.length - 1 : prev - 1
       );
+      // Retoma o autoplay após 10 segundos
+      setTimeout(() => setIsAutoPlayPaused(false), 10000);
     }
   };
 
   const handleNextImage = () => {
     if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
+      setIsAutoPlayPaused(true); // Pausa o autoplay quando usuário navega manualmente
       setCurrentImageIndex(prev => 
         prev === campaign.prize_image_urls!.length - 1 ? 0 : prev + 1
       );
+      // Retoma o autoplay após 10 segundos
+      setTimeout(() => setIsAutoPlayPaused(false), 10000);
     }
   };
 
@@ -683,7 +705,11 @@ const CampaignPage = () => {
 
         {/* 1. Seção de galeria de imagens - card com largura limitada - SEM THUMBNAILS */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}>
-          <div className="relative group w-full">
+          <div 
+            className="relative group w-full"
+            onMouseEnter={() => setIsAutoPlayPaused(true)}
+            onMouseLeave={() => setIsAutoPlayPaused(false)}
+          >
             <img
               src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
               alt={campaign.title}
