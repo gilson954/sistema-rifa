@@ -543,7 +543,7 @@ const CreateCampaignStep2Page = () => {
           {/* Draw Date Section */}
           <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
             <div className="flex items-center space-x-3 p-5 border-b border-gray-200/20 dark:border-gray-700/30">
-              <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-md">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
                 <Calendar className="w-5 h-5 text-white" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -557,8 +557,8 @@ const CreateCampaignStep2Page = () => {
                   onClick={() => handleDrawDateOptionChange('show-date')}
                   className={`py-4 px-6 rounded-xl font-bold transition-all duration-300 border-2 ${
                     formData.showDrawDateOption === 'show-date'
-                      ? 'animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 text-white border-transparent shadow-lg'
-                      : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-purple-500'
+                      ? 'animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white border-transparent shadow-lg'
+                      : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-500'
                   }`}
                 >
                   <div className="flex items-center justify-center space-x-2">
@@ -571,8 +571,8 @@ const CreateCampaignStep2Page = () => {
                   onClick={() => handleDrawDateOptionChange('no-date')}
                   className={`py-4 px-6 rounded-xl font-bold transition-all duration-300 border-2 ${
                     formData.showDrawDateOption === 'no-date'
-                      ? 'animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 text-white border-transparent shadow-lg'
-                      : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-purple-500'
+                      ? 'animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white border-transparent shadow-lg'
+                      : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-500'
                   }`}
                 >
                   Não mostrar data
@@ -595,7 +595,7 @@ const CreateCampaignStep2Page = () => {
                       minDate={new Date()}
                       locale="pt-BR"
                       placeholderText="Clique para selecionar data e hora"
-                      className="w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 border-gray-300 dark:border-gray-600 font-medium shadow-sm"
+                      className="w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 border-gray-300 dark:border-gray-600 font-medium shadow-sm"
                       calendarClassName="modern-calendar"
                       renderCustomHeader={({
                         date,
@@ -604,7 +604,7 @@ const CreateCampaignStep2Page = () => {
                         prevMonthButtonDisabled,
                         nextMonthButtonDisabled,
                       }) => (
-                        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-t-xl">
+                        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-t-xl">
                           <button
                             onClick={decreaseMonth}
                             disabled={prevMonthButtonDisabled}
@@ -635,161 +635,9 @@ const CreateCampaignStep2Page = () => {
                     />
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-2">
-                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse"></span>
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
                     <span>A data será exibida publicamente na página da campanha</span>
                   </p>
-                  
-                  <style>{`
-                    .date-picker-modern .react-datepicker {
-                      font-family: inherit;
-                      border: none;
-                      border-radius: 1rem;
-                      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-                      overflow: hidden;
-                    }
-                    
-                    .date-picker-modern .react-datepicker__month-container {
-                      background: white;
-                    }
-                    
-                    .date-picker-modern .react-datepicker__day-names {
-                      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-                      padding: 0.5rem 0;
-                      margin: 0;
-                    }
-                    
-                    .date-picker-modern .react-datepicker__day-name {
-                      color: #6b7280;
-                      font-weight: 600;
-                      font-size: 0.75rem;
-                      width: 2.5rem;
-                      line-height: 2.5rem;
-                      margin: 0;
-                    }
-                    
-                    .date-picker-modern .react-datepicker__day {
-                      width: 2.5rem;
-                      line-height: 2.5rem;
-                      margin: 0.15rem;
-                      border-radius: 0.5rem;
-                      font-weight: 500;
-                      color: #374151;
-                      transition: all 0.2s;
-                    }
-                    
-                    .date-picker-modern .react-datepicker__day:hover {
-                      background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%);
-                      color: #6366f1;
-                      transform: scale(1.05);
-                    }
-                    
-                    .date-picker-modern .react-datepicker__day--selected,
-                    .date-picker-modern .react-datepicker__day--keyboard-selected {
-                      background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%) !important;
-                      color: white !important;
-                      font-weight: bold;
-                      box-shadow: 0 4px 6px -1px rgba(124, 58, 237, 0.3);
-                      transform: scale(1.05);
-                    }
-                    
-                    .date-picker-modern .react-datepicker__day--disabled {
-                      color: #d1d5db;
-                      cursor: not-allowed;
-                    }
-                    
-                    .date-picker-modern .react-datepicker__day--disabled:hover {
-                      background: transparent;
-                      transform: none;
-                    }
-                    
-                    .date-picker-modern .react-datepicker__day--today {
-                      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-                      color: #92400e;
-                      font-weight: bold;
-                    }
-                    
-                    .date-picker-modern .react-datepicker__time-container {
-                      border-left: 1px solid #e5e7eb;
-                      background: white;
-                    }
-                    
-                    .date-picker-modern .react-datepicker__time {
-                      background: white;
-                      border-radius: 0 0 1rem 0;
-                    }
-                    
-                    .date-picker-modern .react-datepicker__time-box {
-                      width: 100%;
-                    }
-                    
-                    .date-picker-modern .react-datepicker__time-list-item {
-                      padding: 0.5rem;
-                      font-weight: 500;
-                      transition: all 0.2s;
-                    }
-                    
-                    .date-picker-modern .react-datepicker__time-list-item:hover {
-                      background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%) !important;
-                      color: #6366f1;
-                    }
-                    
-                    .date-picker-modern .react-datepicker__time-list-item--selected {
-                      background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%) !important;
-                      color: white !important;
-                      font-weight: bold;
-                    }
-                    
-                    .date-picker-modern .react-datepicker__month {
-                      margin: 0.8rem;
-                    }
-                    
-                    .date-picker-modern .react-datepicker__week {
-                      display: flex;
-                      justify-content: space-around;
-                    }
-                    
-                    /* Dark mode styles */
-                    .dark .date-picker-modern .react-datepicker__month-container,
-                    .dark .date-picker-modern .react-datepicker__time-container,
-                    .dark .date-picker-modern .react-datepicker__time {
-                      background: #1f2937;
-                    }
-                    
-                    .dark .date-picker-modern .react-datepicker__day-names {
-                      background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
-                    }
-                    
-                    .dark .date-picker-modern .react-datepicker__day-name {
-                      color: #9ca3af;
-                    }
-                    
-                    .dark .date-picker-modern .react-datepicker__day {
-                      color: #e5e7eb;
-                    }
-                    
-                    .dark .date-picker-modern .react-datepicker__day:hover {
-                      background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 100%);
-                      color: #e9d5ff;
-                    }
-                    
-                    .dark .date-picker-modern .react-datepicker__day--today {
-                      background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
-                      color: #fef3c7;
-                    }
-                    
-                    .dark .date-picker-modern .react-datepicker__day--disabled {
-                      color: #4b5563;
-                    }
-                    
-                    .dark .date-picker-modern .react-datepicker__time-container {
-                      border-left-color: #374151;
-                    }
-                    
-                    .dark .date-picker-modern .react-datepicker__time-list-item:hover {
-                      background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 100%) !important;
-                      color: #e9d5ff;
-                    }
-                  `}</style>
                 </div>
               )}
 
