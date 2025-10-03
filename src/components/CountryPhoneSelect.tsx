@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Search, X } from 'lucide-react';
+import { ChevronDown, Search, X, Phone } from 'lucide-react';
 
 interface Country {
   code: string;
@@ -75,10 +75,9 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Helper function to get theme classes
+  // Sistema de temas aprimorado
   const getThemeClasses = () => {
     if (!theme) {
-      // Comportamento padrão (usa dark: do sistema)
       return {
         buttonBg: 'bg-white dark:bg-gray-800',
         buttonBorder: 'border-gray-300 dark:border-gray-600',
@@ -86,15 +85,15 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
         buttonText: 'text-gray-900 dark:text-white',
         iconColor: 'text-gray-400 dark:text-gray-300',
         dropdownBg: 'bg-white dark:bg-gray-800',
-        dropdownBorder: 'border-gray-200 dark:border-gray-700',
-        headerBg: 'bg-gray-50 dark:bg-gray-700',
-        headerBorder: 'border-gray-200 dark:border-gray-600',
-        inputBg: 'bg-white dark:bg-gray-600',
-        inputBorder: 'border-gray-300 dark:border-gray-500',
+        dropdownBorder: 'border-gray-200/50 dark:border-gray-700/50',
+        headerBg: 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900',
+        headerBorder: 'border-gray-200/50 dark:border-gray-600/50',
+        inputBg: 'bg-white dark:bg-gray-700',
+        inputBorder: 'border-gray-300 dark:border-gray-600',
         inputText: 'text-gray-900 dark:text-white',
         inputPlaceholder: 'placeholder-gray-400 dark:placeholder-gray-300',
-        clearButtonHover: 'hover:bg-gray-200 dark:hover:bg-gray-500',
-        itemHover: 'hover:bg-gray-50 dark:hover:bg-gray-700',
+        clearButtonHover: 'hover:bg-gray-200 dark:hover:bg-gray-600',
+        itemHover: 'hover:bg-gray-50 dark:hover:bg-gray-700/50',
         itemSelected: 'bg-purple-50 dark:bg-purple-900/30',
         itemSelectedBorder: 'border-purple-600 dark:border-purple-400',
         itemTextPrimary: 'text-gray-900 dark:text-white',
@@ -102,10 +101,10 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
         itemSelectedTextPrimary: 'text-purple-700 dark:text-purple-300',
         itemSelectedTextSecondary: 'text-purple-600 dark:text-purple-400',
         dotColor: 'bg-purple-600 dark:bg-purple-400',
-        footerBg: 'bg-gray-50 dark:bg-gray-700',
-        footerBorder: 'border-gray-200 dark:border-gray-600',
+        footerBg: 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900',
+        footerBorder: 'border-gray-200/50 dark:border-gray-600/50',
         footerText: 'text-gray-500 dark:text-gray-300',
-        labelText: 'text-gray-700 dark:text-gray-300'
+        labelText: 'text-gray-900 dark:text-gray-100'
       };
     }
 
@@ -117,9 +116,9 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
         buttonText: 'text-gray-900',
         iconColor: 'text-gray-400',
         dropdownBg: 'bg-white',
-        dropdownBorder: 'border-gray-200',
-        headerBg: 'bg-gray-50',
-        headerBorder: 'border-gray-200',
+        dropdownBorder: 'border-gray-200/50',
+        headerBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
+        headerBorder: 'border-gray-200/50',
         inputBg: 'bg-white',
         inputBorder: 'border-gray-300',
         inputText: 'text-gray-900',
@@ -133,10 +132,10 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
         itemSelectedTextPrimary: 'text-purple-700',
         itemSelectedTextSecondary: 'text-purple-600',
         dotColor: 'bg-purple-600',
-        footerBg: 'bg-gray-50',
-        footerBorder: 'border-gray-200',
+        footerBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
+        footerBorder: 'border-gray-200/50',
         footerText: 'text-gray-500',
-        labelText: 'text-gray-700'
+        labelText: 'text-gray-900'
       };
     }
 
@@ -148,15 +147,15 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
       buttonText: 'text-white',
       iconColor: 'text-gray-300',
       dropdownBg: 'bg-gray-800',
-      dropdownBorder: 'border-gray-700',
-      headerBg: 'bg-gray-700',
-      headerBorder: 'border-gray-600',
-      inputBg: 'bg-gray-600',
-      inputBorder: 'border-gray-500',
+      dropdownBorder: 'border-gray-700/50',
+      headerBg: 'bg-gradient-to-br from-gray-800 to-gray-900',
+      headerBorder: 'border-gray-600/50',
+      inputBg: 'bg-gray-700',
+      inputBorder: 'border-gray-600',
       inputText: 'text-white',
       inputPlaceholder: 'placeholder-gray-300',
-      clearButtonHover: 'hover:bg-gray-500',
-      itemHover: 'hover:bg-gray-700',
+      clearButtonHover: 'hover:bg-gray-600',
+      itemHover: 'hover:bg-gray-700/50',
       itemSelected: 'bg-purple-900/30',
       itemSelectedBorder: 'border-purple-400',
       itemTextPrimary: 'text-white',
@@ -164,10 +163,10 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
       itemSelectedTextPrimary: 'text-purple-300',
       itemSelectedTextSecondary: 'text-purple-400',
       dotColor: 'bg-purple-400',
-      footerBg: 'bg-gray-700',
-      footerBorder: 'border-gray-600',
+      footerBg: 'bg-gradient-to-br from-gray-800 to-gray-900',
+      footerBorder: 'border-gray-600/50',
       footerText: 'text-gray-300',
-      labelText: 'text-gray-300'
+      labelText: 'text-gray-100'
     };
   };
 
@@ -238,23 +237,23 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <label className={`block text-sm font-medium ${themeClasses.labelText} mb-3`}>
-        Número de celular *
+      <label className={`block text-sm font-bold ${themeClasses.labelText} mb-2`}>
+        Número de celular <span className="text-red-500">*</span>
       </label>
       
       <div className="flex space-x-3">
-        {/* Country Selector */}
+        {/* Country Selector - Modernizado */}
         <div className="relative">
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className={`group flex items-center space-x-2 px-4 h-[56px] ${themeClasses.buttonBg} border-2 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md ${
+            className={`group flex items-center space-x-2.5 px-4 h-[56px] ${themeClasses.buttonBg} border-2 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md ${
               error 
                 ? 'border-red-500 hover:border-red-600' 
                 : isOpen
                 ? 'border-purple-500 ring-2 ring-purple-500/20'
                 : `${themeClasses.buttonBorder} ${themeClasses.buttonHoverBorder}`
-            } focus:outline-none`}
+            } focus:outline-none hover:scale-[1.02] active:scale-[0.98]`}
           >
             <span className="text-2xl">{selectedCountry.flag}</span>
             <span className={`text-sm font-bold ${themeClasses.buttonText}`}>
@@ -263,10 +262,11 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
             <ChevronDown className={`h-4 w-4 ${themeClasses.iconColor} transition-all duration-200 ${isOpen ? 'rotate-180 text-purple-600' : 'group-hover:text-purple-500'}`} />
           </button>
 
-          {/* Dropdown */}
+          {/* Dropdown Modernizado */}
           {isOpen && (
-            <div className={`absolute top-full left-0 mt-2 w-96 ${themeClasses.dropdownBg} border-2 ${themeClasses.dropdownBorder} rounded-2xl shadow-2xl z-50 overflow-hidden`}>
-              {/* Search Header */}
+            <div className={`absolute top-full left-0 mt-2 w-96 ${themeClasses.dropdownBg} border-2 ${themeClasses.dropdownBorder} rounded-2xl shadow-2xl z-50 overflow-hidden backdrop-blur-sm animate-in slide-in-from-top-4 fade-in duration-200`}>
+              
+              {/* Search Header com gradiente */}
               <div className={`p-4 ${themeClasses.headerBg} border-b ${themeClasses.headerBorder}`}>
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-purple-500" />
@@ -276,12 +276,12 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Buscar país..."
-                    className={`w-full pl-12 pr-10 py-3 ${themeClasses.inputBg} border ${themeClasses.inputBorder} rounded-xl ${themeClasses.inputText} ${themeClasses.inputPlaceholder} focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm`}
+                    className={`w-full pl-12 pr-10 py-3 ${themeClasses.inputBg} border-2 ${themeClasses.inputBorder} rounded-xl ${themeClasses.inputText} ${themeClasses.inputPlaceholder} focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 shadow-sm transition-all duration-200`}
                   />
                   {searchTerm && (
                     <button
                       onClick={() => setSearchTerm('')}
-                      className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-1 ${themeClasses.clearButtonHover} rounded-lg transition-colors`}
+                      className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-1.5 ${themeClasses.clearButtonHover} rounded-lg transition-all duration-200 hover:scale-110`}
                     >
                       <X className={`h-4 w-4 ${themeClasses.iconColor}`} />
                     </button>
@@ -289,20 +289,21 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
                 </div>
               </div>
 
-              {/* Countries List */}
+              {/* Countries List com animações */}
               <div className="max-h-80 overflow-y-auto custom-scrollbar">
-                {filteredCountries.map((country) => (
+                {filteredCountries.map((country, index) => (
                   <button
                     key={country.code}
                     type="button"
                     onClick={() => handleCountrySelect(country)}
-                    className={`w-full flex items-center space-x-4 px-4 py-3 text-left transition-all duration-150 ${
+                    style={{ animationDelay: `${index * 20}ms` }}
+                    className={`w-full flex items-center space-x-4 px-4 py-3.5 text-left transition-all duration-150 animate-in fade-in slide-in-from-left-2 ${
                       selectedCountry.code === country.code 
                         ? `${themeClasses.itemSelected} border-l-4 ${themeClasses.itemSelectedBorder}` 
-                        : `${themeClasses.itemHover} border-l-4 border-transparent`
+                        : `${themeClasses.itemHover} border-l-4 border-transparent hover:border-l-purple-300`
                     }`}
                   >
-                    <span className="text-3xl">{country.flag}</span>
+                    <span className="text-3xl transform transition-transform duration-200 hover:scale-110">{country.flag}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-3">
                         <span className={`text-sm font-bold ${
@@ -314,7 +315,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
                         </span>
                         <span className={`text-sm truncate ${
                           selectedCountry.code === country.code 
-                            ? `${themeClasses.itemSelectedTextSecondary} font-medium`
+                            ? `${themeClasses.itemSelectedTextSecondary} font-semibold`
                             : themeClasses.itemTextSecondary
                         }`}>
                           {country.name}
@@ -322,27 +323,27 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
                       </div>
                     </div>
                     {selectedCountry.code === country.code && (
-                      <div className={`w-2 h-2 ${themeClasses.dotColor} rounded-full animate-pulse`}></div>
+                      <div className={`w-2.5 h-2.5 ${themeClasses.dotColor} rounded-full animate-pulse shadow-lg`}></div>
                     )}
                   </button>
                 ))}
                 
                 {filteredCountries.length === 0 && (
                   <div className="px-4 py-12 text-center">
-                    <div className="text-5xl mb-3">🔍</div>
-                    <p className={`${themeClasses.itemTextSecondary} text-sm font-medium`}>
+                    <div className="text-6xl mb-4 animate-bounce">🔍</div>
+                    <p className={`${themeClasses.itemTextPrimary} text-sm font-bold mb-1`}>
                       Nenhum país encontrado
                     </p>
-                    <p className={`${themeClasses.footerText} text-xs mt-1`}>
+                    <p className={`${themeClasses.footerText} text-xs`}>
                       Tente buscar por nome ou código
                     </p>
                   </div>
                 )}
               </div>
 
-              {/* Footer Info */}
+              {/* Footer com gradiente */}
               <div className={`p-3 ${themeClasses.footerBg} border-t ${themeClasses.footerBorder}`}>
-                <p className={`text-xs ${themeClasses.footerText} text-center`}>
+                <p className={`text-xs ${themeClasses.footerText} text-center font-medium`}>
                   {filteredCountries.length} {filteredCountries.length === 1 ? 'país' : 'países'} {searchTerm && 'encontrado(s)'}
                 </p>
               </div>
@@ -350,31 +351,34 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
           )}
         </div>
 
-        {/* Phone Number Input */}
+        {/* Phone Number Input - Modernizado */}
         <div className="flex-1 relative">
-          <input
-            type="tel"
-            value={phoneNumber}
-            onChange={handlePhoneChange}
-            placeholder={placeholder}
-            className={`w-full h-[56px] px-5 border-2 rounded-xl ${themeClasses.buttonBg} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} focus:outline-none transition-all duration-200 shadow-sm hover:shadow-md ${
-              error 
-                ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20' 
-                : `${themeClasses.buttonBorder} focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20`
-            }`}
-            required
-          />
-          {phoneNumber && (
-            <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            </div>
-          )}
+          <div className="relative">
+            <Phone className={`absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.iconColor} transition-colors duration-200`} />
+            <input
+              type="tel"
+              value={phoneNumber}
+              onChange={handlePhoneChange}
+              placeholder={placeholder}
+              className={`w-full h-[56px] pl-12 pr-12 border-2 rounded-xl ${themeClasses.buttonBg} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} focus:outline-none transition-all duration-200 shadow-sm hover:shadow-md ${
+                error 
+                  ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20' 
+                  : `${themeClasses.buttonBorder} focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20`
+              }`}
+              required
+            />
+            {phoneNumber && (
+              <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       
       {error && (
-        <div className="mt-3 flex items-center space-x-2 text-red-600 dark:text-red-400">
-          <div className="w-1 h-1 bg-red-500 rounded-full"></div>
+        <div className="mt-3 flex items-center space-x-2 text-red-600 dark:text-red-400 animate-in slide-in-from-top-2 fade-in">
+          <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div>
           <p className="text-sm font-medium">{error}</p>
         </div>
       )}
@@ -390,7 +394,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
         
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
-          border-radius: 4px;
+          border-radius: 6px;
         }
         
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
