@@ -1083,10 +1083,20 @@ const CampaignPage = () => {
 
           {/* Draw Date - DESIGN MELHORADO (Print 2) */}
           {campaign.show_draw_date && campaign.draw_date && (
-            <div className="flex items-center justify-center mb-4 p-4 rounded-xl bg-blue-950 border border-blue-800">
-              <Calendar className="h-5 w-5 text-blue-400 mr-3" />
-              <span className="text-base text-white font-semibold">
-                Data de sorteio: <strong className="text-cyan-400">{formatDate(campaign.draw_date)}</strong>
+            <div className={`flex items-center justify-center mb-4 p-4 rounded-xl ${
+              campaignTheme === 'claro' 
+                ? 'bg-blue-50 border border-blue-200' 
+                : 'bg-blue-950 border border-blue-800'
+            }`}>
+              <Calendar className={`h-5 w-5 mr-3 ${
+                campaignTheme === 'claro' ? 'text-blue-600' : 'text-blue-400'
+              }`} />
+              <span className={`text-base font-semibold ${
+                campaignTheme === 'claro' ? 'text-gray-900' : 'text-white'
+              }`}>
+                Data de sorteio: <strong className={
+                  campaignTheme === 'claro' ? 'text-blue-700' : 'text-cyan-400'
+                }>{formatDate(campaign.draw_date)}</strong>
               </span>
             </div>
           )}
