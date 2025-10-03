@@ -63,7 +63,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   const [confirmPhoneNumber, setConfirmPhoneNumber] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Reset form when modal opens/closes
   React.useEffect(() => {
     if (isOpen) {
       setFormData({
@@ -78,7 +77,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     }
   }, [isOpen]);
 
-  // Function to get theme classes with improved contrast
   const getThemeClasses = (theme: string) => {
     switch (theme) {
       case 'claro':
@@ -133,21 +131,18 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // Name validation
     if (!formData.name.trim()) {
       newErrors.name = 'Nome é obrigatório';
     } else if (formData.name.trim().length < 2) {
       newErrors.name = 'Nome deve ter pelo menos 2 caracteres';
     }
 
-    // Email validation
     if (!formData.email.trim()) {
       newErrors.email = 'Email é obrigatório';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email inválido';
     }
 
-    // Phone validation
     if (!formData.phoneNumber.trim()) {
       newErrors.phoneNumber = 'Número de celular é obrigatório';
     } else {
@@ -161,14 +156,12 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       }
     }
 
-    // Confirm phone validation
     if (!confirmPhoneNumber.trim()) {
       newErrors.confirmPhoneNumber = 'Confirmação do número é obrigatória';
     } else if (formData.phoneNumber !== confirmPhoneNumber) {
       newErrors.confirmPhoneNumber = 'O número de celular não confere. Por favor, digite o mesmo número nos dois campos.';
     }
 
-    // Terms validation
     if (!formData.acceptTerms) {
       newErrors.acceptTerms = 'Você deve aceitar os termos de uso';
     }
@@ -219,7 +212,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className={`rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto ${theme.background} border-2 ${theme.border}`}>
-        {/* Header */}
         <div className={`flex items-center justify-between p-6 border-b-2 ${theme.border}`}>
           <div className="flex items-center space-x-3">
             <div 
@@ -245,20 +237,21 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
           </button>
         </div>
 
-        {/* Subtitle */}
         <div className="px-6 pt-4">
           <p className={`text-sm ${theme.textSecondary}`}>
             Complete seus dados para continuar
           </p>
         </div>
 
-        {/* Campaign Summary */}
         <div className={`m-6 p-4 ${theme.cardBg} border-2 ${theme.border} rounded-xl`}>
           <div className="text-center">
             <h3 className={`font-semibold ${theme.text} mb-2`}>
               {campaignTitle}
             </h3>
             <div className="flex items-center justify-between text-sm">
+              <span className={`font-medium ${theme.textSecondary}`}>
+                {quotaCount} {quotaCount === 1 ? 'cota' : 'cotas'}
+              </span>
               <span 
                 className="font-bold text-lg"
                 style={{ color: primaryColor || '#3B82F6' }}
@@ -274,7 +267,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
           </div>
         </div>
 
-        {/* Reservation Warning */}
         <div className={`mx-6 mb-4 p-4 border-2 rounded-xl ${
           campaignTheme === 'claro' 
             ? 'bg-orange-50 border-orange-300' 
@@ -296,9 +288,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
           </div>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Name Field */}
           <div>
             <label className={`block text-sm font-semibold ${theme.labelText} mb-2`}>
               Nome completo *
@@ -323,7 +313,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             )}
           </div>
 
-          {/* Email Field */}
           <div>
             <label className={`block text-sm font-semibold ${theme.labelText} mb-2`}>
               Email (obrigatório) *
@@ -348,7 +337,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             )}
           </div>
 
-          {/* Phone Number Field */}
           <div>
             <CountryPhoneSelect
               selectedCountry={selectedCountry}
@@ -363,7 +351,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             />
           </div>
 
-          {/* Confirm Phone Number Field */}
           <div>
             <CountryPhoneSelect
               selectedCountry={selectedCountry}
@@ -377,9 +364,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             />
           </div>
 
-          {/* Terms Acceptance */}
           <div className="space-y-4">
-            {/* Terms Checkbox */}
             <div className={`flex items-start space-x-3 p-4 rounded-lg border-2 ${theme.border} ${theme.cardBg}`}>
               <input
                 type="checkbox"
@@ -406,7 +391,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               <p className="text-red-500 text-sm font-medium">{errors.acceptTerms}</p>
             )}
 
-            {/* Important Notice */}
             <div className={`border-2 rounded-xl p-4 ${
               campaignTheme === 'claro'
                 ? 'bg-blue-50 border-blue-300'
@@ -433,7 +417,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             </div>
           </div>
 
-          {/* Summary */}
           <div className={`${theme.cardBg} rounded-xl p-4 border-2 ${theme.border}`}>
             <div className="flex items-center justify-between">
               <span className={`font-semibold ${theme.text}`}>
@@ -453,7 +436,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={reserving}
@@ -473,7 +455,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             )}
           </button>
 
-          {/* Cancel Button */}
           <button
             type="button"
             onClick={onClose}
@@ -488,7 +469,4 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   );
 };
 
-export default ReservationModal;className={`font-medium ${theme.textSecondary}`}>
-                {quotaCount} {quotaCount === 1 ? 'cota' : 'cotas'}
-              </span>
-              <span
+export default ReservationModal;
