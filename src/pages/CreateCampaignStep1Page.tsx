@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowRight, ChevronDown, Sparkles, DollarSign, TrendingUp, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
 import PublicationFeesModal from '../components/PublicationFeesModal';
-import { STRIPE_PRODUCTS } from '../stripe-config';
 import { CampaignAPI } from '../lib/api/campaigns';
+
 const CreateCampaignStep1Page = () => {
   const navigate = useNavigate();
   const { createCampaign } = useCampaigns();
@@ -21,7 +21,7 @@ const CreateCampaignStep1Page = () => {
   const [showFeesModal, setShowFeesModal] = useState(false);
   const [estimatedRevenue, setEstimatedRevenue] = useState(0);
   const [publicationTax, setPublicationTax] = useState(0);
-  const [rawTicketPrice, setRawTicketPrice] = useState(''); // Armazena apenas números
+  const [rawTicketPrice, setRawTicketPrice] = useState('');
 
   const drawMethods = [
     'Loteria Federal',
@@ -60,9 +60,7 @@ const CreateCampaignStep1Page = () => {
     { value: 10000000, label: '10.000.000 cotas' }
   ];
 
-  // Update calculations when price or quantity changes
   const updateCalculations = (price: string, quantity: string) => {
-    // Convert raw price (in cents) to reais for calculations
     const ticketPrice = parseFloat(price) / 100 || 0;
     const ticketQuantity = parseInt(quantity) || 0;
     const revenue = ticketPrice * ticketQuantity;
@@ -72,25 +70,14 @@ const CreateCampaignStep1Page = () => {
     setPublicationTax(tax);
   };
 
-  /**
-   * Formats raw numeric input as Brazilian currency
-   * Treats input as cents and converts to reais format
-   * Examples: "1" -> "0,01", "100" -> "1,00", "100000" -> "1.000,00"
-   */
   const formatCurrencyDisplay = (rawValue: string): string => {
-    // Remove all non-numeric characters
     const numericValue = rawValue.replace(/\D/g, '');
     
-    // Handle empty input
     if (!numericValue) return '';
     
-    // Convert to number (treating as cents)
     const cents = parseInt(numericValue, 10);
-    
-    // Convert cents to reais
     const reais = cents / 100;
     
-    // Format as Brazilian currency without R$ prefix
     const formatted = reais.toLocaleString('pt-BR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -101,19 +88,12 @@ const CreateCampaignStep1Page = () => {
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    
-    // Extract only numeric characters
     const numericValue = inputValue.replace(/\D/g, '');
     
-    // Store raw numeric value for calculations
     setRawTicketPrice(numericValue);
-    
-    // Format for display
     const formattedValue = formatCurrencyDisplay(numericValue);
     
     setFormData({ ...formData, ticketPrice: formattedValue });
-    
-    // Update calculations using raw value (in cents)
     updateCalculations(numericValue, formData.ticketQuantity);
   };
 
@@ -155,16 +135,13 @@ const CreateCampaignStep1Page = () => {
       return;
     }
 
-    const ticketPrice = parseFloat(rawTicketPrice) / 100; // Convert cents to reais
+    const ticketPrice = parseFloat(rawTicketPrice) / 100;
     const totalTickets = parseInt(formData.ticketQuantity);
-
-    // Determine campaign_model automatically
     const campaignModel = totalTickets > 10000 ? 'automatic' : 'manual';
 
     setLoading(true);
 
     try {
-      // Ensure max_tickets_per_purchase doesn't exceed total_tickets
       const maxTicketsPerPurchase = Math.min(1000, totalTickets);
 
       const campaignData = {
@@ -176,12 +153,11 @@ const CreateCampaignStep1Page = () => {
         show_ranking: false,
         min_tickets_per_purchase: 1,
         max_tickets_per_purchase: maxTicketsPerPurchase,
-        initial_filter: 'all', // Default to 'all'
-        campaign_model: campaignModel, // Automatically determined
-        prize_image_urls: [] // Initialize with empty array
+        initial_filter: 'all',
+        campaign_model: campaignModel,
+        prize_image_urls: []
       };
 
-      // Always create new campaign in step1
       const campaign = await createCampaign(campaignData);
 
       if (campaign) {
@@ -190,7 +166,6 @@ const CreateCampaignStep1Page = () => {
     } catch (error) {
       console.error('Error creating campaign:', error);
       
-      // Extract detailed error message
       let errorMessage = 'Erro ao criar campanha. Tente novamente.';
       
       if (error && typeof error === 'object') {
@@ -207,7 +182,6 @@ const CreateCampaignStep1Page = () => {
     }
   };
 
-  // Format currency for display with Brazilian formatting
   const formatCurrencyForDisplay = (value: number): string => {
     return value.toLocaleString('pt-BR', {
       style: 'currency',
@@ -215,155 +189,225 @@ const CreateCampaignStep1Page = () => {
     });
   };
 
+  const netRevenue = estimatedRevenue - publicationTax;
+
   return (
-    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Criar nova campanha
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Insira os dados básicos da sua campanha. Você poderá editá-los e adicionar mais detalhes na próxima etapa.
-          </p>
+    <div className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header com gradiente */}
+        <div className="mb-8 relative overflow-hidden rounded-2xl p-8 shadow-xl border border-purple-200/30 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/80 to-blue-50/80 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
+          
+          <div className="relative flex items-center space-x-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+              <Sparkles className="h-8 w-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Criar nova campanha</h1>
+              <p className="text-gray-600 dark:text-gray-300">Configure os dados básicos e calcule sua arrecadação estimada</p>
+            </div>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Error Message */}
           {errors.submit && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <p className="text-red-700 dark:text-red-300 text-sm">{errors.submit}</p>
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 shadow-md">
+              <p className="text-red-700 dark:text-red-300 text-sm font-medium">{errors.submit}</p>
             </div>
           )}
 
-          {/* Campaign Title */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Título *
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="Digite o título sua campanha"
-              className={`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
-                errors.title ? 'border-red-500' : 'border-green-500'
-              }`}
-              required
-            />
-            {errors.title && (
-              <p className="text-red-500 text-sm mt-1">{errors.title}</p>
-            )}
-          </div>
-
-          {/* Ticket Configuration Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Ticket Quantity */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Quantidade de cotas *
-              </label>
-              <div className="relative">
-                <select
-                  value={formData.ticketQuantity}
-                  onChange={handleQuantityChange}
-                  className={`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
-                    errors.ticketQuantity ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+          {/* Form Card */}
+          <div className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-6 sm:p-8 shadow-lg">
+            <div className="space-y-6">
+              {/* Campaign Title */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
+                  Título da campanha *
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Ex: Rifa do iPhone 15 Pro Max"
+                  className={`w-full px-4 py-3.5 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-4 transition-all duration-200 ${
+                    errors.title 
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                      : 'border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-purple-500/20'
                   }`}
                   required
-                >
-                  <option value="">Escolha uma opção</option>
-                  {ticketQuantityOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                />
+                {errors.title && (
+                  <p className="text-red-500 text-sm mt-2 font-medium">{errors.title}</p>
+                )}
               </div>
-              {errors.ticketQuantity && (
-                <p className="text-red-500 text-sm mt-1">{errors.ticketQuantity}</p>
-              )}
-            </div>
 
-            {/* Ticket Price */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Valor da cota *
-              </label>
-              <input
-                type="text"
-                value={formData.ticketPrice}
-                onChange={handlePriceChange}
-                placeholder="R$ 0,00"
-                className={`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
-                  errors.ticketPrice ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                }`}
-                required
-              />
-              {errors.ticketPrice && (
-                <p className="text-red-500 text-sm mt-1">{errors.ticketPrice}</p>
-              )}
+              {/* Ticket Configuration Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Ticket Quantity */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
+                    Quantidade de cotas *
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={formData.ticketQuantity}
+                      onChange={handleQuantityChange}
+                      className={`w-full appearance-none px-4 py-3.5 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-4 transition-all duration-200 ${
+                        errors.ticketQuantity 
+                          ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                          : 'border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-purple-500/20'
+                      }`}
+                      required
+                    >
+                      <option value="">Selecione a quantidade</option>
+                      {ticketQuantityOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                  </div>
+                  {errors.ticketQuantity && (
+                    <p className="text-red-500 text-sm mt-2 font-medium">{errors.ticketQuantity}</p>
+                  )}
+                </div>
+
+                {/* Ticket Price */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
+                    Valor por cota *
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={formData.ticketPrice}
+                      onChange={handlePriceChange}
+                      placeholder="0,00"
+                      className={`w-full pl-12 pr-4 py-3.5 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-4 transition-all duration-200 ${
+                        errors.ticketPrice 
+                          ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                          : 'border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-purple-500/20'
+                      }`}
+                      required
+                    />
+                  </div>
+                  {errors.ticketPrice && (
+                    <p className="text-red-500 text-sm mt-2 font-medium">{errors.ticketPrice}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Draw Method */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
+                  Método de sorteio *
+                </label>
+                <div className="relative">
+                  <select
+                    value={formData.drawMethod}
+                    onChange={(e) => setFormData({ ...formData, drawMethod: e.target.value })}
+                    className={`w-full appearance-none px-4 py-3.5 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-4 transition-all duration-200 ${
+                      errors.drawMethod 
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                        : 'border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-purple-500/20'
+                    }`}
+                    required
+                  >
+                    <option value="">Selecione o método</option>
+                    {drawMethods.map((method) => (
+                      <option key={method} value={method}>
+                        {method}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                </div>
+                {errors.drawMethod && (
+                  <p className="text-red-500 text-sm mt-2 font-medium">{errors.drawMethod}</p>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Draw Method */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Por onde será feito o sorteio? *
-            </label>
-            <div className="relative">
-              <select
-                value={formData.drawMethod}
-                onChange={(e) => setFormData({ ...formData, drawMethod: e.target.value })}
-                className={`w-full appearance-none px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
-                  errors.drawMethod ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                }`}
-                required
-              >
-                <option value="">Escolha uma opção</option>
-                {drawMethods.map((method) => (
-                  <option key={method} value={method}>
-                    {method}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-            </div>
-            {errors.drawMethod && (
-              <p className="text-red-500 text-sm mt-1">{errors.drawMethod}</p>
-            )}
-          </div>
-
-          {/* Phone Number with Country Selection */}
-
-          {/* Publication Tax Section */}
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Taxas de publicação
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowFeesModal(true)}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
-              >
-                Ver taxas
-              </button>
-            </div>
+          {/* Revenue Calculation Card */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-green-50/80 to-emerald-50/80 dark:from-green-900/20 dark:to-emerald-900/20 backdrop-blur-sm rounded-2xl border border-green-200/30 dark:border-green-800/30 p-6 sm:p-8 shadow-lg">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-emerald-400/20 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-emerald-400/20 to-green-400/20 rounded-full blur-3xl"></div>
             
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700 dark:text-gray-300">Taxa de publicação</span>
-                <span className="text-red-600 dark:text-red-400 font-medium">
-                  - {formatCurrencyForDisplay(publicationTax)}
-                </span>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 text-white rounded-xl flex items-center justify-center shadow-lg">
+                    <TrendingUp className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Projeção financeira
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowFeesModal(true)}
+                  className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200 underline decoration-2 underline-offset-4"
+                >
+                  Ver todas as taxas
+                </button>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700 dark:text-gray-300">Arrecadação estimada</span>
-                <span className="text-green-600 dark:text-green-400 font-medium">
-                  + {formatCurrencyForDisplay(estimatedRevenue)}
-                </span>
+              
+              <div className="space-y-4">
+                <div className="bg-white/60 dark:bg-gray-900/40 backdrop-blur-sm rounded-xl p-4 border border-green-200/30 dark:border-green-800/30">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                        <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Arrecadação bruta</span>
+                    </div>
+                    <span className="text-xl font-bold text-green-600 dark:text-green-400">
+                      {formatCurrencyForDisplay(estimatedRevenue)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-white/60 dark:bg-gray-900/40 backdrop-blur-sm rounded-xl p-4 border border-red-200/30 dark:border-red-800/30">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                        <DollarSign className="h-5 w-5 text-red-600 dark:text-red-400" />
+                      </div>
+                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Taxa de publicação</span>
+                    </div>
+                    <span className="text-xl font-bold text-red-600 dark:text-red-400">
+                      - {formatCurrencyForDisplay(publicationTax)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-xl p-5 border-2 border-purple-300/50 dark:border-purple-700/50 shadow-md">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <Award className="h-6 w-6 text-white" />
+                      </div>
+                      <span className="text-base font-bold text-gray-900 dark:text-white">Lucro estimado</span>
+                    </div>
+                    <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                      {formatCurrencyForDisplay(netRevenue)}
+                    </span>
+                  </div>
+                </div>
               </div>
+
+              {estimatedRevenue > 0 && (
+                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                  <p className="text-sm text-blue-800 dark:text-blue-200 text-center">
+                    Vendendo todas as cotas, você receberá <span className="font-bold">{formatCurrencyForDisplay(netRevenue)}</span> líquidos
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -371,19 +415,26 @@ const CreateCampaignStep1Page = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center space-x-2"
+            className="w-full py-4 rounded-xl font-bold text-lg shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-white flex items-center justify-center space-x-3"
           >
             {loading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <>
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                <span>Criando campanha...</span>
+              </>
             ) : (
               <>
-                <span>Criar campanha</span>
-                <ArrowRight className="h-5 w-5" />
+                <span>Continuar para próxima etapa</span>
+                <ArrowRight className="h-6 w-6" />
               </>
             )}
           </button>
+
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+            Na próxima etapa você poderá adicionar fotos, descrição e outros detalhes
+          </p>
         </form>
-      </div>
+      </main>
 
       {/* Publication Fees Modal */}
       <PublicationFeesModal
