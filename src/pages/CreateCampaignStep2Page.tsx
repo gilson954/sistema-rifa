@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Upload, X, Plus, Trash2, AlertTriangle, ChevronDown, Calendar } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Upload, X, Plus, Trash2, AlertTriangle, ChevronDown, Calendar, Image, FileText, Gift, Trophy, Settings, Sparkles, Clock } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaignWithRefetch } from '../hooks/useCampaigns';
 import { CampaignAPI } from '../lib/api/campaigns';
@@ -14,7 +14,6 @@ import { registerLocale, setDefaultLocale } from 'react-datepicker';
 import { ptBR } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
 
-// Register Portuguese locale
 registerLocale('pt-BR', ptBR);
 setDefaultLocale('pt-BR');
 
@@ -22,13 +21,9 @@ const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Extract campaign ID from URL
   const campaignId = new URLSearchParams(location.search).get('id');
-  
-  // Fetch campaign data
   const { campaign, loading: campaignLoading, refetch } = useCampaignWithRefetch(campaignId || '');
   
-  // Image upload hook
   const {
     images,
     uploading: uploadingImages,
@@ -40,7 +35,6 @@ const CreateCampaignStep2Page = () => {
     setExistingImages
   } = useImageUpload();
 
-  // Form state
   const [formData, setFormData] = useState({
     description: '',
     requireEmail: true,
@@ -54,25 +48,15 @@ const CreateCampaignStep2Page = () => {
     showDrawDateOption: 'no-date' as 'show-date' | 'no-date'
   });
 
-  // State for inline date picker visibility
   const [showInlineDatePicker, setShowInlineDatePicker] = useState(false);
-
-  // Modal states
   const [showPromotionModal, setShowPromotionModal] = useState(false);
   const [showPrizesModal, setShowPrizesModal] = useState(false);
-  
-  // Promotions and prizes state
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [prizes, setPrizes] = useState<Prize[]>([]);
-  
-  // Loading and error states
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  // NEW: Campaign model validation error state
   const [campaignModelError, setCampaignModelError] = useState<string>('');
 
-  // Load existing campaign data when component mounts
   useEffect(() => {
     if (campaign) {
       setFormData({
@@ -88,27 +72,22 @@ const CreateCampaignStep2Page = () => {
         showDrawDateOption: campaign.draw_date ? 'show-date' : 'no-date'
       });
 
-      // Set inline date picker visibility based on existing draw date
       setShowInlineDatePicker(!!campaign.draw_date);
 
-      // Load existing images
       if (campaign.prize_image_urls && campaign.prize_image_urls.length > 0) {
         setExistingImages(campaign.prize_image_urls);
       }
 
-      // Load existing promotions
       if (campaign.promotions && Array.isArray(campaign.promotions)) {
         setPromotions(campaign.promotions);
       }
 
-      // Load existing prizes
       if (campaign.prizes && Array.isArray(campaign.prizes)) {
         setPrizes(campaign.prizes);
       }
     }
   }, [campaign, setExistingImages]);
 
-  // NEW: Validate campaign model when it changes or when total_tickets is available
   useEffect(() => {
     if (campaign?.total_tickets && formData.campaignModel === 'manual' && campaign.total_tickets > 10000) {
       setCampaignModelError('O modelo manual não é permitido para campanhas com mais de 10.000 cotas.');
@@ -131,13 +110,11 @@ const CreateCampaignStep2Page = () => {
       const numValue = parseInt(value) || 0;
       setFormData(prev => ({ ...prev, [name]: numValue }));
     } else if (name === 'reservationTimeoutMinutes') {
-      // Convert string value to integer for reservation timeout
-      const numValue = parseInt(value) || 15; // Default to 15 if parsing fails
+      const numValue = parseInt(value) || 15;
       setFormData(prev => ({ ...prev, [name]: numValue }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
       
-      // NEW: Handle campaign model validation
       if (name === 'campaignModel') {
         if (campaign?.total_tickets && value === 'manual' && campaign.total_tickets > 10000) {
           setCampaignModelError('O modelo manual não é permitido para campanhas com mais de 10.000 cotas.');
@@ -149,21 +126,18 @@ const CreateCampaignStep2Page = () => {
   };
 
   const handleDescriptionChange = (value: string) => {
-    // Store the raw value from the editor without aggressive normalization
     setFormData(prev => ({ ...prev, description: value }));
   };
 
-  // Simple function to check if editor content is effectively empty
   const isEditorContentEmpty = (content: string): boolean => {
     if (!content) return true;
     
-    // Remove common empty HTML tags and whitespace
     const cleanContent = content
       .replace(/<p><br><\/p>/g, '')
       .replace(/<p><\/p>/g, '')
       .replace(/<br\s*\/?>/g, '')
       .replace(/&nbsp;/g, '')
-      .replace(/<[^>]*>/g, '') // Remove all HTML tags
+      .replace(/<[^>]*>/g, '')
       .trim();
     
     return cleanContent === '';
@@ -178,11 +152,10 @@ const CreateCampaignStep2Page = () => {
     
     if (option === 'show-date') {
       setShowInlineDatePicker(true);
-      // Initialize with current date if no date is set
       if (!formData.drawDate) {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(20, 0, 0, 0); // Default to 8 PM
+        tomorrow.setHours(20, 0, 0, 0);
         setFormData(prev => ({ ...prev, drawDate: tomorrow }));
       }
     } else {
@@ -220,9 +193,8 @@ const CreateCampaignStep2Page = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // NEW: Check for campaign model validation error
     if (campaignModelError) {
-      return; // Don't submit if there's a validation error
+      return;
     }
     
     if (!validateForm() || !campaignId) {
@@ -232,13 +204,11 @@ const CreateCampaignStep2Page = () => {
     setLoading(true);
 
     try {
-      // Upload images first if there are any
       let imageUrls: string[] = [];
       if (images.length > 0) {
         imageUrls = await uploadImages(campaign?.user_id || '');
       }
 
-      // Normalize description for database storage
       const normalizedDescription = isEditorContentEmpty(formData.description) 
         ? '' 
         : formData.description;
@@ -263,7 +233,6 @@ const CreateCampaignStep2Page = () => {
         show_draw_date: formData.showDrawDateOption === 'show-date'
       };
 
-      // DEBUG: Log reservation timeout value being sent to API
       console.log('🔧 [STEP2 DEBUG] Sending reservation_timeout_minutes to API:', formData.reservationTimeoutMinutes);
       console.log('🔧 [STEP2 DEBUG] Full updateData:', updateData);
 
@@ -294,7 +263,6 @@ const CreateCampaignStep2Page = () => {
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
 
-  // Reservation timeout options
   const reservationTimeoutOptions = [
     { value: 10, label: '10 minutos' },
     { value: 30, label: '30 minutos' },
@@ -322,13 +290,11 @@ const CreateCampaignStep2Page = () => {
     );
   }
 
-  // NEW: Check if form is valid (no validation errors)
   const isFormValid = !campaignModelError && Object.keys(errors).length === 0;
 
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
             <button
@@ -349,14 +315,12 @@ const CreateCampaignStep2Page = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Error Message */}
           {errors.submit && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
               <p className="text-red-700 dark:text-red-300 text-sm">{errors.submit}</p>
             </div>
           )}
 
-          {/* Campaign Images */}
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
               Imagens do prêmio
@@ -371,7 +335,6 @@ const CreateCampaignStep2Page = () => {
             />
           </div>
 
-          {/* Campaign Description */}
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
               Descrição da campanha
@@ -383,7 +346,6 @@ const CreateCampaignStep2Page = () => {
             />
           </div>
 
-          {/* Promotions Section */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -452,7 +414,6 @@ const CreateCampaignStep2Page = () => {
             )}
           </div>
 
-          {/* Prizes Section */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -477,7 +438,7 @@ const CreateCampaignStep2Page = () => {
                   >
                     <div className="flex items-center space-x-3">
                       <span className="text-yellow-600 dark:text-yellow-400 font-bold">
-                        {index + 1}°
+                        {index + 1}º
                       </span>
                       <span className="text-gray-900 dark:text-white">
                         {prize.name}
@@ -503,13 +464,11 @@ const CreateCampaignStep2Page = () => {
             )}
           </div>
 
-          {/* Draw Date Section */}
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
               Data do sorteio
             </h2>
             
-            {/* Date Display Options */}
             <div className="mb-6">
               <div className="flex space-x-4 mb-4">
                 <button
@@ -536,8 +495,6 @@ const CreateCampaignStep2Page = () => {
                 </button>
               </div>
 
-              {/* Date Picker - Only show when "Mostra data" is selected */}
-              {/* Inline Date Picker - Always visible when "Mostra data" is selected */}
               {formData.showDrawDateOption === 'show-date' && (
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -608,13 +565,11 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
-          {/* Campaign Settings */}
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
               Configurações da campanha
             </h2>
             
-            {/* Reservation Timeout */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Tempo de reserva das cotas (minutos)
@@ -636,7 +591,6 @@ const CreateCampaignStep2Page = () => {
               </div>
             </div>
 
-            {/* Min Tickets Per Purchase */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Mínimo de bilhetes por compra
@@ -656,7 +610,6 @@ const CreateCampaignStep2Page = () => {
               )}
             </div>
 
-            {/* Max Tickets Per Purchase */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Máximo de bilhetes por compra
@@ -676,7 +629,6 @@ const CreateCampaignStep2Page = () => {
               )}
             </div>
 
-            {/* Campaign Model */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Modelo
@@ -696,7 +648,6 @@ const CreateCampaignStep2Page = () => {
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
               </div>
               
-              {/* NEW: Campaign Model Error Message */}
               {campaignModelError && (
                 <div className="mt-2 flex items-center space-x-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg px-3 py-2">
                   <div className="w-5 h-5 bg-orange-500 rounded flex items-center justify-center flex-shrink-0">
@@ -710,7 +661,6 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
-          {/* Checkboxes */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
               <input
@@ -755,7 +705,6 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
-          {/* Submit Button */}
           <div className="flex justify-end">
             <button
               type="submit"
@@ -774,7 +723,6 @@ const CreateCampaignStep2Page = () => {
           </div>
         </form>
 
-        {/* Promotion Modal */}
         <PromotionModal
           isOpen={showPromotionModal}
           onClose={() => setShowPromotionModal(false)}
@@ -784,7 +732,6 @@ const CreateCampaignStep2Page = () => {
           campaignTotalTickets={campaign?.total_tickets || 0}
         />
 
-        {/* Prizes Modal */}
         <PrizesModal
           isOpen={showPrizesModal}
           onClose={() => setShowPrizesModal(false)}
