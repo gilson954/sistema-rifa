@@ -11,6 +11,7 @@ import {
   ExternalLink,
   AlertTriangle
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion'; // ADICIONADO: Framer Motion
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -51,6 +52,34 @@ interface OrganizerProfile {
 const formatNumber = (num: number): string => {
   return new Intl.NumberFormat('pt-BR').format(num);
 };
+
+// VARIANTS DE ANIMAÇÃO PARA O SLIDESHOW
+const slideVariants = {
+  enter: (direction: number) => ({
+    // Entra da direita se 'direction' for 1 (próximo), ou da esquerda se for -1 (anterior)
+    x: direction > 0 ? 300 : -300,
+    opacity: 0,
+    transition: {
+      duration: 0.5
+    }
+  }),
+  center: {
+    x: 0, // Posição central (onde a imagem fica)
+    opacity: 1,
+    transition: {
+      duration: 0.5
+    }
+  },
+  exit: (direction: number) => ({
+    // Sai para a esquerda se 'direction' for 1 (próximo), ou para a direita se for -1 (anterior)
+    x: direction > 0 ? -300 : 300,
+    opacity: 0,
+    transition: {
+      duration: 0.5
+    }
+  })
+};
+
 
 const CampaignPage = () => {
   const { publicId } = useParams<{ publicId: string }>();
@@ -123,6 +152,8 @@ const CampaignPage = () => {
   
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
+  
+  const [direction, setDirection] = useState(1); // NOVO ESTADO: 1 para Próximo, -1 para Anterior
 
   // Auto-play carrossel de imagens a cada 6 segundos
   useEffect(() => {
@@ -131,6 +162,7 @@ const CampaignPage = () => {
     }
 
     const interval = setInterval(() => {
+      setDirection(1); // Auto-play sempre avança
       setCurrentImageIndex(prev => 
         prev === campaign.prize_image_urls!.length - 1 ? 0 : prev + 1
       );
@@ -401,6 +433,7 @@ const CampaignPage = () => {
 
   const handlePreviousImage = () => {
     if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
+      setDirection(-1); // NOVO: Define a direção para 'anterior'
       setCurrentImageIndex(prev => 
         prev === 0 ? campaign.prize_image_urls!.length - 1 : prev - 1
       );
@@ -409,6 +442,7 @@ const CampaignPage = () => {
 
   const handleNextImage = () => {
     if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
+      setDirection(1); // NOVO: Define a direção para 'próximo'
       setCurrentImageIndex(prev => 
         prev === campaign.prize_image_urls!.length - 1 ? 0 : prev + 1
       );
@@ -661,6 +695,9 @@ const CampaignPage = () => {
   const primaryColor = organizerProfile?.primary_color || '#3B82F6';
   const themeClasses = getThemeClasses(campaignTheme);
 
+  // NOVO: URL da imagem atual e URL de fallback
+  const currentImageUrl = campaign?.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1';
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${themeClasses.background}`}>
       {/* Header - Redesigned according to image specifications */}
@@ -699,28 +736,41 @@ const CampaignPage = () => {
 
         {/* 1. Seção de galeria de imagens - card com largura limitada - SEM THUMBNAILS */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}>
-          <div className="relative group w-full">
-            <img
-              src={campaign.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1'}
-              alt={campaign.title}
-              className="w-full h-[300px] sm:h-[500px] object-cover rounded-t-xl"
-              onClick={() => handleImageClick(currentImageIndex)}
-              style={{ cursor: 'pointer' }}
-            />
+          {/* O container deve ter altura definida e overflow-hidden para o carrossel */}
+          <div className="relative group w-full h-[300px] sm:h-[500px] overflow-hidden"> 
             
-            {/* Navigation Arrows */}
+            {/* AnimatePresence para controlar a entrada/saída */}
+            <AnimatePresence initial={false} mode="wait" custom={direction}> 
+              <motion.img
+                key={currentImageUrl} // CHAVE ÚNICA: Força o React a desmontar/remontar o componente a cada mudança
+                src={currentImageUrl}
+                alt={campaign.title}
+                // Classes para sobrepor as imagens e cobrir o container pai
+                className="w-full h-full object-cover rounded-t-xl absolute top-0 left-0" 
+                onClick={() => handleImageClick(currentImageIndex)}
+                style={{ cursor: 'pointer' }}
+                // Variantes de animação
+                variants={slideVariants} 
+                custom={direction}
+                initial="enter" // Estado inicial
+                animate="center" // Estado animado (permanente)
+                exit="exit" // Estado de saída
+              />
+            </AnimatePresence>
+            
+            {/* Navigation Arrows (z-10 adicionado para garantir que fiquem sobre a imagem) */}
             {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
               <>
                 <button
                   onClick={handlePreviousImage}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75"
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75 z-10"
                 >
                   <ChevronLeft className="h-6 w-6" />
                 </button>
                 
                 <button
                   onClick={handleNextImage}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-75 z-10"
                 >
                   <ChevronRight className="h-6 w-6" />
                 </button>
@@ -729,13 +779,13 @@ const CampaignPage = () => {
             
             {/* Image Counter - DESIGN MELHORADO (Print 3) */}
             {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
-              <div className="absolute top-4 right-4 bg-gray-900/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-sm font-semibold">
+              <div className="absolute top-4 right-4 bg-gray-900/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-sm font-semibold z-10">
                 {currentImageIndex + 1} / {campaign.prize_image_urls.length}
               </div>
             )}
 
             {/* Price Badge - DESIGN MELHORADO (Print 1) */}
-            <div className="absolute top-4 left-4 bg-gray-900/80 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg">
+            <div className="absolute top-4 left-4 bg-gray-900/80 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg z-10">
               <div className="flex items-center space-x-2">
                 <Gift className="h-4 w-4 text-purple-400" />
                 <div className="flex flex-col">
