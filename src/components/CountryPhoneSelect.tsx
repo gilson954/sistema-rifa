@@ -165,9 +165,9 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
 
           {/* Dropdown */}
           {isOpen && (
-            <div className="absolute top-full left-0 mt-2 w-96 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
+            <div className="absolute top-full left-0 mt-2 w-96 bg-white dark:bg-slate-900 border-2 border-gray-200 dark:border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
               {/* Search Header */}
-              <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+              <div className="p-4 bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-purple-500" />
                   <input
@@ -176,12 +176,12 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Buscar país..."
-                    className="w-full pl-12 pr-10 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm"
+                    className="w-full pl-12 pr-10 py-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm"
                   />
                   {searchTerm && (
                     <button
                       onClick={() => setSearchTerm('')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
                     >
                       <X className="h-4 w-4 text-gray-400" />
                     </button>
@@ -190,7 +190,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
               </div>
 
               {/* Countries List */}
-              <div className="max-h-80 overflow-y-auto custom-scrollbar">
+              <div className="max-h-80 overflow-y-auto custom-scrollbar bg-white dark:bg-slate-900">
                 {filteredCountries.map((country) => (
                   <button
                     key={country.code}
@@ -199,7 +199,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
                     className={`w-full flex items-center space-x-4 px-4 py-3 text-left transition-all duration-150 ${
                       selectedCountry.code === country.code 
                         ? 'bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-600' 
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-900/50 border-l-4 border-transparent'
+                        : 'hover:bg-gray-50 dark:hover:bg-slate-800 border-l-4 border-transparent'
                     }`}
                   >
                     <span className="text-3xl">{country.flag}</span>
@@ -241,7 +241,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
               </div>
 
               {/* Footer Info */}
-              <div className="p-3 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
+              <div className="p-3 bg-gray-50 dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700">
                 <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
                   {filteredCountries.length} {filteredCountries.length === 1 ? 'país' : 'países'} {searchTerm && 'encontrado(s)'}
                 </p>
