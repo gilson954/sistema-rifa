@@ -60,7 +60,7 @@ const slideVariants = {
     x: direction > 0 ? 300 : -300,
     opacity: 0,
     transition: {
-      duration: 0.1
+      duration: 0.2
     }
   }),
   center: {
