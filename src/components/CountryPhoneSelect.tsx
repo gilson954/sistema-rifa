@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Search } from 'lucide-react';
+import { ChevronDown, Search, X } from 'lucide-react';
 
 interface Country {
   code: string;
@@ -57,21 +57,7 @@ const countries: Country[] = [
   { code: 'GH', name: 'Gana', dialCode: '+233', flag: '🇬🇭' },
   { code: 'MA', name: 'Marrocos', dialCode: '+212', flag: '🇲🇦' },
   { code: 'DZ', name: 'Argélia', dialCode: '+213', flag: '🇩🇿' },
-  { code: 'TN', name: 'Tunísia', dialCode: '+216', flag: '🇹🇳' },
-  { code: 'LY', name: 'Líbia', dialCode: '+218', flag: '🇱🇾' },
-  { code: 'SD', name: 'Sudão', dialCode: '+249', flag: '🇸🇩' },
-  { code: 'ET', name: 'Etiópia', dialCode: '+251', flag: '🇪🇹' },
-  { code: 'UG', name: 'Uganda', dialCode: '+256', flag: '🇺🇬' },
-  { code: 'TZ', name: 'Tanzânia', dialCode: '+255', flag: '🇹🇿' },
-  { code: 'ZW', name: 'Zimbábue', dialCode: '+263', flag: '🇿🇼' },
-  { code: 'ZM', name: 'Zâmbia', dialCode: '+260', flag: '🇿🇲' },
-  { code: 'MW', name: 'Malawi', dialCode: '+265', flag: '🇲🇼' },
-  { code: 'MZ', name: 'Moçambique', dialCode: '+258', flag: '🇲🇿' },
-  { code: 'MG', name: 'Madagascar', dialCode: '+261', flag: '🇲🇬' },
-  { code: 'MU', name: 'Maurício', dialCode: '+230', flag: '🇲🇺' },
-  { code: 'SC', name: 'Seicheles', dialCode: '+248', flag: '🇸🇨' },
-  { code: 'RE', name: 'Reunião', dialCode: '+262', flag: '🇷🇪' },
-  { code: 'YT', name: 'Mayotte', dialCode: '+262', flag: '🇾🇹' }
+  { code: 'TN', name: 'Tunísia', dialCode: '+216', flag: '🇹🇳' }
 ];
 
 const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
@@ -87,7 +73,6 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -100,14 +85,12 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Focus search input when dropdown opens
   useEffect(() => {
     if (isOpen && searchInputRef.current) {
       searchInputRef.current.focus();
     }
   }, [isOpen]);
 
-  // Filter countries based on search term
   const filteredCountries = countries.filter(country =>
     country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     country.dialCode.includes(searchTerm) ||
@@ -121,12 +104,9 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
   };
 
   const formatPhoneNumber = (value: string, countryCode: string) => {
-    // Remove all non-numeric characters
     const numbers = value.replace(/\D/g, '');
     
-    // Format based on country
     if (countryCode === 'BR') {
-      // Brazilian format: (XX) XXXXX-XXXX
       const limitedNumbers = numbers.slice(0, 11);
       
       if (limitedNumbers.length <= 2) {
@@ -137,7 +117,6 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
         return `(${limitedNumbers.slice(0, 2)}) ${limitedNumbers.slice(2, 7)}-${limitedNumbers.slice(7)}`;
       }
     } else if (countryCode === 'US' || countryCode === 'CA') {
-      // US/Canada format: (XXX) XXX-XXXX
       const limitedNumbers = numbers.slice(0, 10);
       
       if (limitedNumbers.length <= 3) {
@@ -148,8 +127,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
         return `(${limitedNumbers.slice(0, 3)}) ${limitedNumbers.slice(3, 6)}-${limitedNumbers.slice(6)}`;
       }
     } else {
-      // Generic format for other countries
-      return numbers.slice(0, 15); // Limit to 15 digits
+      return numbers.slice(0, 15);
     }
   };
 
@@ -160,92 +138,165 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
         Número de celular *
       </label>
       
-      <div className="flex space-x-2">
+      <div className="flex space-x-3">
         {/* Country Selector */}
         <div className="relative">
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className={`flex items-center space-x-2 px-3 py-3 bg-white dark:bg-gray-800 border rounded-lg transition-colors duration-200 ${
-              error ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-            } hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500`}
+            className={`group flex items-center space-x-2 px-4 py-4 bg-white dark:bg-gray-800 border-2 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md ${
+              error 
+                ? 'border-red-500 hover:border-red-600' 
+                : isOpen
+                ? 'border-purple-500 ring-2 ring-purple-500/20'
+                : 'border-gray-300 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500'
+            } focus:outline-none`}
           >
-            <span className="text-lg">{selectedCountry.flag}</span>
-            <span className="text-sm font-medium text-gray-900 dark:text-white">
+            <span className="text-2xl">{selectedCountry.flag}</span>
+            <span className="text-sm font-bold text-gray-900 dark:text-white">
               {selectedCountry.dialCode}
             </span>
-            <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`h-4 w-4 text-gray-400 transition-all duration-200 ${isOpen ? 'rotate-180 text-purple-600' : 'group-hover:text-purple-500'}`} />
           </button>
 
           {/* Dropdown */}
           {isOpen && (
-            <div className="absolute top-full left-0 mt-1 w-80 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-60 overflow-hidden">
-              {/* Search */}
-              <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+            <div className="absolute top-full left-0 mt-2 w-96 bg-white dark:bg-gray-800 border-2 border-purple-200 dark:border-purple-800/50 rounded-2xl shadow-2xl z-50 overflow-hidden backdrop-blur-sm">
+              {/* Search Header */}
+              <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-b-2 border-purple-100 dark:border-purple-800/30">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-purple-500" />
                   <input
                     ref={searchInputRef}
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Buscar país..."
-                    className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full pl-12 pr-10 py-3 bg-white dark:bg-gray-700 border-2 border-purple-200 dark:border-purple-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-medium shadow-sm"
                   />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                    >
+                      <X className="h-4 w-4 text-gray-400" />
+                    </button>
+                  )}
                 </div>
               </div>
 
               {/* Countries List */}
-              <div className="max-h-48 overflow-y-auto">
+              <div className="max-h-80 overflow-y-auto custom-scrollbar">
                 {filteredCountries.map((country) => (
                   <button
                     key={country.code}
                     type="button"
                     onClick={() => handleCountrySelect(country)}
-                    className={`w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 ${
-                      selectedCountry.code === country.code ? 'bg-purple-50 dark:bg-purple-900/20' : ''
+                    className={`w-full flex items-center space-x-4 px-4 py-3 text-left transition-all duration-200 ${
+                      selectedCountry.code === country.code 
+                        ? 'bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 border-l-4 border-purple-600' 
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border-l-4 border-transparent'
                     }`}
                   >
-                    <span className="text-lg">{country.flag}</span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                      {country.dialCode}
-                    </span>
-                    <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                      {country.name}
-                    </span>
+                    <span className="text-3xl">{country.flag}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-3">
+                        <span className={`text-sm font-bold ${
+                          selectedCountry.code === country.code 
+                            ? 'text-purple-700 dark:text-purple-300' 
+                            : 'text-gray-900 dark:text-white'
+                        }`}>
+                          {country.dialCode}
+                        </span>
+                        <span className={`text-sm truncate ${
+                          selectedCountry.code === country.code 
+                            ? 'text-purple-600 dark:text-purple-400 font-medium' 
+                            : 'text-gray-600 dark:text-gray-400'
+                        }`}>
+                          {country.name}
+                        </span>
+                      </div>
+                    </div>
+                    {selectedCountry.code === country.code && (
+                      <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse"></div>
+                    )}
                   </button>
                 ))}
                 
                 {filteredCountries.length === 0 && (
-                  <div className="px-3 py-4 text-center text-gray-500 dark:text-gray-400 text-sm">
-                    Nenhum país encontrado
+                  <div className="px-4 py-12 text-center">
+                    <div className="text-5xl mb-3">🔍</div>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                      Nenhum país encontrado
+                    </p>
+                    <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">
+                      Tente buscar por nome ou código
+                    </p>
                   </div>
                 )}
+              </div>
+
+              {/* Footer Info */}
+              <div className="p-3 bg-gray-50 dark:bg-gray-700/50 border-t-2 border-gray-200 dark:border-gray-700">
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                  {filteredCountries.length} {filteredCountries.length === 1 ? 'país' : 'países'} {searchTerm && 'encontrado(s)'}
+                </p>
               </div>
             </div>
           )}
         </div>
 
         {/* Phone Number Input */}
-        <input
-          type="tel"
-          value={phoneNumber}
-          onChange={handlePhoneChange}
-          placeholder={placeholder}
-          className={`flex-1 px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200 ${
-            error ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-          }`}
-          required
-        />
+        <div className="flex-1 relative">
+          <input
+            type="tel"
+            value={phoneNumber}
+            onChange={handlePhoneChange}
+            placeholder={placeholder}
+            className={`w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none transition-all duration-200 shadow-sm hover:shadow-md font-medium ${
+              error 
+                ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20' 
+                : 'border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20'
+            }`}
+            required
+          />
+          {phoneNumber && (
+            <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            </div>
+          )}
+        </div>
       </div>
       
       {error && (
-        <p className="text-red-500 text-sm mt-1">{error}</p>
+        <div className="mt-3 flex items-center space-x-2 text-red-600 dark:text-red-400">
+          <div className="w-1 h-1 bg-red-500 rounded-full"></div>
+          <p className="text-sm font-medium">{error}</p>
+        </div>
       )}
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+          border-radius: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(135deg, #9333ea 0%, #4f46e5 100%);
+        }
+      `}</style>
     </div>
   );
 };
