@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { calculateTotalWithPromotions } from '../utils/currency';
-import { motion, AnimatePresence } from 'framer-motion'; // ATUALIZADO: Importação de AnimatePresence
 
 interface PromotionInfo {
   promotion: any;
@@ -30,30 +29,6 @@ interface QuotaSelectorProps {
   customGradientColors?: string;
 }
 
-// NOVO COMPONENTE: AnimatedCounter (Para a animação do número)
-const AnimatedCounter: React.FC<{ value: number, theme: string }> = ({ value, theme }) => {
-  const getTextColor = (campaignTheme: string) => {
-    if (campaignTheme === 'claro') return 'text-gray-900';
-    if (campaignTheme === 'escuro' || campaignTheme === 'escuro-preto') return 'text-white';
-    return 'text-gray-900';
-  };
-
-  return (
-    // O <motion.div> será o elemento animado
-    <motion.div
-      key={value} // CHAVE: Crucial para forçar a animação a cada mudança de valor
-      initial={{ y: '100%', opacity: 0 }}
-      animate={{ y: '0%', opacity: 1 }}
-      exit={{ y: '-100%', opacity: 0 }}
-      transition={{ duration: 0.25, type: 'tween' }}
-      className={`absolute text-2xl sm:text-3xl font-extrabold ${getTextColor(theme)}`}
-    >
-      {value.toLocaleString('pt-BR')}
-    </motion.div>
-  );
-};
-
-
 const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   ticketPrice,
   minTicketsPerPurchase,
@@ -74,16 +49,15 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
 }) => {
   const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));
   const [errorMessage, setErrorMessage] = useState<string>('');
-  
-  // Como o campo não é mais um input de texto, não precisamos de displayQuantity separado,
-  // mas mantemos o useEffect para garantir a inicialização correta.
+
+  // Update quantity when initialQuantity or minTicketsPerPurchase changes
   React.useEffect(() => {
     const validQuantity = Math.max(initialQuantity, minTicketsPerPurchase);
     setQuantity(validQuantity);
     onQuantityChange(validQuantity);
   }, [initialQuantity, minTicketsPerPurchase, onQuantityChange]);
 
-  // Function to get theme classes (MANTIDO)
+  // Function to get theme classes
   const getThemeClasses = (theme: string) => {
     switch (theme) {
       case 'claro':
@@ -92,9 +66,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
           cardBg: 'bg-white',
-          border: 'border-gray-200',
-          inputBg: 'bg-white',
-          inputBorderFocus: 'focus:border-blue-500',
+          border: 'border-gray-200'
         };
       case 'escuro':
         return {
@@ -102,9 +74,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
-          border: 'border-gray-800',
-          inputBg: 'bg-gray-700',
-          inputBorderFocus: 'focus:border-blue-400',
+          border: 'border-gray-800'
         };
       case 'escuro-preto':
         return {
@@ -112,9 +82,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
-          border: 'border-gray-800',
-          inputBg: 'bg-gray-800',
-          inputBorderFocus: 'focus:border-blue-400',
+          border: 'border-gray-800'
         };
       default:
         return {
@@ -122,9 +90,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
           cardBg: 'bg-white',
-          border: 'border-gray-200',
-          inputBg: 'bg-white',
-          inputBorderFocus: 'focus:border-blue-500',
+          border: 'border-gray-200'
         };
     }
   };
@@ -141,10 +107,13 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   ];
 
   const handleUpdateQuantity = (newQuantity: number) => {
+    // Ensure quantity is at least the minimum
     const adjustedQuantity = Math.max(minTicketsPerPurchase, newQuantity);
     
+    // Check if quantity exceeds maximum
     if (adjustedQuantity > maxTicketsPerPurchase) {
       setErrorMessage(`Máximo ${maxTicketsPerPurchase.toLocaleString('pt-BR')} bilhetes por compra`);
+      // Set to maximum allowed
       setQuantity(maxTicketsPerPurchase);
       onQuantityChange(maxTicketsPerPurchase);
     } else {
@@ -158,10 +127,14 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     const newQuantity = quantity + value;
     handleUpdateQuantity(newQuantity);
   };
-  
-  // REMOVIDO: handleQuantityChange e handleQuantityBlur, pois não há mais input de texto.
+
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value) || minTicketsPerPurchase;
+    handleUpdateQuantity(value);
+  };
 
   const calculateTotal = () => {
+    // Usa o novo cálculo de promoções em blocos
     const { total } = calculateTotalWithPromotions(
       quantity,
       ticketPrice,
@@ -171,13 +144,14 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   };
 
   const formatCurrency = (value: number) => {
+    // Verificação de segurança para valores inválidos
     if (value === null || value === undefined || isNaN(value)) {
       return 'R$ 0,00';
     }
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
 
-  // Funções de cor/gradiente (MANTIDAS)
+  // Função para gerar gradiente customizado
   const getCustomGradientStyle = (customColorsJson: string) => {
     try {
       const colors = JSON.parse(customColorsJson);
@@ -194,8 +168,10 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     return null;
   };
 
+  // Função para obter style para cor ou gradiente
   const getColorStyle = () => {
     if (colorMode === 'gradient') {
+      // Gradiente customizado
       if (gradientClasses === 'custom' && customGradientColors) {
         const gradientStyle = getCustomGradientStyle(customGradientColors);
         if (gradientStyle) {
@@ -205,16 +181,21 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           };
         }
       }
+      // Gradiente predefinido - retorna vazio, usará className
       return {};
     }
+    // Cor sólida
     return { backgroundColor: primaryColor || '#3B82F6' };
   };
 
+  // Função para obter className para gradientes
   const getColorClassName = (baseClasses: string = '') => {
     if (colorMode === 'gradient') {
+      // Gradiente customizado
       if (gradientClasses === 'custom' && customGradientColors) {
         return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
       }
+      // Gradiente predefinido
       if (gradientClasses && gradientClasses !== 'custom') {
         return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
       }
@@ -222,38 +203,33 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     return baseClasses;
   };
 
-  const themeClasses = getThemeClasses(campaignTheme);
-
   if (mode === 'manual') {
-    return null;
+    return null; // Manual mode uses the quota grid for selection
   }
 
   return (
-    <div className={`quota-selector rounded-xl shadow-md p-4 sm:p-5 border transition-colors duration-300 ${themeClasses.cardBg} ${themeClasses.border}`}>
-      <h2 className={`text-lg font-bold ${themeClasses.text} mb-4 text-center`}>
-        <span className={themeClasses.text}>SELECIONE A QUANTIDADE DE COTAS</span>
+    <div className={`quota-selector rounded-xl shadow-md p-4 sm:p-5 border transition-colors duration-300 ${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).border}`}>
+      <h2 className={`text-lg font-bold ${getThemeClasses(campaignTheme).text} mb-4 text-center`}>
+        <span className={getThemeClasses(campaignTheme).text}>SELECIONE A QUANTIDADE DE COTAS</span>
       </h2>
 
       {/* Indicador de Promoção Ativa no Seletor */}
       {promotionInfo && (
-        <div className={`mb-4 ${themeClasses.cardBg} ${themeClasses.border} border rounded-lg p-3`}>
+        <div className={`mb-4 ${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).border} border rounded-lg p-3`}>
           <div className="text-center">
-            <div className={`text-xs font-medium ${themeClasses.text} mb-1`}>
+            <div className={`text-xs font-medium ${getThemeClasses(campaignTheme).text} mb-1`}>
               🎉 Promoção Aplicada: {promotionInfo.discountPercentage}% OFF
             </div>
           </div>
         </div>
       )}
-        
       {/* Increment Buttons */}
       <div className="grid grid-cols-4 sm:grid-cols-4 gap-2 sm:gap-2.5 mb-4">
         {incrementButtons.map((button, index) => (
           <button
             key={index}
             onClick={() => handleIncrement(button.value)}
-            // Desabilita botões que ultrapassem o limite
-            disabled={quantity + button.value > maxTicketsPerPurchase || quantity + button.value < minTicketsPerPurchase}
-            className={getColorClassName("text-white py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg font-medium text-xs sm:text-sm hover:brightness-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed")}
+            className={getColorClassName("text-white py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg font-medium text-xs sm:text-sm hover:brightness-90 transition-all duration-200")}
             style={getColorStyle()}
           >
             {button.label}
@@ -261,48 +237,31 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         ))}
       </div>
 
-      {/* Quantity Display with Framer Motion Animation */}
-      <div className="flex items-center justify-center mb-4">
-        <div 
-          className={`flex items-center rounded-2xl overflow-hidden shadow-lg`}
-          style={{ 
-            boxShadow: campaignTheme === 'claro' 
-              ? '0 6px 12px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.08)' 
-              : '0 10px 20px -5px rgba(0, 0, 0, 0.3), 0 6px 10px -3px rgba(0, 0, 0, 0.15)',
-            border: `2px solid ${primaryColor && colorMode === 'solid' ? primaryColor : themeClasses.border}`
-          }}
+      {/* Quantity Input */}
+      <div className="flex items-center justify-center space-x-3 mb-4">
+        <button
+          onClick={() => handleIncrement(-1)}
+          className={`w-8 h-8 ${getThemeClasses(campaignTheme).cardBg} rounded-lg flex items-center justify-center transition-colors duration-200 hover:opacity-80 border ${getThemeClasses(campaignTheme).border}`}
         >
-          {/* Botão Decremento */}
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={() => handleIncrement(-1)}
-            className={`w-14 h-14 flex items-center justify-center transition-colors duration-200 ${
-              campaignTheme === 'claro' ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-            }`}
-            disabled={quantity <= minTicketsPerPurchase}
-          >
-            <Minus className="h-5 w-5" />
-          </motion.button>
-          
-          {/* Display Animado do Número (ATIVADO) */}
-          <div className={`relative w-28 h-14 flex items-center justify-center overflow-hidden ${themeClasses.inputBg}`}>
-            <AnimatePresence mode="wait">
-               <AnimatedCounter value={quantity} theme={campaignTheme} />
-            </AnimatePresence>
-          </div>
-          
-          {/* Botão Incremento */}
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={() => handleIncrement(1)}
-            className={`w-14 h-14 flex items-center justify-center transition-colors duration-200 ${
-              campaignTheme === 'claro' ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-            }`}
-            disabled={quantity >= maxTicketsPerPurchase}
-          >
-            <Plus className="h-5 w-5" />
-          </motion.button>
-        </div>
+          <Minus className={`h-3 w-3 ${getThemeClasses(campaignTheme).textSecondary}`} />
+        </button>
+        
+        <input
+          type="number"
+          value={quantity}
+          onChange={handleQuantityChange}
+          min={minTicketsPerPurchase}
+          max={maxTicketsPerPurchase}
+          className={`w-16 text-center py-1.5 text-sm ${getThemeClasses(campaignTheme).cardBg} border ${getThemeClasses(campaignTheme).border} rounded-lg ${getThemeClasses(campaignTheme).text} focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-200`}
+          style={{ '--tw-ring-color': primaryColor || '#3B82F6' } as React.CSSProperties}
+        />
+        
+        <button
+          onClick={() => handleIncrement(1)}
+          className={`w-8 h-8 ${getThemeClasses(campaignTheme).cardBg} rounded-lg flex items-center justify-center transition-colors duration-200 hover:opacity-80 border ${getThemeClasses(campaignTheme).border}`}
+        >
+          <Plus className={`h-3 w-3 ${getThemeClasses(campaignTheme).textSecondary}`} />
+        </button>
       </div>
 
       {/* Error Message */}
@@ -316,17 +275,18 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
 
       {/* Total Value */}
       <div className="text-center mb-4">
+        {/* Exibição do preço original riscado se houver promoção */}
         {promotionInfo && (
-          <div className={`text-xs ${themeClasses.textSecondary} mb-1`}>
+          <div className={`text-xs ${getThemeClasses(campaignTheme).textSecondary} mb-1`}>
             <span className="line-through">
               {formatCurrency(promotionInfo.originalTotal)}
             </span>
           </div>
         )}
-        <div className={`text-xs ${themeClasses.textSecondary} mb-1`}>Valor final</div>
+        <div className={`text-xs ${getThemeClasses(campaignTheme).textSecondary} mb-1`}>Valor final</div>
         <div 
-          className={`text-xl font-bold ${promotionInfo ? '' : themeClasses.text}`}
-          style={promotionInfo ? { color: "#10B981" } : {}} 
+          className={`text-xl font-bold ${promotionInfo ? '' : getThemeClasses(campaignTheme).text}`}
+          style={promotionInfo ? { color: "#10B981" } : {}}
         >
           R$ {calculateTotal()}
         </div>
@@ -336,7 +296,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       <button
         onClick={onReserve}
         disabled={reserving || disabled || !onReserve}
-        className={getColorClassName(`w-full py-3 rounded-xl font-bold text-base transition-colors duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${
+        className={getColorClassName(`w-full py-3 rounded-lg font-bold text-base transition-colors duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
         promotionInfo
           ? 'text-white hover:brightness-90'
           : 'text-white hover:brightness-90'
