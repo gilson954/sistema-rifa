@@ -1,20 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { calculateTotalWithPromotions } from '../utils/currency';
-import { motion } from 'framer-motion'; // ADICIONADO: Importação do Framer Motion
+import { motion, AnimatePresence } from 'framer-motion'; // ATUALIZADO: Importação de AnimatePresence
 
 interface PromotionInfo {
-// ... (mantenha a interface PromotionInfo)
+  promotion: any;
+  originalTotal: number;
+  promotionalTotal: number;
+  savings: number;
+  discountPercentage: number;
 }
 
 interface QuotaSelectorProps {
-// ... (mantenha a interface QuotaSelectorProps)
+  ticketPrice: number;
+  minTicketsPerPurchase: number;
+  maxTicketsPerPurchase: number;
+  onQuantityChange: (quantity: number) => void;
+  initialQuantity?: number;
+  mode: 'manual' | 'automatic';
+  promotionInfo?: PromotionInfo | null;
+  promotions?: any[];
+  primaryColor?: string | null;
+  campaignTheme: string;
+  onReserve?: () => void;
+  reserving?: boolean;
+  disabled?: boolean;
+  colorMode?: string;
+  gradientClasses?: string;
+  customGradientColors?: string;
 }
 
 // NOVO COMPONENTE: AnimatedCounter (Para a animação do número)
-// Usamos o <AnimatePresence> para transição de entrada/saída do valor.
 const AnimatedCounter: React.FC<{ value: number, theme: string }> = ({ value, theme }) => {
-  // Uma função simples para classes de texto, replicando a lógica de getThemeClasses para o texto.
   const getTextColor = (campaignTheme: string) => {
     if (campaignTheme === 'claro') return 'text-gray-900';
     if (campaignTheme === 'escuro' || campaignTheme === 'escuro-preto') return 'text-white';
@@ -22,18 +39,17 @@ const AnimatedCounter: React.FC<{ value: number, theme: string }> = ({ value, th
   };
 
   return (
-    <div className="relative h-full w-full flex items-center justify-center overflow-hidden">
-      <motion.div
-        key={value} // A chave é o valor, para forçar a animação a cada mudança
-        initial={{ y: '100%', opacity: 0 }}
-        animate={{ y: '0%', opacity: 1 }}
-        exit={{ y: '-100%', opacity: 0 }}
-        transition={{ duration: 0.25, type: 'tween' }}
-        className={`absolute text-2xl sm:text-3xl font-extrabold ${getTextColor(theme)}`}
-      >
-        {value.toLocaleString('pt-BR')}
-      </motion.div>
-    </div>
+    // O <motion.div> será o elemento animado
+    <motion.div
+      key={value} // CHAVE: Crucial para forçar a animação a cada mudança de valor
+      initial={{ y: '100%', opacity: 0 }}
+      animate={{ y: '0%', opacity: 1 }}
+      exit={{ y: '-100%', opacity: 0 }}
+      transition={{ duration: 0.25, type: 'tween' }}
+      className={`absolute text-2xl sm:text-3xl font-extrabold ${getTextColor(theme)}`}
+    >
+      {value.toLocaleString('pt-BR')}
+    </motion.div>
   );
 };
 
@@ -59,15 +75,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));
   const [errorMessage, setErrorMessage] = useState<string>('');
   
-  // O estado `displayQuantity` será usado no <input> ou no <AnimatedCounter>
-  const [displayQuantity, setDisplayQuantity] = useState(quantity);
-  
-  // Atualiza o displayQuantity quando a animação terminar
-  useEffect(() => {
-    setDisplayQuantity(quantity);
-  }, [quantity]);
-  
-  // Update quantity when initialQuantity or minTicketsPerPurchase changes
+  // Como o campo não é mais um input de texto, não precisamos de displayQuantity separado,
+  // mas mantemos o useEffect para garantir a inicialização correta.
   React.useEffect(() => {
     const validQuantity = Math.max(initialQuantity, minTicketsPerPurchase);
     setQuantity(validQuantity);
@@ -94,7 +103,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
           border: 'border-gray-800',
-          inputBg: 'bg-gray-700', // Escuro mais claro para contraste com botões
+          inputBg: 'bg-gray-700',
           inputBorderFocus: 'focus:border-blue-400',
         };
       case 'escuro-preto':
@@ -121,7 +130,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   };
 
   const incrementButtons = [
-// ... (mantenha os botões de incremento)
     { label: '+1', value: 1 },
     { label: '+5', value: 5 },
     { label: '+15', value: 15 },
@@ -150,19 +158,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     const newQuantity = quantity + value;
     handleUpdateQuantity(newQuantity);
   };
-
-  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Permite que o usuário digite no campo
-    const rawValue = e.target.value.replace(/\D/g, ''); // Remove não-dígitos
-    const value = parseInt(rawValue) || minTicketsPerPurchase;
-    handleUpdateQuantity(value);
-  };
   
-  const handleQuantityBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    // Garante que, ao desfocar, o valor esteja dentro dos limites
-    const value = parseInt(e.target.value) || minTicketsPerPurchase;
-    handleUpdateQuantity(value);
-  };
+  // REMOVIDO: handleQuantityChange e handleQuantityBlur, pois não há mais input de texto.
 
   const calculateTotal = () => {
     const { total } = calculateTotalWithPromotions(
@@ -180,7 +177,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
 
-  // Função para gerar gradiente customizado (MANTIDA)
+  // Funções de cor/gradiente (MANTIDAS)
   const getCustomGradientStyle = (customColorsJson: string) => {
     try {
       const colors = JSON.parse(customColorsJson);
@@ -197,7 +194,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     return null;
   };
 
-  // Função para obter style para cor ou gradiente (MANTIDA)
   const getColorStyle = () => {
     if (colorMode === 'gradient') {
       if (gradientClasses === 'custom' && customGradientColors) {
@@ -214,7 +210,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     return { backgroundColor: primaryColor || '#3B82F6' };
   };
 
-  // Função para obter className para gradientes (MANTIDA)
   const getColorClassName = (baseClasses: string = '') => {
     if (colorMode === 'gradient') {
       if (gradientClasses === 'custom' && customGradientColors) {
@@ -247,7 +242,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
               🎉 Promoção Aplicada: {promotionInfo.discountPercentage}% OFF
             </div>
           </div>
-        </div> // CORRIGIDO: O erro de sintaxe do `*` estava aqui, faltava o fechamento da div.
+        </div>
       )}
         
       {/* Increment Buttons */}
@@ -256,7 +251,9 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           <button
             key={index}
             onClick={() => handleIncrement(button.value)}
-            className={getColorClassName("text-white py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg font-medium text-xs sm:text-sm hover:brightness-90 transition-all duration-200")}
+            // Desabilita botões que ultrapassem o limite
+            disabled={quantity + button.value > maxTicketsPerPurchase || quantity + button.value < minTicketsPerPurchase}
+            className={getColorClassName("text-white py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg font-medium text-xs sm:text-sm hover:brightness-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed")}
             style={getColorStyle()}
           >
             {button.label}
@@ -264,7 +261,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         ))}
       </div>
 
-      {/* Quantity Input - NOVO DESIGN: Bonito, Minimalista e Moderno (Inspirado no image_fbe8c6.png) */}
+      {/* Quantity Display with Framer Motion Animation */}
       <div className="flex items-center justify-center mb-4">
         <div 
           className={`flex items-center rounded-2xl overflow-hidden shadow-lg`}
@@ -272,7 +269,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             boxShadow: campaignTheme === 'claro' 
               ? '0 6px 12px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.08)' 
               : '0 10px 20px -5px rgba(0, 0, 0, 0.3), 0 6px 10px -3px rgba(0, 0, 0, 0.15)',
-            // Usa a cor primária para um destaque sutil na borda
             border: `2px solid ${primaryColor && colorMode === 'solid' ? primaryColor : themeClasses.border}`
           }}
         >
@@ -288,30 +284,11 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             <Minus className="h-5 w-5" />
           </motion.button>
           
-          {/* Input/Display de Quantidade com Framer Motion */}
-          <div className={`relative w-28 h-14 flex items-center justify-center ${themeClasses.inputBg}`}>
-            {/* Opção 1: Input editável sem animação de números, mas formatado */}
-            <input
-              type="text" // Usamos text para melhor controle de formatação
-              value={quantity.toLocaleString('pt-BR')} // Exibe formatado
-              onChange={handleQuantityChange}
-              onBlur={handleQuantityBlur}
-              min={minTicketsPerPurchase}
-              max={maxTicketsPerPurchase}
-              className={`absolute inset-0 w-full h-full text-center text-2xl sm:text-3xl font-extrabold transition-all duration-200 focus:outline-none appearance-none bg-transparent ${themeClasses.text}`}
-              // Estilos para esconder o seletor numérico padrão no Chrome/Edge/Firefox
-              style={{
-                MozAppearance: 'textfield',
-                WebkitAppearance: 'none',
-                padding: 0
-              } as React.CSSProperties}
-            />
-
-            {/* Opção 2: Display Animado (Substitui o input acima se o campo for apenas de visualização) */}
-            {/* <AnimatePresence mode="wait">
+          {/* Display Animado do Número (ATIVADO) */}
+          <div className={`relative w-28 h-14 flex items-center justify-center overflow-hidden ${themeClasses.inputBg}`}>
+            <AnimatePresence mode="wait">
                <AnimatedCounter value={quantity} theme={campaignTheme} />
             </AnimatePresence>
-            */}
           </div>
           
           {/* Botão Incremento */}
@@ -339,7 +316,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
 
       {/* Total Value */}
       <div className="text-center mb-4">
-        {/* Exibição do preço original riscado se houver promoção */}
         {promotionInfo && (
           <div className={`text-xs ${themeClasses.textSecondary} mb-1`}>
             <span className="line-through">
@@ -350,7 +326,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         <div className={`text-xs ${themeClasses.textSecondary} mb-1`}>Valor final</div>
         <div 
           className={`text-xl font-bold ${promotionInfo ? '' : themeClasses.text}`}
-          // Adiciona a cor verde vibrante para promoções, como no print (image_fbe8ad.png)
           style={promotionInfo ? { color: "#10B981" } : {}} 
         >
           R$ {calculateTotal()}
