@@ -216,7 +216,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg animate-gradient-x bg-[length:200%_200%]"
                 style={{ background: `linear-gradient(135deg, ${primaryColor || '#7928CA'}, ${primaryColor || '#FF0080'})` }}
               >
-                <Sparkles className="h-6 w-6" />
+                <CheckCircle className="h-6 w-6" />
               </div>
               <div>
                 <h2 className={`text-2xl font-bold ${themeClasses.text}`}>
