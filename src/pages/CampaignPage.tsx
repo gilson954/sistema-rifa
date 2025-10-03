@@ -60,14 +60,14 @@ const slideVariants = {
     x: direction > 0 ? 300 : -300,
     opacity: 0,
     transition: {
-      duration: 0.2
+      duration: 0.1
     }
   }),
   center: {
     x: 0, // Posição central (onde a imagem fica)
     opacity: 1,
     transition: {
-      duration: 0.2
+      duration: 0.1
     }
   },
   exit: (direction: number) => ({
@@ -75,7 +75,7 @@ const slideVariants = {
     x: direction > 0 ? -300 : 300,
     opacity: 0,
     transition: {
-      duration: 0.2
+      duration: 0.1
     }
   })
 };
