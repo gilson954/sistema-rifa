@@ -148,7 +148,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className={`group flex items-center space-x-2 px-4 py-4 bg-white dark:bg-gray-800 border-2 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md ${
+            className={`group flex items-center space-x-2 px-4 h-[56px] bg-white dark:bg-gray-800 border-2 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md ${
               error 
                 ? 'border-red-500 hover:border-red-600' 
                 : isOpen
@@ -165,9 +165,9 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
 
           {/* Dropdown */}
           {isOpen && (
-            <div className="absolute top-full left-0 mt-2 w-96 bg-white dark:bg-gray-800 border-2 border-purple-200 dark:border-purple-800/50 rounded-2xl shadow-2xl z-50 overflow-hidden backdrop-blur-sm">
+            <div className="absolute top-full left-0 mt-2 w-96 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
               {/* Search Header */}
-              <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-b-2 border-purple-100 dark:border-purple-800/30">
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-purple-500" />
                   <input
@@ -176,7 +176,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Buscar país..."
-                    className="w-full pl-12 pr-10 py-3 bg-white dark:bg-gray-700 border-2 border-purple-200 dark:border-purple-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-medium shadow-sm"
+                    className="w-full pl-12 pr-10 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm"
                   />
                   {searchTerm && (
                     <button
@@ -196,10 +196,10 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
                     key={country.code}
                     type="button"
                     onClick={() => handleCountrySelect(country)}
-                    className={`w-full flex items-center space-x-4 px-4 py-3 text-left transition-all duration-200 ${
+                    className={`w-full flex items-center space-x-4 px-4 py-3 text-left transition-all duration-150 ${
                       selectedCountry.code === country.code 
-                        ? 'bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 border-l-4 border-purple-600' 
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border-l-4 border-transparent'
+                        ? 'bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-600' 
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-800 border-l-4 border-transparent'
                     }`}
                   >
                     <span className="text-3xl">{country.flag}</span>
@@ -241,7 +241,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
               </div>
 
               {/* Footer Info */}
-              <div className="p-3 bg-gray-50 dark:bg-gray-700/50 border-t-2 border-gray-200 dark:border-gray-700">
+              <div className="p-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
                 <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
                   {filteredCountries.length} {filteredCountries.length === 1 ? 'país' : 'países'} {searchTerm && 'encontrado(s)'}
                 </p>
@@ -257,7 +257,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
             value={phoneNumber}
             onChange={handlePhoneChange}
             placeholder={placeholder}
-            className={`w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none transition-all duration-200 shadow-sm hover:shadow-md font-medium ${
+            className={`w-full h-[56px] px-5 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-200 shadow-sm hover:shadow-md ${
               error 
                 ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20' 
                 : 'border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20'
