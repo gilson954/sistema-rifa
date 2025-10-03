@@ -15,6 +15,7 @@ interface CountryPhoneSelectProps {
   onPhoneChange: (phone: string) => void;
   placeholder?: string;
   error?: string;
+  theme?: 'claro' | 'escuro' | 'escuro-preto';
 }
 
 const countries: Country[] = [
@@ -66,12 +67,111 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
   phoneNumber,
   onPhoneChange,
   placeholder = "Número de telefone",
-  error
+  error,
+  theme
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Helper function to get theme classes
+  const getThemeClasses = () => {
+    if (!theme) {
+      // Comportamento padrão (usa dark: do sistema)
+      return {
+        buttonBg: 'bg-white dark:bg-gray-800',
+        buttonBorder: 'border-gray-300 dark:border-gray-600',
+        buttonHoverBorder: 'hover:border-purple-400 dark:hover:border-purple-500',
+        buttonText: 'text-gray-900 dark:text-white',
+        iconColor: 'text-gray-400 dark:text-gray-300',
+        dropdownBg: 'bg-white dark:bg-gray-800',
+        dropdownBorder: 'border-gray-200 dark:border-gray-700',
+        headerBg: 'bg-gray-50 dark:bg-gray-700',
+        headerBorder: 'border-gray-200 dark:border-gray-600',
+        inputBg: 'bg-white dark:bg-gray-600',
+        inputBorder: 'border-gray-300 dark:border-gray-500',
+        inputText: 'text-gray-900 dark:text-white',
+        inputPlaceholder: 'placeholder-gray-400 dark:placeholder-gray-300',
+        clearButtonHover: 'hover:bg-gray-200 dark:hover:bg-gray-500',
+        itemHover: 'hover:bg-gray-50 dark:hover:bg-gray-700',
+        itemSelected: 'bg-purple-50 dark:bg-purple-900/30',
+        itemSelectedBorder: 'border-purple-600 dark:border-purple-400',
+        itemTextPrimary: 'text-gray-900 dark:text-white',
+        itemTextSecondary: 'text-gray-600 dark:text-gray-400',
+        itemSelectedTextPrimary: 'text-purple-700 dark:text-purple-300',
+        itemSelectedTextSecondary: 'text-purple-600 dark:text-purple-400',
+        dotColor: 'bg-purple-600 dark:bg-purple-400',
+        footerBg: 'bg-gray-50 dark:bg-gray-700',
+        footerBorder: 'border-gray-200 dark:border-gray-600',
+        footerText: 'text-gray-500 dark:text-gray-300',
+        labelText: 'text-gray-700 dark:text-gray-300'
+      };
+    }
+
+    if (theme === 'claro') {
+      return {
+        buttonBg: 'bg-white',
+        buttonBorder: 'border-gray-300',
+        buttonHoverBorder: 'hover:border-purple-400',
+        buttonText: 'text-gray-900',
+        iconColor: 'text-gray-400',
+        dropdownBg: 'bg-white',
+        dropdownBorder: 'border-gray-200',
+        headerBg: 'bg-gray-50',
+        headerBorder: 'border-gray-200',
+        inputBg: 'bg-white',
+        inputBorder: 'border-gray-300',
+        inputText: 'text-gray-900',
+        inputPlaceholder: 'placeholder-gray-400',
+        clearButtonHover: 'hover:bg-gray-200',
+        itemHover: 'hover:bg-gray-50',
+        itemSelected: 'bg-purple-50',
+        itemSelectedBorder: 'border-purple-600',
+        itemTextPrimary: 'text-gray-900',
+        itemTextSecondary: 'text-gray-600',
+        itemSelectedTextPrimary: 'text-purple-700',
+        itemSelectedTextSecondary: 'text-purple-600',
+        dotColor: 'bg-purple-600',
+        footerBg: 'bg-gray-50',
+        footerBorder: 'border-gray-200',
+        footerText: 'text-gray-500',
+        labelText: 'text-gray-700'
+      };
+    }
+
+    // theme === 'escuro' ou 'escuro-preto'
+    return {
+      buttonBg: 'bg-gray-800',
+      buttonBorder: 'border-gray-600',
+      buttonHoverBorder: 'hover:border-purple-500',
+      buttonText: 'text-white',
+      iconColor: 'text-gray-300',
+      dropdownBg: 'bg-gray-800',
+      dropdownBorder: 'border-gray-700',
+      headerBg: 'bg-gray-700',
+      headerBorder: 'border-gray-600',
+      inputBg: 'bg-gray-600',
+      inputBorder: 'border-gray-500',
+      inputText: 'text-white',
+      inputPlaceholder: 'placeholder-gray-300',
+      clearButtonHover: 'hover:bg-gray-500',
+      itemHover: 'hover:bg-gray-700',
+      itemSelected: 'bg-purple-900/30',
+      itemSelectedBorder: 'border-purple-400',
+      itemTextPrimary: 'text-white',
+      itemTextSecondary: 'text-gray-400',
+      itemSelectedTextPrimary: 'text-purple-300',
+      itemSelectedTextSecondary: 'text-purple-400',
+      dotColor: 'bg-purple-400',
+      footerBg: 'bg-gray-700',
+      footerBorder: 'border-gray-600',
+      footerText: 'text-gray-300',
+      labelText: 'text-gray-300'
+    };
+  };
+
+  const themeClasses = getThemeClasses();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -138,7 +238,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+      <label className={`block text-sm font-medium ${themeClasses.labelText} mb-3`}>
         Número de celular *
       </label>
       
@@ -148,42 +248,42 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className={`group flex items-center space-x-2 px-4 h-[56px] bg-white dark:bg-gray-800 border-2 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md ${
+            className={`group flex items-center space-x-2 px-4 h-[56px] ${themeClasses.buttonBg} border-2 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md ${
               error 
                 ? 'border-red-500 hover:border-red-600' 
                 : isOpen
                 ? 'border-purple-500 ring-2 ring-purple-500/20'
-                : 'border-gray-300 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500'
+                : `${themeClasses.buttonBorder} ${themeClasses.buttonHoverBorder}`
             } focus:outline-none`}
           >
             <span className="text-2xl">{selectedCountry.flag}</span>
-            <span className="text-sm font-bold text-gray-900 dark:text-white">
+            <span className={`text-sm font-bold ${themeClasses.buttonText}`}>
               {selectedCountry.dialCode}
             </span>
-            <ChevronDown className={`h-4 w-4 text-gray-400 dark:text-gray-300 transition-all duration-200 ${isOpen ? 'rotate-180 text-purple-600 dark:text-purple-400' : 'group-hover:text-purple-500'}`} />
+            <ChevronDown className={`h-4 w-4 ${themeClasses.iconColor} transition-all duration-200 ${isOpen ? 'rotate-180 text-purple-600' : 'group-hover:text-purple-500'}`} />
           </button>
 
           {/* Dropdown */}
           {isOpen && (
-            <div className="absolute top-full left-0 mt-2 w-96 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
+            <div className={`absolute top-full left-0 mt-2 w-96 ${themeClasses.dropdownBg} border-2 ${themeClasses.dropdownBorder} rounded-2xl shadow-2xl z-50 overflow-hidden`}>
               {/* Search Header */}
-              <div className="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+              <div className={`p-4 ${themeClasses.headerBg} border-b ${themeClasses.headerBorder}`}>
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-purple-500 dark:text-purple-400" />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-purple-500" />
                   <input
                     ref={searchInputRef}
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Buscar país..."
-                    className="w-full pl-12 pr-10 py-3 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm"
+                    className={`w-full pl-12 pr-10 py-3 ${themeClasses.inputBg} border ${themeClasses.inputBorder} rounded-xl ${themeClasses.inputText} ${themeClasses.inputPlaceholder} focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm`}
                   />
                   {searchTerm && (
                     <button
                       onClick={() => setSearchTerm('')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-lg transition-colors"
+                      className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-1 ${themeClasses.clearButtonHover} rounded-lg transition-colors`}
                     >
-                      <X className="h-4 w-4 text-gray-400 dark:text-gray-300" />
+                      <X className={`h-4 w-4 ${themeClasses.iconColor}`} />
                     </button>
                   )}
                 </div>
@@ -198,8 +298,8 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
                     onClick={() => handleCountrySelect(country)}
                     className={`w-full flex items-center space-x-4 px-4 py-3 text-left transition-all duration-150 ${
                       selectedCountry.code === country.code 
-                        ? 'bg-purple-50 dark:bg-purple-900/30 border-l-4 border-purple-600 dark:border-purple-400' 
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-700 border-l-4 border-transparent'
+                        ? `${themeClasses.itemSelected} border-l-4 ${themeClasses.itemSelectedBorder}` 
+                        : `${themeClasses.itemHover} border-l-4 border-transparent`
                     }`}
                   >
                     <span className="text-3xl">{country.flag}</span>
@@ -207,22 +307,22 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
                       <div className="flex items-center space-x-3">
                         <span className={`text-sm font-bold ${
                           selectedCountry.code === country.code 
-                            ? 'text-purple-700 dark:text-purple-300' 
-                            : 'text-gray-900 dark:text-white'
+                            ? themeClasses.itemSelectedTextPrimary
+                            : themeClasses.itemTextPrimary
                         }`}>
                           {country.dialCode}
                         </span>
                         <span className={`text-sm truncate ${
                           selectedCountry.code === country.code 
-                            ? 'text-purple-600 dark:text-purple-400 font-medium' 
-                            : 'text-gray-600 dark:text-gray-400'
+                            ? `${themeClasses.itemSelectedTextSecondary} font-medium`
+                            : themeClasses.itemTextSecondary
                         }`}>
                           {country.name}
                         </span>
                       </div>
                     </div>
                     {selectedCountry.code === country.code && (
-                      <div className="w-2 h-2 bg-purple-600 dark:bg-purple-400 rounded-full animate-pulse"></div>
+                      <div className={`w-2 h-2 ${themeClasses.dotColor} rounded-full animate-pulse`}></div>
                     )}
                   </button>
                 ))}
@@ -230,10 +330,10 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
                 {filteredCountries.length === 0 && (
                   <div className="px-4 py-12 text-center">
                     <div className="text-5xl mb-3">🔍</div>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                    <p className={`${themeClasses.itemTextSecondary} text-sm font-medium`}>
                       Nenhum país encontrado
                     </p>
-                    <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">
+                    <p className={`${themeClasses.footerText} text-xs mt-1`}>
                       Tente buscar por nome ou código
                     </p>
                   </div>
@@ -241,8 +341,8 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
               </div>
 
               {/* Footer Info */}
-              <div className="p-3 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
-                <p className="text-xs text-gray-500 dark:text-gray-300 text-center">
+              <div className={`p-3 ${themeClasses.footerBg} border-t ${themeClasses.footerBorder}`}>
+                <p className={`text-xs ${themeClasses.footerText} text-center`}>
                   {filteredCountries.length} {filteredCountries.length === 1 ? 'país' : 'países'} {searchTerm && 'encontrado(s)'}
                 </p>
               </div>
@@ -257,10 +357,10 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
             value={phoneNumber}
             onChange={handlePhoneChange}
             placeholder={placeholder}
-            className={`w-full h-[56px] px-5 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-200 shadow-sm hover:shadow-md ${
+            className={`w-full h-[56px] px-5 border-2 rounded-xl ${themeClasses.buttonBg} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} focus:outline-none transition-all duration-200 shadow-sm hover:shadow-md ${
               error 
                 ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20' 
-                : 'border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20'
+                : `${themeClasses.buttonBorder} focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20`
             }`}
             required
           />
