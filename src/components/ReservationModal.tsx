@@ -247,31 +247,8 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     return '';
   };
 
-  const getTextColorStyle = () => {
-    if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom') {
-        const gradientStyle = getCustomGradientStyle();
-        if (gradientStyle.backgroundImage) {
-          return {
-            backgroundImage: gradientStyle.backgroundImage,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
-          };
-        }
-      }
-      return {
-        backgroundImage: 'linear-gradient(135deg, currentColor, currentColor)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text'
-      };
-    }
-    return { color: primaryColor || '#3B82F6' };
-  };
-
   const formatCurrency = (value: number) => {
-    return `R$ ${value.toFixed(2).replace('.', ',')}`;
+    return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const theme = getThemeClasses(campaignTheme);
@@ -319,7 +296,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
           </div>
         </div>
 
-        {/* Card de resumo da campanha - Design moderno */}
+        {/* Card de resumo da campanha - ÍCONE VERDE E VALOR COM COR DO TEMA */}
         <div className="px-6 pt-6">
           <div className={`p-5 ${theme.cardBg} border ${theme.border} rounded-2xl shadow-sm`}>
             <div className="flex items-start justify-between gap-4">
@@ -329,15 +306,12 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 </h3>
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/30 dark:border-gray-700/30">
-                    <CheckCircle className="h-4 w-4" style={{ color: primaryColor || '#3B82F6' }} />
+                    <CheckCircle className="h-4 w-4 text-green-500" />
                     <span className={`text-sm font-semibold ${theme.text}`}>
                       {quotaCount} {quotaCount === 1 ? 'cota' : 'cotas'}
                     </span>
                   </div>
-                  <div
-                    className="px-4 py-1.5 rounded-lg font-bold text-lg shadow-sm"
-                    style={getTextColorStyle()}
-                  >
+                  <div className={`px-4 py-1.5 rounded-lg font-bold text-lg shadow-sm ${theme.text}`}>
                     {formatCurrency(totalValue)}
                   </div>
                 </div>
@@ -539,7 +513,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             </div>
           </div>
 
-          {/* Card Total a Pagar */}
+          {/* Card Total a Pagar - VALOR COM COR DO TEMA */}
           <div className={`${theme.cardBg} rounded-2xl p-5 border-2 ${theme.border} shadow-sm`}>
             <div className="flex items-center justify-between mb-2">
               <span className={`font-bold text-lg ${theme.text}`}>
@@ -550,10 +524,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               <span className={`font-medium ${theme.textSecondary}`}>
                 {quotaCount} {quotaCount === 1 ? 'cota' : 'cotas'}
               </span>
-              <span
-                className="font-bold text-3xl"
-                style={getTextColorStyle()}
-              >
+              <span className={`font-bold text-3xl ${theme.text}`}>
                 {formatCurrency(totalValue)}
               </span>
             </div>
