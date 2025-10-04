@@ -451,6 +451,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               onPhoneChange={(phone) => setFormData({ ...formData, phoneNumber: phone })}
               placeholder="Digite seu número"
               error={errors.phoneNumber}
+              theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
             />
           </div>
 
@@ -466,6 +467,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               onPhoneChange={setConfirmPhoneNumber}
               placeholder="Digite novamente seu número"
               error={errors.confirmPhoneNumber}
+              theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
             />
           </div>
 

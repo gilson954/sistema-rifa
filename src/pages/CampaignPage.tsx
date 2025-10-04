@@ -746,9 +746,10 @@ const CampaignPage = () => {
   };
 
   if (loading || ticketsLoading) {
+    const loadingPrimaryColor = organizerProfile?.primary_color || '#3B82F6';
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2" style={{ borderColor: loadingPrimaryColor }}></div>
       </div>
     );
   }
@@ -769,7 +770,8 @@ const CampaignPage = () => {
           </p>
           <button
             onClick={() => navigate('/')}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+            className={`text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-lg hover:scale-105 ${getColorClassName()}`}
+            style={getColorStyle(true, false)}
           >
             Voltar ao início
           </button>
@@ -804,7 +806,7 @@ const CampaignPage = () => {
             {/* "Ver Minhas Cotas" Button - Right aligned and highlighted */}
             <button
               onClick={() => navigate('/my-tickets')}
-              className={`text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105 ${getColorClassName('')}`}
+              className={`text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105 ${getColorClassName()}`}
               style={getColorStyle(true, false)}
             >
               <Eye className="h-4 w-4" />
@@ -879,11 +881,14 @@ const CampaignPage = () => {
             {/* Price Badge - DESIGN MELHORADO (Print 1) */}
             <div className="absolute top-4 left-4 bg-gray-900/80 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg z-10">
               <div className="flex items-center space-x-2">
-                <Gift className="h-4 w-4 text-purple-400" />
+                <Gift
+                  className="h-4 w-4"
+                  style={{ color: primaryColor || '#3B82F6' }}
+                />
                 <div className="flex flex-col">
                   <span className="text-xs text-gray-300 font-medium">Participe por apenas</span>
                   <span
-                    className="font-bold text-lg"
+                    className={`font-bold text-lg ${getColorClassName('', true)}`}
                     style={getColorStyle(false, true)}
                   >
                     {formatCurrency(campaign.ticket_price)}
@@ -900,7 +905,7 @@ const CampaignPage = () => {
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           {loadingOrganizer ? (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: primaryColor || '#3B82F6' }}></div>
             </div>
           ) : organizerProfile ? (
             <div className="flex items-start gap-4">

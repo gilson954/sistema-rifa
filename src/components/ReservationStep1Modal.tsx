@@ -320,16 +320,14 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
               Número de Celular
             </label>
             <CountryPhoneSelect
-              value={phoneNumber}
-              onChange={setPhoneNumber}
+              phoneNumber={phoneNumber}
+              onPhoneChange={setPhoneNumber}
               selectedCountry={selectedCountry}
               onCountryChange={setSelectedCountry}
+              placeholder="Digite seu número"
               error={error}
-              theme={campaignTheme}
+              theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
             />
-            {error && (
-              <p className="text-red-500 text-xs mt-1.5 font-medium">{error}</p>
-            )}
           </div>
 
           {/* Continue Button */}
