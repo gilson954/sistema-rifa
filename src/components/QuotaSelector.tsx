@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
 import { Minus, Plus, TrendingUp } from 'lucide-react';
-
-// Simulação da função de cálculo para o preview
-const calculateTotalWithPromotions = (quantity: number, price: number, promotions: any[]) => {
-  return { total: quantity * price };
-};
+import { calculateTotalWithPromotions } from '../utils/currency';
 
 interface PromotionInfo {
   promotion: any;
@@ -23,33 +19,25 @@ interface QuotaSelectorProps {
   mode: 'manual' | 'automatic';
   promotionInfo?: PromotionInfo | null;
   promotions?: any[];
-  primaryColor?: string | null;
   campaignTheme: string;
   onReserve?: () => void;
   reserving?: boolean;
   disabled?: boolean;
-  colorMode?: string;
-  gradientClasses?: string;
-  customGradientColors?: string;
 }
 
 const QuotaSelector: React.FC<QuotaSelectorProps> = ({
-  ticketPrice = 10,
-  minTicketsPerPurchase = 1,
-  maxTicketsPerPurchase = 100,
-  onQuantityChange = () => {},
+  ticketPrice,
+  minTicketsPerPurchase,
+  maxTicketsPerPurchase,
+  onQuantityChange,
   initialQuantity = 1,
-  mode = 'automatic',
+  mode,
   promotionInfo,
   promotions = [],
-  primaryColor = '#3B82F6',
-  campaignTheme = 'escuro',
-  onReserve = () => {},
+  campaignTheme,
+  onReserve,
   reserving = false,
   disabled = false,
-  colorMode = 'solid',
-  gradientClasses,
-  customGradientColors
 }) => {
   const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -70,10 +58,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           cardBg: 'bg-white',
           border: 'border-gray-200',
           inputBg: 'bg-gray-50',
-          promotionBg: 'bg-green-50',
-          promotionBorder: 'border-green-200',
-          promotionText: 'text-green-800',
-          promotionTextSecondary: 'text-green-700'
+          buttonBg: 'bg-blue-600 hover:bg-blue-700',
+          numberColor: '#000000'
         };
       case 'escuro':
         return {
@@ -83,10 +69,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           cardBg: 'bg-gray-900',
           border: 'border-gray-800',
           inputBg: 'bg-gray-800',
-          promotionBg: 'bg-gradient-to-r from-amber-950/30 to-orange-950/30',
-          promotionBorder: 'border-amber-700/50',
-          promotionText: 'text-amber-400',
-          promotionTextSecondary: 'text-amber-300'
+          buttonBg: 'bg-blue-600 hover:bg-blue-700',
+          numberColor: '#FFFFFF'
         };
       case 'escuro-preto':
         return {
@@ -96,10 +80,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           cardBg: 'bg-gray-950',
           border: 'border-gray-800',
           inputBg: 'bg-gray-900',
-          promotionBg: 'bg-gradient-to-r from-amber-950/30 to-orange-950/30',
-          promotionBorder: 'border-amber-700/50',
-          promotionText: 'text-amber-400',
-          promotionTextSecondary: 'text-amber-300'
+          buttonBg: 'bg-blue-600 hover:bg-blue-700',
+          numberColor: '#FFFFFF'
         };
       default:
         return {
@@ -109,10 +91,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           cardBg: 'bg-white',
           border: 'border-gray-200',
           inputBg: 'bg-gray-50',
-          promotionBg: 'bg-green-50',
-          promotionBorder: 'border-green-200',
-          promotionText: 'text-green-800',
-          promotionTextSecondary: 'text-green-700'
+          buttonBg: 'bg-blue-600 hover:bg-blue-700',
+          numberColor: '#000000'
         };
     }
   };
@@ -158,7 +138,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       ticketPrice,
       promotions || []
     );
-    // Formatação com separador de milhares
     return total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
@@ -166,52 +145,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     if (value === null || value === undefined || isNaN(value)) {
       return 'R$ 0,00';
     }
-    // Formatação com separador de milhares
     return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
-
-  const getCustomGradientStyle = (customColorsJson: string) => {
-    try {
-      const colors = JSON.parse(customColorsJson);
-      if (Array.isArray(colors) && colors.length >= 2) {
-        if (colors.length === 2) {
-          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]})`;
-        } else if (colors.length === 3) {
-          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
-        }
-      }
-    } catch (error) {
-      console.error('Error parsing custom gradient colors:', error);
-    }
-    return null;
-  };
-
-  const getColorStyle = () => {
-    if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom' && customGradientColors) {
-        const gradientStyle = getCustomGradientStyle(customGradientColors);
-        if (gradientStyle) {
-          return {
-            background: gradientStyle,
-            backgroundSize: '200% 200%'
-          };
-        }
-      }
-      return {};
-    }
-    return { backgroundColor: primaryColor || '#3B82F6' };
-  };
-
-  const getColorClassName = (baseClasses: string = '') => {
-    if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom' && customGradientColors) {
-        return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
-      }
-      if (gradientClasses && gradientClasses !== 'custom') {
-        return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
-      }
-    }
-    return baseClasses;
   };
 
   if (mode === 'manual') {
@@ -223,25 +157,23 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   return (
     <div className={`quota-selector rounded-xl shadow-md p-4 sm:p-5 border transition-all duration-300 ${theme.cardBg} ${theme.border}`}>
       
-      {/* Header com ícone - TAMANHO ORIGINAL */}
+      {/* Header com ícone */}
       <div className="flex items-center justify-center gap-2 mb-4">
         <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20">
-          <TrendingUp className="w-4 h-4" style={{ color: primaryColor }} />
+          <TrendingUp className="w-4 h-4 text-blue-500" />
         </div>
         <h2 className={`text-lg font-bold ${theme.text} tracking-tight`}>
           Escolha suas Cotas
         </h2>
       </div>
 
-
-
-      {/* Increment Buttons - Design Moderno MANTIDO */}
+      {/* Increment Buttons */}
       <div className="grid grid-cols-4 gap-2 sm:gap-2.5 mb-4">
         {incrementButtons.map((button, index) => (
           <button
             key={index}
             onClick={() => handleIncrement(button.value)}
-            className={getColorClassName(`
+            className={`
               relative overflow-hidden
               text-white py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg 
               font-bold text-xs sm:text-sm
@@ -250,15 +182,15 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
               active:scale-95
               before:absolute before:inset-0 before:bg-white/0 hover:before:bg-white/10
               before:transition-all before:duration-300
-            `)}
-            style={getColorStyle()}
+              ${theme.buttonBg}
+            `}
           >
             <span className="relative z-10">{button.label}</span>
           </button>
         ))}
       </div>
 
-      {/* Quantity Input - Design Premium MANTIDO, TAMANHO AJUSTADO */}
+      {/* Quantity Input */}
       <div className="flex items-center justify-center gap-3 mb-4">
         <button
           onClick={() => handleIncrement(-1)}
@@ -267,20 +199,14 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             group relative w-12 h-12 rounded-xl
             flex items-center justify-center 
             transition-all duration-300
-            ${theme.inputBg} border-2
+            ${theme.inputBg} border-2 border-blue-500
             hover:scale-110 active:scale-95
             disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
             shadow-lg hover:shadow-xl
           `}
-          style={{
-            borderColor: quantity > minTicketsPerPurchase ? primaryColor : 'transparent',
-          }}
         >
           <Minus 
-            className="h-5 w-5 transition-all duration-300"
-            style={{
-              color: quantity > minTicketsPerPurchase ? primaryColor : undefined,
-            }}
+            className="h-5 w-5 transition-all duration-300 text-blue-500"
           />
         </button>
         
@@ -293,20 +219,17 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             max={maxTicketsPerPurchase}
             className={`
               w-24 h-14 text-center text-2xl font-black
-              ${theme.inputBg} border-2 rounded-xl
-              focus:outline-none focus:ring-4 focus:border-transparent 
+              ${theme.inputBg} border-2 border-blue-500 rounded-xl
+              focus:outline-none focus:ring-4 focus:ring-blue-500/40 focus:border-transparent 
               transition-all duration-300
               shadow-lg focus:shadow-xl
             `}
             style={{ 
-              '--tw-ring-color': `${primaryColor}40`,
-              borderColor: primaryColor,
-              color: campaignTheme === 'claro' ? '#000000' : '#FFFFFF'
+              color: theme.numberColor
             } as React.CSSProperties}
           />
           <div 
-            className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs font-semibold whitespace-nowrap px-2 py-0.5 rounded-full"
-            style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}
+            className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs font-semibold whitespace-nowrap px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-500"
           >
             {quantity === 1 ? 'cota' : 'cotas'}
           </div>
@@ -319,20 +242,14 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             group relative w-12 h-12 rounded-xl
             flex items-center justify-center 
             transition-all duration-300
-            ${theme.inputBg} border-2
+            ${theme.inputBg} border-2 border-blue-500
             hover:scale-110 active:scale-95
             disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
             shadow-lg hover:shadow-xl
           `}
-          style={{
-            borderColor: quantity < maxTicketsPerPurchase ? primaryColor : 'transparent',
-          }}
         >
           <Plus 
-            className="h-5 w-5 transition-all duration-300"
-            style={{
-              color: quantity < maxTicketsPerPurchase ? primaryColor : undefined,
-            }}
+            className="h-5 w-5 transition-all duration-300 text-blue-500"
           />
         </button>
       </div>
@@ -348,7 +265,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         </div>
       )}
 
-      {/* Total Value - Design Sofisticado MANTIDO, TAMANHO AJUSTADO */}
+      {/* Total Value */}
       <div className={`text-center mb-4 mt-8 p-4 rounded-xl ${theme.inputBg} border ${theme.border}`}>
         {promotionInfo && (
           <div className="mb-1.5">
@@ -365,7 +282,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         </div>
         <div 
           className="text-3xl font-black tracking-tight"
-          style={{ color: promotionInfo ? "#10B981" : primaryColor }}
+          style={{ color: promotionInfo ? "#10B981" : "#3B82F6" }}
         >
           R$ {calculateTotal()}
         </div>
@@ -374,11 +291,11 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         </div>
       </div>
 
-      {/* Buy Button - Design Premium MANTIDO */}
+      {/* Buy Button */}
       <button
         onClick={onReserve}
         disabled={reserving || disabled || !onReserve}
-        className={getColorClassName(`
+        className={`
           relative overflow-hidden
           w-full py-3 rounded-lg 
           font-black text-base tracking-wide
@@ -389,8 +306,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           hover:scale-[1.02] active:scale-[0.98]
           before:absolute before:inset-0 before:bg-white/0 hover:before:bg-white/10
           before:transition-all before:duration-300
-        `)}
-        style={getColorStyle()}
+          ${theme.buttonBg}
+        `}
       >
         <span className="relative z-10 flex items-center justify-center gap-2">
           {reserving ? (
@@ -411,7 +328,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         </span>
       </button>
 
-      {/* Rodapé informativo - TAMANHO AJUSTADO */}
+      {/* Rodapé informativo */}
       <div className={`text-center mt-3 text-xs ${theme.textSecondary}`}>
         <div className="flex items-center justify-center gap-1.5">
           <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
