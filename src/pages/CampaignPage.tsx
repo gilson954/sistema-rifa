@@ -883,7 +883,7 @@ const CampaignPage = () => {
               <div className="flex items-center space-x-2">
                 <Gift
                   className="h-4 w-4"
-                  style={{ color: '#A855F7' }} // CORRIGIDO: Cor alterada para roxo (#A855F7 - Violet-500)
+                  style={{ color: primaryColor || '#3B82F6' }}
                 />
                 <div className="flex flex-col">
                   <span className="text-xs text-gray-300 font-medium">Participe por apenas</span>
@@ -1086,9 +1086,7 @@ const CampaignPage = () => {
 
         {/* 5. Seção de compra/seleção de cota - card com largura limitada */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
-          <h2 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
-            {campaign.campaign_model === 'manual' ? 'Selecione suas Cotas' : 'Escolha a Quantidade'}
-          </h2>
+          {/* REMOVIDO: Título "Selecione suas Cotas" / "Escolha a Quantidade" */}
 
           {campaign.campaign_model === 'manual' ? (
             <div className="space-y-4">
