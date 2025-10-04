@@ -150,29 +150,6 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
     return '';
   };
 
-  const getTextColorStyle = () => {
-    if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom') {
-        const gradientStyle = getCustomGradientStyle();
-        if (gradientStyle.backgroundImage) {
-          return {
-            backgroundImage: gradientStyle.backgroundImage,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
-          };
-        }
-      }
-      return {
-        backgroundImage: 'linear-gradient(135deg, currentColor, currentColor)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text'
-      };
-    }
-    return { color: primaryColor || '#3B82F6' };
-  };
-
   const validatePhoneNumber = (): boolean => {
     if (!phoneNumber.trim()) {
       setError('Número de celular é obrigatório');
@@ -236,7 +213,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
   };
 
   const formatCurrency = (value: number) => {
-    return `R$ ${value.toFixed(2).replace('.', ',')}`;
+    return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const theme = getThemeClasses(campaignTheme);
@@ -289,7 +266,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
           <div className={`p-5 ${theme.cardBg} border ${theme.border} rounded-2xl shadow-sm`}>
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <CheckCircle className="h-5 w-5" style={{ color: primaryColor || '#3B82F6' }} />
+                <CheckCircle className={`h-5 w-5 ${theme.text}`} />
                 <span className={`text-sm font-semibold ${theme.text}`}>
                   Quantidade de títulos
                 </span>
@@ -302,10 +279,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
               <span className={`text-sm font-semibold ${theme.textSecondary}`}>
                 Valor
               </span>
-              <span
-                className="text-2xl font-bold"
-                style={getTextColorStyle()}
-              >
+              <span className={`text-2xl font-bold ${theme.text}`}>
                 {formatCurrency(totalValue)}
               </span>
             </div>
