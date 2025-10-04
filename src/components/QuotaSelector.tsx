@@ -285,6 +285,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
               transition-all duration-300
               shadow-lg focus:shadow-xl
               leading-[3.5rem]
+              [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
             `}
             style={{ 
               '--tw-ring-color': campaignTheme === 'claro' ? '#00000040' : '#FFFFFF40'
