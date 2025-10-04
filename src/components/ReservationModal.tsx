@@ -234,7 +234,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               </div>
               <div>
                 <h2 className={`text-2xl font-bold ${theme.text}`}>
-                  Reservar Cotas
+                  Crie sua conta
                 </h2>
                 <p className={`text-sm ${theme.textSecondary} mt-0.5`}>
                   Complete seus dados para continuar
