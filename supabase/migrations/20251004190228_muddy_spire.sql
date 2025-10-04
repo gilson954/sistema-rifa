@@ -22,7 +22,7 @@
 
   3. Índices
     - Índices para melhor performance em consultas
-</sql>
+*/
 
 -- Criar tabela de sugestões
 CREATE TABLE IF NOT EXISTS suggestions (
