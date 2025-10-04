@@ -1297,8 +1297,10 @@ const CampaignPage = () => {
                 Métodos de Pagamento
               </h3>
               
-              <div className="space-y-2">
-                {getConfiguredPaymentMethods().map((method, index) => (
+              {/* 1. Lista de Outros Métodos Configurados */}
+              <div className="space-y-2 mb-4">
+                {/* Filtramos o PIX, caso a remoção na função tenha sido ignorada por algum motivo */}
+                {getConfiguredPaymentMethods().filter(m => m.name !== 'PIX').map((method, index) => (
                   <div
                     key={index}
                     className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
@@ -1314,6 +1316,24 @@ const CampaignPage = () => {
                     </span>
                   </div>
                 ))}
+              </div>
+              
+              {/* 2. PIX Centralizado (Estilo semelhante ao Método de Sorteio) */}
+              <div className="flex items-center justify-center space-x-2 mt-4 pt-4 border-t border-dashed" style={{borderColor: themeClasses.border}}>
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
+                  style={{ backgroundColor: '#00BC63' }} // Cor verde do PIX
+                >
+                  <span className="text-xl font-extrabold">₽</span>
+                </div>
+                <div className="text-center">
+                  <p className={`font-medium text-base ${themeClasses.text}`}>
+                    PIX (Pagamento Instantâneo)
+                  </p>
+                  <p className={`text-xs ${themeClasses.textSecondary}`}>
+                    Confirmação Imediata
+                  </p>
+                </div>
               </div>
             </div>
 
