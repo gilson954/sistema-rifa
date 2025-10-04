@@ -883,7 +883,7 @@ const CampaignPage = () => {
               <div className="flex items-center space-x-2">
                 <Gift
                   className="h-4 w-4"
-                  style={{ color: primaryColor || '#3B82F6' }}
+                  style={{ color: '#A855F7' }} // CORRIGIDO: Cor alterada para roxo (#A855F7 - Violet-500)
                 />
                 <div className="flex flex-col">
                   <span className="text-xs text-gray-300 font-medium">Participe por apenas</span>
