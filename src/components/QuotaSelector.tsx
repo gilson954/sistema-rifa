@@ -220,7 +220,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       {/* Header com ícone */}
       <div className="flex items-center justify-center gap-2 mb-4">
         <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20">
-          <TrendingUp className="w-4 h-4" style={{ color: primaryColor }} />
+          <TrendingUp className={`w-4 h-4 ${theme.text}`} />
         </div>
         <h2 className={`text-lg font-bold ${theme.text} tracking-tight`}>
           Escolha suas Cotas
