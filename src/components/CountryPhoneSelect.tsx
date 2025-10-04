@@ -160,7 +160,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
       itemSelectedBorder: 'border-purple-400',
       itemTextPrimary: 'text-white',
       itemTextSecondary: 'text-gray-400',
-      itemSelectedTextPrimary: 'text-white', // CORRIGIDO: Garante que o DDD do item selecionado seja branco no tema escuro
+      itemSelectedTextPrimary: 'text-purple-300',
       itemSelectedTextSecondary: 'text-purple-400',
       dotColor: 'bg-purple-400',
       footerBg: 'bg-gradient-to-br from-gray-800 to-gray-900',
