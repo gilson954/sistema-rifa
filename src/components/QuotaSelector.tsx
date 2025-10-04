@@ -141,8 +141,20 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   };
 
   const handleIncrement = (value: number) => {
-    const newQuantity = quantity + value;
-    handleUpdateQuantity(newQuantity);
+    setQuantity(prevQuantity => {
+      const newQuantity = prevQuantity + value;
+      const adjustedQuantity = Math.max(minTicketsPerPurchase, newQuantity);
+      
+      if (adjustedQuantity > maxTicketsPerPurchase) {
+        setErrorMessage(`Máximo ${maxTicketsPerPurchase.toLocaleString('pt-BR')} bilhetes por compra`);
+        onQuantityChange(maxTicketsPerPurchase);
+        return maxTicketsPerPurchase;
+      } else {
+        setErrorMessage('');
+        onQuantityChange(adjustedQuantity);
+        return adjustedQuantity;
+      }
+    });
   };
 
   const startIncrement = (value: number) => {
