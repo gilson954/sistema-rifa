@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Users, BarChart3, Settings, Shield, TrendingUp, UserCheck, UserX, Eye, CreditCard as Edit, Trash2, Search, Filter, Download, RefreshCw, LogOut } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { supabase } from '../lib/supabase';
+import { SuggestionsAPI } from '../lib/api/suggestions';
 
 interface UserProfile {
   id: string;
@@ -19,6 +21,8 @@ interface DashboardStats {
   totalCampaigns: number;
   activeCampaigns: number;
   totalRevenue: number;
+  totalSuggestions: number;
+  newSuggestions: number;
 }
 
 const AdminDashboardPage = () => {
@@ -30,7 +34,9 @@ const AdminDashboardPage = () => {
     totalUsers: 0,
     totalCampaigns: 0,
     activeCampaigns: 0,
-    totalRevenue: 0
+    totalRevenue: 0,
+    totalSuggestions: 0,
+    newSuggestions: 0
   });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -75,11 +81,15 @@ const AdminDashboardPage = () => {
         return sum + (campaign.ticket_price * campaign.sold_tickets);
       }, 0) || 0;
 
+      // Get suggestions stats
+      const { data: suggestionsStats } = await SuggestionsAPI.getSuggestionsStats();
       setStats({
         totalUsers: usersCount || 0,
         totalCampaigns: campaignsCount || 0,
         activeCampaigns: activeCampaignsCount || 0,
-        totalRevenue
+        totalRevenue,
+        totalSuggestions: suggestionsStats?.total || 0,
+        newSuggestions: suggestionsStats?.new || 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -234,7 +244,7 @@ const AdminDashboardPage = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
           <div className="bg-white dark:bg-gray-900 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-800">
             <div className="flex items-center">
               <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
@@ -285,6 +295,22 @@ const AdminDashboardPage = () => {
             </div>
           </div>
         </div>
+          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-800">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
+                <MessageSquare className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Sugestões</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalSuggestions}</p>
+                {stats.newSuggestions > 0 && (
+                  <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">
+                    {stats.newSuggestions} novas
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
 
         {/* Users Management Section */}
         <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800">
@@ -436,6 +462,18 @@ const AdminDashboardPage = () => {
               </div>
 
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                <h3 className="font-medium text-gray-900 dark:text-white mb-2">Sugestões dos Usuários</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Visualize e gerencie feedback dos usuários
+                </p>
+                <button 
+                  onClick={() => navigate('/admin/suggestions')}
+                  className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 text-sm font-medium"
+                >
+                  Gerenciar →
+                </button>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                 <h3 className="font-medium text-gray-900 dark:text-white mb-2">Backup e Segurança</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Configure backups automáticos e políticas de segurança
@@ -445,7 +483,7 @@ const AdminDashboardPage = () => {
                 </button>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 md:col-span-2 lg:col-span-1">
                 <h3 className="font-medium text-gray-900 dark:text-white mb-2">Relatórios</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Gere relatórios detalhados do sistema

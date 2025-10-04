@@ -13,6 +13,7 @@ import {
   Users,
   Menu,
   LogOut,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -69,6 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     { icon: Palette, label: 'Personalização', path: '/dashboard/customize' },
     { icon: User, label: 'Minha conta', path: '/dashboard/account' },
     { icon: HelpCircle, label: 'Tutoriais', path: '/dashboard/tutorials' },
+    { icon: MessageSquare, label: 'Sugestões', path: '/dashboard/suggestions' },
   ];
 
   return (

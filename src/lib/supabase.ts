@@ -382,6 +382,47 @@ export type Database = {
           updated_at?: string
         }
       }
+      suggestions: {
+        Row: {
+          id: string
+          user_id: string | null
+          user_name: string
+          user_email: string
+          subject: string
+          type: 'bug_report' | 'feature_request' | 'improvement' | 'other'
+          priority: 'low' | 'medium' | 'high'
+          message: string
+          status: 'new' | 'in_progress' | 'resolved' | 'rejected'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          user_name: string
+          user_email: string
+          subject: string
+          type: 'bug_report' | 'feature_request' | 'improvement' | 'other'
+          priority: 'low' | 'medium' | 'high'
+          message: string
+          status?: 'new' | 'in_progress' | 'resolved' | 'rejected'
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          user_name?: string
+          user_email?: string
+          subject?: string
+          type?: 'bug_report' | 'feature_request' | 'improvement' | 'other'
+          priority?: 'low' | 'medium' | 'high'
+          message?: string
+          status?: 'new' | 'in_progress' | 'resolved' | 'rejected'
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

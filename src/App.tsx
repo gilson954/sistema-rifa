@@ -27,10 +27,12 @@ import AccountPage from './pages/AccountPage';
 import SocialMediaPage from './pages/SocialMediaPage';
 import TutorialsPage from './pages/TutorialsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminSuggestionsPage from './pages/AdminSuggestionsPage';
 import MyTicketsPage from './pages/MyTicketsPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import PaymentCancelledPage from './pages/PaymentCancelledPage';
 import SalesHistoryPage from './pages/SalesHistoryPage';
+import SuggestionsPage from './pages/SuggestionsPage';
 import MultiStepFormContainer from './components/MultiStepFormContainer';
 import { MultiStepFormProvider } from './context/MultiStepFormContext';
 import { initialFormData } from './lib/validations/formSteps';
@@ -89,6 +91,16 @@ function App() {
             }
           />
 
+          {/* Admin Suggestions Protegido */}
+          <Route
+            path="/admin/suggestions"
+            element={
+              <AdminProtectedRoute>
+                <AdminSuggestionsPage />
+              </AdminProtectedRoute>
+            }
+          />
+
           {/* Dashboard Protegido */}
           <Route
             path="/dashboard"
@@ -112,6 +124,7 @@ function App() {
             <Route path="customize" element={<CustomizationPage />} />
             <Route path="account" element={<AccountPage />} />
             <Route path="tutorials" element={<TutorialsPage />} />
+            <Route path="suggestions" element={<SuggestionsPage />} />
             <Route
               path="campaigns/:campaignId/sales-history"
               element={<SalesHistoryPage />}
