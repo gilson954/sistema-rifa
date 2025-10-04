@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Minus, Plus, TrendingUp } from 'lucide-react';
 import { calculateTotalWithPromotions } from '../utils/currency';
 
