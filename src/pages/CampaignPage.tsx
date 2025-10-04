@@ -1297,10 +1297,8 @@ const CampaignPage = () => {
                 Métodos de Pagamento
               </h3>
               
-              {/* 1. Lista de Outros Métodos Configurados */}
-              <div className="space-y-2 mb-4">
-                {/* Filtramos o PIX, caso a remoção na função tenha sido ignorada por algum motivo */}
-                {getConfiguredPaymentMethods().filter(m => m.name !== 'PIX').map((method, index) => (
+              <div className="space-y-2">
+                {getConfiguredPaymentMethods().map((method, index) => ( // A lista de métodos está sendo iterada aqui
                   <div
                     key={index}
                     className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
@@ -1317,6 +1315,7 @@ const CampaignPage = () => {
                   </div>
                 ))}
               </div>
+            </div>
               
               {/* 2. PIX Centralizado (Estilo semelhante ao Método de Sorteio) */}
               <div className="flex items-center justify-center space-x-2 mt-4 pt-4 border-t border-dashed" style={{borderColor: themeClasses.border}}>
