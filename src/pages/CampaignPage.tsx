@@ -1087,6 +1087,7 @@ const CampaignPage = () => {
         {/* 5. Seção de compra/seleção de cota - card com largura limitada */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
 
+
           {campaign.campaign_model === 'manual' ? (
             <div className="space-y-4">
               {!isCampaignAvailable && (
@@ -1332,7 +1333,9 @@ const CampaignPage = () => {
                   <p className={`font-medium text-sm ${themeClasses.text}`}>
                     {campaign.draw_method}
                   </p>
-                  <p className={`text-xs ${themeClasses.textSecondary}`}>
+                  {/* REMOVIDO: <p className={`text-xs ${themeClasses.textSecondary}`}>
+                    Sorteio transparente e confiável
+                  </p> */}
                 </div>
               </div>
             </div>
