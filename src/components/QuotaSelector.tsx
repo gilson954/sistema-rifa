@@ -343,7 +343,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           Valor Total
         </div>
         <div 
-          className={`text-3xl font-black tracking-tight ${theme.text}`}
+          className={`text-3xl font-black tracking-tight ${promotionInfo ? '' : theme.text}`}
+          style={promotionInfo ? { color: '#10B981' } : {}}
         >
           R$ {calculateTotal()}
         </div>
