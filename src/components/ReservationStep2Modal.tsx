@@ -136,29 +136,6 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
     return '';
   };
 
-  const getTextColorStyle = () => {
-    if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom') {
-        const gradientStyle = getCustomGradientStyle();
-        if (gradientStyle.backgroundImage) {
-          return {
-            backgroundImage: gradientStyle.backgroundImage,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
-          };
-        }
-      }
-      return {
-        backgroundImage: 'linear-gradient(135deg, currentColor, currentColor)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text'
-      };
-    }
-    return { color: primaryColor || '#3B82F6' };
-  };
-
   const handleConfirm = () => {
     if (!acceptTerms) {
       setError('Você deve aceitar os termos de uso');
@@ -178,7 +155,7 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
   };
 
   const formatCurrency = (value: number) => {
-    return `R$ ${value.toFixed(2).replace('.', ',')}`;
+    return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const theme = getThemeClasses(campaignTheme);
@@ -226,12 +203,12 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
           </div>
         </div>
 
-        {/* Card de resumo */}
+        {/* Card de resumo - ÍCONE VERDE E VALOR COM COR DO TEMA */}
         <div className="px-6 pt-6">
           <div className={`p-5 ${theme.cardBg} border ${theme.border} rounded-2xl shadow-sm`}>
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <CheckCircle className="h-5 w-5" style={{ color: primaryColor || '#3B82F6' }} />
+                <CheckCircle className="h-5 w-5 text-green-500" />
                 <span className={`text-sm font-semibold ${theme.text}`}>
                   Quantidade de títulos
                 </span>
@@ -244,10 +221,7 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
               <span className={`text-sm font-semibold ${theme.textSecondary}`}>
                 Valor
               </span>
-              <span
-                className="text-2xl font-bold"
-                style={getTextColorStyle()}
-              >
+              <span className={`text-2xl font-bold ${theme.text}`}>
                 {formatCurrency(totalValue)}
               </span>
             </div>
