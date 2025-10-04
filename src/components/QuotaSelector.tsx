@@ -259,16 +259,15 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             group relative w-12 h-12 rounded-xl
             flex items-center justify-center 
             transition-all duration-300
-            bg-gradient-to-br from-amber-400 to-yellow-600
-            hover:from-amber-500 hover:to-yellow-700
+            ${theme.inputBg}
             hover:scale-110 active:scale-95
             disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
-            shadow-lg hover:shadow-xl hover:shadow-amber-500/50
-            border-2 border-amber-300/50
+            shadow-lg hover:shadow-xl
+            border-2 border-amber-500
           `}
         >
           <Minus 
-            className="h-5 w-5 text-white transition-all duration-300"
+            className={`h-5 w-5 transition-all duration-300 ${theme.text}`}
           />
         </button>
         
@@ -281,12 +280,13 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             max={maxTicketsPerPurchase}
             className={`
               w-24 h-14 text-center text-2xl font-black
-              bg-gradient-to-br from-amber-400 to-yellow-600
-              border-2 border-amber-300/50 rounded-xl
-              text-white
+              ${theme.inputBg} rounded-xl
+              ${theme.text}
               focus:outline-none focus:ring-4 focus:ring-amber-500/40 focus:border-transparent 
               transition-all duration-300
-              shadow-lg focus:shadow-xl focus:shadow-amber-500/50
+              shadow-lg focus:shadow-xl
+              border-2 border-amber-500
+              flex items-center justify-center
             `}
           />
           <div 
@@ -303,16 +303,15 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             group relative w-12 h-12 rounded-xl
             flex items-center justify-center 
             transition-all duration-300
-            bg-gradient-to-br from-amber-400 to-yellow-600
-            hover:from-amber-500 hover:to-yellow-700
+            ${theme.inputBg}
             hover:scale-110 active:scale-95
             disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
-            shadow-lg hover:shadow-xl hover:shadow-amber-500/50
-            border-2 border-amber-300/50
+            shadow-lg hover:shadow-xl
+            border-2 border-amber-500
           `}
         >
           <Plus 
-            className="h-5 w-5 text-white transition-all duration-300"
+            className={`h-5 w-5 transition-all duration-300 ${theme.text}`}
           />
         </button>
       </div>
