@@ -49,6 +49,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
 }) => {
   const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
     const validQuantity = Math.max(initialQuantity, minTicketsPerPurchase);
@@ -142,6 +144,32 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     const newQuantity = quantity + value;
     handleUpdateQuantity(newQuantity);
   };
+
+  const startIncrement = (value: number) => {
+    handleIncrement(value);
+    timeoutRef.current = setTimeout(() => {
+      intervalRef.current = setInterval(() => {
+        handleIncrement(value);
+      }, 100);
+    }, 500);
+  };
+
+  const stopIncrement = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  React.useEffect(() => {
+    return () => {
+      stopIncrement();
+    };
+  }, []);
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value) || minTicketsPerPurchase;
@@ -253,7 +281,11 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       {/* Quantity Input - Cores branco/preto conforme tema */}
       <div className="flex items-center justify-center gap-3 mb-4">
         <button
-          onClick={() => handleIncrement(-1)}
+          onMouseDown={() => startIncrement(-1)}
+          onMouseUp={stopIncrement}
+          onMouseLeave={stopIncrement}
+          onTouchStart={() => startIncrement(-1)}
+          onTouchEnd={stopIncrement}
           disabled={quantity <= minTicketsPerPurchase}
           className={`
             group relative w-12 h-12 rounded-xl
@@ -300,7 +332,11 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         </div>
         
         <button
-          onClick={() => handleIncrement(1)}
+          onMouseDown={() => startIncrement(1)}
+          onMouseUp={stopIncrement}
+          onMouseLeave={stopIncrement}
+          onTouchStart={() => startIncrement(1)}
+          onTouchEnd={stopIncrement}
           disabled={quantity >= maxTicketsPerPurchase}
           className={`
             group relative w-12 h-12 rounded-xl
