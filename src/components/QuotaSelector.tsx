@@ -250,7 +250,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         ))}
       </div>
 
-      {/* Quantity Input - Cores branco/preto conforme tema */}
+      {/* Quantity Input - COR DOURADA */}
       <div className="flex items-center justify-center gap-3 mb-4">
         <button
           onClick={() => handleIncrement(-1)}
@@ -259,14 +259,16 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             group relative w-12 h-12 rounded-xl
             flex items-center justify-center 
             transition-all duration-300
-            ${theme.inputBg} border-2 ${theme.border}
+            bg-gradient-to-br from-amber-400 to-yellow-600
+            hover:from-amber-500 hover:to-yellow-700
             hover:scale-110 active:scale-95
             disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
-            shadow-lg hover:shadow-xl
+            shadow-lg hover:shadow-xl hover:shadow-amber-500/50
+            border-2 border-amber-300/50
           `}
         >
           <Minus 
-            className={`h-5 w-5 transition-all duration-300 ${theme.text}`}
+            className="h-5 w-5 text-white transition-all duration-300"
           />
         </button>
         
@@ -279,19 +281,16 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             max={maxTicketsPerPurchase}
             className={`
               w-24 h-14 text-center text-2xl font-black
-              ${theme.inputBg} border-2 ${theme.border} rounded-xl
-              ${theme.text}
-              focus:outline-none focus:ring-4 focus:border-transparent 
+              bg-gradient-to-br from-amber-400 to-yellow-600
+              border-2 border-amber-300/50 rounded-xl
+              text-white
+              focus:outline-none focus:ring-4 focus:ring-amber-500/40 focus:border-transparent 
               transition-all duration-300
-              shadow-lg focus:shadow-xl
+              shadow-lg focus:shadow-xl focus:shadow-amber-500/50
             `}
-            style={{ 
-              '--tw-ring-color': campaignTheme === 'claro' ? '#00000040' : '#FFFFFF40'
-            } as React.CSSProperties}
           />
           <div 
-            className={`absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs font-semibold whitespace-nowrap px-2 py-0.5 rounded-full ${theme.textSecondary}`}
-            style={{ backgroundColor: campaignTheme === 'claro' ? '#00000020' : '#FFFFFF20' }}
+            className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs font-semibold whitespace-nowrap px-2 py-0.5 rounded-full text-amber-600 bg-amber-100"
           >
             {quantity === 1 ? 'cota' : 'cotas'}
           </div>
@@ -304,14 +303,16 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             group relative w-12 h-12 rounded-xl
             flex items-center justify-center 
             transition-all duration-300
-            ${theme.inputBg} border-2 ${theme.border}
+            bg-gradient-to-br from-amber-400 to-yellow-600
+            hover:from-amber-500 hover:to-yellow-700
             hover:scale-110 active:scale-95
             disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
-            shadow-lg hover:shadow-xl
+            shadow-lg hover:shadow-xl hover:shadow-amber-500/50
+            border-2 border-amber-300/50
           `}
         >
           <Plus 
-            className={`h-5 w-5 transition-all duration-300 ${theme.text}`}
+            className="h-5 w-5 text-white transition-all duration-300"
           />
         </button>
       </div>
