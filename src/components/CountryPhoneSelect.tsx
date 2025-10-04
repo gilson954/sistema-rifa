@@ -83,6 +83,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
         buttonBorder: 'border-gray-300 dark:border-gray-600',
         buttonHoverBorder: 'hover:border-purple-400 dark:hover:border-purple-500',
         buttonText: 'text-gray-900 dark:text-white',
+        dialCodeText: 'text-gray-900 dark:text-white',
         iconColor: 'text-gray-400 dark:text-gray-300',
         dropdownBg: 'bg-white dark:bg-gray-800',
         dropdownBorder: 'border-gray-200/50 dark:border-gray-700/50',
@@ -114,6 +115,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
         buttonBorder: 'border-gray-300',
         buttonHoverBorder: 'hover:border-purple-400',
         buttonText: 'text-gray-900',
+        dialCodeText: 'text-gray-900',
         iconColor: 'text-gray-400',
         dropdownBg: 'bg-white',
         dropdownBorder: 'border-gray-200/50',
@@ -145,6 +147,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
       buttonBorder: 'border-gray-600',
       buttonHoverBorder: 'hover:border-purple-500',
       buttonText: 'text-white',
+      dialCodeText: 'text-white',
       iconColor: 'text-gray-300',
       dropdownBg: 'bg-gray-800',
       dropdownBorder: 'border-gray-700/50',
@@ -255,7 +258,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
             } focus:outline-none hover:scale-[1.02] active:scale-[0.98]`}
           >
             <span className="text-2xl">{selectedCountry.flag}</span>
-            <span className={`text-sm font-bold ${themeClasses.buttonText}`}>
+            <span className={`text-sm font-bold ${themeClasses.dialCodeText}`}>
               {selectedCountry.dialCode}
             </span>
             <ChevronDown className={`h-4 w-4 ${themeClasses.iconColor} transition-all duration-200 ${isOpen ? 'rotate-180 text-purple-600' : 'group-hover:text-purple-500'}`} />
