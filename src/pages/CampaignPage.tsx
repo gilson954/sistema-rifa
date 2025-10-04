@@ -1298,7 +1298,7 @@ const CampaignPage = () => {
               </h3>
               
               <div className="space-y-2">
-                {getConfiguredPaymentMethods().map((method, index) => ( // A lista de métodos está sendo iterada aqui
+                {getConfiguredPaymentMethods().map((method, index) => (
                   <div
                     key={index}
                     className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
