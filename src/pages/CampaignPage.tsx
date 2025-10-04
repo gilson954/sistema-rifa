@@ -883,7 +883,7 @@ const CampaignPage = () => {
               <div className="flex items-center space-x-2">
                 <Gift
                   className="h-4 w-4"
-                  style={{ color: '#A855F7' }} // CORRIGIDO: Cor alterada para roxo (#A855F7 - Violet-500)
+                  style={{ color: primaryColor || '#3B82F6' }}
                 />
                 <div className="flex flex-col">
                   <span className="text-xs text-gray-300 font-medium">Participe por apenas</span>
@@ -1087,7 +1087,6 @@ const CampaignPage = () => {
         {/* 5. Seção de compra/seleção de cota - card com largura limitada */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           {/* REMOVIDO: Título "Selecione suas Cotas" / "Escolha a Quantidade" */}
-          
 
           {campaign.campaign_model === 'manual' ? (
             <div className="space-y-4">
@@ -1313,34 +1312,6 @@ const CampaignPage = () => {
                       {method.name}
                     </span>
                   </div>
-          )}
-        </section>
-
-        {/* 7. Métodos de Pagamento e Método de Sorteio */}
-        <section className="mb-4">
-          <div className="max-w-3xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Payment Methods Card */}
-            <div className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4`}>
-              <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
-                Métodos de Pagamento
-              </h3>
-              
-              <div className="space-y-2">
-                {getConfiguredPaymentMethods().map((method, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-center space-x-2 p-2 rounded-lg border ${themeClasses.border}`}
-                  >
-                    <div 
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                      style={{ backgroundColor: method.color }}
-                    >
-                      {method.icon}
-                    </div>
-                    <span className={`font-medium text-sm ${themeClasses.text}`}>
-                      {method.name}
-                    </span>
-                  </div>
                 ))}
               </div>
             </div>
@@ -1361,6 +1332,9 @@ const CampaignPage = () => {
                 <div className="text-center">
                   <p className={`font-medium text-sm ${themeClasses.text}`}>
                     {campaign.draw_method}
+                  </p>
+                  <p className={`text-xs ${themeClasses.textSecondary}`}>
+                    Sorteio transparente e confiável
                   </p>
                 </div>
               </div>
