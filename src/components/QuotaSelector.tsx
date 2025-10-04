@@ -294,7 +294,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             className={`
               w-24 h-14 text-center text-2xl font-black
               ${theme.inputBg} border-2 rounded-xl
-              ${theme.text}
               focus:outline-none focus:ring-4 focus:border-transparent 
               transition-all duration-300
               shadow-lg focus:shadow-xl
@@ -302,6 +301,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             style={{ 
               '--tw-ring-color': `${primaryColor}40`,
               borderColor: primaryColor,
+              color: campaignTheme === 'claro' ? '#000000' : '#FFFFFF'
             } as React.CSSProperties}
           />
           <div 
