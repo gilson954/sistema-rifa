@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, Lightbulb, Bug, Zap, MessageSquare, AlertTriangle, CheckCircle, User, Mail, FileText } from 'lucide-react';
+import { Send, Lightbulb, Bug, Zap, MessageSquare, AlertTriangle, CheckCircle, User, Mail, FileText, Upload, X, File, Image } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { SuggestionsAPI, CreateSuggestionInput } from '../lib/api/suggestions';
@@ -15,12 +15,15 @@ const SuggestionsPage = () => {
     subject: '',
     type: 'feature_request',
     priority: 'medium',
-    message: ''
+    message: '',
+    attachment: null
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
 
   // Carregar dados do usuário
   useEffect(() => {
@@ -105,11 +108,42 @@ const SuggestionsPage = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Limpar erro do campo quando o usuário começar a digitar
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validation = SuggestionsAPI.validateAttachment(file);
+    if (!validation.valid) {
+      setErrors(prev => ({ ...prev, attachment: validation.error || '' }));
+      return;
+    }
+
+    setSelectedFile(file);
+    setFormData(prev => ({ ...prev, attachment: file }));
+    setErrors(prev => ({ ...prev, attachment: '' }));
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFilePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setFilePreview(null);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setFilePreview(null);
+    setFormData(prev => ({ ...prev, attachment: null }));
+    setErrors(prev => ({ ...prev, attachment: '' }));
   };
 
   const handleTypeChange = (type: string) => {
@@ -176,16 +210,18 @@ const SuggestionsPage = () => {
       }
 
       showSuccess('Sugestão enviada com sucesso! Obrigado pelo seu feedback.');
-      
-      // Resetar formulário
+
       setFormData({
-        user_name: formData.user_name, // Manter nome
-        user_email: formData.user_email, // Manter email
+        user_name: formData.user_name,
+        user_email: formData.user_email,
         subject: '',
         type: 'feature_request',
         priority: 'medium',
-        message: ''
+        message: '',
+        attachment: null
       });
+      setSelectedFile(null);
+      setFilePreview(null);
       
     } catch (error: any) {
       console.error('Error submitting suggestion:', error);
@@ -412,6 +448,83 @@ const SuggestionsPage = () => {
                   {formData.message.length}/5000 caracteres
                 </p>
               </div>
+            </div>
+
+            {/* File Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Anexar Arquivo (Opcional)
+              </label>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                Anexe capturas de tela ou documentos (PNG, JPG, GIF, PDF - máx. 10MB)
+              </p>
+
+              {!selectedFile ? (
+                <div className="relative">
+                  <input
+                    type="file"
+                    id="file-upload"
+                    accept="image/png,image/jpeg,image/jpg,image/gif,application/pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/10 ${
+                      errors.attachment ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50'
+                    }`}
+                  >
+                    <Upload className={`h-8 w-8 mb-2 ${errors.attachment ? 'text-red-500' : 'text-gray-400'}`} />
+                    <p className={`text-sm font-medium ${errors.attachment ? 'text-red-600' : 'text-gray-600 dark:text-gray-400'}`}>
+                      Clique para selecionar ou arraste o arquivo aqui
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      PNG, JPG, GIF, PDF (máx. 10MB)
+                    </p>
+                  </label>
+                </div>
+              ) : (
+                <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-800">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      {filePreview ? (
+                        <img
+                          src={filePreview}
+                          alt="Preview"
+                          className="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                          <File className="h-8 w-8 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          {selectedFile.name}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveFile}
+                      className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors duration-200"
+                      title="Remover arquivo"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {errors.attachment && (
+                <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                  <AlertTriangle className="h-4 w-4" />
+                  {errors.attachment}
+                </p>
+              )}
             </div>
 
             {/* Botão de Envio */}

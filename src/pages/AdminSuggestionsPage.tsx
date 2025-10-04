@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  MessageSquare, 
-  Search, 
-  Filter, 
-  Eye, 
-  CheckCircle, 
-  Clock, 
-  XCircle, 
+import {
+  MessageSquare,
+  Search,
+  Filter,
+  Eye,
+  CheckCircle,
+  Clock,
+  XCircle,
   AlertTriangle,
   Bug,
   Lightbulb,
@@ -14,7 +14,11 @@ import {
   ChevronDown,
   X,
   ArrowLeft,
-  Trash2
+  Trash2,
+  Paperclip,
+  Download,
+  FileText,
+  Image as ImageIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SuggestionsAPI, Suggestion } from '../lib/api/suggestions';
@@ -374,6 +378,9 @@ const AdminSuggestionsPage = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Status
                     </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Anexo
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Data de Envio
                     </th>
@@ -413,6 +420,15 @@ const AdminSuggestionsPage = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getStatusBadge(suggestion.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        {suggestion.attachment_url ? (
+                          <div className="flex justify-center">
+                            <Paperclip className="h-4 w-4 text-green-600 dark:text-green-400" title="Possui anexo" />
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {formatDate(suggestion.created_at)}
@@ -503,6 +519,58 @@ const AdminSuggestionsPage = () => {
                   </p>
                 </div>
               </div>
+
+              {/* Attachment */}
+              {selectedSuggestion.attachment_url && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
+                    Anexo
+                  </h4>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        {selectedSuggestion.attachment_name?.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                          <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                            <ImageIcon className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                            <FileText className="h-8 w-8 text-red-600 dark:text-red-400" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                            {selectedSuggestion.attachment_name || 'Arquivo anexado'}
+                          </p>
+                          {selectedSuggestion.attachment_size && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {(selectedSuggestion.attachment_size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <a
+                        href={selectedSuggestion.attachment_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
+                      >
+                        <Download className="h-4 w-4" />
+                        <span>Baixar</span>
+                      </a>
+                    </div>
+                    {selectedSuggestion.attachment_name?.match(/\.(jpg|jpeg|png|gif)$/i) && (
+                      <div className="mt-4">
+                        <img
+                          src={selectedSuggestion.attachment_url}
+                          alt="Anexo"
+                          className="max-w-full h-auto rounded-lg border border-gray-200 dark:border-gray-700"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Status Update */}
               <div>
