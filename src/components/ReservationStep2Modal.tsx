@@ -107,6 +107,7 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
       if (Array.isArray(colors) && colors.length >= 2) {
         return {
           backgroundImage: `linear-gradient(135deg, ${colors.join(', ')})`,
+          backgroundSize: '200% 200%'
         };
       }
     } catch (e) {
@@ -128,9 +129,9 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
   const getColorClassName = () => {
     if (colorMode === 'gradient') {
       if (gradientClasses === 'custom') {
-        return 'animate-gradient-x';
+        return 'animate-gradient-x bg-[length:200%_200%]';
       }
-      return `${gradientClasses} animate-gradient-x`;
+      return `bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
     }
     return '';
   };
