@@ -19,9 +19,6 @@ interface ReservationModalProps {
   selectedQuotas?: number[];
   campaignTitle: string;
   primaryColor?: string | null;
-  colorMode?: string | null;
-  gradientClasses?: string | null;
-  customGradientColors?: string | null;
   campaignTheme: string;
   reserving?: boolean;
   reservationTimeoutMinutes?: number;
@@ -44,9 +41,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   selectedQuotas,
   campaignTitle,
   primaryColor,
-  colorMode,
-  gradientClasses,
-  customGradientColors,
   campaignTheme,
   reserving = false,
   reservationTimeoutMinutes = 15
@@ -210,65 +204,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     }
   };
 
-  const getCustomGradientStyle = () => {
-    if (!customGradientColors) return {};
-
-    try {
-      const colors = JSON.parse(customGradientColors);
-      if (Array.isArray(colors) && colors.length >= 2) {
-        return {
-          backgroundImage: `linear-gradient(135deg, ${colors.join(', ')})`,
-        };
-      }
-    } catch (e) {
-      console.error('Error parsing custom gradient colors:', e);
-    }
-    return {};
-  };
-
-  const getColorStyle = () => {
-    if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom') {
-        return getCustomGradientStyle();
-      }
-      return {};
-    }
-    return primaryColor ? { backgroundColor: primaryColor } : {};
-  };
-
-  const getColorClassName = () => {
-    if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom') {
-        return 'animate-gradient-x';
-      }
-      return `${gradientClasses} animate-gradient-x`;
-    }
-    return '';
-  };
-
-  const getTextColorStyle = () => {
-    if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom') {
-        const gradientStyle = getCustomGradientStyle();
-        if (gradientStyle.backgroundImage) {
-          return {
-            backgroundImage: gradientStyle.backgroundImage,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
-          };
-        }
-      }
-      return {
-        backgroundImage: 'linear-gradient(135deg, currentColor, currentColor)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text'
-      };
-    }
-    return { color: primaryColor || '#3B82F6' };
-  };
-
   const formatCurrency = (value: number) => {
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
@@ -289,15 +224,17 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
           
           <div className={`relative flex items-center justify-between p-6 border-b ${theme.border}`}>
             <div className="flex items-center space-x-4">
-              <div
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg transform hover:scale-105 transition-transform duration-200 ${getColorClassName()}`}
-                style={getColorStyle()}
+              <div 
+                className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg transform hover:scale-105 transition-transform duration-200"
+                style={{ 
+                  background: `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}dd 100%)` 
+                }}
               >
                 <Sparkles className="h-6 w-6" />
               </div>
               <div>
                 <h2 className={`text-2xl font-bold ${theme.text}`}>
-                  Crie sua conta
+                  Reservar Cotas
                 </h2>
                 <p className={`text-sm ${theme.textSecondary} mt-0.5`}>
                   Complete seus dados para continuar
@@ -333,9 +270,12 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                       {quotaCount} {quotaCount === 1 ? 'cota' : 'cotas'}
                     </span>
                   </div>
-                  <div
+                  <div 
                     className="px-4 py-1.5 rounded-lg font-bold text-lg shadow-sm"
-                    style={getTextColorStyle()}
+                    style={{ 
+                      backgroundColor: `${primaryColor || '#3B82F6'}15`,
+                      color: primaryColor || '#3B82F6'
+                    }}
                   >
                     {formatCurrency(totalValue)}
                   </div>
@@ -411,7 +351,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
           {/* Campo Email */}
           <div>
             <label className={`block text-sm font-bold ${theme.labelText} mb-2`}>
-              E-mail (Obrigatório) <span className="text-red-500">*</span>
+              E-mail <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Mail className={`absolute left-3.5 top-1/2 transform -translate-y-1/2 h-5 w-5 ${theme.iconColor}`} />
@@ -451,7 +391,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               onPhoneChange={(phone) => setFormData({ ...formData, phoneNumber: phone })}
               placeholder="Digite seu número"
               error={errors.phoneNumber}
-              theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
             />
           </div>
 
@@ -467,7 +406,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               onPhoneChange={setConfirmPhoneNumber}
               placeholder="Digite novamente seu número"
               error={errors.confirmPhoneNumber}
-              theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
             />
           </div>
 
@@ -549,9 +487,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               <span className={`font-medium ${theme.textSecondary}`}>
                 {quotaCount} {quotaCount === 1 ? 'cota' : 'cotas'}
               </span>
-              <span
+              <span 
                 className="font-bold text-3xl"
-                style={getTextColorStyle()}
+                style={{ color: primaryColor || '#3B82F6' }}
               >
                 {formatCurrency(totalValue)}
               </span>
@@ -563,8 +501,12 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             <button
               type="submit"
               disabled={reserving}
-              className={`w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-[1.02] active:scale-[0.98] ${!reserving ? getColorClassName() : ''}`}
-              style={reserving ? { backgroundColor: '#9CA3AF' } : getColorStyle()}
+              className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-[1.02] active:scale-[0.98]"
+              style={{ 
+                background: reserving 
+                  ? '#9CA3AF' 
+                  : `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}dd 100%)` 
+              }}
             >
               {reserving ? (
                 <>
