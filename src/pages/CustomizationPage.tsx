@@ -233,15 +233,24 @@ const CustomizationPage = () => {
 
     setSaving(true);
     try {
+      let updateData: any = {
+        theme: selectedTheme,
+        color_mode: colorMode
+      };
+
+      if (colorMode === 'gradient') {
+        updateData.gradient_classes = isCustomGradient ? 'custom' : selectedGradient;
+        updateData.custom_gradient_colors = isCustomGradient ? JSON.stringify(customGradientColors) : null;
+        updateData.primary_color = null;
+      } else {
+        updateData.primary_color = selectedColor;
+        updateData.gradient_classes = null;
+        updateData.custom_gradient_colors = null;
+      }
+
       const { error } = await supabase
         .from('profiles')
-        .update({ 
-          primary_color: selectedColor,
-          theme: selectedTheme,
-          color_mode: colorMode,
-          gradient_classes: isCustomGradient ? 'custom' : selectedGradient,
-          custom_gradient_colors: isCustomGradient ? JSON.stringify(customGradientColors) : null
-        })
+        .update(updateData)
         .eq('id', user.id);
 
       if (error) {
@@ -676,36 +685,50 @@ const CustomizationPage = () => {
               </div>
 
               {/* Color Selection - Cores Sólidas */}
-              {colorMode === 'solid' && (
+              <div className={colorMode === 'gradient' ? 'opacity-40 pointer-events-none' : ''}>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    Cor principal
-                  </h2>
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                      Cor principal
+                    </h2>
+                    {colorMode === 'gradient' && (
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full">
+                        Desabilitado
+                      </span>
+                    )}
+                  </div>
                   <p className="text-gray-600 dark:text-gray-400 mb-6">
-                    A cor selecionada será aplicada aos elementos principais da sua campanha
+                    {colorMode === 'gradient'
+                      ? 'As cores sólidas estão desabilitadas porque o Gradiente Animado está ativo'
+                      : 'A cor selecionada será aplicada aos elementos principais da sua campanha'
+                    }
                   </p>
 
                   <div className="flex flex-wrap gap-3 mb-6">
                     {solidColors.map((color) => (
                       <button
                         key={color}
-                        onClick={() => setSelectedColor(color)}
+                        onClick={() => colorMode === 'solid' && setSelectedColor(color)}
+                        disabled={colorMode === 'gradient'}
                         className={`w-12 h-12 rounded-xl transition-all duration-300 shadow-md hover:shadow-xl ${
-                          selectedColor === color
+                          selectedColor === color && colorMode === 'solid'
                             ? 'ring-4 ring-purple-500 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 scale-110'
                             : 'hover:scale-105'
-                        }`}
+                        } ${colorMode === 'gradient' ? 'cursor-not-allowed' : ''}`}
                         style={{ backgroundColor: color }}
                       />
                     ))}
-                    
+
                     {/* Custom Color Picker */}
                     <div className="relative">
                       <input
                         type="color"
                         value={selectedColor}
-                        onChange={(e) => setSelectedColor(e.target.value)}
-                        className="w-12 h-12 rounded-xl border-2 border-gray-300 dark:border-gray-600 cursor-pointer opacity-0 absolute inset-0"
+                        onChange={(e) => colorMode === 'solid' && setSelectedColor(e.target.value)}
+                        disabled={colorMode === 'gradient'}
+                        className={`w-12 h-12 rounded-xl border-2 border-gray-300 dark:border-gray-600 opacity-0 absolute inset-0 ${
+                          colorMode === 'solid' ? 'cursor-pointer' : 'cursor-not-allowed'
+                        }`}
                       />
                       <div className="w-12 h-12 rounded-xl border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-300 shadow-md">
                         <div className="w-7 h-7 rounded-lg bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500"></div>
@@ -717,7 +740,7 @@ const CustomizationPage = () => {
                   <div className="mb-6 p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
                     <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Cor selecionada:</p>
                     <div className="flex items-center space-x-4">
-                      <div 
+                      <div
                         className="w-16 h-16 rounded-2xl shadow-lg border-4 border-white dark:border-gray-700"
                         style={{ backgroundColor: selectedColor }}
                       ></div>
@@ -728,55 +751,68 @@ const CustomizationPage = () => {
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* Gradient Selection - Gradientes Animados */}
-              {colorMode === 'gradient' && (
+              <div className={colorMode === 'solid' ? 'opacity-40 pointer-events-none' : ''}>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    Gradientes animados
-                  </h2>
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                      Gradientes animados
+                    </h2>
+                    {colorMode === 'solid' && (
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full">
+                        Desabilitado
+                      </span>
+                    )}
+                  </div>
                   <p className="text-gray-600 dark:text-gray-400 mb-6">
-                    Escolha um gradiente pré-definido ou crie o seu próprio com até 3 cores
+                    {colorMode === 'solid'
+                      ? 'Os gradientes estão desabilitados porque a Cor Sólida está ativa'
+                      : 'Escolha um gradiente pré-definido ou crie o seu próprio com até 3 cores'
+                    }
                   </p>
 
                   {/* Tabs: Predefinidos vs Customizado */}
                   <div className="flex gap-3 mb-6">
                     <button
-                      onClick={() => setIsCustomGradient(false)}
+                      onClick={() => colorMode === 'gradient' && setIsCustomGradient(false)}
+                      disabled={colorMode === 'solid'}
                       className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                        !isCustomGradient
+                        !isCustomGradient && colorMode === 'gradient'
                           ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
                           : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      }`}
+                      } ${colorMode === 'solid' ? 'cursor-not-allowed' : ''}`}
                     >
                       Predefinidos
                     </button>
                     <button
-                      onClick={() => setIsCustomGradient(true)}
+                      onClick={() => colorMode === 'gradient' && setIsCustomGradient(true)}
+                      disabled={colorMode === 'solid'}
                       className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                        isCustomGradient
+                        isCustomGradient && colorMode === 'gradient'
                           ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
                           : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      }`}
+                      } ${colorMode === 'solid' ? 'cursor-not-allowed' : ''}`}
                     >
                       Personalizado
                     </button>
                   </div>
 
                   {/* Gradientes Predefinidos */}
-                  {!isCustomGradient && (
+                  {!isCustomGradient && colorMode === 'gradient' && (
                     <>
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
                         {gradients.map((gradient) => (
                           <button
                             key={gradient.id}
-                            onClick={() => setSelectedGradient(gradient.classes)}
+                            onClick={() => colorMode === 'gradient' && setSelectedGradient(gradient.classes)}
+                            disabled={colorMode === 'solid'}
                             className={`group relative overflow-hidden rounded-2xl transition-all duration-300 ${
                               selectedGradient === gradient.classes && !isCustomGradient
                                 ? 'ring-4 ring-purple-500 shadow-2xl scale-105'
                                 : 'hover:scale-105 hover:shadow-xl'
-                            }`}
+                            } ${colorMode === 'solid' ? 'cursor-not-allowed' : ''}`}
                           >
                             <div className={`h-24 bg-gradient-to-r ${gradient.classes} animate-gradient-x bg-[length:200%_200%]`}></div>
                             {selectedGradient === gradient.classes && !isCustomGradient && (
@@ -794,7 +830,7 @@ const CustomizationPage = () => {
                   )}
 
                   {/* Seletor de Gradiente Customizado */}
-                  {isCustomGradient && (
+                  {isCustomGradient && colorMode === 'gradient' && (
                     <>
                       <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl p-8 border border-gray-200/50 dark:border-gray-700/50 mb-6">
                         <div className="flex items-center justify-between mb-6">
@@ -802,8 +838,11 @@ const CustomizationPage = () => {
                             Suas cores personalizadas
                           </h3>
                           <button
-                            onClick={handleRandomGradient}
-                            className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-lg text-white rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 hover:scale-105"
+                            onClick={colorMode === 'gradient' ? handleRandomGradient : undefined}
+                            disabled={colorMode === 'solid'}
+                            className={`px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-lg text-white rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 hover:scale-105 ${
+                              colorMode === 'solid' ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
                           >
                             <Sparkles className="h-4 w-4" />
                             Random
@@ -884,14 +923,14 @@ const CustomizationPage = () => {
                   )}
 
                   {/* Preview do Gradiente Predefinido */}
-                  {!isCustomGradient && (
+                  {!isCustomGradient && colorMode === 'gradient' && (
                     <div className="mb-6 p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
                       <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Gradiente selecionado:</p>
                       <div className={`w-full h-20 rounded-2xl shadow-xl bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`}></div>
                     </div>
                   )}
                 </div>
-              )}
+              </div>
 
               {/* Preview em Tempo Real */}
               <div className="mb-8">
