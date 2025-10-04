@@ -1334,7 +1334,7 @@ const CampaignPage = () => {
                   <p className={`font-medium text-sm ${themeClasses.text}`}>
                     {campaign.draw_method}
                   </p>
-                                    <p className={`text-xs ${themeClasses.textSecondary}`}>
+                  {/* REMOVIDO: <p className={`text-xs ${themeClasses.textSecondary}`}>
                     Sorteio transparente e confiável
                   </p>
                 </div>
