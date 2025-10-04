@@ -271,26 +271,18 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         </button>
         
         <div className="relative flex items-center">
-          <input
-            type="number"
-            value={quantity}
-            onChange={handleQuantityChange}
-            min={minTicketsPerPurchase}
-            max={maxTicketsPerPurchase}
+          <div
             className={`
-              w-24 h-14 text-center text-2xl font-black
+              w-24 h-14 flex items-center justify-center text-2xl font-black
               ${theme.inputBg} border-2 ${theme.border} rounded-xl
               ${theme.text}
-              focus:outline-none focus:ring-4 focus:border-transparent 
               transition-all duration-300
-              shadow-lg focus:shadow-xl
-              leading-[3.5rem]
-              [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
+              shadow-lg
+              select-none
             `}
-            style={{ 
-              '--tw-ring-color': campaignTheme === 'claro' ? '#00000040' : '#FFFFFF40'
-            } as React.CSSProperties}
-          />
+          >
+            {quantity}
+          </div>
           <div 
             className={`absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs font-semibold whitespace-nowrap px-2 py-0.5 rounded-full ${theme.textSecondary}`}
             style={{ backgroundColor: campaignTheme === 'claro' ? '#00000020' : '#FFFFFF20' }}
