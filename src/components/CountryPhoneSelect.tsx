@@ -258,7 +258,9 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
             } focus:outline-none hover:scale-[1.02] active:scale-[0.98]`}
           >
             <span className="text-2xl">{selectedCountry.flag}</span>
-            <span className={`text-sm font-bold ${themeClasses.dialCodeText}`}>
+            <span className={`text-sm font-bold ${
+              !theme || theme === 'claro' ? 'text-gray-900' : 'text-white'
+            }`}>
               {selectedCountry.dialCode}
             </span>
             <ChevronDown className={`h-4 w-4 ${themeClasses.iconColor} transition-all duration-200 ${isOpen ? 'rotate-180 text-purple-600' : 'group-hover:text-purple-500'}`} />
