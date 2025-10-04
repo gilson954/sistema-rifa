@@ -1333,8 +1333,6 @@ const CampaignPage = () => {
                     {campaign.draw_method}
                   </p>
                   <p className={`text-xs ${themeClasses.textSecondary}`}>
-                    Sorteio transparente e confiável
-                  </p>
                 </div>
               </div>
             </div>
