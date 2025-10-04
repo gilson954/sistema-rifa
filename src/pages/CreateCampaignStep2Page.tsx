@@ -233,7 +233,7 @@ const CreateCampaignStep2Page = () => {
         id: campaignId,
         description: normalizedDescription,
         prize_image_urls: imageUrls.length > 0 ? imageUrls : campaign?.prize_image_urls || [],
-        require_email: formData.requireEmail,
+        require_email: true,
         show_ranking: formData.showRanking,
         min_tickets_per_purchase: formData.minTicketsPerPurchase,
         max_tickets_per_purchase: formData.maxTicketsPerPurchase,
@@ -746,20 +746,6 @@ const CreateCampaignStep2Page = () => {
 
               {/* Checkboxes Section */}
               <div className="space-y-3 pt-4 border-t-2 border-gray-200/20 dark:border-gray-700/30">
-                <div className="flex items-center space-x-4 p-4 rounded-xl border border-purple-100/20 dark:border-purple-900/30 bg-purple-50/30 dark:bg-purple-900/10 backdrop-blur-sm hover:border-purple-300/50 dark:hover:border-purple-700/50 transition-all duration-200">
-                  <input
-                    type="checkbox"
-                    id="requireEmail"
-                    name="requireEmail"
-                    checked={formData.requireEmail}
-                    onChange={handleInputChange}
-                    className="w-5 h-5 text-purple-600 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-purple-500 focus:ring-2 cursor-pointer"
-                  />
-                  <label htmlFor="requireEmail" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1 font-medium">
-                    Exigir email dos compradores
-                  </label>
-                </div>
-
                 <div className="flex items-center space-x-4 p-4 rounded-xl border border-blue-100/20 dark:border-blue-900/30 bg-blue-50/30 dark:bg-blue-900/10 backdrop-blur-sm hover:border-blue-300/50 dark:hover:border-blue-700/50 transition-all duration-200">
                   <input
                     type="checkbox"

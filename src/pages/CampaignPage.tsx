@@ -20,6 +20,9 @@ import { useTickets } from '../hooks/useTickets';
 import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
 import ReservationModal, { CustomerData } from '../components/ReservationModal';
+import ReservationStep1Modal from '../components/ReservationStep1Modal';
+import ReservationStep2Modal from '../components/ReservationStep2Modal';
+import { CustomerData as ExistingCustomer } from '../utils/customerCheck';
 import { Promotion } from '../types/promotion';
 import { formatCurrency } from '../utils/currency';
 import { calculateTotalWithPromotions } from '../utils/currency';
@@ -142,6 +145,9 @@ const CampaignPage = () => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers'>('all');
   
   const [showReservationModal, setShowReservationModal] = useState(false);
+  const [showStep1Modal, setShowStep1Modal] = useState(false);
+  const [showStep2Modal, setShowStep2Modal] = useState(false);
+  const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomer | null>(null);
   const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
   const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
   const [reservationTotalValue, setReservationTotalValue] = useState(0);
@@ -441,8 +447,64 @@ const CampaignPage = () => {
       return;
     }
 
-    setShowReservationModal(true);
+    setShowStep1Modal(true);
   }, [user, campaign, selectedQuotas, quantity, navigate]);
+
+  const handleStep1NewCustomer = useCallback(() => {
+    setShowStep1Modal(false);
+    setShowReservationModal(true);
+  }, []);
+
+  const handleStep1ExistingCustomer = useCallback((customerData: ExistingCustomer) => {
+    setExistingCustomerData(customerData);
+    setShowStep1Modal(false);
+    setShowStep2Modal(true);
+  }, []);
+
+  const handleStep2Confirm = useCallback(async () => {
+    if (!existingCustomerData || !campaign) return;
+
+    setReserving(true);
+    try {
+      const quotasToReserve = campaign.campaign_model === 'manual' ? selectedQuotas : [];
+      const quantityToReserve = campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity;
+
+      const availableTickets = await getAvailableTickets(
+        campaign.id,
+        quotasToReserve,
+        quantityToReserve
+      );
+
+      if (availableTickets.length === 0) {
+        alert('As cotas selecionadas não estão mais disponíveis. Por favor, tente novamente.');
+        setShowStep2Modal(false);
+        setReserving(false);
+        return;
+      }
+
+      const result = await reserveTickets({
+        campaignId: campaign.id,
+        customerName: existingCustomerData.customer_name,
+        customerEmail: existingCustomerData.customer_email,
+        customerPhone: existingCustomerData.customer_phone,
+        selectedQuotas: quotasToReserve,
+        quantity: quantityToReserve,
+        userId: user?.id
+      });
+
+      if (result.success) {
+        navigate(`/payment-confirmation/${result.reservationId}`);
+      } else {
+        alert(result.error || 'Erro ao reservar cotas. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('Error during reservation:', error);
+      alert('Erro ao reservar cotas. Tente novamente.');
+    } finally {
+      setShowStep2Modal(false);
+      setReserving(false);
+    }
+  }, [existingCustomerData, campaign, user, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate]);
 
   const handlePreviousImage = () => {
     if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
@@ -742,7 +804,8 @@ const CampaignPage = () => {
             {/* "Ver Minhas Cotas" Button - Right aligned and highlighted */}
             <button
               onClick={() => navigate('/my-tickets')}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 shadow-md"
+              className={`text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105 ${getColorClassName('')}`}
+              style={getColorStyle(true, false)}
             >
               <Eye className="h-4 w-4" />
               <span className="hidden sm:inline">Ver Minhas Cotas</span>
@@ -819,7 +882,10 @@ const CampaignPage = () => {
                 <Gift className="h-4 w-4 text-purple-400" />
                 <div className="flex flex-col">
                   <span className="text-xs text-gray-300 font-medium">Participe por apenas</span>
-                  <span className="font-bold text-lg text-cyan-400">
+                  <span
+                    className="font-bold text-lg"
+                    style={getColorStyle(false, true)}
+                  >
                     {formatCurrency(campaign.ticket_price)}
                   </span>
                 </div>
@@ -1372,7 +1438,44 @@ const CampaignPage = () => {
         </div>
       )}
 
-      {/* Reservation Modal */}
+      {/* Step 1 Modal - Phone Input */}
+      <ReservationStep1Modal
+        isOpen={showStep1Modal}
+        onClose={() => setShowStep1Modal(false)}
+        onNewCustomer={handleStep1NewCustomer}
+        onExistingCustomer={handleStep1ExistingCustomer}
+        quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
+        totalValue={getCurrentTotalValue()}
+        selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
+        campaignTitle={campaign.title}
+        primaryColor={primaryColor}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
+        campaignTheme={campaignTheme}
+      />
+
+      {/* Step 2 Modal - Existing Customer Confirmation */}
+      {existingCustomerData && (
+        <ReservationStep2Modal
+          isOpen={showStep2Modal}
+          onClose={() => setShowStep2Modal(false)}
+          onConfirm={handleStep2Confirm}
+          customerData={existingCustomerData}
+          quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
+          totalValue={getCurrentTotalValue()}
+          selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
+          campaignTitle={campaign.title}
+          primaryColor={primaryColor}
+          colorMode={organizerProfile?.color_mode}
+          gradientClasses={organizerProfile?.gradient_classes}
+          customGradientColors={organizerProfile?.custom_gradient_colors}
+          campaignTheme={campaignTheme}
+          confirming={reserving}
+        />
+      )}
+
+      {/* Reservation Modal - New Customer Registration */}
       <ReservationModal
         isOpen={showReservationModal}
         onClose={() => setShowReservationModal(false)}
@@ -1382,6 +1485,9 @@ const CampaignPage = () => {
         selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
         campaignTitle={campaign.title}
         primaryColor={primaryColor}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
         campaignTheme={campaignTheme}
         reserving={reserving}
         reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
