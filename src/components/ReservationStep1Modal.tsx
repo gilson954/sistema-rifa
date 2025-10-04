@@ -266,7 +266,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
           <div className={`p-5 ${theme.cardBg} border ${theme.border} rounded-2xl shadow-sm`}>
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <CheckCircle className={`h-5 w-5 ${theme.text}`} />
+                <CheckCircle className="h-5 w-5 text-green-500" />
                 <span className={`text-sm font-semibold ${theme.text}`}>
                   Quantidade de títulos
                 </span>
