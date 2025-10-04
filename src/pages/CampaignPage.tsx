@@ -1316,7 +1316,7 @@ const CampaignPage = () => {
                 ))}
               </div>
             </div>
-            
+              
               {/* 2. PIX Centralizado (Estilo semelhante ao Método de Sorteio) */}
               <div className="flex items-center justify-center space-x-2 mt-4 pt-4 border-t border-dashed" style={{borderColor: themeClasses.border}}>
                 <div
