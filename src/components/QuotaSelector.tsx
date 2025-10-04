@@ -217,7 +217,15 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   return (
     <div className={`quota-selector rounded-xl shadow-md p-4 sm:p-5 border transition-all duration-300 ${theme.cardBg} ${theme.border}`}>
       
-
+      {/* Header com ícone */}
+      <div className="flex items-center justify-center gap-2 mb-4">
+        <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20">
+          <TrendingUp className={`w-4 h-4 ${theme.text}`} />
+        </div>
+        <h2 className={`text-lg font-bold ${theme.text} tracking-tight`}>
+          Escolha suas Cotas
+        </h2>
+      </div>
 
       {/* Increment Buttons - MANTÉM primaryColor */}
       <div className="grid grid-cols-4 gap-2 sm:gap-2.5 mb-4">
