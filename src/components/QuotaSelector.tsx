@@ -250,7 +250,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         ))}
       </div>
 
-      {/* Quantity Input - SEM primaryColor, cor fixa azul */}
+      {/* Quantity Input - Cores branco/preto conforme tema */}
       <div className="flex items-center justify-center gap-3 mb-4">
         <button
           onClick={() => handleIncrement(-1)}
@@ -259,14 +259,14 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             group relative w-12 h-12 rounded-xl
             flex items-center justify-center 
             transition-all duration-300
-            ${theme.inputBg} border-2 border-blue-500
+            ${theme.inputBg} border-2 ${theme.border}
             hover:scale-110 active:scale-95
             disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
             shadow-lg hover:shadow-xl
           `}
         >
           <Minus 
-            className="h-5 w-5 transition-all duration-300 text-blue-500"
+            className={`h-5 w-5 transition-all duration-300 ${theme.text}`}
           />
         </button>
         
@@ -279,17 +279,19 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             max={maxTicketsPerPurchase}
             className={`
               w-24 h-14 text-center text-2xl font-black
-              ${theme.inputBg} border-2 border-blue-500 rounded-xl
-              focus:outline-none focus:ring-4 focus:ring-blue-500/40 focus:border-transparent 
+              ${theme.inputBg} border-2 ${theme.border} rounded-xl
+              ${theme.text}
+              focus:outline-none focus:ring-4 focus:border-transparent 
               transition-all duration-300
               shadow-lg focus:shadow-xl
             `}
             style={{ 
-              color: campaignTheme === 'claro' ? '#000000' : '#FFFFFF'
+              '--tw-ring-color': campaignTheme === 'claro' ? '#00000040' : '#FFFFFF40'
             } as React.CSSProperties}
           />
           <div 
-            className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs font-semibold whitespace-nowrap px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-500"
+            className={`absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs font-semibold whitespace-nowrap px-2 py-0.5 rounded-full ${theme.textSecondary}`}
+            style={{ backgroundColor: campaignTheme === 'claro' ? '#00000020' : '#FFFFFF20' }}
           >
             {quantity === 1 ? 'cota' : 'cotas'}
           </div>
@@ -302,14 +304,14 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             group relative w-12 h-12 rounded-xl
             flex items-center justify-center 
             transition-all duration-300
-            ${theme.inputBg} border-2 border-blue-500
+            ${theme.inputBg} border-2 ${theme.border}
             hover:scale-110 active:scale-95
             disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
             shadow-lg hover:shadow-xl
           `}
         >
           <Plus 
-            className="h-5 w-5 transition-all duration-300 text-blue-500"
+            className={`h-5 w-5 transition-all duration-300 ${theme.text}`}
           />
         </button>
       </div>
@@ -325,7 +327,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         </div>
       )}
 
-      {/* Total Value - SEM primaryColor, cor fixa azul */}
+      {/* Total Value - Cores branco/preto conforme tema */}
       <div className={`text-center mb-4 mt-8 p-4 rounded-xl ${theme.inputBg} border ${theme.border}`}>
         {promotionInfo && (
           <div className="mb-1.5">
@@ -341,8 +343,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           Valor Total
         </div>
         <div 
-          className="text-3xl font-black tracking-tight"
-          style={{ color: promotionInfo ? "#10B981" : "#3B82F6" }}
+          className={`text-3xl font-black tracking-tight ${theme.text}`}
         >
           R$ {calculateTotal()}
         </div>
