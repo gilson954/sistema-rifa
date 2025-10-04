@@ -1087,8 +1087,6 @@ const CampaignPage = () => {
         {/* 5. Seção de compra/seleção de cota - card com largura limitada */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           <h2 className={`text-xl font-bold ${themeClasses.text} mb-4 text-center`}>
-            {campaign.campaign_model === 'manual' ? 'Selecione suas Cotas' : 'Escolha a Quantidade'}
-          </h2>
 
           {campaign.campaign_model === 'manual' ? (
             <div className="space-y-4">
