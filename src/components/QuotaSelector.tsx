@@ -233,20 +233,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         </h2>
       </div>
 
-      {/* Indicador de Promoção - SEM ÍCONE SPARKLES, cores ajustadas */}
-      {promotionInfo && (
-        <div className={`mb-4 ${theme.promotionBg} ${theme.promotionBorder} border-2 rounded-xl p-3 backdrop-blur-sm relative overflow-hidden`}>
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-yellow-400/10 to-orange-400/10 rounded-full blur-2xl" />
-          <div className="relative text-center">
-            <div className={`text-sm font-bold ${theme.promotionText}`}>
-              Promoção Ativa
-            </div>
-            <div className={`text-xs ${theme.promotionTextSecondary} mt-1`}>
-              Economize {promotionInfo.discountPercentage}% nesta compra
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Increment Buttons - Design Moderno MANTIDO */}
       <div className="grid grid-cols-4 gap-2 sm:gap-2.5 mb-4">
