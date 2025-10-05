@@ -855,71 +855,7 @@ const CampaignPage = () => {
           </div>
         </section>
 
-        {/* 2. Prêmios - Logo abaixo da galeria */}
-        {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
-          <section 
-            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer hover:shadow-lg transition-all duration-200`}
-            onClick={() => setShowPrizesModal(true)}
-          >
-            <div 
-              className="p-4 flex items-center justify-between"
-              style={{
-                background: organizerProfile?.color_mode === 'gradient' 
-                  ? getCustomGradientStyle(organizerProfile?.custom_gradient_colors || '') || 
-                    `linear-gradient(135deg, ${primaryColor}15 0%, ${primaryColor}05 100%)`
-                  : `${primaryColor}10`
-              }}
-            >
-              <div className="flex items-center space-x-3">
-                <div
-                  className={getColorClassName("w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md")}
-                  style={getColorStyle(true)}
-                >
-                  <Trophy className="h-5 w-5" />
-                </div>
-                <h3 className={`text-lg font-bold ${themeClasses.text}`}>
-                  Prêmios
-                </h3>
-              </div>
-              <ExternalLink className={`h-5 w-5 ${themeClasses.textSecondary}`} />
-            </div>
-            
-            <div className="p-4 space-y-2">
-              {campaign.prizes.slice(0, 3).map((prize: any, index: number) => (
-                <div 
-                  key={prize.id} 
-                  className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
-                    campaignTheme === 'claro' 
-                      ? 'bg-gray-50 hover:bg-gray-100' 
-                      : 'bg-gray-800 hover:bg-gray-750'
-                  }`}
-                >
-                  <div
-                    className={getColorClassName("w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm")}
-                    style={getColorStyle(true)}
-                  >
-                    {index + 1}º
-                  </div>
-                  <span className={`${themeClasses.text} font-medium flex-1`}>
-                    {prize.name}
-                  </span>
-                </div>
-              ))}
-              
-              {campaign.prizes.length > 3 && (
-                <div className={`text-center py-2 rounded-lg mt-3 ${
-                  campaignTheme === 'claro' ? 'bg-gray-50' : 'bg-gray-800'
-                }`}>
-                  <span className={`text-sm font-medium ${themeClasses.textSecondary}`}>
-                    + {campaign.prizes.length - 3} {campaign.prizes.length - 3 === 1 ? 'prêmio' : 'prêmios'}
-                  </span>
-                </div>
-              )}
-            </div>
-          </section>
-        )}
-
-        {/* 3. Organizador */}
+        {/* 2. Organizador */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           {loadingOrganizer ? (
             <div className="flex items-center justify-center py-8">
