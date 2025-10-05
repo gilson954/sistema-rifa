@@ -23,6 +23,7 @@ import QuotaSelector from '../components/QuotaSelector';
 import ReservationModal, { CustomerData } from '../components/ReservationModal';
 import ReservationStep1Modal from '../components/ReservationStep1Modal';
 import ReservationStep2Modal from '../components/ReservationStep2Modal';
+import PrizesDisplayModal from '../components/PrizesDisplayModal';
 import { CustomerData as ExistingCustomer } from '../utils/customerCheck';
 import { Promotion } from '../types/promotion';
 import { formatCurrency } from '../utils/currency';
@@ -79,7 +80,6 @@ const slideVariants = {
     }
   })
 };
-
 
 const CampaignPage = () => {
   const { publicId } = useParams<{ publicId: string }>();
@@ -144,6 +144,7 @@ const CampaignPage = () => {
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [showStep1Modal, setShowStep1Modal] = useState(false);
   const [showStep2Modal, setShowStep2Modal] = useState(false);
+  const [showPrizesModal, setShowPrizesModal] = useState(false);
   const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomer | null>(null);
   const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
   const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
@@ -844,27 +845,81 @@ const CampaignPage = () => {
             )}
 
             {campaign.show_draw_date && campaign.draw_date && (
-              <div className={`flex items-center justify-center p-3 rounded-lg ${
-                campaignTheme === 'claro' 
-                  ? 'bg-blue-50 border border-blue-200' 
-                  : 'bg-blue-950 border border-blue-800'
-              }`}>
-                <Calendar className={`h-5 w-5 mr-2 ${
-                  campaignTheme === 'claro' ? 'text-blue-600' : 'text-blue-400'
-                }`} />
-                <span className={`text-sm font-semibold ${
-                  campaignTheme === 'claro' ? 'text-gray-900' : 'text-white'
-                }`}>
-                  Sorteio: <strong className={
-                    campaignTheme === 'claro' ? 'text-blue-700' : 'text-cyan-400'
-                  }>{formatDate(campaign.draw_date)}</strong>
+              <div className={`flex items-center justify-center p-3 rounded-lg ${themeClasses.cardBg} border ${themeClasses.border}`}>
+                <Calendar className={`h-4 w-4 mr-2 ${themeClasses.text}`} />
+                <span className={`text-sm font-medium ${themeClasses.text}`}>
+                  Sorteio: <span className={`font-bold ${themeClasses.text}`}>{formatDate(campaign.draw_date)}</span>
                 </span>
               </div>
             )}
           </div>
         </section>
 
-        {/* 2. Organizador */}
+        {/* 2. Prêmios - Logo abaixo da galeria */}
+        {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
+          <section 
+            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer hover:shadow-lg transition-all duration-200`}
+            onClick={() => setShowPrizesModal(true)}
+          >
+            <div 
+              className="p-4 flex items-center justify-between"
+              style={{
+                background: organizerProfile?.color_mode === 'gradient' 
+                  ? getCustomGradientStyle(organizerProfile?.custom_gradient_colors || '') || 
+                    `linear-gradient(135deg, ${primaryColor}15 0%, ${primaryColor}05 100%)`
+                  : `${primaryColor}10`
+              }}
+            >
+              <div className="flex items-center space-x-3">
+                <div
+                  className={getColorClassName("w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md")}
+                  style={getColorStyle(true)}
+                >
+                  <Trophy className="h-5 w-5" />
+                </div>
+                <h3 className={`text-lg font-bold ${themeClasses.text}`}>
+                  Prêmios
+                </h3>
+              </div>
+              <ExternalLink className={`h-5 w-5 ${themeClasses.textSecondary}`} />
+            </div>
+            
+            <div className="p-4 space-y-2">
+              {campaign.prizes.slice(0, 3).map((prize: any, index: number) => (
+                <div 
+                  key={prize.id} 
+                  className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
+                    campaignTheme === 'claro' 
+                      ? 'bg-gray-50 hover:bg-gray-100' 
+                      : 'bg-gray-800 hover:bg-gray-750'
+                  }`}
+                >
+                  <div
+                    className={getColorClassName("w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm")}
+                    style={getColorStyle(true)}
+                  >
+                    {index + 1}º
+                  </div>
+                  <span className={`${themeClasses.text} font-medium flex-1`}>
+                    {prize.name}
+                  </span>
+                </div>
+              ))}
+              
+              {campaign.prizes.length > 3 && (
+                <div className={`text-center py-2 rounded-lg mt-3 ${
+                  campaignTheme === 'claro' ? 'bg-gray-50' : 'bg-gray-800'
+                }`}>
+                  <span className={`text-sm font-medium ${themeClasses.textSecondary}`}>
+                    + {campaign.prizes.length - 3} {campaign.prizes.length - 3 === 1 ? 'prêmio' : 'prêmios'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* 3. Organizador */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           {loadingOrganizer ? (
             <div className="flex items-center justify-center py-8">
@@ -1024,15 +1079,21 @@ const CampaignPage = () => {
           </section>
         )}
 
-        {/* 4. Prêmios */}
+        {/* 4. Prêmios - MODIFICADO para ser clicável */}
         {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
-          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
-            <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
-              🏆 Prêmios
-            </h3>
+          <section 
+            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto cursor-pointer hover:shadow-lg transition-all duration-200`}
+            onClick={() => setShowPrizesModal(true)}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <h3 className={`text-base font-bold ${themeClasses.text} text-center flex-1`}>
+                🏆 Prêmios
+              </h3>
+              <ExternalLink className={`h-4 w-4 ${themeClasses.textSecondary}`} />
+            </div>
             
             <div className="w-full space-y-1">
-              {campaign.prizes.map((prize: any, index: number) => (
+              {campaign.prizes.slice(0, 3).map((prize: any, index: number) => (
                 <div key={prize.id} className="flex items-center justify-center space-x-1.5">
                   <div
                     className={getColorClassName("w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs")}
@@ -1040,9 +1101,21 @@ const CampaignPage = () => {
                   >
                     {index + 1}
                   </div>
-                  <span className={`${themeClasses.text} font-medium text-sm`}>{prize.name}</span>
+                  <span className={`${themeClasses.text} font-medium text-sm truncate`}>
+                    {prize.name}
+                  </span>
                 </div>
               ))}
+              
+              {campaign.prizes.length > 3 && (
+                <div className={`text-center text-xs ${themeClasses.textSecondary} mt-2`}>
+                  + {campaign.prizes.length - 3} prêmio(s) a mais
+                </div>
+              )}
+            </div>
+            
+            <div className={`text-center text-xs ${themeClasses.textSecondary} mt-2 font-medium`}>
+              Clique para ver todos os prêmios
             </div>
           </section>
         )}
@@ -1217,20 +1290,21 @@ const CampaignPage = () => {
 
         {/* 7. Método de Sorteio */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-4`}>
-          <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
-            Método de Sorteio
-          </h3>
-          
-          <div className="flex items-center justify-center space-x-3">
-            <div
-              className={getColorClassName("w-10 h-10 rounded-lg flex items-center justify-center text-white")}
-              style={getColorStyle(true)}
-            >
-              <Trophy className="h-5 w-5" />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+            <div className="flex items-center gap-2">
+              <div
+                className={getColorClassName("w-8 h-8 rounded-lg flex items-center justify-center text-white")}
+                style={getColorStyle(true)}
+              >
+                <Trophy className="h-4 w-4" />
+              </div>
+              <span className={`font-semibold text-sm ${themeClasses.text}`}>
+                Método de sorteio:
+              </span>
             </div>
-            <p className={`font-medium text-base ${themeClasses.text}`}>
+            <span className={`font-medium text-sm ${themeClasses.text}`}>
               {campaign.draw_method}
-            </p>
+            </span>
           </div>
         </section>
       </main>
@@ -1353,6 +1427,17 @@ const CampaignPage = () => {
         reserving={reserving}
         reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
       />
+
+      {/* Prizes Display Modal */}
+      {campaign && (
+        <PrizesDisplayModal
+          isOpen={showPrizesModal}
+          onClose={() => setShowPrizesModal(false)}
+          prizes={campaign.prizes || []}
+          campaignTitle={campaign.title}
+          campaignTheme={campaignTheme}
+        />
+      )}
     </div>
   );
 };
