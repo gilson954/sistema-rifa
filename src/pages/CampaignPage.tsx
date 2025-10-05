@@ -826,35 +826,28 @@ const CampaignPage = () => {
                   campaignTheme === 'claro' ? 'bg-gray-200' : 'bg-gray-700'
                 }`}>
                   <div
-                    className={getColorClassName("h-8 rounded-full transition-all duration-300 flex items-center justify-center")}
+                    className={getColorClassName("h-8 rounded-full transition-all duration-300")}
                     style={{
                       width: `${getProgressPercentage()}%`,
                       ...getColorStyle(true)
                     }}
-                  >
-                    <span className="text-white font-bold text-sm">
-                      {getProgressPercentage()}%
-                    </span>
-                  </div>
+                  />
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className={`font-bold text-sm ${
+                    campaignTheme === 'claro' ? 'text-gray-900' : 'text-white'
+                  }`}>
+                    {getProgressPercentage()}%
+                  </span>
                 </div>
               </div>
             )}
 
             {campaign.show_draw_date && campaign.draw_date && (
-              <div className={`flex items-center justify-center p-3 rounded-lg ${
-                campaignTheme === 'claro' 
-                  ? 'bg-blue-50 border border-blue-200' 
-                  : 'bg-blue-950 border border-blue-800'
-              }`}>
-                <Calendar className={`h-5 w-5 mr-2 ${
-                  campaignTheme === 'claro' ? 'text-blue-600' : 'text-blue-400'
-                }`} />
-                <span className={`text-sm font-semibold ${
-                  campaignTheme === 'claro' ? 'text-gray-900' : 'text-white'
-                }`}>
-                  Sorteio: <strong className={
-                    campaignTheme === 'claro' ? 'text-blue-700' : 'text-cyan-400'
-                  }>{formatDate(campaign.draw_date)}</strong>
+              <div className={`flex items-center justify-center p-3 rounded-lg ${themeClasses.cardBg} border ${themeClasses.border}`}>
+                <Calendar className={`h-4 w-4 mr-2 ${themeClasses.text}`} />
+                <span className={`text-sm font-medium ${themeClasses.text}`}>
+                  Sorteio: <span className={`font-bold ${themeClasses.text}`}>{formatDate(campaign.draw_date)}</span>
                 </span>
               </div>
             )}
@@ -1214,20 +1207,21 @@ const CampaignPage = () => {
 
         {/* 7. Método de Sorteio */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-4`}>
-          <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
-            Método de Sorteio
-          </h3>
-          
-          <div className="flex items-center justify-center space-x-3">
-            <div
-              className={getColorClassName("w-10 h-10 rounded-lg flex items-center justify-center text-white")}
-              style={getColorStyle(true)}
-            >
-              <Trophy className="h-5 w-5" />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+            <div className="flex items-center gap-2">
+              <div
+                className={getColorClassName("w-8 h-8 rounded-lg flex items-center justify-center text-white")}
+                style={getColorStyle(true)}
+              >
+                <Trophy className="h-4 w-4" />
+              </div>
+              <span className={`font-semibold text-sm ${themeClasses.text}`}>
+                Método de sorteio:
+              </span>
             </div>
-            <p className={`font-medium text-base ${themeClasses.text}`}>
+            <span className={`font-medium text-sm ${themeClasses.text}`}>
               {campaign.draw_method}
-            </p>
+            </span>
           </div>
         </section>
       </main>
