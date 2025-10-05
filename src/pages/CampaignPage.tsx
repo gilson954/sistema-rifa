@@ -166,7 +166,6 @@ const CampaignPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-
   useEffect(() => {
     if (!campaign?.prize_image_urls || campaign.prize_image_urls.length <= 1 || isAutoPlayPaused) {
       return;
@@ -526,7 +525,6 @@ const CampaignPage = () => {
     setIsAutoPlayPaused(false);
   };
 
-
   const handleImageClick = (imageIndex: number) => {
     setFullscreenImageIndex(imageIndex);
   };
@@ -674,37 +672,6 @@ const CampaignPage = () => {
     return total;
   };
 
-  const generateShareUrl = () => {
-    const baseUrl = window.location.origin;
-    return `${baseUrl}/c/${campaign?.public_id}`;
-  };
-
-  const handleShare = (platform: string) => {
-    const shareUrl = generateShareUrl();
-    const shareText = `Participe da ${campaign?.title}! Cotas por apenas ${formatCurrency(campaign?.ticket_price || 0)}`;
-    
-    let url = '';
-    
-    switch (platform) {
-      case 'whatsapp':
-        url = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`;
-        break;
-      case 'facebook':
-        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-        break;
-      case 'telegram':
-        url = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
-        break;
-      case 'x':
-        url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
-        break;
-      default:
-        return;
-    }
-    
-    window.open(url, '_blank', 'width=600,height=400');
-  };
-
   const handleOrganizerSocialClick = (platform: string, url: string) => {
     window.open(url, '_blank');
   };
@@ -780,12 +747,11 @@ const CampaignPage = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-        {/* Campaign Title */}
         <h1 className={`text-2xl md:text-3xl font-bold ${themeClasses.text} mb-4 text-center`}>
           {campaign.title}
         </h1>
 
-        {/* 1. Galeria de imagens */}
+        {/* 1. Galeria de imagens com barra de progresso e data */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}>
           <div 
             className="relative group w-full h-[300px] sm:h-[500px] overflow-hidden"
@@ -852,9 +818,8 @@ const CampaignPage = () => {
             </div>
           </div>
 
-          {/* NOVO: Barra de progresso e Data/Hora abaixo da galeria */}
+          {/* Barra de progresso e Data/Hora abaixo da galeria */}
           <div className="p-4 space-y-3">
-            {/* Barra de Progresso */}
             {campaign.show_percentage && (
               <div className="relative">
                 <div className={`w-full rounded-full h-8 overflow-hidden ${
@@ -875,7 +840,6 @@ const CampaignPage = () => {
               </div>
             )}
 
-            {/* Data de Sorteio */}
             {campaign.show_draw_date && campaign.draw_date && (
               <div className={`flex items-center justify-center p-3 rounded-lg ${
                 campaignTheme === 'claro' 
@@ -896,3 +860,498 @@ const CampaignPage = () => {
             )}
           </div>
         </section>
+
+        {/* 2. Organizador */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+          {loadingOrganizer ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: primaryColor || '#3B82F6' }}></div>
+            </div>
+          ) : organizerProfile ? (
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                {organizerProfile.logo_url ? (
+                  organizerProfile.color_mode === 'gradient' ? (
+                    <div
+                      className={getColorClassName("p-1 rounded-lg shadow-md")}
+                      style={getColorStyle(true)}
+                    >
+                      <img
+                        src={organizerProfile.logo_url}
+                        alt={organizerProfile.name}
+                        className="w-[88px] h-[88px] rounded-md object-contain bg-white dark:bg-gray-800"
+                      />
+                    </div>
+                  ) : (
+                    <img
+                      src={organizerProfile.logo_url}
+                      alt={organizerProfile.name}
+                      className="w-24 h-24 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
+                      style={{ borderColor: organizerProfile.primary_color || '#3B82F6' }}
+                    />
+                  )
+                ) : organizerProfile.avatar_url ? (
+                  organizerProfile.color_mode === 'gradient' ? (
+                    <div
+                      className={getColorClassName("p-1 rounded-full shadow-md")}
+                      style={getColorStyle(true)}
+                    >
+                      <img
+                        src={organizerProfile.avatar_url}
+                        alt={organizerProfile.name}
+                        className="w-14 h-14 rounded-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <img
+                      src={organizerProfile.avatar_url}
+                      alt={organizerProfile.name}
+                      className="w-16 h-16 rounded-full object-cover border-4 shadow-md"
+                      style={{ borderColor: organizerProfile.primary_color || '#3B82F6' }}
+                    />
+                  )
+                ) : (
+                  <div
+                    className={getColorClassName("w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md")}
+                    style={getColorStyle(true)}
+                  >
+                    {organizerProfile.name ? organizerProfile.name.charAt(0).toUpperCase() : 'O'}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm ${themeClasses.textSecondary} leading-tight`}>
+                  Organizador:
+                </p>
+                <h4 className={`text-base font-semibold ${themeClasses.text} truncate`}>
+                  {organizerProfile.name}
+                </h4>
+
+                {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
+                  <div className="mt-2 flex items-center gap-2">
+                    {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
+                      if (!url || typeof url !== 'string') return null;
+                      const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
+                      if (!config) return null;
+                      const IconComponent = config.icon;
+                      return (
+                        <button
+                          key={platform}
+                          onClick={() => handleOrganizerSocialClick(platform, url)}
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform duration-150"
+                          style={{ backgroundColor: config.color }}
+                          title={`${config.name} do organizador`}
+                        >
+                          <IconComponent size={12} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <Users className={`h-8 w-8 ${themeClasses.textSecondary} mx-auto mb-2`} />
+              <p className={`text-sm ${themeClasses.textSecondary}`}>
+                Informações do organizador não disponíveis
+              </p>
+            </div>
+          )}
+        </section>
+
+        {/* 3. Promoções Disponíveis */}
+        {campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
+              🎁 Promoções Disponíveis
+            </h3>
+
+            <div className="flex flex-wrap gap-3 justify-center">
+              {campaign.promotions.map((promo: Promotion) => {
+                const originalValue = promo.ticketQuantity * campaign.ticket_price;
+                const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0;
+                const colorMode = organizerProfile?.color_mode || 'solid';
+
+                return (
+                  <div key={promo.id}>
+                    {colorMode === 'gradient' ? (
+                      <div
+                        className={getColorClassName("p-0.5 rounded-lg shadow-sm")}
+                        style={getColorStyle(true)}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {}}
+                          className={`flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 ${
+                            themeClasses.cardBg
+                          }`}
+                        >
+                          <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
+                            {promo.ticketQuantity} cotas por {formatCurrency(originalValue - promo.fixedDiscountAmount)}
+                          </span>
+                          <span className="ml-3 text-sm font-extrabold text-green-500 dark:text-green-300">
+                            {discountPercentage}%
+                          </span>
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {}}
+                        className={`flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 shadow-sm border-2`}
+                        style={{
+                          background: 'transparent',
+                          borderColor: organizerProfile?.primary_color || (campaignTheme === 'claro' ? '#d1d5db' : '#4b5563')
+                        }}
+                      >
+                        <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
+                          {promo.ticketQuantity} cotas por {formatCurrency(originalValue - promo.fixedDiscountAmount)}
+                        </span>
+                        <span className="ml-3 text-sm font-extrabold text-green-500 dark:text-green-300">
+                          {discountPercentage}%
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* 4. Prêmios */}
+        {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
+              🏆 Prêmios
+            </h3>
+            
+            <div className="w-full space-y-1">
+              {campaign.prizes.map((prize: any, index: number) => (
+                <div key={prize.id} className="flex items-center justify-center space-x-1.5">
+                  <div
+                    className={getColorClassName("w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs")}
+                    style={getColorStyle(true)}
+                  >
+                    {index + 1}
+                  </div>
+                  <span className={`${themeClasses.text} font-medium text-sm`}>{prize.name}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 5. Compra/seleção de cota */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+          {campaign.campaign_model === 'manual' ? (
+            <div className="space-y-4">
+              {!isCampaignAvailable && (
+                <div className="bg-gray-900 border border-orange-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-center space-x-3">
+                    <AlertTriangle className="h-6 w-6 text-orange-400 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-orange-300 mb-1">
+                        Campanha Indisponível
+                      </h4>
+                      <p className="text-sm text-orange-400">
+                        Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <QuotaGrid
+                totalQuotas={campaign.total_tickets}
+                selectedQuotas={selectedQuotas}
+                onQuotaSelect={isCampaignAvailable ? handleQuotaSelect : undefined}
+                activeFilter={activeFilter}
+                onFilterChange={setActiveFilter}
+                mode="manual"
+                tickets={tickets}
+                currentUserId={user?.id}
+                campaignTheme={campaignTheme}
+                primaryColor={primaryColor}
+                colorMode={organizerProfile?.color_mode}
+                gradientClasses={organizerProfile?.gradient_classes}
+                customGradientColors={organizerProfile?.custom_gradient_colors}
+              />
+
+              {selectedQuotas.length > 0 && (
+                <div className={`${themeClasses.background} rounded-xl p-4 border ${themeClasses.border}`}>
+                  <h3 className={`text-base font-bold ${themeClasses.text} mb-3`}>
+                    Cotas Selecionadas
+                  </h3>
+                  
+                  <div className="mb-3">
+                    <div className={`text-sm ${themeClasses.textSecondary} mb-2`}>
+                      Números selecionados:
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedQuotas.sort((a, b) => a - b).map(quota => (
+                        <span
+                          key={quota}
+                          className={getColorClassName("px-2 py-1 text-white rounded text-xs font-medium")}
+                          style={getColorStyle(true)}
+                        >
+                          {quota.toString().padStart(3, '0')}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {currentPromotionInfo && (
+                    <div className="mb-3 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="text-center">
+                        <div className="text-xs font-medium text-green-800 dark:text-green-200 mb-1">
+                          🎉 Promoção Aplicada: {currentPromotionInfo.discountPercentage}% OFF
+                        </div>
+                        <div className="text-xs text-green-700 dark:text-green-300">
+                          Economia de {formatCurrency(currentPromotionInfo.savings)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center mb-6">
+                    <span className={`font-medium ${themeClasses.text}`}>
+                      {selectedQuotas.length} {selectedQuotas.length === 1 ? 'cota' : 'cotas'}
+                    </span>
+                    <div className="text-right">
+                      {currentPromotionInfo && (
+                        <div className={`text-xs ${themeClasses.textSecondary} line-through`}>
+                          {formatCurrency(currentPromotionInfo.originalTotal)}
+                        </div>
+                      )}
+                      <div
+                        className={currentPromotionInfo ? 'text-xl font-bold text-green-600' : getColorClassName('text-xl font-bold')}
+                        style={!currentPromotionInfo ? getColorStyle(true, true) : {}}
+                      >
+                        {formatCurrency(getCurrentTotalValue())}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleOpenReservationModal}
+                    disabled={selectedQuotas.length === 0}
+                    className={getColorClassName("w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed")}
+                    style={getColorStyle(true)}
+                  >
+                    {isCampaignAvailable ? 'Reservar Cotas Selecionadas' : 'Campanha Indisponível'}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {!isCampaignAvailable && (
+                <div className="bg-gray-900 border border-orange-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-center space-x-3">
+                    <AlertTriangle className="h-6 w-6 text-orange-400 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-orange-300 mb-1">
+                        Campanha Indisponível
+                      </h4>
+                      <p className="text-sm text-orange-400">
+                        Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            <QuotaSelector
+              ticketPrice={campaign.ticket_price}
+              minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
+              maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 1000}
+              onQuantityChange={handleQuantityChange}
+              initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
+              mode="automatic"
+              promotionInfo={currentPromotionInfo}
+              promotions={campaign.promotions || []}
+              primaryColor={primaryColor}
+              campaignTheme={campaignTheme}
+              onReserve={isCampaignAvailable ? handleOpenReservationModal : undefined}
+              reserving={reserving}
+              disabled={!isCampaignAvailable}
+              colorMode={organizerProfile?.color_mode}
+              gradientClasses={organizerProfile?.gradient_classes}
+              customGradientColors={organizerProfile?.custom_gradient_colors}
+            />
+            </>
+          )}
+        </section>
+
+        {/* 6. Descrição com Scroll */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <FileText className={`h-5 w-5 ${themeClasses.text}`} />
+            <h3 className={`text-lg font-bold ${themeClasses.text}`}>
+              Descrição
+            </h3>
+          </div>
+          
+          {campaign.description && isValidDescription(campaign.description) ? (
+            <div 
+              className={`${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2`}
+              style={{ 
+                maxHeight: '400px',
+                scrollbarWidth: 'thin',
+                scrollbarColor: `${primaryColor} ${campaignTheme === 'claro' ? '#e5e7eb' : '#374151'}`
+              }}
+              dangerouslySetInnerHTML={{ __html: campaign.description }}
+            />
+          ) : (
+            <div className={`${themeClasses.textSecondary} text-center italic`}>
+              <p>Nenhuma descrição fornecida para esta campanha.</p>
+            </div>
+          )}
+        </section>
+
+        {/* 7. Método de Sorteio */}
+        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-4`}>
+          <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
+            Método de Sorteio
+          </h3>
+          
+          <div className="flex items-center justify-center space-x-3">
+            <div
+              className={getColorClassName("w-10 h-10 rounded-lg flex items-center justify-center text-white")}
+              style={getColorStyle(true)}
+            >
+              <Trophy className="h-5 w-5" />
+            </div>
+            <p className={`font-medium text-base ${themeClasses.text}`}>
+              {campaign.draw_method}
+            </p>
+          </div>
+        </section>
+      </main>
+
+      {/* Fullscreen Image Modal */}
+      {fullscreenImageIndex !== null && campaign?.prize_image_urls && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
+          onClick={handleCloseFullscreen}
+        >
+          <div 
+            className="relative max-w-full max-h-full"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <img
+              src={campaign.prize_image_urls[fullscreenImageIndex]}
+              alt={campaign.title}
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+            
+            {campaign.prize_image_urls.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToPreviousFullscreenImage();
+                  }}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
+                  aria-label="Imagem anterior"
+                >
+                  <ChevronLeft className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToNextFullscreenImage();
+                  }}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
+                  aria-label="Próxima imagem"
+                >
+                  <ChevronRight className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
+                </button>
+              </>
+            )}
+
+            {campaign.prize_image_urls.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm font-medium">
+                {fullscreenImageIndex + 1} / {campaign.prize_image_urls.length}
+              </div>
+            )}
+            
+            <button
+              onClick={handleCloseFullscreen}
+              className="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-colors duration-200 flex items-center justify-center"
+              aria-label="Fechar imagem em tela cheia"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 1 Modal - Phone Input */}
+      <ReservationStep1Modal
+        isOpen={showStep1Modal}
+        onClose={() => setShowStep1Modal(false)}
+        onNewCustomer={handleStep1NewCustomer}
+        onExistingCustomer={handleStep1ExistingCustomer}
+        quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
+        totalValue={getCurrentTotalValue()}
+        selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
+        campaignTitle={campaign.title}
+        primaryColor={primaryColor}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
+        campaignTheme={campaignTheme}
+      />
+
+      {/* Step 2 Modal - Existing Customer Confirmation */}
+      {existingCustomerData && (
+        <ReservationStep2Modal
+          isOpen={showStep2Modal}
+          onClose={() => setShowStep2Modal(false)}
+          onConfirm={handleStep2Confirm}
+          customerData={existingCustomerData}
+          quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
+          totalValue={getCurrentTotalValue()}
+          selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
+          campaignTitle={campaign.title}
+          primaryColor={primaryColor}
+          colorMode={organizerProfile?.color_mode}
+          gradientClasses={organizerProfile?.gradient_classes}
+          customGradientColors={organizerProfile?.custom_gradient_colors}
+          campaignTheme={campaignTheme}
+          confirming={reserving}
+        />
+      )}
+
+      {/* Reservation Modal - New Customer Registration */}
+      <ReservationModal
+        isOpen={showReservationModal}
+        onClose={() => setShowReservationModal(false)}
+        onReserve={handleReservationSubmit}
+        quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
+        totalValue={getCurrentTotalValue()}
+        selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
+        campaignTitle={campaign.title}
+        primaryColor={primaryColor}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
+        campaignTheme={campaignTheme}
+        reserving={reserving}
+        reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
+      />
+    </div>
+  );
+};
+
+export default CampaignPage;
