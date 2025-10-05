@@ -83,7 +83,7 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
         {/* Body */}
         <div className="p-5">
           <p className={`text-sm ${theme.textSecondary} mb-4`}>
-            Resultado do sorteio da campanha <span className="font-semibold">{campaignTitle}</span>:
+            Lista de prêmios da campanha <span className="font-semibold">{campaignTitle}</span>.
           </p>
 
           {prizes && prizes.length > 0 ? (
