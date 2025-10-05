@@ -23,6 +23,7 @@ import QuotaSelector from '../components/QuotaSelector';
 import ReservationModal, { CustomerData } from '../components/ReservationModal';
 import ReservationStep1Modal from '../components/ReservationStep1Modal';
 import ReservationStep2Modal from '../components/ReservationStep2Modal';
+import PrizesDisplayModal from '../components/PrizesDisplayModal';
 import { CustomerData as ExistingCustomer } from '../utils/customerCheck';
 import { Promotion } from '../types/promotion';
 import { formatCurrency } from '../utils/currency';
@@ -144,6 +145,7 @@ const CampaignPage = () => {
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [showStep1Modal, setShowStep1Modal] = useState(false);
   const [showStep2Modal, setShowStep2Modal] = useState(false);
+  const [showPrizesModal, setShowPrizesModal] = useState(false);
   const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomer | null>(null);
   const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
   const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
@@ -1014,25 +1016,66 @@ const CampaignPage = () => {
           </section>
         )}
 
-        {/* 4. Prêmios */}
+        {/* 4. Prêmios - SEÇÃO MODERNIZADA E CLICÁVEL */}
         {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
-          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
-            <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
-              🏆 Prêmios
-            </h3>
-            
-            <div className="w-full space-y-1">
-              {campaign.prizes.map((prize: any, index: number) => (
-                <div key={prize.id} className="flex items-center justify-center space-x-1.5">
-                  <div
-                    className={getColorClassName("w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs")}
-                    style={getColorStyle(true)}
-                  >
-                    {index + 1}
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer hover:shadow-lg transition-all duration-300 group`}
+            onClick={() => setShowPrizesModal(true)}
+          >
+            <div className="relative overflow-hidden p-4">
+              {/* Efeitos de gradiente */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-400/10 to-orange-400/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-300"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-amber-400/10 to-yellow-400/10 rounded-full blur-2xl group-hover:scale-110 transition-transform duration-300"></div>
+              
+              <div className="relative">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={getColorClassName("w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg")}
+                      style={getColorStyle(true)}
+                    >
+                      <Trophy className="h-5 w-5" />
+                    </div>
+                    <h3 className={`text-lg font-bold ${themeClasses.text}`}>
+                      Prêmios
+                    </h3>
                   </div>
-                  <span className={`${themeClasses.text} font-medium text-sm`}>{prize.name}</span>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-yellow-100 to-amber-100 dark:from-yellow-900/30 dark:to-amber-900/30 border border-yellow-200/30 dark:border-yellow-800/30">
+                    <span className="text-xs font-bold text-yellow-800 dark:text-yellow-200">
+                      {campaign.prizes.length} {campaign.prizes.length === 1 ? 'prêmio' : 'prêmios'}
+                    </span>
+                  </div>
                 </div>
-              ))}
+                
+                {/* Prévia dos prêmios (máximo 3) */}
+                <div className="space-y-2">
+                  {campaign.prizes.slice(0, 3).map((prize: any, index: number) => (
+                    <div key={prize.id} className={`flex items-center gap-3 p-3 rounded-xl border ${themeClasses.border} bg-gradient-to-r from-gray-50/50 to-transparent dark:from-gray-800/50 dark:to-transparent group-hover:from-gray-100/70 dark:group-hover:from-gray-800/70 transition-all duration-200`}>
+                      <div
+                        className={getColorClassName("w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md")}
+                        style={getColorStyle(true)}
+                      >
+                        {index + 1}
+                      </div>
+                      <span className={`${themeClasses.text} font-semibold text-sm flex-1`}>{prize.name}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Botão "Ver todos" se houver mais de 3 prêmios */}
+                {campaign.prizes.length > 3 && (
+                  <div className="mt-3 text-center">
+                    <span className={`text-sm font-semibold ${themeClasses.textSecondary} group-hover:underline`}>
+                      + {campaign.prizes.length - 3} {campaign.prizes.length - 3 === 1 ? 'prêmio' : 'prêmios'}
+                    </span>
+                  </div>
+                )}
+
+                {/* Indicador visual de clique */}
+                <div className="mt-3 flex items-center justify-center gap-2 text-xs font-medium text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
+                  <ExternalLink className="h-3 w-3" />
+                  <span>Clique para ver todos os prêmios</span>
+                </div>
+              </div>
             </div>
           </section>
         )}
@@ -1067,6 +1110,50 @@ const CampaignPage = () => {
                 tickets={tickets}
                 currentUserId={user?.id}
                 campaignTheme={campaignTheme}
+      />
+
+      {/* Step 2 Modal - Existing Customer Confirmation */}
+      {existingCustomerData && (
+        <ReservationStep2Modal
+          isOpen={showStep2Modal}
+          onClose={() => setShowStep2Modal(false)}
+          onConfirm={handleStep2Confirm}
+          customerData={existingCustomerData}
+          quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
+          totalValue={getCurrentTotalValue()}
+          selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
+          campaignTitle={campaign.title}
+          primaryColor={primaryColor}
+          colorMode={organizerProfile?.color_mode}
+          gradientClasses={organizerProfile?.gradient_classes}
+          customGradientColors={organizerProfile?.custom_gradient_colors}
+          campaignTheme={campaignTheme}
+          confirming={reserving}
+        />
+      )}
+
+      {/* Reservation Modal - New Customer Registration */}
+      <ReservationModal
+        isOpen={showReservationModal}
+        onClose={() => setShowReservationModal(false)}
+        onReserve={handleReservationSubmit}
+        quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
+        totalValue={getCurrentTotalValue()}
+        selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
+        campaignTitle={campaign.title}
+        primaryColor={primaryColor}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
+        campaignTheme={campaignTheme}
+        reserving={reserving}
+        reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
+      />
+    </div>
+  );
+};
+
+export default CampaignPage;
                 primaryColor={primaryColor}
                 colorMode={organizerProfile?.color_mode}
                 gradientClasses={organizerProfile?.gradient_classes}
@@ -1290,6 +1377,17 @@ const CampaignPage = () => {
         </div>
       )}
 
+      {/* Prizes Display Modal */}
+      {campaign && (
+        <PrizesDisplayModal
+          isOpen={showPrizesModal}
+          onClose={() => setShowPrizesModal(false)}
+          prizes={campaign.prizes || []}
+          campaignTitle={campaign.title}
+          campaignTheme={campaignTheme}
+        />
+      )}
+
       {/* Step 1 Modal - Phone Input */}
       <ReservationStep1Modal
         isOpen={showStep1Modal}
@@ -1305,47 +1403,3 @@ const CampaignPage = () => {
         gradientClasses={organizerProfile?.gradient_classes}
         customGradientColors={organizerProfile?.custom_gradient_colors}
         campaignTheme={campaignTheme}
-      />
-
-      {/* Step 2 Modal - Existing Customer Confirmation */}
-      {existingCustomerData && (
-        <ReservationStep2Modal
-          isOpen={showStep2Modal}
-          onClose={() => setShowStep2Modal(false)}
-          onConfirm={handleStep2Confirm}
-          customerData={existingCustomerData}
-          quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
-          totalValue={getCurrentTotalValue()}
-          selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
-          campaignTitle={campaign.title}
-          primaryColor={primaryColor}
-          colorMode={organizerProfile?.color_mode}
-          gradientClasses={organizerProfile?.gradient_classes}
-          customGradientColors={organizerProfile?.custom_gradient_colors}
-          campaignTheme={campaignTheme}
-          confirming={reserving}
-        />
-      )}
-
-      {/* Reservation Modal - New Customer Registration */}
-      <ReservationModal
-        isOpen={showReservationModal}
-        onClose={() => setShowReservationModal(false)}
-        onReserve={handleReservationSubmit}
-        quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
-        totalValue={getCurrentTotalValue()}
-        selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
-        campaignTitle={campaign.title}
-        primaryColor={primaryColor}
-        colorMode={organizerProfile?.color_mode}
-        gradientClasses={organizerProfile?.gradient_classes}
-        customGradientColors={organizerProfile?.custom_gradient_colors}
-        campaignTheme={campaignTheme}
-        reserving={reserving}
-        reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
-      />
-    </div>
-  );
-};
-
-export default CampaignPage;
