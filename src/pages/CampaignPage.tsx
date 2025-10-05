@@ -23,6 +23,7 @@ import QuotaSelector from '../components/QuotaSelector';
 import ReservationModal, { CustomerData } from '../components/ReservationModal';
 import ReservationStep1Modal from '../components/ReservationStep1Modal';
 import ReservationStep2Modal from '../components/ReservationStep2Modal';
+import PrizesDisplayModal from '../components/PrizesDisplayModal';
 import { CustomerData as ExistingCustomer } from '../utils/customerCheck';
 import { Promotion } from '../types/promotion';
 import { formatCurrency } from '../utils/currency';
@@ -79,7 +80,6 @@ const slideVariants = {
     }
   })
 };
-
 
 const CampaignPage = () => {
   const { publicId } = useParams<{ publicId: string }>();
@@ -144,6 +144,7 @@ const CampaignPage = () => {
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [showStep1Modal, setShowStep1Modal] = useState(false);
   const [showStep2Modal, setShowStep2Modal] = useState(false);
+  const [showPrizesModal, setShowPrizesModal] = useState(false);
   const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomer | null>(null);
   const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
   const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
@@ -1014,15 +1015,21 @@ const CampaignPage = () => {
           </section>
         )}
 
-        {/* 4. Prêmios */}
+        {/* 4. Prêmios - MODIFICADO para ser clicável */}
         {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
-          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
-            <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
-              🏆 Prêmios
-            </h3>
+          <section 
+            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto cursor-pointer hover:shadow-lg transition-all duration-200`}
+            onClick={() => setShowPrizesModal(true)}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <h3 className={`text-base font-bold ${themeClasses.text} text-center flex-1`}>
+                🏆 Prêmios
+              </h3>
+              <ExternalLink className={`h-4 w-4 ${themeClasses.textSecondary}`} />
+            </div>
             
             <div className="w-full space-y-1">
-              {campaign.prizes.map((prize: any, index: number) => (
+              {campaign.prizes.slice(0, 3).map((prize: any, index: number) => (
                 <div key={prize.id} className="flex items-center justify-center space-x-1.5">
                   <div
                     className={getColorClassName("w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs")}
@@ -1030,9 +1037,21 @@ const CampaignPage = () => {
                   >
                     {index + 1}
                   </div>
-                  <span className={`${themeClasses.text} font-medium text-sm`}>{prize.name}</span>
+                  <span className={`${themeClasses.text} font-medium text-sm truncate`}>
+                    {prize.name}
+                  </span>
                 </div>
               ))}
+              
+              {campaign.prizes.length > 3 && (
+                <div className={`text-center text-xs ${themeClasses.textSecondary} mt-2`}>
+                  + {campaign.prizes.length - 3} prêmio(s) a mais
+                </div>
+              )}
+            </div>
+            
+            <div className={`text-center text-xs ${themeClasses.textSecondary} mt-2 font-medium`}>
+              Clique para ver todos os prêmios
             </div>
           </section>
         )}
@@ -1344,6 +1363,17 @@ const CampaignPage = () => {
         reserving={reserving}
         reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
       />
+
+      {/* Prizes Display Modal */}
+      {campaign && (
+        <PrizesDisplayModal
+          isOpen={showPrizesModal}
+          onClose={() => setShowPrizesModal(false)}
+          prizes={campaign.prizes || []}
+          campaignTitle={campaign.title}
+          campaignTheme={campaignTheme}
+        />
+      )}
     </div>
   );
 };
