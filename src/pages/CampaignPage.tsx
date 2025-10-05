@@ -23,7 +23,6 @@ import QuotaSelector from '../components/QuotaSelector';
 import ReservationModal, { CustomerData } from '../components/ReservationModal';
 import ReservationStep1Modal from '../components/ReservationStep1Modal';
 import ReservationStep2Modal from '../components/ReservationStep2Modal';
-import PrizesDisplayModal from '../components/PrizesDisplayModal';
 import { CustomerData as ExistingCustomer } from '../utils/customerCheck';
 import { Promotion } from '../types/promotion';
 import { formatCurrency } from '../utils/currency';
@@ -80,6 +79,7 @@ const slideVariants = {
     }
   })
 };
+
 
 const CampaignPage = () => {
   const { publicId } = useParams<{ publicId: string }>();
@@ -144,7 +144,6 @@ const CampaignPage = () => {
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [showStep1Modal, setShowStep1Modal] = useState(false);
   const [showStep2Modal, setShowStep2Modal] = useState(false);
-  const [showPrizesModal, setShowPrizesModal] = useState(false);
   const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomer | null>(null);
   const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
   const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
@@ -845,10 +844,20 @@ const CampaignPage = () => {
             )}
 
             {campaign.show_draw_date && campaign.draw_date && (
-              <div className={`flex items-center justify-center p-3 rounded-lg ${themeClasses.cardBg} border ${themeClasses.border}`}>
-                <Calendar className={`h-4 w-4 mr-2 ${themeClasses.text}`} />
-                <span className={`text-sm font-medium ${themeClasses.text}`}>
-                  Sorteio: <span className={`font-bold ${themeClasses.text}`}>{formatDate(campaign.draw_date)}</span>
+              <div className={`flex items-center justify-center p-3 rounded-lg ${
+                campaignTheme === 'claro' 
+                  ? 'bg-blue-50 border border-blue-200' 
+                  : 'bg-blue-950 border border-blue-800'
+              }`}>
+                <Calendar className={`h-5 w-5 mr-2 ${
+                  campaignTheme === 'claro' ? 'text-blue-600' : 'text-blue-400'
+                }`} />
+                <span className={`text-sm font-semibold ${
+                  campaignTheme === 'claro' ? 'text-gray-900' : 'text-white'
+                }`}>
+                  Sorteio: <strong className={
+                    campaignTheme === 'claro' ? 'text-blue-700' : 'text-cyan-400'
+                  }>{formatDate(campaign.draw_date)}</strong>
                 </span>
               </div>
             )}
@@ -1015,21 +1024,15 @@ const CampaignPage = () => {
           </section>
         )}
 
-        {/* 4. Prêmios - MODIFICADO para ser clicável */}
+        {/* 4. Prêmios */}
         {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
-          <section 
-            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto cursor-pointer hover:shadow-lg transition-all duration-200`}
-            onClick={() => setShowPrizesModal(true)}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <h3 className={`text-base font-bold ${themeClasses.text} text-center flex-1`}>
-                🏆 Prêmios
-              </h3>
-              <ExternalLink className={`h-4 w-4 ${themeClasses.textSecondary}`} />
-            </div>
+          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
+            <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
+              🏆 Prêmios
+            </h3>
             
             <div className="w-full space-y-1">
-              {campaign.prizes.slice(0, 3).map((prize: any, index: number) => (
+              {campaign.prizes.map((prize: any, index: number) => (
                 <div key={prize.id} className="flex items-center justify-center space-x-1.5">
                   <div
                     className={getColorClassName("w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs")}
@@ -1037,21 +1040,9 @@ const CampaignPage = () => {
                   >
                     {index + 1}
                   </div>
-                  <span className={`${themeClasses.text} font-medium text-sm truncate`}>
-                    {prize.name}
-                  </span>
+                  <span className={`${themeClasses.text} font-medium text-sm`}>{prize.name}</span>
                 </div>
               ))}
-              
-              {campaign.prizes.length > 3 && (
-                <div className={`text-center text-xs ${themeClasses.textSecondary} mt-2`}>
-                  + {campaign.prizes.length - 3} prêmio(s) a mais
-                </div>
-              )}
-            </div>
-            
-            <div className={`text-center text-xs ${themeClasses.textSecondary} mt-2 font-medium`}>
-              Clique para ver todos os prêmios
             </div>
           </section>
         )}
@@ -1226,21 +1217,20 @@ const CampaignPage = () => {
 
         {/* 7. Método de Sorteio */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-4`}>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
-            <div className="flex items-center gap-2">
-              <div
-                className={getColorClassName("w-8 h-8 rounded-lg flex items-center justify-center text-white")}
-                style={getColorStyle(true)}
-              >
-                <Trophy className="h-4 w-4" />
-              </div>
-              <span className={`font-semibold text-sm ${themeClasses.text}`}>
-                Método de sorteio:
-              </span>
+          <h3 className={`text-base font-bold ${themeClasses.text} mb-3 text-center`}>
+            Método de Sorteio
+          </h3>
+          
+          <div className="flex items-center justify-center space-x-3">
+            <div
+              className={getColorClassName("w-10 h-10 rounded-lg flex items-center justify-center text-white")}
+              style={getColorStyle(true)}
+            >
+              <Trophy className="h-5 w-5" />
             </div>
-            <span className={`font-medium text-sm ${themeClasses.text}`}>
+            <p className={`font-medium text-base ${themeClasses.text}`}>
               {campaign.draw_method}
-            </span>
+            </p>
           </div>
         </section>
       </main>
@@ -1363,17 +1353,6 @@ const CampaignPage = () => {
         reserving={reserving}
         reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
       />
-
-      {/* Prizes Display Modal */}
-      {campaign && (
-        <PrizesDisplayModal
-          isOpen={showPrizesModal}
-          onClose={() => setShowPrizesModal(false)}
-          prizes={campaign.prizes || []}
-          campaignTitle={campaign.title}
-          campaignTheme={campaignTheme}
-        />
-      )}
     </div>
   );
 };
