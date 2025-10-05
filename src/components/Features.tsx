@@ -58,8 +58,8 @@ const Features = () => {
     },
     {
       icon: Tag,
-      title: 'Promoções, Cupons e Upsell',
-      description: 'Crie cupons de desconto, promoções relâmpago e ofertas complementares para alavancar suas vendas.'
+      title: 'Promoções e Descontos',
+      description: 'Crie promoções personalizadas para suas campanhas, oferecendo preços especiais e incentivos para aumentar as vendas de cotas'
     }
   ];
 
