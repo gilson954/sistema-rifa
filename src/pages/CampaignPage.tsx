@@ -343,6 +343,7 @@ const CampaignPage = () => {
         const gradientValue = getGradientCssValue(gradient_classes, custom_gradient_colors);
 
         if (gradientValue) {
+          console.log('Applying gradient scrollbar:', gradientValue);
           root.style.setProperty('--scrollbar-thumb-bg', gradientValue);
           root.style.setProperty('--scrollbar-thumb-hover-bg', gradientValue);
           root.style.setProperty('--scrollbar-thumb-bg-dark', gradientValue);
@@ -352,6 +353,7 @@ const CampaignPage = () => {
         }
       } else if (primary_color) {
         // Aplica a cor sólida se não for gradiente
+        console.log('Applying solid color scrollbar:', primary_color);
         root.style.setProperty('--scrollbar-thumb-bg', primary_color);
         root.style.setProperty('--scrollbar-thumb-hover-bg', primary_color);
         root.style.setProperty('--scrollbar-thumb-bg-dark', primary_color);
