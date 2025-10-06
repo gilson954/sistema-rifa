@@ -855,68 +855,49 @@ const CampaignPage = () => {
           </div>
         </section>
 
-        {/* 2. Prêmios - Logo abaixo da galeria */}
+        {/* 2. Prêmios - Logo após a galeria */}
         {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
-          <section 
-            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer hover:shadow-lg transition-all duration-200`}
+          <motion.section 
+            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer`}
             onClick={() => setShowPrizesModal(true)}
+            whileHover={{
+              scale: [null, 1.02, 1.03],
+              y: [null, -2, -4],
+              transition: {
+                duration: 0.4,
+                times: [0, 0.5, 1],
+                ease: ["easeInOut", "easeOut"],
+              },
+            }}
+            whileTap={{ scale: 0.98 }}
+            transition={{
+              duration: 0.3,
+              ease: "easeOut",
+            }}
           >
+            {/* Header com gradiente/cor sólida */}
             <div 
-              className="p-4 flex items-center justify-between"
-              style={{
-                background: organizerProfile?.color_mode === 'gradient' 
-                  ? getCustomGradientStyle(organizerProfile?.custom_gradient_colors || '') || 
-                    `linear-gradient(135deg, ${primaryColor}15 0%, ${primaryColor}05 100%)`
-                  : `${primaryColor}10`
-              }}
+              className={getColorClassName("px-4 py-3")}
+              style={getColorStyle(true)}
             >
-              <div className="flex items-center space-x-3">
-                <div
-                  className={getColorClassName("w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md")}
-                  style={getColorStyle(true)}
-                >
-                  <Trophy className="h-5 w-5" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center justify-center gap-2 flex-1">
+                  <Trophy className="h-5 w-5 text-white" />
+                  <h3 className="text-lg font-bold text-white">
+                    Prêmios
+                  </h3>
                 </div>
-                <h3 className={`text-lg font-bold ${themeClasses.text}`}>
-                  Prêmios
-                </h3>
+                <ExternalLink className="h-4 w-4 text-white/80" />
               </div>
-              <ExternalLink className={`h-5 w-5 ${themeClasses.textSecondary}`} />
             </div>
-            
-            <div className="p-4 space-y-2">
-              {campaign.prizes.slice(0, 3).map((prize: any, index: number) => (
-                <div 
-                  key={prize.id} 
-                  className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
-                    campaignTheme === 'claro' 
-                      ? 'bg-gray-50 hover:bg-gray-100' 
-                      : 'bg-gray-800 hover:bg-gray-750'
-                  }`}
-                >
-                  <div
-                    className={getColorClassName("w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm")}
-                    style={getColorStyle(true)}
-                  >
-                    {index + 1}º
-                  </div>
-                  <span className={`${themeClasses.text} font-medium flex-1`}>
-                    {prize.name}
-                  </span>
-                </div>
-              ))}
-              
-              {campaign.prizes.length > 3 && (
-                <div className={`text-center py-2 rounded-lg mt-3 ${
-                  campaignTheme === 'claro' ? 'bg-gray-50' : 'bg-gray-800'
-                }`}>
-                  <span className={`text-sm font-medium ${themeClasses.textSecondary}`}>
-                    + {campaign.prizes.length - 3} {campaign.prizes.length - 3 === 1 ? 'prêmio' : 'prêmios'}
-                  </span>
-                </div>
-              )}
+
+            {/* Mensagem de clique */}
+            <div className={`px-4 py-3 ${themeClasses.background}`}>
+              <p className={`text-center text-sm ${themeClasses.textSecondary} font-medium`}>
+                Clique para ver todos os prêmios
+              </p>
             </div>
-          </section>
+          </motion.section>
         )}
 
         {/* 3. Organizador */}
@@ -1018,165 +999,6 @@ const CampaignPage = () => {
             </div>
           )}
         </section>
-
-        {/* 4. Promoções Disponíveis */}
-          {loadingOrganizer ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: primaryColor || '#3B82F6' }}></div>
-            </div>
-          ) : organizerProfile ? (
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                {organizerProfile.logo_url ? (
-                  organizerProfile.color_mode === 'gradient' ? (
-                    <div
-                      className={getColorClassName("p-1 rounded-lg shadow-md")}
-                      style={getColorStyle(true)}
-                    >
-                      <img
-                        src={organizerProfile.logo_url}
-                        alt={organizerProfile.name}
-                        className="w-[88px] h-[88px] rounded-md object-contain bg-white dark:bg-gray-800"
-                      />
-                    </div>
-                  ) : (
-                    <img
-                      src={organizerProfile.logo_url}
-                      alt={organizerProfile.name}
-                      className="w-24 h-24 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
-                      style={{ borderColor: organizerProfile.primary_color || '#3B82F6' }}
-                    />
-                  )
-                ) : organizerProfile.avatar_url ? (
-                  organizerProfile.color_mode === 'gradient' ? (
-                    <div
-                      className={getColorClassName("p-1 rounded-full shadow-md")}
-                      style={getColorStyle(true)}
-                    >
-                      <img
-                        src={organizerProfile.avatar_url}
-                        alt={organizerProfile.name}
-                        className="w-14 h-14 rounded-full object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <img
-                      src={organizerProfile.avatar_url}
-                      alt={organizerProfile.name}
-                      className="w-16 h-16 rounded-full object-cover border-4 shadow-md"
-                      style={{ borderColor: organizerProfile.primary_color || '#3B82F6' }}
-                    />
-                  )
-                ) : (
-                  <div
-                    className={getColorClassName("w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md")}
-                    style={getColorStyle(true)}
-                  >
-                    {organizerProfile.name ? organizerProfile.name.charAt(0).toUpperCase() : 'O'}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm ${themeClasses.textSecondary} leading-tight`}>
-                  Organizador:
-                </p>
-                <h4 className={`text-base font-semibold ${themeClasses.text} truncate`}>
-                  {organizerProfile.name}
-                </h4>
-
-                {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
-                  <div className="mt-2 flex items-center gap-2">
-                    {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
-                      if (!url || typeof url !== 'string') return null;
-                      const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
-                      if (!config) return null;
-                      const IconComponent = config.icon;
-                      return (
-                        <button
-                          key={platform}
-                          onClick={() => handleOrganizerSocialClick(platform, url)}
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform duration-150"
-                          style={{ backgroundColor: config.color }}
-                          title={`${config.name} do organizador`}
-                        >
-                          <IconComponent size={12} />
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-4">
-              <Users className={`h-8 w-8 ${themeClasses.textSecondary} mx-auto mb-2`} />
-              <p className={`text-sm ${themeClasses.textSecondary}`}>
-                Informações do organizador não disponíveis
-              </p>
-            </div>
-          )}
-        </section>
-
-        {/* 3. Promoções Disponíveis */}
-        {campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
-          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
-            <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
-              🎁 Promoções Disponíveis
-            </h3>
-
-            <div className="flex flex-wrap gap-3 justify-center">
-              {campaign.promotions.map((promo: Promotion) => {
-                const originalValue = promo.ticketQuantity * campaign.ticket_price;
-                const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0;
-                const colorMode = organizerProfile?.color_mode || 'solid';
-
-                return (
-                  <div key={promo.id}>
-                    {colorMode === 'gradient' ? (
-                      <div
-                        className={getColorClassName("p-0.5 rounded-lg shadow-sm")}
-                        style={getColorStyle(true)}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => {}}
-                          className={`flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 ${
-                            themeClasses.cardBg
-                          }`}
-                        >
-                          <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
-                            {promo.ticketQuantity} cotas por {formatCurrency(originalValue - promo.fixedDiscountAmount)}
-                          </span>
-                          <span className="ml-3 text-sm font-extrabold text-green-500 dark:text-green-300">
-                            {discountPercentage}%
-                          </span>
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => {}}
-                        className={`flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 shadow-sm border-2`}
-                        style={{
-                          background: 'transparent',
-                          borderColor: organizerProfile?.primary_color || (campaignTheme === 'claro' ? '#d1d5db' : '#4b5563')
-                        }}
-                      >
-                        <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
-                          {promo.ticketQuantity} cotas por {formatCurrency(originalValue - promo.fixedDiscountAmount)}
-                        </span>
-                        <span className="ml-3 text-sm font-extrabold text-green-500 dark:text-green-300">
-                          {discountPercentage}%
-                        </span>
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
 
         {/* 4. Promoções Disponíveis */}
         {campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
@@ -1538,9 +1360,6 @@ const CampaignPage = () => {
         selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
         campaignTitle={campaign.title}
         primaryColor={primaryColor}
-        colorMode={organizerProfile?.color_mode}
-        gradientClasses={organizerProfile?.gradient_classes}
-        customGradientColors={organizerProfile?.custom_gradient_colors}
         campaignTheme={campaignTheme}
         reserving={reserving}
         reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
