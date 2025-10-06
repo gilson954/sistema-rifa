@@ -1299,7 +1299,7 @@ const CampaignPage = () => {
           
           {campaign.description && isValidDescription(campaign.description) ? (
             <div 
-              className={`${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2`}
+              className={`campaign-description-scroll ${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2`}
               style={{ 
                 maxHeight: '400px',
                 scrollbarWidth: 'thin'
