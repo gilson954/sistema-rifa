@@ -603,3 +603,45 @@
     transform: none;
   }
 }
+
+/* ===================== */
+/* Dynamic Scrollbar Styles - Controlled by Organizer Profile */
+/* ===================== */
+
+/* Define a largura da barra de rolagem */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px; /* Para barras de rolagem horizontais */
+}
+
+/* Estilo da trilha da barra de rolagem */
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track-bg, #f1f1f1); /* Cor de fundo padrão */
+  border-radius: 5px;
+}
+
+/* Estilo do "polegar" (o elemento que você arrasta) */
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb-bg, #888); /* Cor do polegar padrão */
+  border-radius: 5px;
+  border: 2px solid var(--scrollbar-thumb-border, #f1f1f1); /* Borda para criar um efeito de "preenchimento" */
+}
+
+/* Estilo do "polegar" ao passar o mouse */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover-bg, #555); /* Cor do polegar ao hover padrão */
+}
+
+/* Estilos para o modo escuro */
+.dark ::-webkit-scrollbar-track {
+  background: var(--scrollbar-track-bg-dark, #333);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb-bg-dark, #555);
+  border-color: var(--scrollbar-thumb-border-dark, #333);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover-bg-dark, #777);
+}
