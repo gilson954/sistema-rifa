@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, CheckCircle, Sparkles, Phone } from 'lucide-react';
+import { X, User, CheckCircle, ShoppingCart, Phone } from 'lucide-react';
 import { CustomerData } from '../utils/customerCheck';
 
 interface ReservationStep2ModalProps {
@@ -178,7 +178,7 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
                 className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg transform hover:scale-105 transition-transform duration-200 ${getColorClassName()}`}
                 style={getColorStyle()}
               >
-                <Sparkles className="h-6 w-6" />
+                <ShoppingCart className="h-6 w-6" />
               </div>
               <div>
                 <h2 className={`text-2xl font-bold ${theme.text}`}>
