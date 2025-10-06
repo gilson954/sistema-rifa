@@ -857,9 +857,23 @@ const CampaignPage = () => {
 
         {/* 2. Prêmios - Logo após a galeria */}
         {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
-          <section 
-            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer hover:shadow-lg transition-all duration-200`}
+          <motion.section 
+            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer`}
             onClick={() => setShowPrizesModal(true)}
+            whileHover={{
+              scale: [null, 1.02, 1.03],
+              y: [null, -2, -4],
+              transition: {
+                duration: 0.4,
+                times: [0, 0.5, 1],
+                ease: ["easeInOut", "easeOut"],
+              },
+            }}
+            whileTap={{ scale: 0.98 }}
+            transition={{
+              duration: 0.3,
+              ease: "easeOut",
+            }}
           >
             {/* Header com gradiente/cor sólida */}
             <div 
@@ -883,7 +897,7 @@ const CampaignPage = () => {
                 Clique para ver todos os prêmios
               </p>
             </div>
-          </section>
+          </motion.section>
         )}
 
         {/* 3. Organizador */}
