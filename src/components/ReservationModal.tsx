@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle, ShoppingCart } from 'lucide-react';
+import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle, Sparkles } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { formatReservationTime } from '../utils/timeFormatters';
 
@@ -210,43 +210,64 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     }
   };
 
-  const getCustomGradientStyle = () => {
-    if (!customGradientColors) return null;
-
-    try {
-      const colors = JSON.parse(customGradientColors);
-      if (Array.isArray(colors) && colors.length >= 2) {
-        return {
-          backgroundImage: `linear-gradient(135deg, ${colors.join(', ')})`,
-          backgroundSize: '200% 200%'
-        };
+  // Função auxiliar para obter o gradiente CSS real a partir das classes Tailwind
+  const getGradientCssValue = (gradientClasses: string | null | undefined, customColorsJson: string | null | undefined): string | null => {
+    if (gradientClasses === 'custom' && customColorsJson) {
+      try {
+        const colors = JSON.parse(customColorsJson);
+        if (Array.isArray(colors) && colors.length >= 2) {
+          return `linear-gradient(135deg, ${colors.join(', ')})`;
+        }
+      } catch (e) {
+        console.error('Error parsing custom gradient colors:', e);
       }
-    } catch (e) {
-      console.error('Error parsing custom gradient colors:', e);
+    } else if (gradientClasses) {
+      // Mapeamento de classes Tailwind para valores CSS de gradiente
+      switch (gradientClasses) {
+        case 'from-purple-600 via-blue-500 to-indigo-600':
+          return 'linear-gradient(135deg, #9333ea, #3b82f6, #4f46e5)';
+        case 'from-pink-500 via-red-500 to-yellow-500':
+          return 'linear-gradient(135deg, #ec4899, #ef4444, #eab308)';
+        case 'from-green-400 via-blue-500 to-purple-600':
+          return 'linear-gradient(135deg, #4ade80, #3b82f6, #9333ea)';
+        case 'from-yellow-400 via-red-500 to-pink-500':
+          return 'linear-gradient(135deg, #facc15, #ef4444, #ec4899)';
+        case 'from-indigo-500 via-purple-500 to-pink-500':
+          return 'linear-gradient(135deg, #6366f1, #a855f7, #ec4899)';
+        case 'from-blue-400 via-teal-500 to-green-500':
+          return 'linear-gradient(135deg, #60a5fa, #14b8a6, #22c55e)';
+        case 'from-red-500 via-orange-500 to-yellow-500':
+          return 'linear-gradient(135deg, #ef4444, #f97316, #eab308)';
+        case 'from-cyan-400 via-blue-500 to-indigo-600':
+          return 'linear-gradient(135deg, #22d3ee, #3b82f6, #4f46e5)';
+        case 'from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00]':
+          return 'linear-gradient(135deg, #7928CA, #FF0080, #007CF0, #FF8C00)';
+        // Adicione mais casos para outros gradientes predefinidos que você usa
+        default:
+          return null;
+      }
     }
     return null;
   };
 
   const getColorStyle = () => {
     if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom' && customGradientColors) {
-        return getCustomGradientStyle();
+      const gradientValue = getGradientCssValue(gradientClasses, customGradientColors);
+      if (gradientValue) {
+        return {
+          background: gradientValue,
+          backgroundSize: '200% 200%'
+        };
       }
-      // Para gradientes pré-definidos, não retorna style inline
-      return {};
     }
-    // Para cores sólidas
+    // Fallback para cor sólida ou padrão se não for gradiente ou gradiente inválido
     return primaryColor ? { backgroundColor: primaryColor } : { backgroundColor: '#3B82F6' };
   };
 
   const getColorClassName = () => {
     if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom' && customGradientColors) {
-        return 'animate-gradient-x bg-[length:200%_200%]';
-      }
-      // Para gradientes pré-definidos do Tailwind
       if (gradientClasses) {
-        return `bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
+        return `animate-gradient-x bg-[length:200%_200%]`;
       }
     }
     return '';
@@ -276,7 +297,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg transform hover:scale-105 transition-transform duration-200 ${getColorClassName()}`}
                 style={getColorStyle()}
               >
-                <ShoppingCart className="h-6 w-6" />
+                <Sparkles className="h-6 w-6" />
               </div>
               <div>
                 <h2 className={`text-2xl font-bold ${theme.text}`}>
@@ -540,7 +561,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             <button
               type="submit"
               disabled={reserving}
-              className={`w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-[1.02] active:scale-[0.98] ${getColorClassName()}`}
+              className={`w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-[1.02] active:scale-[0.98] ${!reserving ? getColorClassName() : ''}`}
               style={reserving ? { backgroundColor: '#9CA3AF' } : getColorStyle()}
             >
               {reserving ? (
