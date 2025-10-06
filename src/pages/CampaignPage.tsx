@@ -198,37 +198,6 @@ const CampaignPage = () => {
     return null;
   };
 
-  // Função auxiliar para obter o gradiente CSS real a partir das classes Tailwind
-  const getGradientCssValue = (gradientClasses: string, customGradientColors: string | undefined): string | null => {
-    if (gradientClasses === 'custom' && customGradientColors) {
-      try {
-        const colors = JSON.parse(customGradientColors);
-        if (Array.isArray(colors) && colors.length >= 2) {
-          return `linear-gradient(90deg, ${colors.join(', ')})`;
-        }
-      } catch (e) {
-        console.error('Error parsing custom gradient colors for scrollbar:', e);
-      }
-    } else {
-      // Mapeamento de classes Tailwind para valores CSS de gradiente
-      switch (gradientClasses) {
-        case 'from-purple-600 via-pink-500 to-indigo-600':
-          return 'linear-gradient(90deg, #9333ea, #ec4899, #4f46e5)';
-        case 'from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00]':
-          return 'linear-gradient(90deg, #7928CA, #FF0080, #007CF0, #FF8C00)';
-        case 'from-blue-500 via-purple-500 to-pink-500':
-          return 'linear-gradient(90deg, #3b82f6, #a855f7, #ec4899)';
-        case 'from-green-400 via-blue-500 to-purple-600':
-          return 'linear-gradient(90deg, #4ade80, #3b82f6, #9333ea)';
-        case 'from-yellow-400 via-red-500 to-pink-500':
-          return 'linear-gradient(90deg, #facc15, #ef4444, #ec4899)';
-        default:
-          return null;
-      }
-    }
-    return null;
-  };
-
   const getColorStyle = (isBackground: boolean = true, isText: boolean = false) => {
     const colorMode = organizerProfile?.color_mode || 'solid';
     const primaryColor = organizerProfile?.primary_color || '#3B82F6';
@@ -237,19 +206,20 @@ const CampaignPage = () => {
       const gradientClasses = organizerProfile?.gradient_classes;
       const customGradientColors = organizerProfile?.custom_gradient_colors;
 
-      const gradientValue = getGradientCssValue(gradientClasses || '', customGradientColors);
-
-      if (gradientValue) {
-        return {
-          background: gradientValue,
-          backgroundSize: '200% 200%',
-          ...(isText && {
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            color: 'transparent'
-          })
-        };
+      if (gradientClasses === 'custom' && customGradientColors) {
+        const gradientStyle = getCustomGradientStyle(customGradientColors);
+        if (gradientStyle) {
+          return {
+            background: gradientStyle,
+            backgroundSize: '200% 200%',
+            ...(isText && {
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              color: 'transparent'
+            })
+          };
+        }
       }
 
       if (isText) {
@@ -315,64 +285,6 @@ const CampaignPage = () => {
       loadOrganizerProfile();
     }
   }, [campaign?.user_id]);
-
-  // NOVO EFEITO: Para aplicar os estilos dinâmicos da barra de rolagem
-  useEffect(() => {
-    const root = document.documentElement; // O elemento <html>
-
-    if (organizerProfile) {
-      const { primary_color, color_mode, gradient_classes, custom_gradient_colors, theme: profileTheme } = organizerProfile;
-
-      // Limpa estilos anteriores para evitar conflitos
-      root.style.removeProperty('--scrollbar-thumb-bg');
-      root.style.removeProperty('--scrollbar-thumb-hover-bg');
-      root.style.removeProperty('--scrollbar-thumb-bg-dark');
-      root.style.removeProperty('--scrollbar-thumb-hover-bg-dark');
-      root.style.removeProperty('--scrollbar-thumb-border');
-      root.style.removeProperty('--scrollbar-thumb-border-dark');
-      root.style.removeProperty('--scrollbar-track-bg');
-      root.style.removeProperty('--scrollbar-track-bg-dark');
-
-      // Define a cor da trilha da barra de rolagem com base no tema
-      const trackBg = profileTheme === 'claro' ? '#e5e7eb' : '#374151';
-      const trackBgDark = '#374151';
-      root.style.setProperty('--scrollbar-track-bg', trackBg);
-      root.style.setProperty('--scrollbar-track-bg-dark', trackBgDark);
-
-      if (color_mode === 'gradient' && gradient_classes) {
-        const gradientValue = getGradientCssValue(gradient_classes, custom_gradient_colors);
-
-        if (gradientValue) {
-          console.log('Applying gradient scrollbar:', gradientValue);
-          root.style.setProperty('--scrollbar-thumb-bg', gradientValue);
-          root.style.setProperty('--scrollbar-thumb-hover-bg', gradientValue);
-          root.style.setProperty('--scrollbar-thumb-bg-dark', gradientValue);
-          root.style.setProperty('--scrollbar-thumb-hover-bg-dark', gradientValue);
-          root.style.setProperty('--scrollbar-thumb-border', 'transparent');
-          root.style.setProperty('--scrollbar-thumb-border-dark', 'transparent');
-        }
-      } else if (primary_color) {
-        // Aplica a cor sólida se não for gradiente
-        console.log('Applying solid color scrollbar:', primary_color);
-        root.style.setProperty('--scrollbar-thumb-bg', primary_color);
-        root.style.setProperty('--scrollbar-thumb-hover-bg', primary_color);
-        root.style.setProperty('--scrollbar-thumb-bg-dark', primary_color);
-        root.style.setProperty('--scrollbar-thumb-hover-bg-dark', primary_color);
-        root.style.setProperty('--scrollbar-thumb-border', 'transparent');
-        root.style.setProperty('--scrollbar-thumb-border-dark', 'transparent');
-      }
-    } else {
-      // Reseta para o padrão se não houver perfil ou personalização
-      root.style.removeProperty('--scrollbar-thumb-bg');
-      root.style.removeProperty('--scrollbar-thumb-hover-bg');
-      root.style.removeProperty('--scrollbar-thumb-bg-dark');
-      root.style.removeProperty('--scrollbar-thumb-hover-bg-dark');
-      root.style.removeProperty('--scrollbar-thumb-border');
-      root.style.removeProperty('--scrollbar-thumb-border-dark');
-      root.style.removeProperty('--scrollbar-track-bg');
-      root.style.removeProperty('--scrollbar-track-bg-dark');
-    }
-  }, [organizerProfile]); // Dependência do useEffect
 
   const getBestPromotionForDisplay = useCallback((quotaCount: number): PromotionInfo | null => {
     if (!campaign?.promotions || !Array.isArray(campaign.promotions) || campaign.promotions.length === 0) {
@@ -1301,10 +1213,11 @@ const CampaignPage = () => {
           
           {campaign.description && isValidDescription(campaign.description) ? (
             <div 
-              className={`campaign-description-scroll ${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2`}
+              className={`${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2`}
               style={{ 
                 maxHeight: '400px',
-                scrollbarWidth: 'thin'
+                scrollbarWidth: 'thin',
+                scrollbarColor: `${primaryColor} ${campaignTheme === 'claro' ? '#e5e7eb' : '#374151'}`
               }}
               dangerouslySetInnerHTML={{ __html: campaign.description }}
             />
