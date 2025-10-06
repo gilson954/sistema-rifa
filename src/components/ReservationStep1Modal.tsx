@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Phone, CheckCircle, ShoppingCart, ArrowRight } from 'lucide-react';
+import { X, Phone, CheckCircle, Sparkles, ArrowRight } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { checkCustomerByPhone, CustomerData as ExistingCustomer } from '../utils/customerCheck';
 
@@ -236,7 +236,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
                 className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg transform hover:scale-105 transition-transform duration-200 ${getColorClassName()}`}
                 style={getColorStyle()}
               >
-                <ShoppingCart className="h-6 w-6" />
+                <Sparkles className="h-6 w-6" />
               </div>
               <div>
                 <h2 className={`text-2xl font-bold ${theme.text}`}>
