@@ -211,7 +211,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   };
 
   const getCustomGradientStyle = () => {
-    if (!customGradientColors) return {};
+    if (!customGradientColors) return null;
 
     try {
       const colors = JSON.parse(customGradientColors);
@@ -224,29 +224,32 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     } catch (e) {
       console.error('Error parsing custom gradient colors:', e);
     }
-    return {};
+    return null;
   };
 
-  const getColorStyle = (forButton: boolean = true) => {
+  const getColorStyle = () => {
     if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom') {
+      if (gradientClasses === 'custom' && customGradientColors) {
         return getCustomGradientStyle();
       }
+      // Para gradientes pré-definidos, não retorna style inline
       return {};
     }
-    return primaryColor ? { backgroundColor: primaryColor } : {};
+    // Para cores sólidas
+    return primaryColor ? { backgroundColor: primaryColor } : { backgroundColor: '#3B82F6' };
   };
 
-  const getColorClassName = (baseClasses: string = '') => {
+  const getColorClassName = () => {
     if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom') {
-        return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
+      if (gradientClasses === 'custom' && customGradientColors) {
+        return 'animate-gradient-x bg-[length:200%_200%]';
       }
+      // Para gradientes pré-definidos do Tailwind
       if (gradientClasses) {
-        return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
+        return `bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
       }
     }
-    return baseClasses;
+    return '';
   };
 
   const formatCurrency = (value: number) => {
