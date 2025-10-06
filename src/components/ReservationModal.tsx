@@ -227,7 +227,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     return {};
   };
 
-  const getColorStyle = () => {
+  const getColorStyle = (forButton: boolean = true) => {
     if (colorMode === 'gradient') {
       if (gradientClasses === 'custom') {
         return getCustomGradientStyle();
@@ -237,14 +237,16 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     return primaryColor ? { backgroundColor: primaryColor } : {};
   };
 
-  const getColorClassName = () => {
+  const getColorClassName = (baseClasses: string = '') => {
     if (colorMode === 'gradient') {
       if (gradientClasses === 'custom') {
-        return 'animate-gradient-x bg-[length:200%_200%]';
+        return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
       }
-      return `bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
+      if (gradientClasses) {
+        return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
+      }
     }
-    return '';
+    return baseClasses;
   };
 
   const formatCurrency = (value: number) => {
