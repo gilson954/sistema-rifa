@@ -858,61 +858,29 @@ const CampaignPage = () => {
         {/* 2. Prêmios - Logo após a galeria */}
         {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
           <section 
-            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}
+            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer hover:shadow-lg transition-all duration-200`}
+            onClick={() => setShowPrizesModal(true)}
           >
             {/* Header com gradiente/cor sólida */}
             <div 
               className={getColorClassName("px-4 py-3")}
               style={getColorStyle(true)}
             >
-              <div className="flex items-center justify-center gap-2">
-                <Trophy className="h-5 w-5 text-white" />
-                <h3 className="text-lg font-bold text-white">
-                  Prêmios
-                </h3>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center justify-center gap-2 flex-1">
+                  <Trophy className="h-5 w-5 text-white" />
+                  <h3 className="text-lg font-bold text-white">
+                    Prêmios
+                  </h3>
+                </div>
+                <ExternalLink className="h-4 w-4 text-white/80" />
               </div>
             </div>
 
-            {/* Lista de Prêmios */}
-            <div className="p-4">
-              <div className="space-y-2">
-                {campaign.prizes.map((prize: any, index: number) => (
-                  <div 
-                    key={prize.id}
-                    className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${
-                      themeClasses.background
-                    } border ${themeClasses.border} hover:shadow-md`}
-                  >
-                    {/* Número do Prêmio */}
-                    <div
-                      className={getColorClassName("w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm")}
-                      style={getColorStyle(true)}
-                    >
-                      <span className="text-white font-bold text-sm">
-                        {index + 1}º
-                      </span>
-                    </div>
-
-                    {/* Nome do Prêmio */}
-                    <div className="flex-1 min-w-0">
-                      <span className={`${themeClasses.text} font-semibold text-base block`}>
-                        {prize.name}
-                      </span>
-                      {prize.description && (
-                        <span className={`${themeClasses.textSecondary} text-sm block mt-1`}>
-                          {prize.description}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Footer com total de prêmios */}
-            <div className={`px-4 py-2.5 ${themeClasses.background} border-t ${themeClasses.border}`}>
+            {/* Mensagem de clique */}
+            <div className={`px-4 py-3 ${themeClasses.background}`}>
               <p className={`text-center text-sm ${themeClasses.textSecondary} font-medium`}>
-                {campaign.prizes.length} {campaign.prizes.length === 1 ? 'prêmio disponível' : 'prêmios disponíveis'}
+                Clique para ver todos os prêmios
               </p>
             </div>
           </section>
