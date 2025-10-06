@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle, ShoppingCart } from 'lucide-react';
+import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle, Sparkles } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { formatReservationTime } from '../utils/timeFormatters';
 
@@ -211,7 +211,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   };
 
   const getCustomGradientStyle = () => {
-    if (!customGradientColors) return null;
+    if (!customGradientColors) return {};
 
     try {
       const colors = JSON.parse(customGradientColors);
@@ -224,30 +224,25 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     } catch (e) {
       console.error('Error parsing custom gradient colors:', e);
     }
-    return null;
+    return {};
   };
 
   const getColorStyle = () => {
     if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom' && customGradientColors) {
+      if (gradientClasses === 'custom') {
         return getCustomGradientStyle();
       }
-      // Para gradientes pré-definidos, não retorna style inline
       return {};
     }
-    // Para cores sólidas
-    return primaryColor ? { backgroundColor: primaryColor } : { backgroundColor: '#3B82F6' };
+    return primaryColor ? { backgroundColor: primaryColor } : {};
   };
 
   const getColorClassName = () => {
     if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom' && customGradientColors) {
+      if (gradientClasses === 'custom') {
         return 'animate-gradient-x bg-[length:200%_200%]';
       }
-      // Para gradientes pré-definidos do Tailwind
-      if (gradientClasses) {
-        return `bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
-      }
+      return `bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
     }
     return '';
   };
@@ -276,7 +271,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg transform hover:scale-105 transition-transform duration-200 ${getColorClassName()}`}
                 style={getColorStyle()}
               >
-                <ShoppingCart className="h-6 w-6" />
+                <Sparkles className="h-6 w-6" />
               </div>
               <div>
                 <h2 className={`text-2xl font-bold ${theme.text}`}>
@@ -540,7 +535,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             <button
               type="submit"
               disabled={reserving}
-              className={`w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-[1.02] active:scale-[0.98] ${getColorClassName()}`}
+              className={`w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-[1.02] active:scale-[0.98] ${!reserving ? getColorClassName() : ''}`}
               style={reserving ? { backgroundColor: '#9CA3AF' } : getColorStyle()}
             >
               {reserving ? (
