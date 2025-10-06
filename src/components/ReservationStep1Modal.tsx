@@ -113,65 +113,39 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
     }
   };
 
-  // Função auxiliar para obter o gradiente CSS real a partir das classes Tailwind
-  const getGradientCssValue = (gradientClasses: string | null | undefined, customColorsJson: string | null | undefined): string | null => {
-    if (gradientClasses === 'custom' && customColorsJson) {
-      try {
-        const colors = JSON.parse(customColorsJson);
-        if (Array.isArray(colors) && colors.length >= 2) {
-          return `linear-gradient(135deg, ${colors.join(', ')})`;
-        }
-      } catch (e) {
-        console.error('Error parsing custom gradient colors:', e);
+  const getCustomGradientStyle = () => {
+    if (!customGradientColors) return {};
+
+    try {
+      const colors = JSON.parse(customGradientColors);
+      if (Array.isArray(colors) && colors.length >= 2) {
+        return {
+          backgroundImage: `linear-gradient(135deg, ${colors.join(', ')})`,
+          backgroundSize: '200% 200%'
+        };
       }
-    } else if (gradientClasses) {
-      // Mapeamento de classes Tailwind para valores CSS de gradiente
-      switch (gradientClasses) {
-        case 'from-purple-600 via-blue-500 to-indigo-600':
-          return 'linear-gradient(135deg, #9333ea, #3b82f6, #4f46e5)';
-        case 'from-pink-500 via-red-500 to-yellow-500':
-          return 'linear-gradient(135deg, #ec4899, #ef4444, #eab308)';
-        case 'from-green-400 via-blue-500 to-purple-600':
-          return 'linear-gradient(135deg, #4ade80, #3b82f6, #9333ea)';
-        case 'from-yellow-400 via-red-500 to-pink-500':
-          return 'linear-gradient(135deg, #facc15, #ef4444, #ec4899)';
-        case 'from-indigo-500 via-purple-500 to-pink-500':
-          return 'linear-gradient(135deg, #6366f1, #a855f7, #ec4899)';
-        case 'from-blue-400 via-teal-500 to-green-500':
-          return 'linear-gradient(135deg, #60a5fa, #14b8a6, #22c55e)';
-        case 'from-red-500 via-orange-500 to-yellow-500':
-          return 'linear-gradient(135deg, #ef4444, #f97316, #eab308)';
-        case 'from-cyan-400 via-blue-500 to-indigo-600':
-          return 'linear-gradient(135deg, #22d3ee, #3b82f6, #4f46e5)';
-        case 'from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00]':
-          return 'linear-gradient(135deg, #7928CA, #FF0080, #007CF0, #FF8C00)';
-        // Adicione mais casos para outros gradientes predefinidos que você usa
-        default:
-          return null;
-      }
+    } catch (e) {
+      console.error('Error parsing custom gradient colors:', e);
     }
-    return null;
+    return {};
   };
 
   const getColorStyle = () => {
     if (colorMode === 'gradient') {
-      const gradientValue = getGradientCssValue(gradientClasses, customGradientColors);
-      if (gradientValue) {
-        return {
-          background: gradientValue,
-          backgroundSize: '200% 200%'
-        };
+      if (gradientClasses === 'custom') {
+        return getCustomGradientStyle();
       }
+      return {};
     }
-    // Fallback para cor sólida ou padrão se não for gradiente ou gradiente inválido
-    return primaryColor ? { backgroundColor: primaryColor } : { backgroundColor: '#3B82F6' };
+    return primaryColor ? { backgroundColor: primaryColor } : {};
   };
 
   const getColorClassName = () => {
     if (colorMode === 'gradient') {
-      if (gradientClasses) {
-        return `animate-gradient-x bg-[length:200%_200%]`;
+      if (gradientClasses === 'custom') {
+        return 'animate-gradient-x bg-[length:200%_200%]';
       }
+      return `bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
     }
     return '';
   };
