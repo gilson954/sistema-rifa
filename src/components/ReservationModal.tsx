@@ -537,7 +537,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             <button
               type="submit"
               disabled={reserving}
-              className={`w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-[1.02] active:scale-[0.98] ${!reserving ? getColorClassName() : ''}`}
+              className={`w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-[1.02] active:scale-[0.98] ${getColorClassName()}`}
               style={reserving ? { backgroundColor: '#9CA3AF' } : getColorStyle()}
             >
               {reserving ? (
