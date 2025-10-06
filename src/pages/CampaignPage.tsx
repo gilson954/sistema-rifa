@@ -1363,6 +1363,9 @@ const CampaignPage = () => {
         campaignTheme={campaignTheme}
         reserving={reserving}
         reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
       />
 
       {/* Prizes Display Modal */}
