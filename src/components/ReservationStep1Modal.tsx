@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, CheckCircle, ShoppingCart, ArrowRight } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { checkCustomerByPhone, CustomerData as ExistingCustomer } from '../utils/customerCheck';
@@ -218,121 +219,298 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
 
   const theme = getThemeClasses(campaignTheme);
 
-  if (!isOpen) return null;
+  // Variantes de animação
+  const overlayVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { duration: 0.3, ease: 'easeOut' }
+    },
+    exit: { 
+      opacity: 0,
+      transition: { duration: 0.2, ease: 'easeIn' }
+    }
+  };
+
+  const modalVariants = {
+    hidden: { 
+      opacity: 0,
+      scale: 0.9,
+      y: 50
+    },
+    visible: { 
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: { 
+        duration: 0.4,
+        ease: [0.22, 1, 0.36, 1],
+        staggerChildren: 0.1
+      }
+    },
+    exit: { 
+      opacity: 0,
+      scale: 0.95,
+      y: 30,
+      transition: { 
+        duration: 0.25,
+        ease: 'easeIn'
+      }
+    }
+  };
+
+  const headerVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.4, ease: 'easeOut' }
+    }
+  };
+
+  const contentVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.4, ease: 'easeOut', delay: 0.1 }
+    }
+  };
+
+  const cardItemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: (custom: number) => ({ 
+      opacity: 1, 
+      x: 0,
+      transition: { 
+        duration: 0.3, 
+        ease: 'easeOut',
+        delay: custom * 0.1
+      }
+    })
+  };
 
   return (
-    <div className={`fixed inset-0 ${theme.overlayBg} backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300`}>
-      <div className={`rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto ${theme.background} border ${theme.border} transform transition-all duration-300 animate-in slide-in-from-bottom-4 ${
-        campaignTheme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
-      }`}>
-
-        {/* Header */}
-        <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r opacity-10" style={{
-            background: `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}99 100%)`
-          }}></div>
-
-          <div className={`relative flex items-center justify-between p-6 border-b ${theme.border}`}>
-            <div className="flex items-center space-x-4">
-              <div
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg transform hover:scale-105 transition-transform duration-200 ${getColorClassName()}`}
-                style={getColorStyle()}
-              >
-                <ShoppingCart className="h-6 w-6" />
-              </div>
-              <div>
-                <h2 className={`text-2xl font-bold ${theme.text}`}>
-                  Sua conta
-                </h2>
-                <p className={`text-sm ${theme.textSecondary} mt-0.5`}>
-                  Digite seu número de celular
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleClose}
-              disabled={checking}
-              className={`p-2.5 rounded-xl transition-all duration-200 ${
-                checking
-                  ? 'cursor-not-allowed opacity-50'
-                  : `${theme.hoverBg} hover:scale-105`
-              }`}
-            >
-              <X className={`h-5 w-5 ${theme.iconColor}`} />
-            </button>
-          </div>
-        </div>
-
-        {/* Card de resumo */}
-        <div className="px-6 pt-6">
-          <div className={`p-5 ${theme.cardBg} border ${theme.border} rounded-2xl shadow-sm`}>
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className={`text-sm font-semibold ${theme.text}`}>
-                  Quantidade de títulos
-                </span>
-              </div>
-              <span className={`text-2xl font-bold ${theme.text}`}>
-                {quotaCount}
-              </span>
-            </div>
-            <div className="flex items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-200/30 dark:border-gray-700/30">
-              <span className={`text-sm font-semibold ${theme.textSecondary}`}>
-                Valor
-              </span>
-              <span className={`text-2xl font-bold ${theme.text}`}>
-                {formatCurrency(totalValue)}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={(e) => { e.preventDefault(); handleContinue(); }} className="p-6 space-y-6">
-          {/* Phone Number */}
-          <div>
-            <label className={`flex items-center text-sm font-semibold ${theme.labelText} mb-2`}>
-              <Phone className={`h-4 w-4 mr-2 ${theme.iconColor}`} />
-              Número de Celular
-            </label>
-            <CountryPhoneSelect
-              phoneNumber={phoneNumber}
-              onPhoneChange={setPhoneNumber}
-              selectedCountry={selectedCountry}
-              onCountryChange={setSelectedCountry}
-              placeholder="Digite seu número"
-              error={error}
-              theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
-            />
-          </div>
-
-          {/* Continue Button */}
-          <button
-            type="submit"
-            disabled={checking}
-            className={`w-full py-4 px-6 rounded-xl text-white font-bold text-lg shadow-lg transform transition-all duration-200 flex items-center justify-center gap-2 ${
-              checking
-                ? 'opacity-50 cursor-not-allowed'
-                : 'hover:scale-105 hover:shadow-xl active:scale-95'
-            } ${getColorClassName()}`}
-            style={getColorStyle()}
+    <AnimatePresence mode="wait">
+      {isOpen && (
+        <motion.div
+          className={`fixed inset-0 ${theme.overlayBg} backdrop-blur-sm flex items-center justify-center z-50 p-4`}
+          variants={overlayVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          onClick={handleClose}
+        >
+          <motion.div
+            className={`rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto ${theme.background} border ${theme.border} ${
+              campaignTheme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
+            }`}
+            variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            onClick={(e) => e.stopPropagation()}
           >
-            {checking ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                <span>Verificando...</span>
-              </>
-            ) : (
-              <>
-                <span>Continuar</span>
-                <ArrowRight className="h-5 w-5" />
-              </>
-            )}
-          </button>
-        </form>
-      </div>
-    </div>
+            {/* Header */}
+            <motion.div 
+              className="relative overflow-hidden"
+              variants={headerVariants}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r opacity-10" style={{
+                background: `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}99 100%)`
+              }}></div>
+
+              <div className={`relative flex items-center justify-between p-6 border-b ${theme.border}`}>
+                <div className="flex items-center space-x-4">
+                  <motion.div
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg ${getColorClassName()}`}
+                    style={getColorStyle()}
+                    whileHover={{ scale: 1.05, rotate: 5 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                  >
+                    <ShoppingCart className="h-6 w-6" />
+                  </motion.div>
+                  <div>
+                    <motion.h2 
+                      className={`text-2xl font-bold ${theme.text}`}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2, duration: 0.4 }}
+                    >
+                      Sua conta
+                    </motion.h2>
+                    <motion.p 
+                      className={`text-sm ${theme.textSecondary} mt-0.5`}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3, duration: 0.4 }}
+                    >
+                      Digite seu número de celular
+                    </motion.p>
+                  </div>
+                </div>
+                <motion.button
+                  onClick={handleClose}
+                  disabled={checking}
+                  className={`p-2.5 rounded-xl transition-all duration-200 ${
+                    checking
+                      ? 'cursor-not-allowed opacity-50'
+                      : `${theme.hoverBg}`
+                  }`}
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                >
+                  <X className={`h-5 w-5 ${theme.iconColor}`} />
+                </motion.button>
+              </div>
+            </motion.div>
+
+            {/* Card de resumo */}
+            <motion.div 
+              className="px-6 pt-6"
+              variants={contentVariants}
+            >
+              <motion.div 
+                className={`p-5 ${theme.cardBg} border ${theme.border} rounded-2xl shadow-sm`}
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              >
+                <motion.div 
+                  className="flex items-center justify-between gap-4"
+                  custom={0}
+                  variants={cardItemVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <div className="flex items-center gap-3">
+                    <motion.div
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                    >
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    </motion.div>
+                    <span className={`text-sm font-semibold ${theme.text}`}>
+                      Quantidade de títulos
+                    </span>
+                  </div>
+                  <motion.span 
+                    className={`text-2xl font-bold ${theme.text}`}
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ 
+                      type: 'spring', 
+                      stiffness: 200, 
+                      damping: 15,
+                      delay: 0.3
+                    }}
+                  >
+                    {quotaCount}
+                  </motion.span>
+                </motion.div>
+                <motion.div 
+                  className="flex items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-200/30 dark:border-gray-700/30"
+                  custom={1}
+                  variants={cardItemVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <span className={`text-sm font-semibold ${theme.textSecondary}`}>
+                    Valor
+                  </span>
+                  <motion.span 
+                    className={`text-2xl font-bold ${theme.text}`}
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ 
+                      type: 'spring', 
+                      stiffness: 200, 
+                      damping: 15,
+                      delay: 0.4
+                    }}
+                  >
+                    {formatCurrency(totalValue)}
+                  </motion.span>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+
+            {/* Form */}
+            <motion.form 
+              onSubmit={(e) => { e.preventDefault(); handleContinue(); }} 
+              className="p-6 space-y-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
+            >
+              {/* Phone Number */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4, duration: 0.4 }}
+              >
+                <motion.label 
+                  className={`flex items-center text-sm font-semibold ${theme.labelText} mb-2`}
+                  whileHover={{ x: 2 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                >
+                  <Phone className={`h-4 w-4 mr-2 ${theme.iconColor}`} />
+                  Número de Celular
+                </motion.label>
+                <CountryPhoneSelect
+                  phoneNumber={phoneNumber}
+                  onPhoneChange={setPhoneNumber}
+                  selectedCountry={selectedCountry}
+                  onCountryChange={setSelectedCountry}
+                  placeholder="Digite seu número"
+                  error={error}
+                  theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
+                />
+              </motion.div>
+
+              {/* Continue Button */}
+              <motion.button
+                type="submit"
+                disabled={checking}
+                className={`w-full py-4 px-6 rounded-xl text-white font-bold text-lg shadow-lg flex items-center justify-center gap-2 ${
+                  checking
+                    ? 'opacity-50 cursor-not-allowed'
+                    : ''
+                } ${getColorClassName()}`}
+                style={getColorStyle()}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.4 }}
+                whileHover={!checking ? { scale: 1.02, y: -2 } : {}}
+                whileTap={!checking ? { scale: 0.98 } : {}}
+              >
+                {checking ? (
+                  <>
+                    <motion.div 
+                      className="rounded-full h-5 w-5 border-b-2 border-white"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    />
+                    <span>Verificando...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Continuar</span>
+                    <motion.div
+                      animate={{ x: [0, 5, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      <ArrowRight className="h-5 w-5" />
+                    </motion.div>
+                  </>
+                )}
+              </motion.button>
+            </motion.form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
