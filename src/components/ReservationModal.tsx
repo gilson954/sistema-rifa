@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle, ShoppingCart } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { formatReservationTime } from '../utils/timeFormatters';
@@ -253,318 +254,559 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 
   const theme = getThemeClasses(campaignTheme);
 
-  if (!isOpen) return null;
+  // Variantes de animação
+  const overlayVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { duration: 0.3, ease: 'easeOut' }
+    },
+    exit: { 
+      opacity: 0,
+      transition: { duration: 0.2, ease: 'easeIn' }
+    }
+  };
+
+  const modalVariants = {
+    hidden: { 
+      opacity: 0,
+      scale: 0.9,
+      y: 50
+    },
+    visible: { 
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: { 
+        duration: 0.4,
+        ease: [0.22, 1, 0.36, 1],
+        staggerChildren: 0.1
+      }
+    },
+    exit: { 
+      opacity: 0,
+      scale: 0.95,
+      y: 30,
+      transition: { 
+        duration: 0.25,
+        ease: 'easeIn'
+      }
+    }
+  };
+
+  const headerVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.4, ease: 'easeOut' }
+    }
+  };
+
+  const contentVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.4, ease: 'easeOut', delay: 0.1 }
+    }
+  };
+
+  const formItemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: (custom: number) => ({ 
+      opacity: 1, 
+      x: 0,
+      transition: { 
+        duration: 0.4, 
+        ease: 'easeOut',
+        delay: custom * 0.05
+      }
+    })
+  };
 
   return (
-    <div className={`fixed inset-0 ${theme.overlayBg} backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300`}>
-      <div className={`rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto ${theme.background} border ${theme.border} transform transition-all duration-300 animate-in slide-in-from-bottom-4 ${
-        campaignTheme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
-      }`}>
-        
-        {/* Header com gradiente e efeito moderno */}
-        <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r opacity-10" style={{ 
-            background: `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}99 100%)` 
-          }}></div>
-          
-          <div className={`relative flex items-center justify-between p-6 border-b ${theme.border}`}>
-            <div className="flex items-center space-x-4">
-              <div
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg transform hover:scale-105 transition-transform duration-200 ${getColorClassName()}`}
-                style={getColorStyle()}
+    <AnimatePresence mode="wait">
+      {isOpen && (
+        <motion.div
+          className={`fixed inset-0 ${theme.overlayBg} backdrop-blur-sm flex items-center justify-center z-50 p-4`}
+          variants={overlayVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          onClick={handleClose}
+        >
+          <motion.div
+            className={`rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto ${theme.background} border ${theme.border} ${
+              campaignTheme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
+            }`}
+            variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header com gradiente e efeito moderno */}
+            <motion.div 
+              className="relative overflow-hidden"
+              variants={headerVariants}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r opacity-10" style={{ 
+                background: `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}99 100%)` 
+              }}></div>
+              
+              <div className={`relative flex items-center justify-between p-6 border-b ${theme.border}`}>
+                <div className="flex items-center space-x-4">
+                  <motion.div
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg ${getColorClassName()}`}
+                    style={getColorStyle()}
+                    whileHover={{ scale: 1.05, rotate: 5 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                  >
+                    <ShoppingCart className="h-6 w-6" />
+                  </motion.div>
+                  <div>
+                    <motion.h2 
+                      className={`text-2xl font-bold ${theme.text}`}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2, duration: 0.4 }}
+                    >
+                      Crie sua conta
+                    </motion.h2>
+                    <motion.p 
+                      className={`text-sm ${theme.textSecondary} mt-0.5`}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3, duration: 0.4 }}
+                    >
+                      Complete seus dados para continuar
+                    </motion.p>
+                  </div>
+                </div>
+                <motion.button
+                  onClick={handleClose}
+                  disabled={reserving}
+                  className={`p-2.5 rounded-xl transition-all duration-200 ${
+                    reserving 
+                      ? 'cursor-not-allowed opacity-50' 
+                      : `${theme.hoverBg}`
+                  }`}
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                >
+                  <X className={`h-5 w-5 ${theme.iconColor}`} />
+                </motion.button>
+              </div>
+            </motion.div>
+
+            {/* Card de resumo da campanha */}
+            <motion.div 
+              className="px-6 pt-6"
+              variants={contentVariants}
+            >
+              <motion.div 
+                className={`p-5 ${theme.cardBg} border ${theme.border} rounded-2xl shadow-sm`}
+                whileHover={{ scale: 1.01 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               >
-                <ShoppingCart className="h-6 w-6" />
-              </div>
-              <div>
-                <h2 className={`text-2xl font-bold ${theme.text}`}>
-                  Crie sua conta
-                </h2>
-                <p className={`text-sm ${theme.textSecondary} mt-0.5`}>
-                  Complete seus dados para continuar
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleClose}
-              disabled={reserving}
-              className={`p-2.5 rounded-xl transition-all duration-200 ${
-                reserving 
-                  ? 'cursor-not-allowed opacity-50' 
-                  : `${theme.hoverBg} hover:scale-105`
-              }`}
-            >
-              <X className={`h-5 w-5 ${theme.iconColor}`} />
-            </button>
-          </div>
-        </div>
-
-        {/* Card de resumo da campanha - ÍCONE VERDE E VALOR COM COR DO TEMA */}
-        <div className="px-6 pt-6">
-          <div className={`p-5 ${theme.cardBg} border ${theme.border} rounded-2xl shadow-sm`}>
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <h3 className={`font-bold text-lg ${theme.text} mb-3`}>
-                  {campaignTitle}
-                </h3>
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/30 dark:border-gray-700/30">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className={`text-sm font-semibold ${theme.text}`}>
-                      {quotaCount} {quotaCount === 1 ? 'cota' : 'cotas'}
-                    </span>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className={`font-bold text-lg ${theme.text} mb-3`}>
+                      {campaignTitle}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <motion.div 
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/30 dark:border-gray-700/30"
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                      >
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span className={`text-sm font-semibold ${theme.text}`}>
+                          {quotaCount} {quotaCount === 1 ? 'cota' : 'cotas'}
+                        </span>
+                      </motion.div>
+                      <motion.div 
+                        className={`px-4 py-1.5 rounded-lg font-bold text-lg shadow-sm ${theme.text}`}
+                        initial={{ scale: 0.8 }}
+                        animate={{ scale: 1 }}
+                        transition={{ 
+                          type: 'spring', 
+                          stiffness: 200, 
+                          damping: 15,
+                          delay: 0.3
+                        }}
+                      >
+                        {formatCurrency(totalValue)}
+                      </motion.div>
+                    </div>
+                    {selectedQuotas && selectedQuotas.length > 0 && (
+                      <motion.div 
+                        className={`text-xs ${theme.textSecondary} mt-3 p-2 rounded-lg bg-white/30 dark:bg-gray-800/30`}
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        transition={{ delay: 0.4, duration: 0.3 }}
+                      >
+                        <span className="font-semibold">Números selecionados:</span> {selectedQuotas.sort((a, b) => a - b).join(', ')}
+                      </motion.div>
+                    )}
                   </div>
-                  <div className={`px-4 py-1.5 rounded-lg font-bold text-lg shadow-sm ${theme.text}`}>
+                </div>
+              </motion.div>
+            </motion.div>
+
+            {/* Aviso de tempo de reserva */}
+            <motion.div 
+              className="px-6 pt-4"
+              variants={contentVariants}
+            >
+              <motion.div 
+                className={`relative overflow-hidden p-4 border-2 rounded-2xl ${
+                  campaignTheme === 'claro' 
+                    ? 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-300/50' 
+                    : 'bg-gradient-to-br from-orange-900/20 to-amber-900/20 border-orange-700/50'
+                }`}
+                whileHover={{ scale: 1.01 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              >
+                <div className="flex items-start space-x-3">
+                  <motion.div 
+                    className="p-2 rounded-xl bg-orange-500/10"
+                    animate={{ rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                  >
+                    <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  </motion.div>
+                  <div className="flex-1">
+                    <p className={`text-sm font-bold ${theme.text} mb-1`}>
+                      Tempo de Reserva
+                    </p>
+                    <p className={`text-sm ${theme.textSecondary} leading-relaxed`}>
+                      Suas cotas ficarão reservadas por{' '}
+                      <span className="font-bold text-orange-600 dark:text-orange-400">
+                        {formatReservationTime(reservationTimeoutMinutes)}
+                      </span>. 
+                      Complete o pagamento via Pix para confirmar sua participação.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+
+            {/* Formulário */}
+            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+              
+              {/* Campo Nome */}
+              <motion.div
+                custom={0}
+                variants={formItemVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                <label className={`block text-sm font-bold ${theme.labelText} mb-2`}>
+                  Nome completo <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <User className={`absolute left-3.5 top-1/2 transform -translate-y-1/2 h-5 w-5 ${theme.iconColor}`} />
+                  <motion.input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Digite seu nome completo"
+                    className={`w-full pl-11 pr-4 py-3.5 border-2 rounded-xl ${theme.inputBg} ${theme.inputText} ${theme.inputPlaceholder} focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${
+                      errors.name ? 'border-red-500 focus:ring-red-500/20' : `${theme.inputBorder} focus:ring-opacity-20`
+                    }`}
+                    style={{ '--tw-ring-color': `${primaryColor || '#3B82F6'}33` } as React.CSSProperties}
+                    disabled={reserving}
+                    required
+                    whileFocus={{ scale: 1.01 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  />
+                </div>
+                <AnimatePresence>
+                  {errors.name && (
+                    <motion.p 
+                      className="text-red-500 text-sm mt-2 font-medium flex items-center gap-1"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      {errors.name}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+
+              {/* Campo Email */}
+              <motion.div
+                custom={1}
+                variants={formItemVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                <label className={`block text-sm font-bold ${theme.labelText} mb-2`}>
+                  E-mail (Obrigatório) <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <Mail className={`absolute left-3.5 top-1/2 transform -translate-y-1/2 h-5 w-5 ${theme.iconColor}`} />
+                  <motion.input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="seu@email.com"
+                    className={`w-full pl-11 pr-4 py-3.5 border-2 rounded-xl ${theme.inputBg} ${theme.inputText} ${theme.inputPlaceholder} focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${
+                      errors.email ? 'border-red-500 focus:ring-red-500/20' : `${theme.inputBorder} focus:ring-opacity-20`
+                    }`}
+                    style={{ '--tw-ring-color': `${primaryColor || '#3B82F6'}33` } as React.CSSProperties}
+                    disabled={reserving}
+                    required
+                    whileFocus={{ scale: 1.01 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  />
+                </div>
+                <AnimatePresence>
+                  {errors.email && (
+                    <motion.p 
+                      className="text-red-500 text-sm mt-2 font-medium flex items-center gap-1"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      {errors.email}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+
+              {/* Campo Telefone */}
+              <motion.div
+                custom={2}
+                variants={formItemVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                <label className={`block text-sm font-bold ${theme.labelText} mb-2`}>
+                  Número de celular <span className="text-red-500">*</span>
+                </label>
+                <CountryPhoneSelect
+                  selectedCountry={selectedCountry}
+                  onCountryChange={(country) => {
+                    setSelectedCountry(country);
+                    setFormData({ ...formData, countryCode: country.dialCode });
+                  }}
+                  phoneNumber={formData.phoneNumber}
+                  onPhoneChange={(phone) => setFormData({ ...formData, phoneNumber: phone })}
+                  placeholder="Digite seu número"
+                  error={errors.phoneNumber}
+                  theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
+                />
+              </motion.div>
+
+              {/* Campo Confirmar Telefone */}
+              <motion.div
+                custom={3}
+                variants={formItemVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                <label className={`block text-sm font-bold ${theme.labelText} mb-2`}>
+                  Confirme seu número <span className="text-red-500">*</span>
+                </label>
+                <CountryPhoneSelect
+                  selectedCountry={selectedCountry}
+                  onCountryChange={(country) => setSelectedCountry(country)}
+                  phoneNumber={confirmPhoneNumber}
+                  onPhoneChange={setConfirmPhoneNumber}
+                  placeholder="Digite novamente seu número"
+                  error={errors.confirmPhoneNumber}
+                  theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
+                />
+              </motion.div>
+
+              {/* Termos e Avisos */}
+              <motion.div 
+                className="space-y-4"
+                custom={4}
+                variants={formItemVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                {/* Checkbox de Termos */}
+                <motion.div 
+                  className={`flex items-start space-x-3 p-4 rounded-xl border-2 ${theme.border} ${theme.cardBg}`}
+                  whileHover={{ scale: 1.01 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                >
+                  <input
+                    type="checkbox"
+                    id="acceptTerms"
+                    checked={formData.acceptTerms}
+                    onChange={(e) => setFormData({ ...formData, acceptTerms: e.target.checked })}
+                    className="w-5 h-5 rounded-lg border-2 border-gray-400 focus:ring-2 mt-0.5 cursor-pointer"
+                    style={{ 
+                      accentColor: primaryColor || '#3B82F6',
+                      '--tw-ring-color': `${primaryColor || '#3B82F6'}33`
+                    } as React.CSSProperties}
+                    disabled={reserving}
+                    required
+                  />
+                  <label htmlFor="acceptTerms" className={`text-sm ${theme.textSecondary} leading-relaxed cursor-pointer`}>
+                    Ao reservar, declaro ter lido e concordado com os{' '}
+                    <a href="#" className="font-semibold hover:underline" style={{ color: primaryColor || '#3B82F6' }}>
+                      termos de uso
+                    </a>{' '}
+                    e a{' '}
+                    <a href="#" className="font-semibold hover:underline" style={{ color: primaryColor || '#3B82F6' }}>
+                      política de privacidade
+                    </a>
+                    .
+                  </label>
+                </motion.div>
+                <AnimatePresence>
+                  {errors.acceptTerms && (
+                    <motion.p 
+                      className="text-red-500 text-sm font-medium flex items-center gap-1"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      {errors.acceptTerms}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+
+                {/* Aviso Importante */}
+                <motion.div 
+                  className={`relative overflow-hidden border-2 rounded-2xl p-4 ${
+                    campaignTheme === 'claro'
+                      ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-300/50'
+                      : 'bg-gradient-to-br from-blue-900/20 to-indigo-900/20 border-blue-700/50'
+                  }`}
+                  whileHover={{ scale: 1.01 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                >
+                  <div className="flex items-start space-x-3">
+                    <motion.div 
+                      className="p-2 rounded-xl bg-blue-500/10"
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                    >
+                      <AlertTriangle className={`h-5 w-5 ${
+                        campaignTheme === 'claro' ? 'text-blue-600' : 'text-blue-400'
+                      }`} />
+                    </motion.div>
+                    <div className="flex-1">
+                      <p className={`text-sm font-bold mb-1 ${
+                        campaignTheme === 'claro' ? 'text-blue-900' : 'text-blue-100'
+                      }`}>
+                        Importante
+                      </p>
+                      <p className={`text-sm leading-relaxed ${
+                        campaignTheme === 'claro' ? 'text-blue-800' : 'text-blue-200'
+                      }`}>
+                        Após confirmar, você terá{' '}
+                        <span className="font-bold">{formatReservationTime(reservationTimeoutMinutes)}</span>{' '}
+                        para efetuar o pagamento. Caso contrário, suas cotas serão liberadas automaticamente.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+
+              {/* Card Total a Pagar */}
+              <motion.div 
+                className={`${theme.cardBg} rounded-2xl p-5 border-2 ${theme.border} shadow-sm`}
+                custom={5}
+                variants={formItemVariants}
+                initial="hidden"
+                animate="visible"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`font-bold text-lg ${theme.text}`}>
+                    Total a pagar
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={`font-medium ${theme.textSecondary}`}>
+                    {quotaCount} {quotaCount === 1 ? 'cota' : 'cotas'}
+                  </span>
+                  <motion.span 
+                    className={`font-bold text-3xl ${theme.text}`}
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ 
+                      type: 'spring', 
+                      stiffness: 200, 
+                      damping: 15,
+                      delay: 0.5
+                    }}
+                  >
                     {formatCurrency(totalValue)}
-                  </div>
+                  </motion.span>
                 </div>
-                {selectedQuotas && selectedQuotas.length > 0 && (
-                  <div className={`text-xs ${theme.textSecondary} mt-3 p-2 rounded-lg bg-white/30 dark:bg-gray-800/30`}>
-                    <span className="font-semibold">Números selecionados:</span> {selectedQuotas.sort((a, b) => a - b).join(', ')}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+              </motion.div>
 
-        {/* Aviso de tempo de reserva - Melhorado */}
-        <div className="px-6 pt-4">
-          <div className={`relative overflow-hidden p-4 border-2 rounded-2xl ${
-            campaignTheme === 'claro' 
-              ? 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-300/50' 
-              : 'bg-gradient-to-br from-orange-900/20 to-amber-900/20 border-orange-700/50'
-          }`}>
-            <div className="flex items-start space-x-3">
-              <div className="p-2 rounded-xl bg-orange-500/10">
-                <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div className="flex-1">
-                <p className={`text-sm font-bold ${theme.text} mb-1`}>
-                  Tempo de Reserva
-                </p>
-                <p className={`text-sm ${theme.textSecondary} leading-relaxed`}>
-                  Suas cotas ficarão reservadas por{' '}
-                  <span className="font-bold text-orange-600 dark:text-orange-400">
-                    {formatReservationTime(reservationTimeoutMinutes)}
-                  </span>. 
-                  Complete o pagamento via Pix para confirmar sua participação.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+              {/* Botões de Ação */}
+              <motion.div 
+                className="space-y-3 pt-2"
+                custom={6}
+                variants={formItemVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                <motion.button
+                  type="submit"
+                  disabled={reserving}
+                  className={`w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 ${!reserving ? getColorClassName() : ''}`}
+                  style={reserving ? { backgroundColor: '#9CA3AF' } : getColorStyle()}
+                  whileHover={!reserving ? { scale: 1.02, y: -2 } : {}}
+                  whileTap={!reserving ? { scale: 0.98 } : {}}
+                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                >
+                  {reserving ? (
+                    <>
+                      <motion.div 
+                        className="rounded-full h-5 w-5 border-b-2 border-white"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      />
+                      <span>Processando reserva...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="h-5 w-5" />
+                      <span>Concluir reserva</span>
+                    </>
+                  )}
+                </motion.button>
 
-        {/* Formulário */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          
-          {/* Campo Nome */}
-          <div>
-            <label className={`block text-sm font-bold ${theme.labelText} mb-2`}>
-              Nome completo <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <User className={`absolute left-3.5 top-1/2 transform -translate-y-1/2 h-5 w-5 ${theme.iconColor}`} />
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Digite seu nome completo"
-                className={`w-full pl-11 pr-4 py-3.5 border-2 rounded-xl ${theme.inputBg} ${theme.inputText} ${theme.inputPlaceholder} focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${
-                  errors.name ? 'border-red-500 focus:ring-red-500/20' : `${theme.inputBorder} focus:ring-opacity-20`
-                }`}
-                style={{ '--tw-ring-color': `${primaryColor || '#3B82F6'}33` } as React.CSSProperties}
-                disabled={reserving}
-                required
-              />
-            </div>
-            {errors.name && (
-              <p className="text-red-500 text-sm mt-2 font-medium flex items-center gap-1">
-                <AlertTriangle className="h-3.5 w-3.5" />
-                {errors.name}
-              </p>
-            )}
-          </div>
-
-          {/* Campo Email */}
-          <div>
-            <label className={`block text-sm font-bold ${theme.labelText} mb-2`}>
-              E-mail (Obrigatório) <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <Mail className={`absolute left-3.5 top-1/2 transform -translate-y-1/2 h-5 w-5 ${theme.iconColor}`} />
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="seu@email.com"
-                className={`w-full pl-11 pr-4 py-3.5 border-2 rounded-xl ${theme.inputBg} ${theme.inputText} ${theme.inputPlaceholder} focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${
-                  errors.email ? 'border-red-500 focus:ring-red-500/20' : `${theme.inputBorder} focus:ring-opacity-20`
-                }`}
-                style={{ '--tw-ring-color': `${primaryColor || '#3B82F6'}33` } as React.CSSProperties}
-                disabled={reserving}
-                required
-              />
-            </div>
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-2 font-medium flex items-center gap-1">
-                <AlertTriangle className="h-3.5 w-3.5" />
-                {errors.email}
-              </p>
-            )}
-          </div>
-
-          {/* Campo Telefone */}
-          <div>
-            <label className={`block text-sm font-bold ${theme.labelText} mb-2`}>
-              Número de celular <span className="text-red-500">*</span>
-            </label>
-            <CountryPhoneSelect
-              selectedCountry={selectedCountry}
-              onCountryChange={(country) => {
-                setSelectedCountry(country);
-                setFormData({ ...formData, countryCode: country.dialCode });
-              }}
-              phoneNumber={formData.phoneNumber}
-              onPhoneChange={(phone) => setFormData({ ...formData, phoneNumber: phone })}
-              placeholder="Digite seu número"
-              error={errors.phoneNumber}
-              theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
-            />
-          </div>
-
-          {/* Campo Confirmar Telefone */}
-          <div>
-            <label className={`block text-sm font-bold ${theme.labelText} mb-2`}>
-              Confirme seu número <span className="text-red-500">*</span>
-            </label>
-            <CountryPhoneSelect
-              selectedCountry={selectedCountry}
-              onCountryChange={(country) => setSelectedCountry(country)}
-              phoneNumber={confirmPhoneNumber}
-              onPhoneChange={setConfirmPhoneNumber}
-              placeholder="Digite novamente seu número"
-              error={errors.confirmPhoneNumber}
-              theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
-            />
-          </div>
-
-          {/* Termos e Avisos */}
-          <div className="space-y-4">
-            
-            {/* Checkbox de Termos */}
-            <div className={`flex items-start space-x-3 p-4 rounded-xl border-2 ${theme.border} ${theme.cardBg}`}>
-              <input
-                type="checkbox"
-                id="acceptTerms"
-                checked={formData.acceptTerms}
-                onChange={(e) => setFormData({ ...formData, acceptTerms: e.target.checked })}
-                className="w-5 h-5 rounded-lg border-2 border-gray-400 focus:ring-2 mt-0.5 cursor-pointer"
-                style={{ 
-                  accentColor: primaryColor || '#3B82F6',
-                  '--tw-ring-color': `${primaryColor || '#3B82F6'}33`
-                } as React.CSSProperties}
-                disabled={reserving}
-                required
-              />
-              <label htmlFor="acceptTerms" className={`text-sm ${theme.textSecondary} leading-relaxed cursor-pointer`}>
-                Ao reservar, declaro ter lido e concordado com os{' '}
-                <a href="#" className="font-semibold hover:underline" style={{ color: primaryColor || '#3B82F6' }}>
-                  termos de uso
-                </a>{' '}
-                e a{' '}
-                <a href="#" className="font-semibold hover:underline" style={{ color: primaryColor || '#3B82F6' }}>
-                  política de privacidade
-                </a>
-                .
-              </label>
-            </div>
-            {errors.acceptTerms && (
-              <p className="text-red-500 text-sm font-medium flex items-center gap-1">
-                <AlertTriangle className="h-3.5 w-3.5" />
-                {errors.acceptTerms}
-              </p>
-            )}
-
-            {/* Aviso Importante */}
-            <div className={`relative overflow-hidden border-2 rounded-2xl p-4 ${
-              campaignTheme === 'claro'
-                ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-300/50'
-                : 'bg-gradient-to-br from-blue-900/20 to-indigo-900/20 border-blue-700/50'
-            }`}>
-              <div className="flex items-start space-x-3">
-                <div className="p-2 rounded-xl bg-blue-500/10">
-                  <AlertTriangle className={`h-5 w-5 ${
-                    campaignTheme === 'claro' ? 'text-blue-600' : 'text-blue-400'
-                  }`} />
-                </div>
-                <div className="flex-1">
-                  <p className={`text-sm font-bold mb-1 ${
-                    campaignTheme === 'claro' ? 'text-blue-900' : 'text-blue-100'
-                  }`}>
-                    Importante
-                  </p>
-                  <p className={`text-sm leading-relaxed ${
-                    campaignTheme === 'claro' ? 'text-blue-800' : 'text-blue-200'
-                  }`}>
-                    Após confirmar, você terá{' '}
-                    <span className="font-bold">{formatReservationTime(reservationTimeoutMinutes)}</span>{' '}
-                    para efetuar o pagamento. Caso contrário, suas cotas serão liberadas automaticamente.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card Total a Pagar - VALOR COM COR DO TEMA */}
-          <div className={`${theme.cardBg} rounded-2xl p-5 border-2 ${theme.border} shadow-sm`}>
-            <div className="flex items-center justify-between mb-2">
-              <span className={`font-bold text-lg ${theme.text}`}>
-                Total a pagar
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className={`font-medium ${theme.textSecondary}`}>
-                {quotaCount} {quotaCount === 1 ? 'cota' : 'cotas'}
-              </span>
-              <span className={`font-bold text-3xl ${theme.text}`}>
-                {formatCurrency(totalValue)}
-              </span>
-            </div>
-          </div>
-
-          {/* Botões de Ação */}
-          <div className="space-y-3 pt-2">
-            <button
-              type="submit"
-              disabled={reserving}
-              className={`w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-[1.02] active:scale-[0.98] ${!reserving ? getColorClassName() : ''}`}
-              style={reserving ? { backgroundColor: '#9CA3AF' } : getColorStyle()}
-            >
-              {reserving ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Processando reserva...</span>
-                </>
-              ) : (
-                <>
-                  <Shield className="h-5 w-5" />
-                  <span>Concluir reserva</span>
-                </>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={reserving}
-              className={`w-full py-3.5 rounded-xl font-semibold transition-all duration-300 border-2 ${theme.border} ${theme.text} ${theme.hoverBg} disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99]`}
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+                <motion.button
+                  type="button"
+                  onClick={handleClose}
+                  disabled={reserving}
+                  className={`w-full py-3.5 rounded-xl font-semibold transition-all duration-300 border-2 ${theme.border} ${theme.text} ${theme.hoverBg} disabled:opacity-50 disabled:cursor-not-allowed`}
+                  whileHover={!reserving ? { scale: 1.01, y: -1 } : {}}
+                  whileTap={!reserving ? { scale: 0.99 } : {}}
+                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                >
+                  Cancelar
+                </motion.button>
+              </motion.div>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
