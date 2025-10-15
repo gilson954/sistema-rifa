@@ -1,5 +1,78 @@
+🧠 Project Knowledge (para IA do app de rifas/campanhas)
+
 For all designs I ask you to make, have them be beautiful, not cookie cutter. Make webpages that are fully featured and worthy for production.
 
 By default, this template supports JSX syntax with Tailwind CSS classes, React hooks, and Lucide React for icons. Do not install other packages for UI themes, icons, etc unless absolutely necessary or I request them.
 
 Use icons from lucide-react for logos.
+
+💾 Database & Backend Rules
+
+When making any changes to the database schema, structure, or functionality, ensure all modifications are backwards compatible. This means:
+
+Existing applications and queries must continue to work without modification.
+
+New columns should have default values or be nullable.
+
+Don’t remove or rename existing tables, columns, or constraints.
+
+Don’t change data types in ways that break existing code.
+
+The goal is to avoid breaking any systems that rely on the current database structure while still allowing new features to be added.
+
+🎨 UI & UX Rules
+
+Every new component or page must use Framer Motion for transitions and animations (fade-in, slide-up, scale, etc).
+
+Layouts must look modern, premium and minimalistic, inspired by rifei.com.br and other SaaS dashboards.
+
+Prioritize clarity, spacing and smooth animations — avoid cluttered layouts.
+
+Use consistent rounded corners (2xl), soft shadows, and responsive design for desktop and mobile.
+
+Use Tailwind utility classes — avoid inline CSS.
+
+Always include hover effects, smooth transitions, and subtle motion feedback on interactive elements (buttons, cards, modals).
+
+⚙️ App Features & Logic Rules
+
+This is a MVT (Minimal Viable Tool) for managing rifas e campanhas.
+Core modules include:
+
+Campaign Management: create, edit, and view campaigns with status (active, pending, finished).
+
+Prize Management: each campaign has one or more prizes with name, image, quantity, and draw logic.
+
+Participants: store participant name, phone, ticket number, and payment status.
+
+Draw System: simulate or store random winners with visual effects (animated draw using Framer Motion).
+
+Dashboard: show stats like total participants, total revenue, active campaigns, etc — all animated counters.
+
+Admin Panel: manage campaigns, prizes, and participants.
+
+Suggestion System (optional): allow users to send ideas/suggestions saved in the database.
+
+All logic must be built in a modular and scalable way, making it easy to extend (for example: adding payment integrations, referral systems, or ranking pages).
+
+🧩 Developer Workflow
+
+When adding new pages or components, ensure consistent naming conventions and file organization.
+
+Always separate UI components, hooks, and API logic.
+
+All new code must be production-ready, avoiding temporary hacks or hardcoded data.
+
+Keep animations lightweight and fluid — avoid performance-heavy effects.
+
+Use TypeScript best practices and strong typing on all data models and props.
+
+🚀 Animation Standard
+
+Default motion: opacity fade + slide-up (ease-out).
+
+Use Framer Motion’s motion.div, AnimatePresence, and variants.
+
+Animate counters, numbers, and charts (when applicable).
+
+Transitions between pages or modals should use smooth motion for a premium feel.
