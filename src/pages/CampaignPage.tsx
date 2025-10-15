@@ -1,16 +1,17 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { 
-  Share2, 
-  Calendar, 
-  Users, 
-  Trophy, 
-  ChevronLeft, 
+import {
+  Share2,
+  Calendar,
+  Users,
+  Trophy,
+  ChevronLeft,
   ChevronRight,
   Eye,
   Gift,
   ExternalLink,
   AlertTriangle,
-  FileText
+  FileText,
+  Ticket
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -24,6 +25,7 @@ import ReservationModal, { CustomerData } from '../components/ReservationModal';
 import ReservationStep1Modal from '../components/ReservationStep1Modal';
 import ReservationStep2Modal from '../components/ReservationStep2Modal';
 import PrizesDisplayModal from '../components/PrizesDisplayModal';
+import MyTicketsModal from '../components/MyTicketsModal';
 import { CustomerData as ExistingCustomer } from '../utils/customerCheck';
 import { Promotion } from '../types/promotion';
 import { formatCurrency } from '../utils/currency';
@@ -145,6 +147,7 @@ const CampaignPage = () => {
   const [showStep1Modal, setShowStep1Modal] = useState(false);
   const [showStep2Modal, setShowStep2Modal] = useState(false);
   const [showPrizesModal, setShowPrizesModal] = useState(false);
+  const [showMyTicketsModal, setShowMyTicketsModal] = useState(false);
   const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomer | null>(null);
   const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
   const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
@@ -734,11 +737,11 @@ const CampaignPage = () => {
             </div>
             
             <button
-              onClick={() => navigate('/my-tickets')}
+              onClick={() => setShowMyTicketsModal(true)}
               className={`text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105 ${getColorClassName()}`}
               style={getColorStyle(true, false)}
             >
-              <Eye className="h-4 w-4" />
+              <Ticket className="h-4 w-4" />
               <span className="hidden sm:inline">Ver Minhas Cotas</span>
               <span className="sm:hidden">Cotas</span>
             </button>
@@ -1376,6 +1379,21 @@ const CampaignPage = () => {
           prizes={campaign.prizes || []}
           campaignTitle={campaign.title}
           campaignTheme={campaignTheme}
+        />
+      )}
+
+      {/* My Tickets Modal */}
+      {campaign && (
+        <MyTicketsModal
+          isOpen={showMyTicketsModal}
+          onClose={() => setShowMyTicketsModal(false)}
+          campaignId={campaign.id}
+          campaignTitle={campaign.title}
+          campaignTheme={campaignTheme}
+          primaryColor={primaryColor}
+          colorMode={organizerProfile?.color_mode}
+          gradientClasses={organizerProfile?.gradient_classes}
+          customGradientColors={organizerProfile?.custom_gradient_colors}
         />
       )}
     </div>
