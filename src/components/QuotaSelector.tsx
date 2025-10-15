@@ -51,13 +51,17 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [showCaret, setShowCaret] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [animationDirection, setAnimationDirection] = useState<'up' | 'down' | null>(null);
+  const [displayValue, setDisplayValue] = useState(quantity);
   const inputRef = useRef<HTMLInputElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
     const validQuantity = Math.max(initialQuantity, minTicketsPerPurchase);
     setQuantity(validQuantity);
+    setDisplayValue(validQuantity);
     onQuantityChange(validQuantity);
   }, [initialQuantity, minTicketsPerPurchase, onQuantityChange]);
 
@@ -143,17 +147,22 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     if (adjustedQuantity > maxTicketsPerPurchase) {
       setErrorMessage(`Máximo ${maxTicketsPerPurchase.toLocaleString('pt-BR')} bilhetes por compra`);
       setQuantity(maxTicketsPerPurchase);
+      setDisplayValue(maxTicketsPerPurchase);
       onQuantityChange(maxTicketsPerPurchase);
     } else {
       setErrorMessage('');
       setQuantity(adjustedQuantity);
+      setDisplayValue(adjustedQuantity);
       onQuantityChange(adjustedQuantity);
     }
   };
 
   const handleIncrement = (value: number) => {
-    setIsAnimating(true);
     setShowCaret(false);
+    
+    // Determina direção da animação
+    const direction = value > 0 ? 'up' : 'down';
+    setAnimationDirection(direction);
     
     setQuantity(prevQuantity => {
       const newQuantity = prevQuantity + value;
@@ -162,18 +171,36 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       if (adjustedQuantity > maxTicketsPerPurchase) {
         setErrorMessage(`Máximo ${maxTicketsPerPurchase.toLocaleString('pt-BR')} bilhetes por compra`);
         onQuantityChange(maxTicketsPerPurchase);
-        setTimeout(() => {
+        
+        // Atualiza display com delay para animação
+        setIsAnimating(true);
+        if (animationTimeoutRef.current) {
+          clearTimeout(animationTimeoutRef.current);
+        }
+        animationTimeoutRef.current = setTimeout(() => {
+          setDisplayValue(maxTicketsPerPurchase);
           setIsAnimating(false);
           setShowCaret(true);
-        }, 300);
+          setAnimationDirection(null);
+        }, 500);
+        
         return maxTicketsPerPurchase;
       } else {
         setErrorMessage('');
         onQuantityChange(adjustedQuantity);
-        setTimeout(() => {
+        
+        // Atualiza display com delay para animação
+        setIsAnimating(true);
+        if (animationTimeoutRef.current) {
+          clearTimeout(animationTimeoutRef.current);
+        }
+        animationTimeoutRef.current = setTimeout(() => {
+          setDisplayValue(adjustedQuantity);
           setIsAnimating(false);
           setShowCaret(true);
-        }, 300);
+          setAnimationDirection(null);
+        }, 500);
+        
         return adjustedQuantity;
       }
     });
@@ -202,6 +229,9 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   React.useEffect(() => {
     return () => {
       stopIncrement();
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -355,10 +385,16 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
               onChange={handleQuantityChange}
             />
             <div 
-              className={`pointer-events-none ${theme.text} transition-opacity duration-300 ${isAnimating ? 'opacity-50' : 'opacity-100'}`}
+              key={displayValue}
+              className={`
+                pointer-events-none ${theme.text} font-semibold
+                ${isAnimating && animationDirection === 'up' ? 'number-increment-animation' : ''}
+                ${isAnimating && animationDirection === 'down' ? 'number-decrement-animation' : ''}
+              `}
               aria-hidden
+              style={{ fontKerning: 'none' }}
             >
-              {quantity.toLocaleString('pt-BR', { useGrouping: false })}
+              {displayValue.toLocaleString('pt-BR', { useGrouping: false })}
             </div>
           </div>
           
