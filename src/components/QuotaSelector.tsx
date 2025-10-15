@@ -325,8 +325,10 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
                 e.preventDefault();
                 inputRef.current?.focus();
               }
-              handleIncrement(-1);
+              startIncrement(-1);
             }}
+            onPointerUp={stopIncrement}
+            onPointerLeave={stopIncrement}
           >
             <Minus className="size-4" strokeWidth={3.5} />
           </button>
@@ -373,8 +375,10 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
                 e.preventDefault();
                 inputRef.current?.focus();
               }
-              handleIncrement(1);
+              startIncrement(1);
             }}
+            onPointerUp={stopIncrement}
+            onPointerLeave={stopIncrement}
           >
             <Plus className="size-4" strokeWidth={3.5} />
           </button>
