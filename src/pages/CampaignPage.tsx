@@ -737,23 +737,25 @@ const CampaignPage = () => {
                     <img
                       src={organizerProfile.logo_url}
                       alt="Logo do organizador"
-                      className="h-10 w-auto max-w-[120px] object-contain bg-white dark:bg-gray-800 rounded-md"
+                      className="h-14 w-auto max-w-[180px] object-contain bg-white dark:bg-gray-800 rounded-md"
                     />
                   </div>
                 ) : (
                   <img
                     src={organizerProfile.logo_url}
                     alt="Logo do organizador"
-                    className="h-12 w-auto max-w-[120px] object-contain border-2 shadow-md rounded-lg"
-                    style={{ borderColor: organizerProfile.primary_color || '#3B82F6' }}
+                    className="h-16 w-auto max-w-[180px] object-contain shadow-md rounded-lg"
                   />
                 )
               ) : (
-                <img
-                  src="/logo-chatgpt.png"
-                  alt="Rifaqui Logo"
-                  className="w-10 h-10 object-contain"
-                />
+                <>
+                  <img
+                    src="/logo-chatgpt.png"
+                    alt="Rifaqui Logo"
+                    className="w-10 h-10 object-contain"
+                  />
+                  <span className="ml-2 text-2xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
+                </>
               )}
             </div>
 
@@ -942,20 +944,19 @@ const CampaignPage = () => {
                       <img
                         src={organizerProfile.avatar_url}
                         alt={organizerProfile.name}
-                        className="w-14 h-14 rounded-full object-cover"
+                        className="w-16 h-16 rounded-full object-cover"
                       />
                     </div>
                   ) : (
                     <img
                       src={organizerProfile.avatar_url}
                       alt={organizerProfile.name}
-                      className="w-16 h-16 rounded-full object-cover border-4 shadow-md"
-                      style={{ borderColor: organizerProfile.primary_color || '#3B82F6' }}
+                      className="w-20 h-20 rounded-full object-cover shadow-md"
                     />
                   )
                 ) : (
                   <div
-                    className={getColorClassName("w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md")}
+                    className={getColorClassName("w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-md")}
                     style={getColorStyle(true)}
                   >
                     {organizerProfile.name ? organizerProfile.name.charAt(0).toUpperCase() : 'O'}
