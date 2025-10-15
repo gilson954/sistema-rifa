@@ -49,19 +49,14 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
 }) => {
   const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [showCaret, setShowCaret] = useState(true);
-  const [isAnimating, setIsAnimating] = useState(false);
   const [animationDirection, setAnimationDirection] = useState<'up' | 'down' | null>(null);
-  const [displayValue, setDisplayValue] = useState(quantity);
   const inputRef = useRef<HTMLInputElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
     const validQuantity = Math.max(initialQuantity, minTicketsPerPurchase);
     setQuantity(validQuantity);
-    setDisplayValue(validQuantity);
     onQuantityChange(validQuantity);
   }, [initialQuantity, minTicketsPerPurchase, onQuantityChange]);
 
@@ -147,22 +142,21 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     if (adjustedQuantity > maxTicketsPerPurchase) {
       setErrorMessage(`Máximo ${maxTicketsPerPurchase.toLocaleString('pt-BR')} bilhetes por compra`);
       setQuantity(maxTicketsPerPurchase);
-      setDisplayValue(maxTicketsPerPurchase);
       onQuantityChange(maxTicketsPerPurchase);
     } else {
       setErrorMessage('');
       setQuantity(adjustedQuantity);
-      setDisplayValue(adjustedQuantity);
       onQuantityChange(adjustedQuantity);
     }
   };
 
   const handleIncrement = (value: number) => {
-    setShowCaret(false);
-    
     // Determina direção da animação
     const direction = value > 0 ? 'up' : 'down';
     setAnimationDirection(direction);
+    
+    // Reseta a animação após completar
+    setTimeout(() => setAnimationDirection(null), 300);
     
     setQuantity(prevQuantity => {
       const newQuantity = prevQuantity + value;
@@ -171,36 +165,10 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       if (adjustedQuantity > maxTicketsPerPurchase) {
         setErrorMessage(`Máximo ${maxTicketsPerPurchase.toLocaleString('pt-BR')} bilhetes por compra`);
         onQuantityChange(maxTicketsPerPurchase);
-        
-        // Atualiza display com delay para animação
-        setIsAnimating(true);
-        if (animationTimeoutRef.current) {
-          clearTimeout(animationTimeoutRef.current);
-        }
-        animationTimeoutRef.current = setTimeout(() => {
-          setDisplayValue(maxTicketsPerPurchase);
-          setIsAnimating(false);
-          setShowCaret(true);
-          setAnimationDirection(null);
-        }, 500);
-        
         return maxTicketsPerPurchase;
       } else {
         setErrorMessage('');
         onQuantityChange(adjustedQuantity);
-        
-        // Atualiza display com delay para animação
-        setIsAnimating(true);
-        if (animationTimeoutRef.current) {
-          clearTimeout(animationTimeoutRef.current);
-        }
-        animationTimeoutRef.current = setTimeout(() => {
-          setDisplayValue(adjustedQuantity);
-          setIsAnimating(false);
-          setShowCaret(true);
-          setAnimationDirection(null);
-        }, 500);
-        
         return adjustedQuantity;
       }
     });
@@ -229,9 +197,6 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   React.useEffect(() => {
     return () => {
       stopIncrement();
-      if (animationTimeoutRef.current) {
-        clearTimeout(animationTimeoutRef.current);
-      }
     };
   }, []);
 
@@ -370,7 +335,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             <input
               ref={inputRef}
               className={`
-                ${showCaret ? 'caret-blue-500' : 'caret-transparent'}
+                caret-blue-500
                 w-[3em] bg-transparent py-2 text-center font-[inherit] text-transparent outline-none
                 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
               `}
@@ -385,16 +350,16 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
               onChange={handleQuantityChange}
             />
             <div 
-              key={displayValue}
+              key={quantity}
               className={`
                 pointer-events-none ${theme.text} font-semibold
-                ${isAnimating && animationDirection === 'up' ? 'number-increment-animation' : ''}
-                ${isAnimating && animationDirection === 'down' ? 'number-decrement-animation' : ''}
+                ${animationDirection === 'up' ? 'number-slide-up' : ''}
+                ${animationDirection === 'down' ? 'number-slide-down' : ''}
               `}
               aria-hidden
               style={{ fontKerning: 'none' }}
             >
-              {displayValue.toLocaleString('pt-BR', { useGrouping: false })}
+              {quantity.toLocaleString('pt-BR', { useGrouping: false })}
             </div>
           </div>
           
