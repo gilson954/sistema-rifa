@@ -59,10 +59,19 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
     }
   };
 
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   const theme = getThemeClasses(campaignTheme);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in"
+      onClick={handleOverlayClick}
+    >
       <div className={`rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto ${theme.background} border ${theme.border} transform transition-all duration-300 animate-scale-in ${
         campaignTheme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
       }`}>
