@@ -49,6 +49,9 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
 }) => {
   const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [showCaret, setShowCaret] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -68,6 +71,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           cardBg: 'bg-white',
           border: 'border-gray-200',
           inputBg: 'bg-gray-50',
+          inputRing: 'ring-zinc-200',
+          inputFocusRing: 'focus-within:ring-blue-500',
           promotionBg: 'bg-green-50',
           promotionBorder: 'border-green-200',
           promotionText: 'text-green-800',
@@ -81,6 +86,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           cardBg: 'bg-gray-900',
           border: 'border-gray-800',
           inputBg: 'bg-gray-800',
+          inputRing: 'ring-zinc-800',
+          inputFocusRing: 'focus-within:ring-blue-500',
           promotionBg: 'bg-gradient-to-r from-amber-950/30 to-orange-950/30',
           promotionBorder: 'border-amber-700/50',
           promotionText: 'text-amber-400',
@@ -94,6 +101,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           cardBg: 'bg-gray-950',
           border: 'border-gray-800',
           inputBg: 'bg-gray-900',
+          inputRing: 'ring-zinc-800',
+          inputFocusRing: 'focus-within:ring-blue-500',
           promotionBg: 'bg-gradient-to-r from-amber-950/30 to-orange-950/30',
           promotionBorder: 'border-amber-700/50',
           promotionText: 'text-amber-400',
@@ -107,6 +116,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           cardBg: 'bg-white',
           border: 'border-gray-200',
           inputBg: 'bg-gray-50',
+          inputRing: 'ring-zinc-200',
+          inputFocusRing: 'focus-within:ring-blue-500',
           promotionBg: 'bg-green-50',
           promotionBorder: 'border-green-200',
           promotionText: 'text-green-800',
@@ -141,6 +152,9 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   };
 
   const handleIncrement = (value: number) => {
+    setIsAnimating(true);
+    setShowCaret(false);
+    
     setQuantity(prevQuantity => {
       const newQuantity = prevQuantity + value;
       const adjustedQuantity = Math.max(minTicketsPerPurchase, newQuantity);
@@ -148,10 +162,18 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       if (adjustedQuantity > maxTicketsPerPurchase) {
         setErrorMessage(`Máximo ${maxTicketsPerPurchase.toLocaleString('pt-BR')} bilhetes por compra`);
         onQuantityChange(maxTicketsPerPurchase);
+        setTimeout(() => {
+          setIsAnimating(false);
+          setShowCaret(true);
+        }, 300);
         return maxTicketsPerPurchase;
       } else {
         setErrorMessage('');
         onQuantityChange(adjustedQuantity);
+        setTimeout(() => {
+          setIsAnimating(false);
+          setShowCaret(true);
+        }, 300);
         return adjustedQuantity;
       }
     });
@@ -184,8 +206,13 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   }, []);
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || minTicketsPerPurchase;
-    handleUpdateQuantity(value);
+    if (e.target.value === '') {
+      return;
+    }
+    const value = parseInt(e.target.value);
+    if (!isNaN(value)) {
+      handleUpdateQuantity(value);
+    }
   };
 
   const calculateTotal = () => {
@@ -267,7 +294,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         </h2>
       </div>
 
-      {/* Increment Buttons - MANTÉM primaryColor */}
+      {/* Increment Buttons */}
       <div className="grid grid-cols-4 gap-2 sm:gap-2.5 mb-4">
         {incrementButtons.map((button, index) => (
           <button
@@ -290,85 +317,82 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         ))}
       </div>
 
-      {/* Quantity Input - Cores branco/preto conforme tema */}
-      <div className="flex items-center justify-center gap-3 mb-4">
-        <button
-          onMouseDown={() => startIncrement(-1)}
-          onMouseUp={stopIncrement}
-          onMouseLeave={stopIncrement}
-          onTouchStart={() => startIncrement(-1)}
-          onTouchEnd={stopIncrement}
-          disabled={quantity <= minTicketsPerPurchase}
-          className={`
-            group relative w-12 h-12 rounded-xl
-            flex items-center justify-center 
-            transition-all duration-300
-            ${theme.inputBg} border-2 ${theme.border}
-            hover:scale-110 active:scale-95
-            disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
-            shadow-lg hover:shadow-xl
-          `}
-        >
-          <Minus 
-            className={`h-5 w-5 transition-all duration-300 ${theme.text}`}
-          />
-        </button>
-        
-        <div className="relative flex items-center">
-          <input
-            type="number"
-            value={quantity}
-            onChange={handleQuantityChange}
-            min={minTicketsPerPurchase}
-            max={maxTicketsPerPurchase}
-            className={`
-              w-24 h-14 text-center text-2xl font-black
-              ${theme.inputBg} border-2 ${theme.border} rounded-xl
-              ${theme.text}
-              focus:outline-none focus:ring-4 focus:border-transparent 
-              transition-all duration-300
-              shadow-lg focus:shadow-xl
-              leading-[3.5rem]
-              [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
-            `}
-            style={{ 
-              '--tw-ring-color': campaignTheme === 'claro' ? '#00000040' : '#FFFFFF40'
-            } as React.CSSProperties}
-          />
-          <div 
-            className={`absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs font-semibold whitespace-nowrap px-2 py-0.5 rounded-full ${theme.textSecondary}`}
-            style={{ backgroundColor: campaignTheme === 'claro' ? '#00000020' : '#FFFFFF20' }}
+      {/* Quantity Input - Novo Design */}
+      <div className="flex items-center justify-center mb-4">
+        <div className={`flex items-stretch rounded-md text-3xl font-semibold ring transition-all duration-200 ${theme.inputRing} ${theme.inputFocusRing} focus-within:ring-2`}>
+          <button
+            aria-hidden
+            tabIndex={-1}
+            className={`flex items-center pl-[.5em] pr-[.325em] ${theme.text} disabled:opacity-30 disabled:cursor-not-allowed transition-opacity`}
+            disabled={quantity <= minTicketsPerPurchase}
+            onPointerDown={(e) => {
+              if (e.pointerType === 'mouse') {
+                e.preventDefault();
+                inputRef.current?.focus();
+              }
+              handleIncrement(-1);
+            }}
           >
-            {quantity === 1 ? 'cota' : 'cotas'}
+            <Minus className="size-4" strokeWidth={3.5} />
+          </button>
+          
+          <div className="relative grid items-center justify-items-center text-center [grid-template-areas:'overlap'] *:[grid-area:overlap]">
+            <input
+              ref={inputRef}
+              className={`
+                ${showCaret ? 'caret-blue-500' : 'caret-transparent'}
+                w-[3em] bg-transparent py-2 text-center font-[inherit] text-transparent outline-none
+                [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
+              `}
+              style={{ fontKerning: 'none' }}
+              type="number"
+              min={minTicketsPerPurchase}
+              step={1}
+              autoComplete="off"
+              inputMode="numeric"
+              max={maxTicketsPerPurchase}
+              value={quantity}
+              onChange={handleQuantityChange}
+            />
+            <div 
+              className={`pointer-events-none ${theme.text} transition-opacity duration-300 ${isAnimating ? 'opacity-50' : 'opacity-100'}`}
+              aria-hidden
+            >
+              {quantity.toLocaleString('pt-BR', { useGrouping: false })}
+            </div>
           </div>
+          
+          <button
+            aria-hidden
+            tabIndex={-1}
+            className={`flex items-center pl-[.325em] pr-[.5em] ${theme.text} disabled:opacity-30 disabled:cursor-not-allowed transition-opacity`}
+            disabled={quantity >= maxTicketsPerPurchase}
+            onPointerDown={(e) => {
+              if (e.pointerType === 'mouse') {
+                e.preventDefault();
+                inputRef.current?.focus();
+              }
+              handleIncrement(1);
+            }}
+          >
+            <Plus className="size-4" strokeWidth={3.5} />
+          </button>
         </div>
-        
-        <button
-          onMouseDown={() => startIncrement(1)}
-          onMouseUp={stopIncrement}
-          onMouseLeave={stopIncrement}
-          onTouchStart={() => startIncrement(1)}
-          onTouchEnd={stopIncrement}
-          disabled={quantity >= maxTicketsPerPurchase}
-          className={`
-            group relative w-12 h-12 rounded-xl
-            flex items-center justify-center 
-            transition-all duration-300
-            ${theme.inputBg} border-2 ${theme.border}
-            hover:scale-110 active:scale-95
-            disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
-            shadow-lg hover:shadow-xl
-          `}
+      </div>
+
+      {/* Label de cotas */}
+      <div className="text-center mb-4">
+        <div 
+          className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${theme.textSecondary}`}
+          style={{ backgroundColor: campaignTheme === 'claro' ? '#00000020' : '#FFFFFF20' }}
         >
-          <Plus 
-            className={`h-5 w-5 transition-all duration-300 ${theme.text}`}
-          />
-        </button>
+          {quantity === 1 ? 'cota' : 'cotas'}
+        </div>
       </div>
 
       {/* Error Message */}
       {errorMessage && (
-        <div className="text-center mb-3 mt-6">
+        <div className="text-center mb-3">
           <div className="inline-block px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30">
             <p className="text-red-500 text-sm font-semibold">
               {errorMessage}
@@ -377,8 +401,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         </div>
       )}
 
-      {/* Total Value - Cores branco/preto conforme tema */}
-      <div className={`text-center mb-4 mt-8 p-4 rounded-xl ${theme.inputBg} border ${theme.border}`}>
+      {/* Total Value */}
+      <div className={`text-center mb-4 mt-6 p-4 rounded-xl ${theme.inputBg} border ${theme.border}`}>
         {promotionInfo && (
           <div className="mb-1.5">
             <span className={`text-sm ${theme.textSecondary} line-through`}>
@@ -403,7 +427,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         </div>
       </div>
 
-      {/* Buy Button - MANTÉM primaryColor */}
+      {/* Buy Button */}
       <button
         onClick={onReserve}
         disabled={reserving || disabled || !onReserve}
