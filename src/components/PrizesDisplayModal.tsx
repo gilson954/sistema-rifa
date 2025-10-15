@@ -8,11 +8,7 @@ interface PrizesDisplayModalProps {
   onClose: () => void;
   prizes: Prize[];
   campaignTitle: string;
-  campaignTheme: string;
-  primaryColor?: string | null;
-  colorMode?: string | null;
-  gradientClasses?: string | null;
-  customGradientColors?: string | null;
+  campaignTheme: string; // Adicionado para temas
 }
 
 const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
@@ -21,10 +17,6 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
   prizes,
   campaignTitle,
   campaignTheme,
-  primaryColor,
-  colorMode,
-  gradientClasses,
-  customGradientColors,
 }) => {
   if (!isOpen) return null;
 
@@ -65,43 +57,6 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
           closeButtonHover: 'hover:bg-gray-100',
         };
     }
-  };
-
-  const getCustomGradientStyle = () => {
-    if (!customGradientColors) return {};
-
-    try {
-      const colors = JSON.parse(customGradientColors);
-      if (Array.isArray(colors) && colors.length >= 2) {
-        return {
-          backgroundImage: `linear-gradient(135deg, ${colors.join(', ')})`,
-          backgroundSize: '200% 200%'
-        };
-      }
-    } catch (e) {
-      console.error('Error parsing custom gradient colors:', e);
-    }
-    return {};
-  };
-
-  const getColorStyle = () => {
-    if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom') {
-        return getCustomGradientStyle();
-      }
-      return {};
-    }
-    return primaryColor ? { backgroundColor: primaryColor } : {};
-  };
-
-  const getColorClassName = () => {
-    if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom') {
-        return 'animate-gradient-x bg-[length:200%_200%]';
-      }
-      return `bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
-    }
-    return '';
   };
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -168,8 +123,7 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
         <div className={`p-5 border-t ${theme.border}`}>
           <button
             onClick={onClose}
-            className={`w-full py-3 rounded-xl text-white font-semibold transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95 ${getColorClassName()}`}
-            style={getColorStyle()}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold transition-colors duration-200"
           >
             Fechar
           </button>
