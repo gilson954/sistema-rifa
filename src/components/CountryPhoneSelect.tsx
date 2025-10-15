@@ -75,36 +75,28 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Sistema de temas aprimorado
   const getThemeClasses = () => {
     if (!theme) {
       return {
         buttonBg: 'bg-white dark:bg-gray-800',
         buttonBorder: 'border-gray-300 dark:border-gray-600',
-        buttonHoverBorder: 'hover:border-purple-400 dark:hover:border-purple-500',
+        buttonHoverBorder: 'hover:border-blue-400 dark:hover:border-blue-500',
         buttonText: 'text-gray-900 dark:text-white',
         iconColor: 'text-gray-400 dark:text-gray-300',
         dropdownBg: 'bg-white dark:bg-gray-800',
-        dropdownBorder: 'border-gray-200/50 dark:border-gray-700/50',
-        headerBg: 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900',
-        headerBorder: 'border-gray-200/50 dark:border-gray-600/50',
-        inputBg: 'bg-white dark:bg-gray-700',
+        dropdownBorder: 'border-gray-200 dark:border-gray-700',
+        inputBg: 'bg-gray-50 dark:bg-gray-700',
         inputBorder: 'border-gray-300 dark:border-gray-600',
         inputText: 'text-gray-900 dark:text-white',
-        inputPlaceholder: 'placeholder-gray-400 dark:placeholder-gray-300',
-        clearButtonHover: 'hover:bg-gray-200 dark:hover:bg-gray-600',
-        itemHover: 'hover:bg-gray-50 dark:hover:bg-gray-700/50',
-        itemSelected: 'bg-purple-50 dark:bg-purple-900/30',
-        itemSelectedBorder: 'border-purple-600 dark:border-purple-400',
+        inputPlaceholder: 'placeholder-gray-400 dark:placeholder-gray-400',
+        itemHover: 'hover:bg-gray-50 dark:hover:bg-gray-700',
+        itemSelected: 'bg-blue-50 dark:bg-blue-900/20',
         itemTextPrimary: 'text-gray-900 dark:text-white',
-        itemTextSecondary: 'text-gray-600 dark:text-gray-400',
-        itemSelectedTextPrimary: 'text-purple-700 dark:text-purple-300',
-        itemSelectedTextSecondary: 'text-purple-600 dark:text-purple-400',
-        dotColor: 'bg-purple-600 dark:bg-purple-400',
-        footerBg: 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900',
-        footerBorder: 'border-gray-200/50 dark:border-gray-600/50',
-        footerText: 'text-gray-500 dark:text-gray-300',
-        labelText: 'text-gray-900 dark:text-gray-100'
+        itemTextSecondary: 'text-gray-500 dark:text-gray-400',
+        labelText: 'text-gray-900 dark:text-gray-100',
+        scrollbarTrack: 'rgba(0, 0, 0, 0.1)',
+        scrollbarThumb: 'rgba(59, 130, 246, 0.5)',
+        scrollbarThumbHover: 'rgba(37, 99, 235, 0.7)'
       };
     }
 
@@ -112,61 +104,46 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
       return {
         buttonBg: 'bg-white',
         buttonBorder: 'border-gray-300',
-        buttonHoverBorder: 'hover:border-purple-400',
+        buttonHoverBorder: 'hover:border-blue-400',
         buttonText: 'text-gray-900',
         iconColor: 'text-gray-400',
         dropdownBg: 'bg-white',
-        dropdownBorder: 'border-gray-200/50',
-        headerBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
-        headerBorder: 'border-gray-200/50',
-        inputBg: 'bg-white',
+        dropdownBorder: 'border-gray-200',
+        inputBg: 'bg-gray-50',
         inputBorder: 'border-gray-300',
         inputText: 'text-gray-900',
         inputPlaceholder: 'placeholder-gray-400',
-        clearButtonHover: 'hover:bg-gray-200',
         itemHover: 'hover:bg-gray-50',
-        itemSelected: 'bg-purple-50',
-        itemSelectedBorder: 'border-purple-600',
+        itemSelected: 'bg-blue-50',
         itemTextPrimary: 'text-gray-900',
-        itemTextSecondary: 'text-gray-600',
-        itemSelectedTextPrimary: 'text-purple-700',
-        itemSelectedTextSecondary: 'text-purple-600',
-        dotColor: 'bg-purple-600',
-        footerBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
-        footerBorder: 'border-gray-200/50',
-        footerText: 'text-gray-500',
-        labelText: 'text-gray-900'
+        itemTextSecondary: 'text-gray-500',
+        labelText: 'text-gray-900',
+        scrollbarTrack: 'rgba(0, 0, 0, 0.1)',
+        scrollbarThumb: 'rgba(59, 130, 246, 0.5)',
+        scrollbarThumbHover: 'rgba(37, 99, 235, 0.7)'
       };
     }
 
-    // theme === 'escuro' ou 'escuro-preto'
     return {
       buttonBg: 'bg-gray-800',
       buttonBorder: 'border-gray-600',
-      buttonHoverBorder: 'hover:border-purple-500',
+      buttonHoverBorder: 'hover:border-blue-500',
       buttonText: 'text-white',
       iconColor: 'text-gray-300',
       dropdownBg: 'bg-gray-800',
-      dropdownBorder: 'border-gray-700/50',
-      headerBg: 'bg-gradient-to-br from-gray-800 to-gray-900',
-      headerBorder: 'border-gray-600/50',
+      dropdownBorder: 'border-gray-700',
       inputBg: 'bg-gray-700',
       inputBorder: 'border-gray-600',
       inputText: 'text-white',
-      inputPlaceholder: 'placeholder-gray-300',
-      clearButtonHover: 'hover:bg-gray-600',
-      itemHover: 'hover:bg-gray-700/50',
-      itemSelected: 'bg-purple-900/30',
-      itemSelectedBorder: 'border-purple-400',
+      inputPlaceholder: 'placeholder-gray-400',
+      itemHover: 'hover:bg-gray-700',
+      itemSelected: 'bg-blue-900/20',
       itemTextPrimary: 'text-white',
       itemTextSecondary: 'text-gray-400',
-      itemSelectedTextPrimary: 'text-purple-300',
-      itemSelectedTextSecondary: 'text-purple-400',
-      dotColor: 'bg-purple-400',
-      footerBg: 'bg-gradient-to-br from-gray-800 to-gray-900',
-      footerBorder: 'border-gray-600/50',
-      footerText: 'text-gray-300',
-      labelText: 'text-gray-100'
+      labelText: 'text-gray-100',
+      scrollbarTrack: 'rgba(255, 255, 255, 0.1)',
+      scrollbarThumb: 'rgba(59, 130, 246, 0.5)',
+      scrollbarThumbHover: 'rgba(96, 165, 250, 0.7)'
     };
   };
 
@@ -237,50 +214,52 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <label className={`block text-sm font-bold ${themeClasses.labelText} mb-2`}>
+      <label className={`block text-sm font-semibold ${themeClasses.labelText} mb-2`}>
+        Número de Telefone
       </label>
       
-      <div className="flex space-x-3">
-        {/* Country Selector - Modernizado */}
+      <div className="flex space-x-2">
+        {/* Country Selector */}
         <div className="relative">
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className={`group flex items-center space-x-2.5 px-4 h-[56px] ${themeClasses.buttonBg} border-2 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md ${
+            className={`group flex items-center justify-center space-x-1.5 px-3 h-[48px] min-w-[80px] ${themeClasses.buttonBg} border ${themeClasses.buttonBorder} rounded-lg transition-all duration-200 ${
               error 
                 ? 'border-red-500 hover:border-red-600' 
                 : isOpen
-                ? 'border-purple-500 ring-2 ring-purple-500/20'
-                : `${themeClasses.buttonBorder} ${themeClasses.buttonHoverBorder}`
-            } focus:outline-none hover:scale-[1.02] active:scale-[0.98]`}
+                ? 'border-blue-500 ring-2 ring-blue-500/20'
+                : themeClasses.buttonHoverBorder
+            } focus:outline-none hover:shadow-sm`}
           >
-            <span className="text-2xl">{selectedCountry.flag}</span>
-            <span className={`text-sm font-bold ${themeClasses.buttonText}`}>
-              {selectedCountry.dialCode}
-            </span>
-            <ChevronDown className={`h-4 w-4 ${themeClasses.iconColor} transition-all duration-200 ${isOpen ? 'rotate-180 text-purple-600' : 'group-hover:text-purple-500'}`} />
+            <span className="text-xl">{selectedCountry.flag}</span>
+            <ChevronDown className={`h-4 w-4 ${themeClasses.iconColor} transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </button>
 
-          {/* Dropdown Modernizado */}
+          {/* Dropdown */}
           {isOpen && (
-            <div className={`absolute top-full left-0 mt-2 w-96 ${themeClasses.dropdownBg} border-2 ${themeClasses.dropdownBorder} rounded-2xl shadow-2xl z-50 overflow-hidden backdrop-blur-sm animate-in slide-in-from-top-4 fade-in duration-200`}>
-              
-              {/* Search Header com gradiente */}
-              <div className={`p-4 ${themeClasses.headerBg} border-b ${themeClasses.headerBorder}`}>
+            <div 
+              className={`absolute top-full left-0 mt-2 w-80 ${themeClasses.dropdownBg} border ${themeClasses.dropdownBorder} rounded-lg shadow-2xl z-50 overflow-hidden`}
+              style={{
+                animation: 'slideDown 0.2s ease-out'
+              }}
+            >
+              {/* Search Input */}
+              <div className="p-3 border-b border-gray-200 dark:border-gray-700">
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-purple-500" />
+                  <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${themeClasses.iconColor}`} />
                   <input
                     ref={searchInputRef}
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Buscar país..."
-                    className={`w-full pl-12 pr-10 py-3 ${themeClasses.inputBg} border-2 ${themeClasses.inputBorder} rounded-xl ${themeClasses.inputText} ${themeClasses.inputPlaceholder} focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 shadow-sm transition-all duration-200`}
+                    placeholder="Search country..."
+                    className={`w-full pl-9 pr-9 py-2 ${themeClasses.inputBg} border ${themeClasses.inputBorder} rounded-md ${themeClasses.inputText} ${themeClasses.inputPlaceholder} focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm`}
                   />
                   {searchTerm && (
                     <button
                       onClick={() => setSearchTerm('')}
-                      className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-1.5 ${themeClasses.clearButtonHover} rounded-lg transition-all duration-200 hover:scale-110`}
+                      className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors`}
                     >
                       <X className={`h-4 w-4 ${themeClasses.iconColor}`} />
                     </button>
@@ -288,116 +267,102 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
                 </div>
               </div>
 
-              {/* Countries List com animações */}
-              <div className="max-h-80 overflow-y-auto custom-scrollbar">
-                {filteredCountries.map((country, index) => (
+              {/* Countries List */}
+              <div 
+                className="max-h-72 overflow-y-auto custom-scrollbar"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: `${themeClasses.scrollbarThumb} ${themeClasses.scrollbarTrack}`
+                }}
+              >
+                {filteredCountries.map((country) => (
                   <button
                     key={country.code}
                     type="button"
                     onClick={() => handleCountrySelect(country)}
-                    style={{ animationDelay: `${index * 20}ms` }}
-                    className={`w-full flex items-center space-x-4 px-4 py-3.5 text-left transition-all duration-150 animate-in fade-in slide-in-from-left-2 ${
+                    className={`w-full flex items-center justify-between px-4 py-2.5 text-left transition-colors ${
                       selectedCountry.code === country.code 
-                        ? `${themeClasses.itemSelected} border-l-4 ${themeClasses.itemSelectedBorder}` 
-                        : `${themeClasses.itemHover} border-l-4 border-transparent hover:border-l-purple-300`
+                        ? themeClasses.itemSelected
+                        : themeClasses.itemHover
                     }`}
                   >
-                    <span className="text-3xl transform transition-transform duration-200 hover:scale-110">{country.flag}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-3">
-                        <span className={`text-sm font-bold ${
-                          selectedCountry.code === country.code 
-                            ? themeClasses.itemSelectedTextPrimary
-                            : themeClasses.itemTextPrimary
-                        }`}>
-                          {country.dialCode}
-                        </span>
-                        <span className={`text-sm truncate ${
-                          selectedCountry.code === country.code 
-                            ? `${themeClasses.itemSelectedTextSecondary} font-semibold`
-                            : themeClasses.itemTextSecondary
-                        }`}>
-                          {country.name}
-                        </span>
-                      </div>
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      <span className="text-xl flex-shrink-0">{country.flag}</span>
+                      <span className={`text-sm font-medium truncate ${themeClasses.itemTextPrimary}`}>
+                        {country.name}
+                      </span>
                     </div>
-                    {selectedCountry.code === country.code && (
-                      <div className={`w-2.5 h-2.5 ${themeClasses.dotColor} rounded-full animate-pulse shadow-lg`}></div>
-                    )}
+                    <span className={`text-sm ${themeClasses.itemTextSecondary} ml-2 flex-shrink-0`}>
+                      {country.dialCode}
+                    </span>
                   </button>
                 ))}
                 
                 {filteredCountries.length === 0 && (
-                  <div className="px-4 py-12 text-center">
-                    <div className="text-6xl mb-4 animate-bounce">🔍</div>
-                    <p className={`${themeClasses.itemTextPrimary} text-sm font-bold mb-1`}>
+                  <div className="px-4 py-8 text-center">
+                    <p className={`${themeClasses.itemTextPrimary} text-sm`}>
                       Nenhum país encontrado
-                    </p>
-                    <p className={`${themeClasses.footerText} text-xs`}>
-                      Tente buscar por nome ou código
                     </p>
                   </div>
                 )}
-              </div>
-
-              {/* Footer com gradiente */}
-              <div className={`p-3 ${themeClasses.footerBg} border-t ${themeClasses.footerBorder}`}>
-                <p className={`text-xs ${themeClasses.footerText} text-center font-medium`}>
-                  {filteredCountries.length} {filteredCountries.length === 1 ? 'país' : 'países'} {searchTerm && 'encontrado(s)'}
-                </p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Phone Number Input - Modernizado */}
+        {/* Phone Number Input */}
         <div className="flex-1 relative">
-          <div className="relative">
-            <Phone className={`absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.iconColor} transition-colors duration-200`} />
-            <input
-              type="tel"
-              value={phoneNumber}
-              onChange={handlePhoneChange}
-              placeholder={placeholder}
-              className={`w-full h-[56px] pl-12 pr-12 border-2 rounded-xl ${themeClasses.buttonBg} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} focus:outline-none transition-all duration-200 shadow-sm hover:shadow-md ${
-                error 
-                  ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20' 
-                  : `${themeClasses.buttonBorder} focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20`
-              }`}
-              required
-            />
-            {phoneNumber && (
-              <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
-              </div>
-            )}
-          </div>
+          <input
+            type="tel"
+            value={phoneNumber}
+            onChange={handlePhoneChange}
+            placeholder={placeholder}
+            className={`w-full h-[48px] px-4 border ${themeClasses.buttonBg} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} focus:outline-none transition-all duration-200 rounded-lg ${
+              error 
+                ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20' 
+                : `${themeClasses.buttonBorder} focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20`
+            }`}
+            required
+          />
         </div>
       </div>
       
       {error && (
-        <div className="mt-3 flex items-center space-x-2 text-red-600 dark:text-red-400 animate-in slide-in-from-top-2 fade-in">
-          <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div>
-          <p className="text-sm font-medium">{error}</p>
+        <div className="mt-2 flex items-center space-x-2 text-red-600 dark:text-red-400">
+          <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+          <p className="text-sm">{error}</p>
         </div>
       )}
 
       <style>{`
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
         .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
+          width: 6px;
         }
         
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
+          background: ${themeClasses.scrollbarTrack};
+          border-radius: 10px;
         }
         
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
-          border-radius: 6px;
+          background: ${themeClasses.scrollbarThumb};
+          border-radius: 10px;
+          transition: background 0.2s ease;
         }
         
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(135deg, #9333ea 0%, #4f46e5 100%);
+          background: ${themeClasses.scrollbarThumbHover};
         }
       `}</style>
     </div>
