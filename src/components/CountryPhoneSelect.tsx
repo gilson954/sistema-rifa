@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Search, X, Phone } from 'lucide-react';
+import FlagIcon from './FlagIcon';
 
 interface Country {
   code: string;
   name: string;
   dialCode: string;
-  flag: string;
 }
 
 interface CountryPhoneSelectProps {
@@ -19,46 +19,46 @@ interface CountryPhoneSelectProps {
 }
 
 const countries: Country[] = [
-  { code: 'BR', name: 'Brasil', dialCode: '+55', flag: '🇧🇷' },
-  { code: 'US', name: 'Estados Unidos', dialCode: '+1', flag: '🇺🇸' },
-  { code: 'CA', name: 'Canadá', dialCode: '+1', flag: '🇨🇦' },
-  { code: 'AR', name: 'Argentina', dialCode: '+54', flag: '🇦🇷' },
-  { code: 'CL', name: 'Chile', dialCode: '+56', flag: '🇨🇱' },
-  { code: 'CO', name: 'Colômbia', dialCode: '+57', flag: '🇨🇴' },
-  { code: 'PE', name: 'Peru', dialCode: '+51', flag: '🇵🇪' },
-  { code: 'UY', name: 'Uruguai', dialCode: '+598', flag: '🇺🇾' },
-  { code: 'PY', name: 'Paraguai', dialCode: '+595', flag: '🇵🇾' },
-  { code: 'BO', name: 'Bolívia', dialCode: '+591', flag: '🇧🇴' },
-  { code: 'EC', name: 'Equador', dialCode: '+593', flag: '🇪🇨' },
-  { code: 'VE', name: 'Venezuela', dialCode: '+58', flag: '🇻🇪' },
-  { code: 'MX', name: 'México', dialCode: '+52', flag: '🇲🇽' },
-  { code: 'PT', name: 'Portugal', dialCode: '+351', flag: '🇵🇹' },
-  { code: 'ES', name: 'Espanha', dialCode: '+34', flag: '🇪🇸' },
-  { code: 'FR', name: 'França', dialCode: '+33', flag: '🇫🇷' },
-  { code: 'IT', name: 'Itália', dialCode: '+39', flag: '🇮🇹' },
-  { code: 'DE', name: 'Alemanha', dialCode: '+49', flag: '🇩🇪' },
-  { code: 'GB', name: 'Reino Unido', dialCode: '+44', flag: '🇬🇧' },
-  { code: 'JP', name: 'Japão', dialCode: '+81', flag: '🇯🇵' },
-  { code: 'CN', name: 'China', dialCode: '+86', flag: '🇨🇳' },
-  { code: 'IN', name: 'Índia', dialCode: '+91', flag: '🇮🇳' },
-  { code: 'AU', name: 'Austrália', dialCode: '+61', flag: '🇦🇺' },
-  { code: 'ZA', name: 'África do Sul', dialCode: '+27', flag: '🇿🇦' },
-  { code: 'RU', name: 'Rússia', dialCode: '+7', flag: '🇷🇺' },
-  { code: 'KR', name: 'Coreia do Sul', dialCode: '+82', flag: '🇰🇷' },
-  { code: 'TH', name: 'Tailândia', dialCode: '+66', flag: '🇹🇭' },
-  { code: 'SG', name: 'Singapura', dialCode: '+65', flag: '🇸🇬' },
-  { code: 'MY', name: 'Malásia', dialCode: '+60', flag: '🇲🇾' },
-  { code: 'ID', name: 'Indonésia', dialCode: '+62', flag: '🇮🇩' },
-  { code: 'PH', name: 'Filipinas', dialCode: '+63', flag: '🇵🇭' },
-  { code: 'VN', name: 'Vietnã', dialCode: '+84', flag: '🇻🇳' },
-  { code: 'TR', name: 'Turquia', dialCode: '+90', flag: '🇹🇷' },
-  { code: 'EG', name: 'Egito', dialCode: '+20', flag: '🇪🇬' },
-  { code: 'NG', name: 'Nigéria', dialCode: '+234', flag: '🇳🇬' },
-  { code: 'KE', name: 'Quênia', dialCode: '+254', flag: '🇰🇪' },
-  { code: 'GH', name: 'Gana', dialCode: '+233', flag: '🇬🇭' },
-  { code: 'MA', name: 'Marrocos', dialCode: '+212', flag: '🇲🇦' },
-  { code: 'DZ', name: 'Argélia', dialCode: '+213', flag: '🇩🇿' },
-  { code: 'TN', name: 'Tunísia', dialCode: '+216', flag: '🇹🇳' }
+  { code: 'BR', name: 'Brasil', dialCode: '+55' },
+  { code: 'US', name: 'Estados Unidos', dialCode: '+1' },
+  { code: 'CA', name: 'Canadá', dialCode: '+1' },
+  { code: 'AR', name: 'Argentina', dialCode: '+54' },
+  { code: 'CL', name: 'Chile', dialCode: '+56' },
+  { code: 'CO', name: 'Colômbia', dialCode: '+57' },
+  { code: 'PE', name: 'Peru', dialCode: '+51' },
+  { code: 'UY', name: 'Uruguai', dialCode: '+598' },
+  { code: 'PY', name: 'Paraguai', dialCode: '+595' },
+  { code: 'BO', name: 'Bolívia', dialCode: '+591' },
+  { code: 'EC', name: 'Equador', dialCode: '+593' },
+  { code: 'VE', name: 'Venezuela', dialCode: '+58' },
+  { code: 'MX', name: 'México', dialCode: '+52' },
+  { code: 'PT', name: 'Portugal', dialCode: '+351' },
+  { code: 'ES', name: 'Espanha', dialCode: '+34' },
+  { code: 'FR', name: 'França', dialCode: '+33' },
+  { code: 'IT', name: 'Itália', dialCode: '+39' },
+  { code: 'DE', name: 'Alemanha', dialCode: '+49' },
+  { code: 'GB', name: 'Reino Unido', dialCode: '+44' },
+  { code: 'JP', name: 'Japão', dialCode: '+81' },
+  { code: 'CN', name: 'China', dialCode: '+86' },
+  { code: 'IN', name: 'Índia', dialCode: '+91' },
+  { code: 'AU', name: 'Austrália', dialCode: '+61' },
+  { code: 'ZA', name: 'África do Sul', dialCode: '+27' },
+  { code: 'RU', name: 'Rússia', dialCode: '+7' },
+  { code: 'KR', name: 'Coreia do Sul', dialCode: '+82' },
+  { code: 'TH', name: 'Tailândia', dialCode: '+66' },
+  { code: 'SG', name: 'Singapura', dialCode: '+65' },
+  { code: 'MY', name: 'Malásia', dialCode: '+60' },
+  { code: 'ID', name: 'Indonésia', dialCode: '+62' },
+  { code: 'PH', name: 'Filipinas', dialCode: '+63' },
+  { code: 'VN', name: 'Vietnã', dialCode: '+84' },
+  { code: 'TR', name: 'Turquia', dialCode: '+90' },
+  { code: 'EG', name: 'Egito', dialCode: '+20' },
+  { code: 'NG', name: 'Nigéria', dialCode: '+234' },
+  { code: 'KE', name: 'Quênia', dialCode: '+254' },
+  { code: 'GH', name: 'Gana', dialCode: '+233' },
+  { code: 'MA', name: 'Marrocos', dialCode: '+212' },
+  { code: 'DZ', name: 'Argélia', dialCode: '+213' },
+  { code: 'TN', name: 'Tunísia', dialCode: '+216' }
 ];
 
 const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
@@ -224,7 +224,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className={`group flex items-center justify-center space-x-1.5 px-3 h-[48px] min-w-[80px] ${themeClasses.buttonBg} border ${themeClasses.buttonBorder} rounded-lg transition-all duration-200 ${
+            className={`group flex items-center justify-center space-x-2 px-3 h-[48px] min-w-[90px] ${themeClasses.buttonBg} border ${themeClasses.buttonBorder} rounded-lg transition-all duration-200 ${
               error 
                 ? 'border-red-500 hover:border-red-600' 
                 : isOpen
@@ -232,7 +232,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
                 : themeClasses.buttonHoverBorder
             } focus:outline-none hover:shadow-sm`}
           >
-            <span className="text-xl">{selectedCountry.flag}</span>
+            <FlagIcon countryCode={selectedCountry.code} size="md" theme={theme} />
             <ChevronDown className={`h-4 w-4 ${themeClasses.iconColor} transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </button>
 
@@ -280,14 +280,14 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
                     key={country.code}
                     type="button"
                     onClick={() => handleCountrySelect(country)}
-                    className={`w-full flex items-center justify-between px-4 py-2.5 text-left transition-colors ${
+                    className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
                       selectedCountry.code === country.code 
                         ? themeClasses.itemSelected
                         : themeClasses.itemHover
                     }`}
                   >
                     <div className="flex items-center space-x-3 flex-1 min-w-0">
-                      <span className="text-xl flex-shrink-0">{country.flag}</span>
+                      <FlagIcon countryCode={country.code} size="lg" theme={theme} />
                       <span className={`text-sm font-medium truncate ${themeClasses.itemTextPrimary}`}>
                         {country.name}
                       </span>
