@@ -603,3 +603,43 @@
     transform: none;
   }
 }
+
+/* ===================== */
+/* Smooth Number Animation for QuotaSelector */
+/* ===================== */
+@keyframes number-slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes number-slide-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.number-slide-up {
+  animation: number-slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.number-slide-down {
+  animation: number-slide-down 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .number-slide-up,
+  .number-slide-down {
+    animation: none;
+  }
+}
