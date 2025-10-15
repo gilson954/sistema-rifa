@@ -255,6 +255,11 @@ const MyTicketsModal: React.FC<MyTicketsModalProps> = ({
     }
   };
 
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
 
   const theme = getThemeClasses(campaignTheme);
 
@@ -265,7 +270,10 @@ const MyTicketsModal: React.FC<MyTicketsModalProps> = ({
   const totalValue = purchasedTickets.reduce((sum, t) => sum + (t.price || 0), 0);
 
   return (
-    <div className={`fixed inset-0 ${theme.overlayBg} backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300`}>
+    <div 
+      className={`fixed inset-0 ${theme.overlayBg} backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300`}
+      onClick={handleOverlayClick}
+    >
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
