@@ -205,9 +205,6 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <label className={`block text-sm font-semibold ${themeClasses.labelText} mb-2`}>
-        Número de Telefone
-      </label>
       
       <div className="flex space-x-2">
         {/* Country Selector */}
