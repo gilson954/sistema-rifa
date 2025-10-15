@@ -728,14 +728,35 @@ const CampaignPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-2">
-              <img 
-                src="/logo-chatgpt.png" 
-                alt="Rifaqui Logo" 
-                className="w-10 h-10 object-contain"
-              />
-              <span className={`text-xl font-bold ${themeClasses.text}`}>Rifaqui</span>
+              {organizerProfile?.logo_url ? (
+                organizerProfile.color_mode === 'gradient' ? (
+                  <div
+                    className={getColorClassName("p-1 rounded-lg shadow-md")}
+                    style={getColorStyle(true)}
+                  >
+                    <img
+                      src={organizerProfile.logo_url}
+                      alt="Logo do organizador"
+                      className="h-10 w-auto max-w-[120px] object-contain bg-white dark:bg-gray-800 rounded-md"
+                    />
+                  </div>
+                ) : (
+                  <img
+                    src={organizerProfile.logo_url}
+                    alt="Logo do organizador"
+                    className="h-12 w-auto max-w-[120px] object-contain border-2 shadow-md rounded-lg"
+                    style={{ borderColor: organizerProfile.primary_color || '#3B82F6' }}
+                  />
+                )
+              ) : (
+                <img
+                  src="/logo-chatgpt.png"
+                  alt="Rifaqui Logo"
+                  className="w-10 h-10 object-contain"
+                />
+              )}
             </div>
-            
+
             <button
               onClick={() => setShowMyTicketsModal(true)}
               className={`text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105 ${getColorClassName()}`}
@@ -912,27 +933,7 @@ const CampaignPage = () => {
           ) : organizerProfile ? (
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">
-                {organizerProfile.logo_url ? (
-                  organizerProfile.color_mode === 'gradient' ? (
-                    <div
-                      className={getColorClassName("p-1 rounded-lg shadow-md")}
-                      style={getColorStyle(true)}
-                    >
-                      <img
-                        src={organizerProfile.logo_url}
-                        alt={organizerProfile.name}
-                        className="w-[88px] h-[88px] rounded-md object-contain bg-white dark:bg-gray-800"
-                      />
-                    </div>
-                  ) : (
-                    <img
-                      src={organizerProfile.logo_url}
-                      alt={organizerProfile.name}
-                      className="w-24 h-24 rounded-lg object-contain bg-white dark:bg-gray-800 border-4 shadow-md"
-                      style={{ borderColor: organizerProfile.primary_color || '#3B82F6' }}
-                    />
-                  )
-                ) : organizerProfile.avatar_url ? (
+                {organizerProfile.avatar_url ? (
                   organizerProfile.color_mode === 'gradient' ? (
                     <div
                       className={getColorClassName("p-1 rounded-full shadow-md")}
