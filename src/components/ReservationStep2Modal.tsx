@@ -164,7 +164,9 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
 
   return (
     <div className={`fixed inset-0 ${theme.overlayBg} backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300`}>
-      <div className={`rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto ${theme.background} border ${theme.border} transform transition-all duration-300 animate-in slide-in-from-bottom-4`}>
+      <div className={`rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto ${theme.background} border ${theme.border} transform transition-all duration-300 animate-in slide-in-from-bottom-4 ${
+        campaignTheme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
+      }`}>
 
         {/* Header */}
         <div className="relative overflow-hidden">

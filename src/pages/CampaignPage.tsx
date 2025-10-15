@@ -1212,12 +1212,12 @@ const CampaignPage = () => {
           </div>
           
           {campaign.description && isValidDescription(campaign.description) ? (
-            <div 
-              className={`${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2`}
-              style={{ 
-                maxHeight: '400px',
-                scrollbarWidth: 'thin',
-                scrollbarColor: `${primaryColor} ${campaignTheme === 'claro' ? '#e5e7eb' : '#374151'}`
+            <div
+              className={`${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2 ${
+                campaignTheme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
+              }`}
+              style={{
+                maxHeight: '400px'
               }}
               dangerouslySetInnerHTML={{ __html: campaign.description }}
             />

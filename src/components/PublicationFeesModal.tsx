@@ -47,7 +47,7 @@ const PublicationFeesModal: React.FC<PublicationFeesModalProps> = ({ isOpen, onC
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)] custom-scrollbar">
           {/* Descrição */}
           <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
             <div className="flex items-start space-x-3">

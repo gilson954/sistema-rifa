@@ -149,7 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 overflow-y-auto">
+        <nav className="flex-1 p-4 overflow-y-auto custom-scrollbar-thin">
           <ul className="space-y-2">
             {menuItems.map((item, index) => {
               const IconComponent = item.icon;

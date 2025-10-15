@@ -93,10 +93,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
         itemSelected: 'bg-blue-50 dark:bg-blue-900/20',
         itemTextPrimary: 'text-gray-900 dark:text-white',
         itemTextSecondary: 'text-gray-500 dark:text-gray-400',
-        labelText: 'text-gray-900 dark:text-gray-100',
-        scrollbarTrack: 'rgba(0, 0, 0, 0.1)',
-        scrollbarThumb: 'rgba(59, 130, 246, 0.5)',
-        scrollbarThumbHover: 'rgba(37, 99, 235, 0.7)'
+        labelText: 'text-gray-900 dark:text-gray-100'
       };
     }
 
@@ -117,10 +114,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
         itemSelected: 'bg-blue-50',
         itemTextPrimary: 'text-gray-900',
         itemTextSecondary: 'text-gray-500',
-        labelText: 'text-gray-900',
-        scrollbarTrack: 'rgba(0, 0, 0, 0.1)',
-        scrollbarThumb: 'rgba(59, 130, 246, 0.5)',
-        scrollbarThumbHover: 'rgba(37, 99, 235, 0.7)'
+        labelText: 'text-gray-900'
       };
     }
 
@@ -140,10 +134,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
       itemSelected: 'bg-blue-900/20',
       itemTextPrimary: 'text-white',
       itemTextSecondary: 'text-gray-400',
-      labelText: 'text-gray-100',
-      scrollbarTrack: 'rgba(255, 255, 255, 0.1)',
-      scrollbarThumb: 'rgba(59, 130, 246, 0.5)',
-      scrollbarThumbHover: 'rgba(96, 165, 250, 0.7)'
+      labelText: 'text-gray-100'
     };
   };
 
@@ -268,12 +259,10 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
               </div>
 
               {/* Countries List */}
-              <div 
-                className="max-h-72 overflow-y-auto custom-scrollbar"
-                style={{
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: `${themeClasses.scrollbarThumb} ${themeClasses.scrollbarTrack}`
-                }}
+              <div
+                className={`max-h-72 overflow-y-auto ${
+                  theme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
+                }`}
               >
                 {filteredCountries.map((country) => (
                   <button
@@ -344,25 +333,6 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
             opacity: 1;
             transform: translateY(0);
           }
-        }
-
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: ${themeClasses.scrollbarTrack};
-          border-radius: 10px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: ${themeClasses.scrollbarThumb};
-          border-radius: 10px;
-          transition: background 0.2s ease;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: ${themeClasses.scrollbarThumbHover};
         }
       `}</style>
     </div>

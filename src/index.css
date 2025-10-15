@@ -112,12 +112,194 @@
 /* ===================== */
 /* Custom Scrollbar Styles */
 /* ===================== */
+
+/* Hide scrollbar utility */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Modern Custom Scrollbar - Light Theme */
+.custom-scrollbar-light,
+.custom-scrollbar-light * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.4) rgba(0, 0, 0, 0.05);
+}
+
+.custom-scrollbar-light::-webkit-scrollbar,
+.custom-scrollbar-light *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar-light::-webkit-scrollbar-track,
+.custom-scrollbar-light *::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 10px;
+  margin: 4px;
+}
+
+.custom-scrollbar-light::-webkit-scrollbar-thumb,
+.custom-scrollbar-light *::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.custom-scrollbar-light::-webkit-scrollbar-thumb:hover,
+.custom-scrollbar-light *::-webkit-scrollbar-thumb:hover {
+  background: rgba(37, 99, 235, 0.5);
+  transform: scaleX(1.1);
+}
+
+.custom-scrollbar-light::-webkit-scrollbar-thumb:active,
+.custom-scrollbar-light *::-webkit-scrollbar-thumb:active {
+  background: rgba(37, 99, 235, 0.7);
+}
+
+/* Modern Custom Scrollbar - Dark Theme */
+.custom-scrollbar-dark,
+.custom-scrollbar-dark * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(96, 165, 250, 0.4) rgba(255, 255, 255, 0.05);
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar,
+.custom-scrollbar-dark *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar-track,
+.custom-scrollbar-dark *::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  margin: 4px;
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar-thumb,
+.custom-scrollbar-dark *::-webkit-scrollbar-thumb {
+  background: rgba(96, 165, 250, 0.3);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar-thumb:hover,
+.custom-scrollbar-dark *::-webkit-scrollbar-thumb:hover {
+  background: rgba(96, 165, 250, 0.5);
+  transform: scaleX(1.1);
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar-thumb:active,
+.custom-scrollbar-dark *::-webkit-scrollbar-thumb:active {
+  background: rgba(96, 165, 250, 0.7);
+}
+
+/* Auto-detect theme scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.4) rgba(0, 0, 0, 0.05);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 10px;
+  margin: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(37, 99, 235, 0.5);
+  transform: scaleX(1.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background: rgba(37, 99, 235, 0.7);
+}
+
+/* Dark mode auto-detect */
+.dark .custom-scrollbar {
+  scrollbar-color: rgba(96, 165, 250, 0.4) rgba(255, 255, 255, 0.05);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(96, 165, 250, 0.3);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(96, 165, 250, 0.5);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background: rgba(96, 165, 250, 0.7);
+}
+
+/* Thin scrollbar variant */
+.custom-scrollbar-thin,
+.custom-scrollbar-thin * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.3) transparent;
+}
+
+.custom-scrollbar-thin::-webkit-scrollbar,
+.custom-scrollbar-thin *::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar-thin::-webkit-scrollbar-track,
+.custom-scrollbar-thin *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar-thin::-webkit-scrollbar-thumb,
+.custom-scrollbar-thin *::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.custom-scrollbar-thin::-webkit-scrollbar-thumb:hover,
+.custom-scrollbar-thin *::-webkit-scrollbar-thumb:hover {
+  background: rgba(37, 99, 235, 0.5);
+}
+
+.dark .custom-scrollbar-thin,
+.dark .custom-scrollbar-thin * {
+  scrollbar-color: rgba(96, 165, 250, 0.3) transparent;
+}
+
+.dark .custom-scrollbar-thin::-webkit-scrollbar-thumb,
+.dark .custom-scrollbar-thin *::-webkit-scrollbar-thumb {
+  background: rgba(96, 165, 250, 0.3);
+}
+
+.dark .custom-scrollbar-thin::-webkit-scrollbar-thumb:hover,
+.dark .custom-scrollbar-thin *::-webkit-scrollbar-thumb:hover {
+  background: rgba(96, 165, 250, 0.5);
 }
 
 /* ===================== */
