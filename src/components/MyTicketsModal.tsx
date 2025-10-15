@@ -325,9 +325,6 @@ const MyTicketsModal: React.FC<MyTicketsModalProps> = ({
                 className="space-y-6"
               >
                 <div>
-                  <label className={`block text-sm font-semibold ${theme.text} mb-2`}>
-                    Número de Telefone
-                  </label>
                   <CountryPhoneSelect
                     phoneNumber={phoneNumber}
                     onPhoneChange={setPhoneNumber}
