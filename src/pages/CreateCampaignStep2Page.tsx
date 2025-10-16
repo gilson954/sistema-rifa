@@ -12,6 +12,12 @@ import DateTimePickerModal from '../components/DateTimePickerModal';
 import { Promotion, Prize } from '../types/promotion';
 import 'react-datepicker/dist/react-datepicker.css';
 
+// SIMULANDO IMPORTAÇÕES DAS IMAGENS DE PRÉ-VISUALIZAÇÃO
+// **ATENÇÃO:** Você deve substituir estes paths pelos paths reais de suas imagens.
+// Por exemplo: import AutomaticoImage from '../assets/Automatico.png';
+import AutomaticoImage from '../assets/Automatico.png'; // Substitua pelo path correto
+import ManualImage from '../assets/Manual.png';       // Substitua pelo path correto
+
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -109,7 +115,7 @@ const CreateCampaignStep2Page = () => {
       const numValue = parseInt(value) || 15;
       setFormData(prev => ({ ...prev, [name]: numValue }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [name]: value as 'manual' | 'automatic' })); // Type assertion for campaignModel
       
       if (name === 'campaignModel') {
         if (campaign?.total_tickets && value === 'manual' && campaign.total_tickets > 10000) {
@@ -742,6 +748,26 @@ const CreateCampaignStep2Page = () => {
                     </span>
                   </div>
                 )}
+
+                {/* Pré-visualização do Modelo da Campanha */}
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">
+                    Pré-visualização do Modelo:
+                  </h3>
+                  <div className="rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
+                    <img 
+                      // Atenção: Use o caminho real para suas imagens ou faça a importação corretamente
+                      src={formData.campaignModel === 'automatic' ? AutomaticoImage : ManualImage}
+                      alt={`Pré-visualização do modelo ${formData.campaignModel === 'automatic' ? 'Automático' : 'Manual'}`}
+                      className="w-full h-auto object-cover"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
+                    {formData.campaignModel === 'automatic' 
+                      ? 'Seu cliente verá a campanha com um medidor de cotas em porcentagem.'
+                      : 'Seu cliente verá a campanha com a numeração das cotas disponíveis e vendidas.'}
+                  </p>
+                </div>
               </div>
 
               {/* Checkboxes Section */}
