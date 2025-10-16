@@ -12,6 +12,12 @@ import DateTimePickerModal from '../components/DateTimePickerModal';
 import { Promotion, Prize } from '../types/promotion';
 import 'react-datepicker/dist/react-datepicker.css';
 
+// 🚨 IMPORTANTE: Você deve garantir que esses caminhos de importação estejam corretos
+// no seu projeto (e.g., se estão em 'src/assets' ou foram carregados via 'public').
+// Este é um placeholder, ajuste conforme a estrutura do seu projeto.
+import AutomaticoImage from '../assets/Automatico.png';
+import ManualImage from '../assets/Manual.png';
+
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -289,6 +295,8 @@ const CreateCampaignStep2Page = () => {
     { value: 2880, label: '2 dias' },
     { value: 5760, label: '4 dias' }
   ];
+
+  const campaignModelPreviewImage = formData.campaignModel === 'automatic' ? AutomaticoImage : ManualImage;
 
   if (campaignLoading) {
     return (
@@ -742,6 +750,20 @@ const CreateCampaignStep2Page = () => {
                     </span>
                   </div>
                 )}
+                
+                {/* Pré-visualização do Modelo da Campanha */}
+                <div className="mt-6">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
+                    Pré-visualização do Modelo: {formData.campaignModel === 'automatic' ? 'Automático' : 'Manual'}
+                  </h3>
+                  <div className="rounded-xl border border-gray-200/20 dark:border-gray-700/30 overflow-hidden shadow-lg">
+                    <img
+                      src={campaignModelPreviewImage}
+                      alt={`Preview do modelo ${formData.campaignModel}`}
+                      className="w-full h-auto object-cover"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Checkboxes Section */}
