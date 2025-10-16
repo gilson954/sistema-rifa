@@ -19,6 +19,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useCampaignByPublicId, useCampaignByCustomDomain } from '../hooks/useCampaigns';
 import { useTickets } from '../hooks/useTickets';
+import { useCampaignWinners } from '../hooks/useCampaignWinners';
 import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
 import ReservationModal, { CustomerData } from '../components/ReservationModal';
@@ -57,6 +58,24 @@ interface OrganizerProfile {
 
 const formatNumber = (num: number): string => {
   return new Intl.NumberFormat('pt-BR').format(num);
+};
+
+const maskPhoneNumber = (phone: string | null): string => {
+  if (!phone) return 'Não informado';
+
+  const cleaned = phone.replace(/\D/g, '');
+
+  if (cleaned.length === 13) {
+    return `(${cleaned.substring(0, 2)}) ****-**${cleaned.substring(9)}`;
+  } else if (cleaned.length === 12) {
+    return `(${cleaned.substring(0, 2)}) ****-**${cleaned.substring(8)}`;
+  } else if (cleaned.length === 11) {
+    return `(${cleaned.substring(0, 2)}) ****-**${cleaned.substring(7)}`;
+  } else if (cleaned.length === 10) {
+    return `(${cleaned.substring(0, 2)}) ****-**${cleaned.substring(6)}`;
+  }
+
+  return phone.substring(0, 4) + '****' + phone.substring(phone.length - 2);
 };
 
 const slideVariants = {
@@ -138,6 +157,8 @@ const CampaignPage = () => {
     getAvailableTickets,
     reserving
   } = useTickets(campaign?.id || '');
+
+  const { winners, loading: winnersLoading } = useCampaignWinners(campaign?.id);
 
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
   const [quantity, setQuantity] = useState(1);
@@ -719,6 +740,8 @@ const CampaignPage = () => {
   const primaryColor = organizerProfile?.primary_color || '#3B82F6';
   const themeClasses = getThemeClasses(campaignTheme);
 
+  const isCampaignCompleted = campaign?.status === 'completed' && winners.length > 0;
+
   const currentImageUrl = campaign?.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1';
 
   return (
@@ -777,6 +800,107 @@ const CampaignPage = () => {
         <h1 className={`text-2xl md:text-3xl font-bold ${themeClasses.text} mb-4 text-center`}>
           {campaign.title}
         </h1>
+
+        {/* Seção de Ganhadores - Exibida apenas quando campanha encerrada com ganhadores */}
+        {isCampaignCompleted && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className={`${themeClasses.cardBg} rounded-xl shadow-lg border ${themeClasses.border} overflow-hidden mb-6 max-w-3xl mx-auto`}
+          >
+            {/* Header com gradiente/cor primária */}
+            <div
+              className={getColorClassName("px-6 py-4")}
+              style={getColorStyle(true)}
+            >
+              <div className="flex items-center justify-center gap-3">
+                <Trophy className="h-6 w-6 text-white" />
+                <h2 className="text-xl md:text-2xl font-bold text-white">
+                  🎉 Sorteio Realizado
+                </h2>
+              </div>
+              {campaign.drawn_at && (
+                <p className="text-center text-white/90 text-sm mt-2">
+                  {formatDate(campaign.drawn_at)}
+                </p>
+              )}
+            </div>
+
+            {/* Lista de Ganhadores */}
+            <div className="p-6">
+              {winnersLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: primaryColor }}></div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {winners.map((winner, index) => (
+                    <motion.div
+                      key={winner.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                      className={`${themeClasses.background} rounded-lg p-4 border ${themeClasses.border} space-y-3`}
+                    >
+                      {/* Nome do Prêmio */}
+                      <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+                        <Gift className="h-5 w-5 flex-shrink-0" style={{ color: primaryColor }} />
+                        <h3
+                          className={`font-bold text-base truncate ${getColorClassName('', true)}`}
+                          style={getColorStyle(false, true)}
+                          title={winner.prize_name}
+                        >
+                          {winner.prize_name}
+                        </h3>
+                      </div>
+
+                      {/* Número Vencedor */}
+                      <div className="text-center py-2">
+                        <p className={`text-xs ${themeClasses.textSecondary} mb-1`}>
+                          Número Vencedor
+                        </p>
+                        <div
+                          className={`text-3xl font-extrabold ${getColorClassName('', true)}`}
+                          style={getColorStyle(false, true)}
+                        >
+                          {winner.ticket_number.toString().padStart(5, '0')}
+                        </div>
+                      </div>
+
+                      {/* Informações do Ganhador */}
+                      <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex items-start gap-2">
+                          <Users className={`h-4 w-4 mt-0.5 flex-shrink-0 ${themeClasses.textSecondary}`} />
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-xs ${themeClasses.textSecondary}`}>Ganhador</p>
+                            <p className={`text-sm font-semibold ${themeClasses.text} truncate`} title={winner.winner_name}>
+                              {winner.winner_name}
+                            </p>
+                          </div>
+                        </div>
+
+                        {winner.winner_phone && (
+                          <div className="flex items-start gap-2">
+                            <svg className={`h-4 w-4 mt-0.5 flex-shrink-0 ${themeClasses.textSecondary}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            </svg>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-xs ${themeClasses.textSecondary}`}>Telefone</p>
+                              <p className={`text-sm font-medium ${themeClasses.text}`}>
+                                {maskPhoneNumber(winner.winner_phone)}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.section>
+        )}
 
         {/* 1. Galeria de imagens com barra de progresso e data */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}>
@@ -847,7 +971,7 @@ const CampaignPage = () => {
 
           {/* Barra de progresso e Data/Hora abaixo da galeria */}
           <div className="p-4 space-y-3">
-            {campaign.show_percentage && (
+            {!isCampaignCompleted && campaign.show_percentage && (
               <div className="relative">
                 <div className={`w-full rounded-full h-8 overflow-hidden ${
                   campaignTheme === 'claro' ? 'bg-gray-200' : 'bg-gray-700'
@@ -882,7 +1006,7 @@ const CampaignPage = () => {
         </section>
 
         {/* 2. Prêmios - Logo após a galeria */}
-        {campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
+        {!isCampaignCompleted && campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
           <motion.section 
             className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer`}
             onClick={() => setShowPrizesModal(true)}
@@ -927,6 +1051,7 @@ const CampaignPage = () => {
         )}
 
         {/* 3. Organizador */}
+        {!isCampaignCompleted && (
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           {loadingOrganizer ? (
             <div className="flex items-center justify-center py-8">
@@ -1004,9 +1129,10 @@ const CampaignPage = () => {
             </div>
           )}
         </section>
+        )}
 
         {/* 4. Promoções Disponíveis */}
-        {campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
+        {!isCampaignCompleted && campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
           <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
             <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
               🎁 Promoções Disponíveis
@@ -1066,6 +1192,7 @@ const CampaignPage = () => {
         )}
 
         {/* 5. Compra/seleção de cota */}
+        {!isCampaignCompleted && (
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
           {campaign.campaign_model === 'manual' ? (
             <div className="space-y-4">
@@ -1206,6 +1333,7 @@ const CampaignPage = () => {
             </>
           )}
         </section>
+        )}
 
         {/* 6. Descrição com Scroll */}
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
@@ -1234,6 +1362,7 @@ const CampaignPage = () => {
         </section>
 
         {/* 7. Método de Sorteio */}
+        {!isCampaignCompleted && (
         <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-4`}>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
             <div className="flex items-center gap-2">
@@ -1252,6 +1381,7 @@ const CampaignPage = () => {
             </span>
           </div>
         </section>
+        )}
       </main>
 
       {/* Fullscreen Image Modal */}

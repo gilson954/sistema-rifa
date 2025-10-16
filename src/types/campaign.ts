@@ -33,6 +33,8 @@ export interface Campaign {
   reservation_timeout_minutes: number;
   show_draw_date: boolean;
   is_paid: boolean;
+  drawn_at: string | null;
+  drawn_by_user_id: string | null;
 }
 
 export type CampaignStatus = 'draft' | 'active' | 'completed' | 'cancelled';
