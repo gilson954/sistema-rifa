@@ -261,17 +261,15 @@ const OrganizerHomePage: React.FC = () => {
               )}
             </div>
             <div className="flex-1 flex justify-end">
-              {user && (
-                <button
-                  onClick={() => setShowMyTicketsModal(true)}
-                  className={getColorClassName("text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105")}
-                  style={getColorStyle(true, false)}
-                >
-                  <Ticket className="h-4 w-4" />
-                  <span className="hidden sm:inline">Ver Minhas Cotas</span>
-                  <span className="sm:hidden">Cotas</span>
-                </button>
-              )}
+              <button
+                onClick={() => setShowMyTicketsModal(true)}
+                className={getColorClassName("text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105")}
+                style={getColorStyle(true, false)}
+              >
+                <Ticket className="h-4 w-4" />
+                <span className="hidden sm:inline">Ver Minhas Cotas</span>
+                <span className="sm:hidden">Cotas</span>
+              </button>
             </div>
           </div>
         </div>
