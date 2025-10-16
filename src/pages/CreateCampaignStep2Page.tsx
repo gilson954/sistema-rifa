@@ -733,21 +733,21 @@ const CreateCampaignStep2Page = () => {
                 </div>
                 
                 {/* Preview Image */}
-                <div className="mt-4 rounded-xl overflow-hidden border-2 border-gray-200/30 dark:border-gray-700/30 bg-gradient-to-br from-gray-50/50 to-gray-100/50 dark:from-gray-800/50 dark:to-gray-900/50 p-4">
-                  <div className="flex items-center space-x-2 mb-3">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <div className="mt-4 rounded-xl overflow-hidden border-2 border-gray-200/30 dark:border-gray-700/30 bg-gradient-to-br from-gray-50/50 to-gray-100/50 dark:from-gray-800/50 dark:to-gray-900/50 p-3">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
                     <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                       Pré-visualização do modelo
                     </span>
                   </div>
-                  <div className="rounded-lg overflow-hidden shadow-lg">
+                  <div className="rounded-lg overflow-hidden shadow-md max-w-sm mx-auto">
                     <img
                       src={formData.campaignModel === 'automatic' ? '/Automatico.png' : '/Manual.png'}
                       alt={`Modelo ${formData.campaignModel === 'automatic' ? 'Automático' : 'Manual'}`}
                       className="w-full h-auto object-contain"
                     />
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
                     {formData.campaignModel === 'automatic' 
                       ? 'Modelo Automático: Os números são gerados automaticamente'
                       : 'Modelo Manual: Os compradores escolhem seus próprios números'
