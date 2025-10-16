@@ -712,7 +712,7 @@ const CreateCampaignStep2Page = () => {
                 </div>
               </div>
 
-              {/* Campaign Model */}
+              {/* Campaign Model with Preview */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Modelo da campanha
@@ -730,6 +730,29 @@ const CreateCampaignStep2Page = () => {
                     <option value="manual">Manual</option>
                   </select>
                   <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                </div>
+                
+                {/* Preview Image */}
+                <div className="mt-4 rounded-xl overflow-hidden border-2 border-gray-200/30 dark:border-gray-700/30 bg-gradient-to-br from-gray-50/50 to-gray-100/50 dark:from-gray-800/50 dark:to-gray-900/50 p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      Pré-visualização do modelo
+                    </span>
+                  </div>
+                  <div className="rounded-lg overflow-hidden shadow-lg">
+                    <img
+                      src={formData.campaignModel === 'automatic' ? '/Automatico.png' : '/Manual.png'}
+                      alt={`Modelo ${formData.campaignModel === 'automatic' ? 'Automático' : 'Manual'}`}
+                      className="w-full h-auto object-contain"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
+                    {formData.campaignModel === 'automatic' 
+                      ? 'Modelo Automático: Os números são gerados automaticamente'
+                      : 'Modelo Manual: Os compradores escolhem seus próprios números'
+                    }
+                  </p>
                 </div>
                 
                 {campaignModelError && (
