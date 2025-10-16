@@ -12,21 +12,6 @@ import DateTimePickerModal from '../components/DateTimePickerModal';
 import { Promotion, Prize } from '../types/promotion';
 import 'react-datepicker/dist/react-datepicker.css';
 
-// =====================================================================
-// CORREÇÃO: Importação das Imagens de Pré-visualização
-//
-// ATENÇÃO: SUBSTITUA ESTES PATHS PELOS PATHS REAIS ONDE SUAS IMAGENS ESTÃO.
-// Se as imagens estiverem em 'src/assets', estes paths estão provavelmente corretos.
-// Se ainda houver erro, mude para:
-// - Para 'public' (acesso direto): import AutomaticoImage from '/images/Automatico.png';
-// - Para 'src' ou outra pasta: importe usando o path relativo correto.
-//
-// Para fins de demonstração, mantive a estrutura anterior.
-// Se você está usando Vite e as imagens estão em 'src/assets':
-import AutomaticoImage from '../assets/Automatico.png'; // Verifique se o caminho está correto
-import ManualImage from '../assets/Manual.png';       // Verifique se o caminho está correto
-// =====================================================================
-
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -124,8 +109,7 @@ const CreateCampaignStep2Page = () => {
       const numValue = parseInt(value) || 15;
       setFormData(prev => ({ ...prev, [name]: numValue }));
     } else {
-      // CORREÇÃO: Garante o tipo correto para 'campaignModel' ao atualizar o estado
-      setFormData(prev => ({ ...prev, [name]: value as 'manual' | 'automatic' }));
+      setFormData(prev => ({ ...prev, [name]: value }));
       
       if (name === 'campaignModel') {
         if (campaign?.total_tickets && value === 'manual' && campaign.total_tickets > 10000) {
@@ -758,25 +742,6 @@ const CreateCampaignStep2Page = () => {
                     </span>
                   </div>
                 )}
-                
-                {/* Pré-visualização do Modelo da Campanha */}
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">
-                    Pré-visualização do Modelo:
-                  </h3>
-                  <div className="rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
-                    <img 
-                      src={formData.campaignModel === 'automatic' ? AutomaticoImage : ManualImage}
-                      alt={`Pré-visualização do modelo ${formData.campaignModel === 'automatic' ? 'Automático' : 'Manual'}`}
-                      className="w-full h-auto object-cover"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
-                    {formData.campaignModel === 'automatic' 
-                      ? 'Seu cliente verá a campanha com um medidor de cotas em porcentagem.'
-                      : 'Seu cliente verá a campanha com a numeração das cotas disponíveis e vendidas.'}
-                  </p>
-                </div>
               </div>
 
               {/* Checkboxes Section */}
