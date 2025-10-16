@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import { CampaignAPI } from '../lib/api/campaigns';
 import { supabase } from '../lib/supabase';
 
@@ -106,6 +107,7 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { campaigns, loading: campaignsLoading, fetchCampaigns } = useCampaigns();
   const { user } = useAuth();
+  const { showSuccess, showError, showWarning } = useNotification();
   const [refreshingCampaigns, setRefreshingCampaigns] = useState(false);
   const [togglingFeatured, setTogglingFeatured] = useState<string | null>(null);
 
@@ -228,7 +230,7 @@ const DashboardPage: React.FC = () => {
       const { data: fetchedCampaign, error: fetchError } = await CampaignAPI.getCampaignById(campaignId);
       if (fetchError) {
         console.error('Error refetching campaign for view:', fetchError);
-        alert('Erro ao carregar detalhes da campanha.');
+        showError('Erro ao carregar detalhes da campanha.');
         return;
       }
       campaignToView = fetchedCampaign;
@@ -238,7 +240,7 @@ const DashboardPage: React.FC = () => {
       // Abre em nova aba para visualizar como usuário final
       window.open(`/c/${campaignToView.public_id}`, '_blank');
     } else {
-      alert('Não foi possível encontrar o ID público da campanha.');
+      showError('Não foi possível encontrar o ID público da campanha.');
     }
   };
 
@@ -260,30 +262,43 @@ const DashboardPage: React.FC = () => {
     if (!user || togglingFeatured) return;
 
     const campaign = campaigns.find(c => c.id === campaignId);
-    if (!campaign) return;
-
-    if (!currentFeaturedStatus && campaign.status !== 'active' && campaign.status !== 'completed') {
-      alert('Apenas campanhas ativas ou concluídas podem ser destacadas.');
+    if (!campaign) {
+      showError('Campanha não encontrada.');
       return;
     }
 
+    if (!currentFeaturedStatus && campaign.status !== 'active' && campaign.status !== 'completed') {
+      showWarning('Apenas campanhas ativas ou concluídas podem ser destacadas.');
+      return;
+    }
+
+    const willBeFeatured = !currentFeaturedStatus;
     setTogglingFeatured(campaignId);
+
     try {
-      const { error } = await CampaignAPI.toggleFeaturedCampaign(
+      console.log(`🔄 Toggling featured status for campaign ${campaignId}: ${currentFeaturedStatus} -> ${willBeFeatured}`);
+
+      const { data, error } = await CampaignAPI.toggleFeaturedCampaign(
         campaignId,
         user.id,
-        !currentFeaturedStatus
+        willBeFeatured
       );
 
       if (error) {
-        console.error('Error toggling featured campaign:', error);
-        alert('Erro ao destacar campanha. Tente novamente.');
-      } else {
+        console.error('❌ Error toggling featured campaign:', error);
+        const errorMessage = error?.message || 'Erro desconhecido';
+        showError(`Erro ao ${willBeFeatured ? 'destacar' : 'remover destaque da'} campanha: ${errorMessage}`);
+      } else if (data) {
+        console.log('✅ Featured status toggled successfully:', data);
+        showSuccess(willBeFeatured ? 'Campanha destacada com sucesso!' : 'Destaque removido com sucesso!');
         await fetchCampaigns();
+      } else {
+        console.error('❌ No data returned from toggle operation');
+        showError('Erro ao processar a operação. Tente novamente.');
       }
     } catch (error) {
-      console.error('Error toggling featured campaign:', error);
-      alert('Erro ao destacar campanha. Tente novamente.');
+      console.error('❌ Exception while toggling featured campaign:', error);
+      showError('Erro inesperado ao processar a operação. Tente novamente.');
     } finally {
       setTogglingFeatured(null);
     }
