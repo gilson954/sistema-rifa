@@ -48,8 +48,14 @@ const OrganizerHomePage: React.FC = () => {
         const { data: featured } = await CampaignAPI.getFeaturedCampaign(userId);
         setFeaturedCampaign(featured);
 
-        const { data: allCampaigns } = await CampaignAPI.getOrganizerPublicCampaigns(userId, true);
-        setCampaigns(allCampaigns || []);
+        const { data: allCampaigns } = await CampaignAPI.getOrganizerPublicCampaigns(userId, false);
+
+        if (allCampaigns && featured) {
+          const filteredCampaigns = allCampaigns.filter(c => c.id !== featured.id);
+          setCampaigns(filteredCampaigns);
+        } else {
+          setCampaigns(allCampaigns || []);
+        }
       } catch (error) {
         console.error('Error loading organizer data:', error);
       } finally {

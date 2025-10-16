@@ -390,6 +390,13 @@ const DashboardPage: React.FC = () => {
 
                       <div className="flex flex-col items-end gap-2">
                         <div className="flex items-center gap-2">
+                          {campaign.is_featured && (
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 flex items-center gap-1">
+                              <Star className="h-3 w-3 fill-current" />
+                              Destaque
+                            </span>
+                          )}
+
                           {campaign.status === 'draft' && !campaign.is_paid && (
                             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">Pendente</span>
                           )}

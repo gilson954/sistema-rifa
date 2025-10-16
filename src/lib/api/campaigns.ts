@@ -294,18 +294,43 @@ export class CampaignAPI {
 
   /**
    * Busca a campanha em destaque de um organizador
+   * Se nenhuma campanha foi manualmente destacada, retorna a mais recente ativa/concluída e paga
    */
   static async getFeaturedCampaign(userId: string): Promise<{ data: Campaign | null; error: any }> {
     try {
-      const { data, error } = await supabase
+      const { data: manuallyFeatured, error: featuredError } = await supabase
         .from('campaigns')
         .select('*')
         .eq('user_id', userId)
         .eq('is_featured', true)
+        .eq('is_paid', true)
         .in('status', ['active', 'completed'])
         .maybeSingle();
 
-      return { data, error };
+      if (featuredError) {
+        console.error('Error fetching manually featured campaign:', featuredError);
+      }
+
+      if (manuallyFeatured) {
+        return { data: manuallyFeatured, error: null };
+      }
+
+      const { data: newestCampaign, error: newestError } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_paid', true)
+        .in('status', ['active', 'completed'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (newestError) {
+        console.error('Error fetching newest campaign:', newestError);
+        return { data: null, error: newestError };
+      }
+
+      return { data: newestCampaign, error: null };
     } catch (error) {
       console.error('Error fetching featured campaign:', error);
       return { data: null, error };
