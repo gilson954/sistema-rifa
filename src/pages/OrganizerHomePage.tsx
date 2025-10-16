@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Trophy, Calendar, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Trophy, Calendar, Users, ChevronLeft, ChevronRight, Ticket } from 'lucide-react';
 import { CampaignAPI } from '../lib/api/campaigns';
 import { Campaign } from '../types/campaign';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/currency';
+import MyTicketsModal from '../components/MyTicketsModal';
+import { useAuth } from '../context/AuthContext';
 
 interface OrganizerProfile {
   id: string;
@@ -22,11 +24,13 @@ interface OrganizerProfile {
 const OrganizerHomePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [featuredCampaign, setFeaturedCampaign] = useState<Campaign | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showMyTicketsModal, setShowMyTicketsModal] = useState(false);
   const campaignsPerPage = 6;
 
   useEffect(() => {
@@ -223,36 +227,52 @@ const OrganizerHomePage: React.FC = () => {
     <div className={`min-h-screen ${themeClasses.background} transition-colors duration-300`}>
       <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.cardBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center h-20">
-            {organizerProfile?.logo_url ? (
-              organizerProfile.color_mode === 'gradient' ? (
-                <div
-                  className={getColorClassName("p-1 rounded-lg shadow-md")}
-                  style={getColorStyle(true)}
-                >
+          <div className="flex items-center justify-between h-20">
+            <div className="flex-1"></div>
+            <div className="flex items-center justify-center flex-1">
+              {organizerProfile?.logo_url ? (
+                organizerProfile.color_mode === 'gradient' ? (
+                  <div
+                    className={getColorClassName("p-1 rounded-lg shadow-md")}
+                    style={getColorStyle(true)}
+                  >
+                    <img
+                      src={organizerProfile.logo_url}
+                      alt="Logo do organizador"
+                      className="h-14 w-auto max-w-[200px] object-contain bg-white dark:bg-gray-800 rounded-md"
+                    />
+                  </div>
+                ) : (
                   <img
                     src={organizerProfile.logo_url}
                     alt="Logo do organizador"
-                    className="h-14 w-auto max-w-[200px] object-contain bg-white dark:bg-gray-800 rounded-md"
+                    className="h-16 w-auto max-w-[200px] object-contain shadow-md rounded-lg"
                   />
-                </div>
+                )
               ) : (
-                <img
-                  src={organizerProfile.logo_url}
-                  alt="Logo do organizador"
-                  className="h-16 w-auto max-w-[200px] object-contain shadow-md rounded-lg"
-                />
-              )
-            ) : (
-              <div className="flex items-center">
-                <img
-                  src="/logo-chatgpt.png"
-                  alt="Rifaqui Logo"
-                  className="w-10 h-10 object-contain"
-                />
-                <span className="ml-2 text-2xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
-              </div>
-            )}
+                <div className="flex items-center">
+                  <img
+                    src="/logo-chatgpt.png"
+                    alt="Rifaqui Logo"
+                    className="w-10 h-10 object-contain"
+                  />
+                  <span className="ml-2 text-2xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
+                </div>
+              )}
+            </div>
+            <div className="flex-1 flex justify-end">
+              {user && (
+                <button
+                  onClick={() => setShowMyTicketsModal(true)}
+                  className={getColorClassName("text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105")}
+                  style={getColorStyle(true, false)}
+                >
+                  <Ticket className="h-4 w-4" />
+                  <span className="hidden sm:inline">Ver Minhas Cotas</span>
+                  <span className="sm:hidden">Cotas</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -266,7 +286,7 @@ const OrganizerHomePage: React.FC = () => {
             className="mb-12"
           >
             <h2 className={`text-xl font-bold ${themeClasses.text} mb-2 flex items-center gap-2`}>
-              <Trophy className="h-6 w-6" style={{ color: primaryColor }} />
+              <Trophy className="h-6 w-6 text-yellow-500" />
               Campanha em Destaque
             </h2>
             <motion.div
@@ -286,23 +306,16 @@ const OrganizerHomePage: React.FC = () => {
                 <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
                   <h3 className="text-2xl sm:text-4xl font-bold text-white mb-4">{featuredCampaign.title}</h3>
 
-                  <div className="flex flex-wrap gap-3 mb-4">
-                    {featuredCampaign.show_draw_date && featuredCampaign.draw_date && (
+                  {featuredCampaign.show_draw_date && featuredCampaign.draw_date && (
+                    <div className="flex flex-wrap gap-3 mb-4">
                       <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
                         <Calendar className="h-5 w-5 text-white" />
                         <span className="text-white font-medium text-sm">
                           {formatDate(featuredCampaign.draw_date)}
                         </span>
                       </div>
-                    )}
-
-                    <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
-                      <Users className="h-5 w-5 text-white" />
-                      <span className="text-white font-medium text-sm">
-                        {featuredCampaign.sold_tickets}/{featuredCampaign.total_tickets} cotas
-                      </span>
                     </div>
-                  </div>
+                  )}
 
                   <button
                     className={getColorClassName("px-8 py-3 rounded-xl font-bold text-lg text-white shadow-lg pointer-events-none")}
@@ -346,15 +359,8 @@ const OrganizerHomePage: React.FC = () => {
                       {campaign.title}
                     </h3>
 
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4" style={{ color: primaryColor }} />
-                        <span className={`text-sm ${themeClasses.textSecondary}`}>
-                          {campaign.sold_tickets}/{campaign.total_tickets}
-                        </span>
-                      </div>
-
-                      <span className={`text-sm font-bold ${themeClasses.text}`}>
+                    <div className="flex items-center justify-center mb-4">
+                      <span className={`text-lg font-bold ${themeClasses.text}`}>
                         {formatCurrency(campaign.ticket_price)}
                       </span>
                     </div>
@@ -408,6 +414,14 @@ const OrganizerHomePage: React.FC = () => {
           </div>
         )}
       </main>
+
+      {user && userId && (
+        <MyTicketsModal
+          isOpen={showMyTicketsModal}
+          onClose={() => setShowMyTicketsModal(false)}
+          userId={userId}
+        />
+      )}
     </div>
   );
 };

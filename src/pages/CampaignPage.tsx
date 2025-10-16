@@ -800,9 +800,14 @@ const CampaignPage = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-        <h1 className={`text-2xl md:text-3xl font-bold ${themeClasses.text} mb-4 text-center`}>
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className={`text-2xl md:text-3xl font-bold ${themeClasses.text} mb-4 text-center`}
+        >
           {campaign.title}
-        </h1>
+        </motion.h1>
 
         {/* Seção de Ganhadores - Exibida apenas quando campanha encerrada com ganhadores */}
         {isCampaignCompleted && (
@@ -906,7 +911,12 @@ const CampaignPage = () => {
         )}
 
         {/* 1. Galeria de imagens com barra de progresso e data */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}>
+        <motion.section
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}
+        >
           <div 
             className="relative group w-full h-[300px] sm:h-[500px] overflow-hidden"
             onMouseEnter={handleMouseEnter}
@@ -1006,7 +1016,7 @@ const CampaignPage = () => {
               </div>
             )}
           </div>
-        </section>
+        </motion.section>
 
         {/* 2. Prêmios - Logo após a galeria */}
         {!isCampaignCompleted && campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
@@ -1055,7 +1065,12 @@ const CampaignPage = () => {
 
         {/* 3. Organizador */}
         {!isCampaignCompleted && (
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}
+        >
           {loadingOrganizer ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: primaryColor || '#3B82F6' }}></div>
@@ -1131,12 +1146,17 @@ const CampaignPage = () => {
               </p>
             </div>
           )}
-        </section>
+        </motion.section>
         )}
 
         {/* 4. Promoções Disponíveis */}
         {!isCampaignCompleted && campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
-          <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}>
+          <motion.section
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}
+          >
             <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
               🎁 Promoções Disponíveis
             </h3>
@@ -1191,12 +1211,17 @@ const CampaignPage = () => {
                 );
               })}
             </div>
-          </section>
+          </motion.section>
         )}
 
         {/* 5. Compra/seleção de cota */}
         {!isCampaignCompleted && (
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+        <motion.section
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}
+        >
           {campaign.campaign_model === 'manual' ? (
             <div className="space-y-4">
               {!isCampaignAvailable && (
@@ -1335,11 +1360,16 @@ const CampaignPage = () => {
             />
             </>
           )}
-        </section>
+        </motion.section>
         )}
 
         {/* 6. Descrição com Scroll */}
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}>
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.7 }}
+          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}
+        >
           <div className="flex items-center justify-center gap-2 mb-3">
             <FileText className={`h-5 w-5 ${themeClasses.text}`} />
             <h3 className={`text-lg font-bold ${themeClasses.text}`}>
@@ -1362,11 +1392,16 @@ const CampaignPage = () => {
               <p>Nenhuma descrição fornecida para esta campanha.</p>
             </div>
           )}
-        </section>
+        </motion.section>
 
         {/* 7. Método de Sorteio */}
         {!isCampaignCompleted && (
-        <section className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-4`}>
+        <motion.section
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.8 }}
+          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-4`}
+        >
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
             <div className="flex items-center gap-2">
               <div
@@ -1383,7 +1418,7 @@ const CampaignPage = () => {
               {campaign.draw_method}
             </span>
           </div>
-        </section>
+        </motion.section>
         )}
       </main>
 
