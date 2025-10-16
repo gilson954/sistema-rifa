@@ -10,6 +10,8 @@ import {
   CheckCircle,
   CreditCard as Edit,
   Sparkles,
+  Trophy,
+  Award,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
@@ -238,6 +240,14 @@ const DashboardPage: React.FC = () => {
     }
   };
 
+  const handleRealizarSorteio = (campaignId: string) => {
+    navigate(`/dashboard/campaigns/${campaignId}/realizar-sorteio`);
+  };
+
+  const handleVerGanhadores = (campaignId: string) => {
+    navigate(`/dashboard/campaigns/${campaignId}/ganhadores`);
+  };
+
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -454,14 +464,32 @@ const DashboardPage: React.FC = () => {
                         <Eye className="h-4 w-4" />
                         <span className="hidden sm:inline">Visualizar</span>
                       </button>
-                      
+
                       <button
                         onClick={() => handleViewSalesHistory(campaign.id)}
                         className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5"
                       >
                         <DollarSign className="h-4 w-4" /> <span className="hidden sm:inline">Vendas</span>
                       </button>
-                      
+
+                      {campaign.status === 'active' && !campaign.drawn_at && (
+                        <button
+                          onClick={() => handleRealizarSorteio(campaign.id)}
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500"
+                        >
+                          <Trophy className="h-4 w-4" /> <span className="hidden sm:inline">Realizar sorteio</span>
+                        </button>
+                      )}
+
+                      {campaign.status === 'completed' && campaign.drawn_at && (
+                        <button
+                          onClick={() => handleVerGanhadores(campaign.id)}
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-green-500 via-emerald-600 to-teal-500"
+                        >
+                          <Award className="h-4 w-4" /> <span className="hidden sm:inline">Ver ganhadores</span>
+                        </button>
+                      )}
+
                       {campaign.status === 'draft' && !campaign.is_paid && (
                         <button
                           onClick={() => handlePublishCampaign(campaign.id)}
@@ -470,7 +498,7 @@ const DashboardPage: React.FC = () => {
                           Publicar
                         </button>
                       )}
-                      
+
                       <button
                         onClick={() => handleEditCampaign(campaign.id)}
                         className="px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600"

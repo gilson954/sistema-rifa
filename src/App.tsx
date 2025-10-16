@@ -38,6 +38,9 @@ import { MultiStepFormProvider } from './context/MultiStepFormContext';
 import { initialFormData } from './lib/validations/formSteps';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import RealizarSorteioPage from './pages/RealizarSorteioPage';
+import GanhadoresPage from './pages/GanhadoresPage';
+import DetalhesGanhadorPage from './pages/DetalhesGanhadorPage';
 
 // ✅ Novo import da página de sucesso
 import EmailConfirmationSuccessPage from './pages/EmailConfirmationSuccessPage';
@@ -128,6 +131,18 @@ function App() {
             <Route
               path="campaigns/:campaignId/sales-history"
               element={<SalesHistoryPage />}
+            />
+            <Route
+              path="campaigns/:campaignId/realizar-sorteio"
+              element={<RealizarSorteioPage />}
+            />
+            <Route
+              path="campaigns/:campaignId/ganhadores"
+              element={<GanhadoresPage />}
+            />
+            <Route
+              path="campaigns/:campaignId/ganhador/:winnerId"
+              element={<DetalhesGanhadorPage />}
             />
           </Route>
         </Routes>
