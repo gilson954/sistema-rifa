@@ -35,6 +35,7 @@ export interface Campaign {
   is_paid: boolean;
   drawn_at: string | null;
   drawn_by_user_id: string | null;
+  is_featured: boolean;
 }
 
 export type CampaignStatus = 'draft' | 'active' | 'completed' | 'cancelled';
@@ -65,6 +66,7 @@ export interface CreateCampaignData {
   reservation_timeout_minutes?: number;
   show_draw_date?: boolean;
   is_paid?: boolean;
+  is_featured?: boolean;
 }
 
 export interface UpdateCampaignData extends Partial<CreateCampaignData> {
@@ -77,6 +79,7 @@ export interface UpdateCampaignData extends Partial<CreateCampaignData> {
   reservation_timeout_minutes?: number;
   show_draw_date?: boolean;
   is_paid?: boolean;
+  is_featured?: boolean;
 }
 
 export interface CampaignFormData {

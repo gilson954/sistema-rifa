@@ -41,6 +41,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import RealizarSorteioPage from './pages/RealizarSorteioPage';
 import GanhadoresPage from './pages/GanhadoresPage';
 import DetalhesGanhadorPage from './pages/DetalhesGanhadorPage';
+import OrganizerHomePage from './pages/OrganizerHomePage';
 
 // ✅ Novo import da página de sucesso
 import EmailConfirmationSuccessPage from './pages/EmailConfirmationSuccessPage';
@@ -70,6 +71,9 @@ function App() {
 
           {/* Página Pública de Campanha */}
           <Route path="/c/:publicId" element={<CampaignPage />} />
+
+          {/* Página Inicial do Organizador */}
+          <Route path="/org/:userId" element={<OrganizerHomePage />} />
 
           {/* Página de Confirmação de Pagamento */}
           <Route path="/payment-confirmation" element={<PaymentConfirmationPage />} />

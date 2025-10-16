@@ -291,4 +291,69 @@ export class CampaignAPI {
   static getPublicationTax(estimatedRevenue: number): StripeProduct | undefined {
     return getPublicationProductByRevenue(estimatedRevenue);
   }
+
+  /**
+   * Busca a campanha em destaque de um organizador
+   */
+  static async getFeaturedCampaign(userId: string): Promise<{ data: Campaign | null; error: any }> {
+    try {
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_featured', true)
+        .in('status', ['active', 'completed'])
+        .maybeSingle();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Error fetching featured campaign:', error);
+      return { data: null, error };
+    }
+  }
+
+  /**
+   * Busca todas as campanhas ativas e concluídas de um organizador (exceto a em destaque)
+   */
+  static async getOrganizerPublicCampaigns(userId: string, excludeFeatured = true): Promise<{ data: Campaign[] | null; error: any }> {
+    try {
+      let query = supabase
+        .from('campaigns')
+        .select('*')
+        .eq('user_id', userId)
+        .in('status', ['active', 'completed'])
+        .eq('is_paid', true)
+        .order('created_at', { ascending: false });
+
+      if (excludeFeatured) {
+        query = query.eq('is_featured', false);
+      }
+
+      const { data, error } = await query;
+      return { data, error };
+    } catch (error) {
+      console.error('Error fetching organizer public campaigns:', error);
+      return { data: null, error };
+    }
+  }
+
+  /**
+   * Alterna o status de destaque de uma campanha
+   */
+  static async toggleFeaturedCampaign(campaignId: string, userId: string, isFeatured: boolean): Promise<{ data: Campaign | null; error: any }> {
+    try {
+      const { data, error } = await supabase
+        .from('campaigns')
+        .update({ is_featured: isFeatured })
+        .eq('id', campaignId)
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Error toggling featured campaign:', error);
+      return { data: null, error };
+    }
+  }
 }

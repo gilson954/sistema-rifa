@@ -12,6 +12,7 @@ import {
   Sparkles,
   Trophy,
   Award,
+  Star,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
@@ -103,9 +104,10 @@ const DashboardPage: React.FC = () => {
   const [showRevenue, setShowRevenue] = useState(false);
   const [displayPaymentSetupCard, setDisplayPaymentSetupCard] = useState(true);
   const navigate = useNavigate();
-  const { campaigns, loading: campaignsLoading } = useCampaigns();
+  const { campaigns, loading: campaignsLoading, fetchCampaigns } = useCampaigns();
   const { user } = useAuth();
   const [refreshingCampaigns, setRefreshingCampaigns] = useState(false);
+  const [togglingFeatured, setTogglingFeatured] = useState<string | null>(null);
 
   // Paginação: 5 por página
   const [currentPage, setCurrentPage] = useState(1);
@@ -251,6 +253,39 @@ const DashboardPage: React.FC = () => {
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
+    }
+  };
+
+  const handleToggleFeatured = async (campaignId: string, currentFeaturedStatus: boolean) => {
+    if (!user || togglingFeatured) return;
+
+    const campaign = campaigns.find(c => c.id === campaignId);
+    if (!campaign) return;
+
+    if (!currentFeaturedStatus && campaign.status !== 'active' && campaign.status !== 'completed') {
+      alert('Apenas campanhas ativas ou concluídas podem ser destacadas.');
+      return;
+    }
+
+    setTogglingFeatured(campaignId);
+    try {
+      const { error } = await CampaignAPI.toggleFeaturedCampaign(
+        campaignId,
+        user.id,
+        !currentFeaturedStatus
+      );
+
+      if (error) {
+        console.error('Error toggling featured campaign:', error);
+        alert('Erro ao destacar campanha. Tente novamente.');
+      } else {
+        await fetchCampaigns();
+      }
+    } catch (error) {
+      console.error('Error toggling featured campaign:', error);
+      alert('Erro ao destacar campanha. Tente novamente.');
+    } finally {
+      setTogglingFeatured(null);
     }
   };
 
@@ -471,6 +506,22 @@ const DashboardPage: React.FC = () => {
                       >
                         <DollarSign className="h-4 w-4" /> <span className="hidden sm:inline">Vendas</span>
                       </button>
+
+                      {(campaign.status === 'active' || campaign.status === 'completed') && (
+                        <button
+                          onClick={() => handleToggleFeatured(campaign.id, campaign.is_featured)}
+                          disabled={togglingFeatured === campaign.id}
+                          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 ${
+                            campaign.is_featured
+                              ? 'bg-yellow-500 hover:bg-yellow-600'
+                              : 'bg-gray-600 hover:bg-gray-700'
+                          } ${togglingFeatured === campaign.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          title={campaign.is_featured ? 'Remover destaque' : 'Destacar campanha'}
+                        >
+                          <Star className={`h-4 w-4 ${campaign.is_featured ? 'fill-current' : ''}`} />
+                          <span className="hidden sm:inline">{campaign.is_featured ? 'Destacada' : 'Destacar'}</span>
+                        </button>
+                      )}
 
                       {campaign.status === 'active' && !campaign.drawn_at && (
                         <button

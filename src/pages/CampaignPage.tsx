@@ -750,7 +750,10 @@ const CampaignPage = () => {
       <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.cardBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-2">
+            <button
+              onClick={() => campaign?.user_id && navigate(`/org/${campaign.user_id}`)}
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity duration-200"
+            >
               {organizerProfile?.logo_url ? (
                 organizerProfile.color_mode === 'gradient' ? (
                   <div
@@ -780,7 +783,7 @@ const CampaignPage = () => {
                   <span className="ml-2 text-2xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
                 </>
               )}
-            </div>
+            </button>
 
             <button
               onClick={() => setShowMyTicketsModal(true)}

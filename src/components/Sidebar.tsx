@@ -111,14 +111,22 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
 
         {/* Logo */}
         <div className="p-6 border-b border-gray-200/20 dark:border-gray-800/30">
-          <div className="flex items-center">
-            <img 
-              src="/logo-chatgpt.png" 
-              alt="Rifaqui Logo" 
+          <button
+            onClick={() => {
+              if (user?.id) {
+                navigate(`/org/${user.id}`);
+                handleNavClick();
+              }
+            }}
+            className="flex items-center w-full hover:opacity-80 transition-opacity duration-200"
+          >
+            <img
+              src="/logo-chatgpt.png"
+              alt="Rifaqui Logo"
               className="w-8 h-8 object-contain"
             />
             <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
-          </div>
+          </button>
         </div>
 
         {/* User Profile */}
