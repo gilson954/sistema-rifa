@@ -15,13 +15,14 @@ interface Country {
 interface MyTicketsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  campaignId: string;
-  campaignTitle: string;
-  campaignTheme: string;
+  campaignId?: string;
+  campaignTitle?: string;
+  campaignTheme?: string;
   primaryColor?: string | null;
   colorMode?: string | null;
   gradientClasses?: string | null;
   customGradientColors?: string | null;
+  userId?: string;
 }
 
 interface TicketData {
@@ -32,6 +33,10 @@ interface TicketData {
   reservation_expires_at?: string;
   purchased_at?: string;
   price: number;
+  campaigns?: {
+    title: string;
+    organizer_id: string;
+  };
 }
 
 const MyTicketsModal: React.FC<MyTicketsModalProps> = ({
@@ -39,11 +44,12 @@ const MyTicketsModal: React.FC<MyTicketsModalProps> = ({
   onClose,
   campaignId,
   campaignTitle,
-  campaignTheme,
+  campaignTheme = 'escuro',
   primaryColor,
   colorMode,
   gradientClasses,
   customGradientColors,
+  userId,
 }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<Country>({
@@ -192,12 +198,20 @@ const MyTicketsModal: React.FC<MyTicketsModalProps> = ({
     try {
       const fullPhoneNumber = `${selectedCountry.dialCode} ${phoneNumber}`;
 
-      const { data: ticketsData, error: ticketsError } = await supabase
+      let query = supabase
         .from('tickets')
-        .select('*')
-        .eq('campaign_id', campaignId)
-        .eq('customer_phone', fullPhoneNumber)
-        .order('ticket_number', { ascending: true });
+        .select('*, campaigns!inner(title, organizer_id)')
+        .eq('customer_phone', fullPhoneNumber);
+
+      if (campaignId) {
+        query = query.eq('campaign_id', campaignId);
+      } else if (userId) {
+        query = query.eq('campaigns.organizer_id', userId);
+      }
+
+      query = query.order('ticket_number', { ascending: true });
+
+      const { data: ticketsData, error: ticketsError } = await query;
 
       if (ticketsError) throw ticketsError;
 
@@ -309,7 +323,9 @@ const MyTicketsModal: React.FC<MyTicketsModalProps> = ({
                   {showResults ? 'Suas Cotas' : 'Minhas Cotas'}
                 </h2>
                 <p className={`text-sm ${theme.textSecondary} mt-0.5`}>
-                  {showResults ? campaignTitle : 'Digite seu número de celular para ver suas cotas compradas'}
+                  {showResults
+                    ? (campaignTitle || (userId ? 'Suas cotas de todas as campanhas' : ''))
+                    : 'Digite seu número de celular para ver suas cotas compradas'}
                 </p>
               </div>
             </div>
@@ -449,6 +465,11 @@ const MyTicketsModal: React.FC<MyTicketsModalProps> = ({
                             <p className={`text-2xl font-bold ${theme.text}`}>
                               {ticket.ticket_number.toString().padStart(4, '0')}
                             </p>
+                            {userId && ticket.campaigns && (
+                              <p className={`text-xs ${theme.textSecondary} text-center`}>
+                                {ticket.campaigns.title}
+                              </p>
+                            )}
                             <span className={`text-xs font-semibold ${statusInfo.color}`}>
                               {statusInfo.label}
                             </span>

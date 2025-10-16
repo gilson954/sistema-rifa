@@ -413,11 +413,16 @@ const OrganizerHomePage: React.FC = () => {
         )}
       </main>
 
-      {user && userId && (
+      {userId && (
         <MyTicketsModal
           isOpen={showMyTicketsModal}
           onClose={() => setShowMyTicketsModal(false)}
           userId={userId}
+          campaignTheme={organizerProfile?.theme}
+          primaryColor={organizerProfile?.primary_color}
+          colorMode={organizerProfile?.color_mode}
+          gradientClasses={organizerProfile?.gradient_classes}
+          customGradientColors={organizerProfile?.custom_gradient_colors}
         />
       )}
     </div>
