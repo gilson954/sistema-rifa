@@ -25,6 +25,7 @@ import { supabase } from '../lib/supabase';
 import CotasPremiadasAdminModal from '../components/CotasPremiadasAdminModal';
 import MaiorMenorCotaModal from '../components/MaiorMenorCotaModal';
 import BuyerContactModal from '../components/BuyerContactModal';
+import TopBuyersModal from '../components/TopBuyersModal';
 
 /* Helper to strip HTML tags from strings (defensive: avoids showing raw HTML) */
 const stripHtml = (input?: string) => {
@@ -120,6 +121,8 @@ const DashboardPage: React.FC = () => {
   const [selectedCampaignForMaiorMenor, setSelectedCampaignForMaiorMenor] = useState<Campaign | null>(null);
   const [showBuyerContactModal, setShowBuyerContactModal] = useState(false);
   const [selectedBuyerData, setSelectedBuyerData] = useState<any>(null);
+  const [showTopBuyersModal, setShowTopBuyersModal] = useState(false);
+  const [selectedCampaignForRanking, setSelectedCampaignForRanking] = useState<Campaign | null>(null);
 
   // Paginação: 5 por página
   const [currentPage, setCurrentPage] = useState(1);
@@ -285,6 +288,31 @@ const DashboardPage: React.FC = () => {
   const handleOpenMaiorMenorCota = (campaign: Campaign) => {
     setSelectedCampaignForMaiorMenor(campaign);
     setShowMaiorMenorCotaModal(true);
+  };
+
+  const handleOpenRanking = (campaign: Campaign) => {
+    setSelectedCampaignForRanking(campaign);
+    setShowTopBuyersModal(true);
+  };
+
+  const handleCloseRankingModal = () => {
+    setShowTopBuyersModal(false);
+    setSelectedCampaignForRanking(null);
+  };
+
+  const handleViewBuyerFromRanking = (buyer: any) => {
+    setSelectedBuyerData({
+      id: buyer.customer_phone,
+      quota_number: 0,
+      customer_name: buyer.customer_name,
+      customer_email: buyer.customer_email,
+      customer_phone: buyer.customer_phone,
+      bought_at: new Date().toISOString(),
+      total_value: buyer.total_spent,
+      ticket_count: buyer.ticket_count,
+    });
+    setShowBuyerContactModal(true);
+    setShowTopBuyersModal(false);
   };
 
   const handleCloseMaiorMenorCotaModal = () => {
@@ -573,6 +601,14 @@ const DashboardPage: React.FC = () => {
                         <DollarSign className="h-4 w-4" /> <span className="hidden sm:inline">Vendas</span>
                       </button>
 
+                      <button
+                        onClick={() => handleOpenRanking(campaign)}
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 hover:shadow-lg text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%]"
+                        title="Ver ranking de compradores"
+                      >
+                        <Trophy className="h-4 w-4" /> <span className="hidden sm:inline">Ranking</span>
+                      </button>
+
                       {campaign.campaign_model === 'automatic' && (
                         <button
                           onClick={() => handleManageCotasPremiadas(campaign)}
@@ -712,6 +748,16 @@ const DashboardPage: React.FC = () => {
           onClose={handleCloseBuyerContactModal}
           ticketData={selectedBuyerData}
           campaignId={selectedCampaignForMaiorMenor.id}
+        />
+      )}
+
+      {selectedCampaignForRanking && (
+        <TopBuyersModal
+          isOpen={showTopBuyersModal}
+          onClose={handleCloseRankingModal}
+          campaignId={selectedCampaignForRanking.id}
+          campaignTitle={selectedCampaignForRanking.title}
+          onViewBuyerDetails={handleViewBuyerFromRanking}
         />
       )}
     </div>
