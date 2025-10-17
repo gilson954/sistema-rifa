@@ -159,11 +159,11 @@ const OrganizerHomePage: React.FC = () => {
         };
       case 'escuro':
         return {
-          background: 'bg-gray-950',
+          background: 'bg-slate-900',
           text: 'text-white',
           textSecondary: 'text-gray-300',
-          cardBg: 'bg-gray-900',
-          border: 'border-gray-800'
+          cardBg: 'bg-slate-800',
+          border: 'border-slate-700'
         };
       case 'escuro-preto':
         return {
@@ -225,7 +225,7 @@ const OrganizerHomePage: React.FC = () => {
 
   return (
     <div className={`min-h-screen ${themeClasses.background} transition-colors duration-300`}>
-      <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.cardBg}`}>
+      <header className={`shadow-sm border-b ${themeClasses.border} ${organizerTheme === 'escuro' ? 'bg-black' : themeClasses.cardBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex-1"></div>
