@@ -17,7 +17,6 @@ import CreateCampaignStep3Page from './pages/CreateCampaignStep3Page';
 import CampaignPage from './pages/CampaignPage';
 import PaymentConfirmationPage from './pages/PaymentConfirmationPage';
 import PaymentIntegrationsPage from './pages/PaymentIntegrationsPage';
-import RankingPage from './pages/RankingPage';
 import AffiliationsPage from './pages/AffiliationsPage';
 import AffiliatesManagementPage from './pages/AffiliatesManagementPage';
 import AffiliateAreaPage from './pages/AffiliateAreaPage';
@@ -42,8 +41,6 @@ import RealizarSorteioPage from './pages/RealizarSorteioPage';
 import GanhadoresPage from './pages/GanhadoresPage';
 import DetalhesGanhadorPage from './pages/DetalhesGanhadorPage';
 import OrganizerHomePage from './pages/OrganizerHomePage';
-
-// ✅ Novo import da página de sucesso
 import EmailConfirmationSuccessPage from './pages/EmailConfirmationSuccessPage';
 
 function App() {
@@ -63,7 +60,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-          {/* ✅ Nova Rota para Sucesso de Confirmação de E-mail */}
+          {/* Rota para Sucesso de Confirmação de E-mail */}
           <Route
             path="/email-confirmation-success"
             element={<EmailConfirmationSuccessPage />}
@@ -122,7 +119,6 @@ function App() {
             <Route path="create-campaign/step-2" element={<CreateCampaignStep2Page />} />
             <Route path="create-campaign/step-3" element={<CreateCampaignStep3Page />} />
             <Route path="integrations" element={<PaymentIntegrationsPage />} />
-            <Route path="ranking" element={<RankingPage />} />
             <Route path="affiliations" element={<AffiliationsPage />} />
             <Route path="affiliations/manage" element={<AffiliatesManagementPage />} />
             <Route path="affiliations/area" element={<AffiliateAreaPage />} />
