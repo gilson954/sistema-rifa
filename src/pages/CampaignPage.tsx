@@ -674,11 +674,11 @@ const CampaignPage = () => {
         };
       case 'escuro':
         return {
-          background: 'bg-gray-950',
+          background: 'bg-gray-800',
           text: 'text-white',
           textSecondary: 'text-gray-300',
-          cardBg: 'bg-gray-900',
-          border: 'border-gray-800'
+          cardBg: 'bg-gray-700',
+          border: 'border-gray-600'
         };
       case 'escuro-preto':
         return {
@@ -782,7 +782,7 @@ const CampaignPage = () => {
   return (
     <div className={`min-h-screen transition-colors duration-300 ${themeClasses.background}`}>
       {/* Header */}
-      <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.cardBg}`}>
+      <header className={`shadow-sm border-b ${themeClasses.border} ${campaignTheme === 'escuro' ? 'bg-black' : themeClasses.cardBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <button
