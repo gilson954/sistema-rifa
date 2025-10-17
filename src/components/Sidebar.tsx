@@ -9,7 +9,6 @@ import {
   User, 
   HelpCircle, 
   X,
-  Trophy,
   Users,
   Menu,
   LogOut,
@@ -63,7 +62,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const menuItems = [
     { icon: LayoutGrid, label: 'Campanhas (Home)', path: '/dashboard' },
     { icon: CreditCard, label: 'Métodos de pagamentos', path: '/dashboard/integrations' },
-    { icon: Trophy, label: 'Ranking', path: '/dashboard/ranking' },
     { icon: Users, label: 'Afiliações', path: '/dashboard/affiliations' },
     { icon: Share2, label: 'Redes sociais', path: '/dashboard/social-media' },
     { icon: BarChart3, label: 'Pixels e Analytics', path: '/dashboard/analytics' },
