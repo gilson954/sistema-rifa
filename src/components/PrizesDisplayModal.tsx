@@ -10,10 +10,6 @@ interface PrizesDisplayModalProps {
   prizes: Prize[];
   campaignTitle: string;
   campaignTheme: string;
-  primaryColor?: string | null;
-  colorMode?: string;
-  gradientClasses?: string;
-  customGradientColors?: string;
 }
 
 const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
@@ -22,10 +18,6 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
   prizes,
   campaignTitle,
   campaignTheme,
-  primaryColor,
-  colorMode = 'solid',
-  gradientClasses,
-  customGradientColors,
 }) => {
   const getThemeClasses = (theme: string) => {
     switch (theme) {
@@ -64,94 +56,6 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
           closeButtonHover: 'hover:bg-gray-100',
         };
     }
-  };
-
-  const parseCustomGradient = (customColorsJson: string) => {
-    try {
-      const colors = JSON.parse(customColorsJson);
-      if (Array.isArray(colors) && colors.length >= 2) {
-        if (colors.length === 2) {
-          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]})`;
-        } else if (colors.length === 3) {
-          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
-        }
-      }
-    } catch (error) {
-      console.error('Error parsing custom gradient colors:', error);
-    }
-    return null;
-  };
-
-  const getButtonColorStyle = () => {
-    if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom' && customGradientColors) {
-        const gradientStyle = parseCustomGradient(customGradientColors);
-        if (gradientStyle) {
-          return {
-            background: gradientStyle,
-            backgroundSize: '200% 200%'
-          };
-        }
-      }
-      return {};
-    }
-    return { backgroundColor: primaryColor || '#3B82F6' };
-  };
-
-  const getButtonColorClassName = (baseClasses: string = '') => {
-    if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom' && customGradientColors) {
-        return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
-      }
-      if (gradientClasses && gradientClasses !== 'custom') {
-        return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
-      }
-    }
-    return baseClasses;
-  };
-
-  const getCustomGradientStyle = (customColorsJson: string) => {
-    try {
-      const colors = JSON.parse(customColorsJson);
-      if (Array.isArray(colors) && colors.length >= 2) {
-        if (colors.length === 2) {
-          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]})`;
-        } else if (colors.length === 3) {
-          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
-        }
-      }
-    } catch (error) {
-      console.error('Error parsing custom gradient colors:', error);
-    }
-    return null;
-  };
-
-  const getColorStyle = () => {
-    if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom' && customGradientColors) {
-        const gradientStyle = getCustomGradientStyle(customGradientColors);
-        if (gradientStyle) {
-          return {
-            background: gradientStyle,
-            backgroundSize: '200% 200%'
-          };
-        }
-      }
-      return {};
-    }
-    return { backgroundColor: primaryColor || '#3B82F6' };
-  };
-
-  const getColorClassName = (baseClasses: string = '') => {
-    if (colorMode === 'gradient') {
-      if (gradientClasses === 'custom' && customGradientColors) {
-        return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
-      }
-      if (gradientClasses && gradientClasses !== 'custom') {
-        return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
-      }
-    }
-    return baseClasses;
   };
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -373,23 +277,12 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
             >
               <motion.button
                 onClick={onClose}
-                className={getButtonColorClassName(`
-                  relative overflow-hidden
-                  w-full py-3 rounded-lg 
-                  font-bold text-base tracking-wide
-                  transition-all duration-300 
-                  shadow-lg hover:shadow-xl
-                  text-white
-                  hover:scale-[1.02] active:scale-[0.98]
-                  before:absolute before:inset-0 before:bg-white/0 hover:before:bg-white/10
-                  before:transition-all before:duration-300
-                `)}
-                style={getButtonColorStyle()}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold transition-colors duration-200"
                 variants={buttonVariants}
                 whileHover="hover"
                 whileTap="tap"
               >
-                <span className="relative z-10">Fechar</span>
+                Fechar
               </motion.button>
             </motion.div>
           </motion.div>
