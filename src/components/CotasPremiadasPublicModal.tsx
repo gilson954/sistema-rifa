@@ -10,6 +10,10 @@ interface CotasPremiadasPublicModalProps {
   campaignTitle: string;
   campaignTheme: string;
   totalTickets: number;
+  colorMode?: string;
+  primaryColor?: string;
+  gradientClasses?: string;
+  customGradientColors?: string;
 }
 
 const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
@@ -19,8 +23,61 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
   campaignTitle,
   campaignTheme,
   totalTickets,
+  colorMode = 'solid',
+  primaryColor = '#F59E0B',
+  gradientClasses = 'from-orange-500 via-yellow-500 to-orange-600',
+  customGradientColors,
 }) => {
   const [showAll, setShowAll] = useState(false);
+
+  const getCustomGradientStyle = () => {
+    if (!customGradientColors) return null;
+    try {
+      const colors = JSON.parse(customGradientColors);
+      if (Array.isArray(colors) && colors.length >= 2) {
+        if (colors.length === 2) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]})`;
+        } else if (colors.length === 3) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing custom gradient colors:', error);
+    }
+    return null;
+  };
+
+  const getColorStyle = (forText: boolean = false) => {
+    if (colorMode === 'gradient') {
+      const isCustom = gradientClasses === 'custom';
+      const customStyle = getCustomGradientStyle();
+
+      if (isCustom && customStyle) {
+        return {
+          style: {
+            background: customStyle,
+            backgroundSize: '200% 200%',
+            ...(forText && {
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }),
+          },
+          className: 'animate-gradient-x bg-[length:200%_200%]',
+        };
+      } else {
+        return {
+          style: {},
+          className: `bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`,
+        };
+      }
+    } else {
+      return {
+        style: { backgroundColor: primaryColor },
+        className: '',
+      };
+    }
+  };
 
   const getThemeClasses = (theme: string) => {
     switch (theme) {
@@ -31,8 +88,8 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
           textSecondary: 'text-gray-600',
           cardBg: 'bg-gray-50',
           border: 'border-gray-200',
-          iconBg: 'bg-purple-100',
-          iconColor: 'text-purple-600',
+          iconBg: 'bg-orange-100',
+          iconColor: 'text-orange-600',
           closeButtonHover: 'hover:bg-gray-100',
         };
       case 'escuro':
@@ -43,8 +100,8 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-800',
           border: 'border-gray-700',
-          iconBg: 'bg-purple-900/30',
-          iconColor: 'text-purple-400',
+          iconBg: 'bg-orange-900/30',
+          iconColor: 'text-orange-400',
           closeButtonHover: 'hover:bg-gray-700',
         };
       default:
@@ -54,8 +111,8 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
           textSecondary: 'text-gray-600',
           cardBg: 'bg-gray-50',
           border: 'border-gray-200',
-          iconBg: 'bg-purple-100',
-          iconColor: 'text-purple-600',
+          iconBg: 'bg-orange-100',
+          iconColor: 'text-orange-600',
           closeButtonHover: 'hover:bg-gray-100',
         };
     }
@@ -225,11 +282,12 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
             >
               <div className="flex items-center space-x-3">
                 <motion.div
-                  className={`w-10 h-10 rounded-xl ${theme.iconBg} flex items-center justify-center`}
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${getColorStyle().className}`}
+                  style={getColorStyle().style}
                   whileHover={{ rotate: 360, scale: 1.1 }}
                   transition={{ duration: 0.6 }}
                 >
-                  <Award className={`h-5 w-5 ${theme.iconColor}`} />
+                  <Award className="h-5 w-5 text-white" />
                 </motion.div>
                 <h2 className={`text-xl font-bold ${theme.text}`}>Cotas Premiadas</h2>
               </div>
@@ -273,11 +331,12 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
                       >
                         <div className="flex items-center space-x-4 flex-1 min-w-0">
                           <motion.div
-                            className={`w-12 h-12 rounded-xl ${theme.iconBg} flex items-center justify-center flex-shrink-0`}
+                            className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${getColorStyle().className}`}
+                            style={getColorStyle().style}
                             whileHover={{ scale: 1.1 }}
                             transition={{ duration: 0.3 }}
                           >
-                            <span className={`font-bold text-sm ${theme.iconColor}`}>
+                            <span className="font-bold text-sm text-white">
                               {formatQuotaNumber(cota.numero_cota)}
                             </span>
                           </motion.div>
@@ -317,6 +376,8 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
                   animate="visible"
                 >
                   <motion.div
+                    className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl ${getColorStyle().className}`}
+                    style={getColorStyle().style}
                     animate={{
                       y: [0, -10, 0],
                       rotate: [0, 5, -5, 0],
@@ -327,7 +388,7 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
                       repeatType: 'reverse',
                     }}
                   >
-                    <Award className={`h-12 w-12 ${theme.iconColor} mx-auto mb-4`} />
+                    <Award className="h-8 w-8 text-white" />
                   </motion.div>
                   <p className={`font-medium ${theme.text}`}>Nenhuma cota premiada cadastrada ainda.</p>
                 </motion.div>
@@ -342,7 +403,8 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
             >
               <motion.button
                 onClick={onClose}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold transition-colors duration-200"
+                className={`w-full text-white py-3 rounded-xl font-semibold transition-all duration-200 ${getColorStyle().className}`}
+                style={getColorStyle().style}
                 variants={buttonVariants}
                 whileHover="hover"
                 whileTap="tap"

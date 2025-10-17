@@ -1627,6 +1627,10 @@ const CampaignPage = () => {
           prizes={campaign.prizes || []}
           campaignTitle={campaign.title}
           campaignTheme={campaignTheme}
+          colorMode={organizerProfile?.color_mode}
+          primaryColor={primaryColor}
+          gradientClasses={organizerProfile?.gradient_classes}
+          customGradientColors={organizerProfile?.custom_gradient_colors}
         />
       )}
 
@@ -1654,6 +1658,10 @@ const CampaignPage = () => {
           campaignTitle={campaign.title}
           campaignTheme={campaignTheme}
           totalTickets={campaign.total_tickets}
+          colorMode={organizerProfile?.color_mode}
+          primaryColor={primaryColor}
+          gradientClasses={organizerProfile?.gradient_classes}
+          customGradientColors={organizerProfile?.custom_gradient_colors}
         />
       )}
     </div>

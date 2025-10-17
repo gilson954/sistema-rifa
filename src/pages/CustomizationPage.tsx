@@ -999,6 +999,115 @@ const CustomizationPage = () => {
                 </div>
               </div>
 
+              {/* Preview de Modais */}
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                  <Eye className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  Modais com suas cores
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Veja como os modais de Prêmios e Cotas Premiadas aparecerão
+                </p>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Modal Prêmios Preview */}
+                  <div className={`${getThemeClasses(selectedTheme).background} rounded-2xl p-6 ${getThemeClasses(selectedTheme).border} border-2 shadow-xl`}>
+                    <div className="flex items-center space-x-3 mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                        style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                      >
+                        <Trophy className="h-5 w-5 text-white" />
+                      </div>
+                      <h4 className={`text-lg font-bold ${getThemeClasses(selectedTheme).text}`}>Prêmios</h4>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className={`flex items-center space-x-3 p-3 ${getThemeClasses(selectedTheme).cardBg} rounded-xl border ${getThemeClasses(selectedTheme).border}`}>
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                        >
+                          <span className="font-bold text-xs text-white">1º</span>
+                        </div>
+                        <p className={`font-medium text-sm ${getThemeClasses(selectedTheme).text}`}>iPhone 15 Pro Max</p>
+                      </div>
+
+                      <div className={`flex items-center space-x-3 p-3 ${getThemeClasses(selectedTheme).cardBg} rounded-xl border ${getThemeClasses(selectedTheme).border}`}>
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                        >
+                          <span className="font-bold text-xs text-white">2º</span>
+                        </div>
+                        <p className={`font-medium text-sm ${getThemeClasses(selectedTheme).text}`}>AirPods Pro</p>
+                      </div>
+                    </div>
+
+                    <button
+                      className={`mt-4 w-full text-white py-2 rounded-lg font-semibold text-sm shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                      style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                    >
+                      Fechar
+                    </button>
+                  </div>
+
+                  {/* Modal Cotas Premiadas Preview */}
+                  <div className={`${getThemeClasses(selectedTheme).background} rounded-2xl p-6 ${getThemeClasses(selectedTheme).border} border-2 shadow-xl`}>
+                    <div className="flex items-center space-x-3 mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                        style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                      >
+                        <Award className="h-5 w-5 text-white" />
+                      </div>
+                      <h4 className={`text-lg font-bold ${getThemeClasses(selectedTheme).text}`}>Cotas Premiadas</h4>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className={`flex items-center justify-between p-3 ${getThemeClasses(selectedTheme).cardBg} rounded-xl border ${getThemeClasses(selectedTheme).border}`}>
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                            style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                          >
+                            <span className="font-bold text-xs text-white">0077</span>
+                          </div>
+                          <p className={`font-medium text-sm ${getThemeClasses(selectedTheme).text}`}>Pix R$ 500</p>
+                        </div>
+                        <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full font-semibold">Disponível</span>
+                      </div>
+
+                      <div className={`flex items-center justify-between p-3 ${getThemeClasses(selectedTheme).cardBg} rounded-xl border ${getThemeClasses(selectedTheme).border}`}>
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                            style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                          >
+                            <span className="font-bold text-xs text-white">0321</span>
+                          </div>
+                          <p className={`font-medium text-sm ${getThemeClasses(selectedTheme).text}`}>Pix R$ 100</p>
+                        </div>
+                        <span className="text-xs px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 rounded-full font-semibold">Comprada</span>
+                      </div>
+                    </div>
+
+                    <button
+                      className={`mt-4 w-full text-white py-2 rounded-lg font-semibold text-sm shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                      style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                  <p className="text-sm text-blue-800 dark:text-blue-200 text-center">
+                    Estes são exemplos de como os modais aparecerão com suas cores personalizadas
+                  </p>
+                </div>
+              </div>
+
               {/* Dica de Acessibilidade */}
               <div className="mb-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl shadow-md">
                 <div className="flex items-start space-x-4">
@@ -1010,7 +1119,7 @@ const CustomizationPage = () => {
                       Dica de Design
                     </p>
                     <p className="text-blue-800 dark:text-blue-200 text-sm">
-                      {colorMode === 'solid' 
+                      {colorMode === 'solid'
                         ? 'Para melhor legibilidade, escolha cores mais escuras como cor principal. Cores muito claras podem dificultar a leitura do texto branco nos botões.'
                         : 'Gradientes animados criam um efeito visual impressionante e moderno. Eles são perfeitos para destacar botões e elementos importantes da sua campanha.'
                       }

@@ -10,6 +10,10 @@ interface PrizesDisplayModalProps {
   prizes: Prize[];
   campaignTitle: string;
   campaignTheme: string;
+  colorMode?: string;
+  primaryColor?: string;
+  gradientClasses?: string;
+  customGradientColors?: string;
 }
 
 const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
@@ -18,7 +22,60 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
   prizes,
   campaignTitle,
   campaignTheme,
+  colorMode = 'solid',
+  primaryColor = '#F59E0B',
+  gradientClasses = 'from-orange-500 via-yellow-500 to-orange-600',
+  customGradientColors,
 }) => {
+  const getCustomGradientStyle = () => {
+    if (!customGradientColors) return null;
+    try {
+      const colors = JSON.parse(customGradientColors);
+      if (Array.isArray(colors) && colors.length >= 2) {
+        if (colors.length === 2) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]})`;
+        } else if (colors.length === 3) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing custom gradient colors:', error);
+    }
+    return null;
+  };
+
+  const getColorStyle = (forText: boolean = false) => {
+    if (colorMode === 'gradient') {
+      const isCustom = gradientClasses === 'custom';
+      const customStyle = getCustomGradientStyle();
+
+      if (isCustom && customStyle) {
+        return {
+          style: {
+            background: customStyle,
+            backgroundSize: '200% 200%',
+            ...(forText && {
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }),
+          },
+          className: 'animate-gradient-x bg-[length:200%_200%]',
+        };
+      } else {
+        return {
+          style: {},
+          className: `bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`,
+        };
+      }
+    } else {
+      return {
+        style: { backgroundColor: primaryColor },
+        className: '',
+      };
+    }
+  };
+
   const getThemeClasses = (theme: string) => {
     switch (theme) {
       case 'claro':
@@ -28,8 +85,8 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
           textSecondary: 'text-gray-600',
           cardBg: 'bg-gray-50',
           border: 'border-gray-200',
-          iconBg: 'bg-yellow-100',
-          iconColor: 'text-yellow-600',
+          iconBg: 'bg-orange-100',
+          iconColor: 'text-orange-600',
           closeButtonHover: 'hover:bg-gray-100',
         };
       case 'escuro':
@@ -40,8 +97,8 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-800',
           border: 'border-gray-700',
-          iconBg: 'bg-yellow-900/30',
-          iconColor: 'text-yellow-400',
+          iconBg: 'bg-orange-900/30',
+          iconColor: 'text-orange-400',
           closeButtonHover: 'hover:bg-gray-700',
         };
       default:
@@ -51,8 +108,8 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
           textSecondary: 'text-gray-600',
           cardBg: 'bg-gray-50',
           border: 'border-gray-200',
-          iconBg: 'bg-yellow-100',
-          iconColor: 'text-yellow-600',
+          iconBg: 'bg-orange-100',
+          iconColor: 'text-orange-600',
           closeButtonHover: 'hover:bg-gray-100',
         };
     }
@@ -185,12 +242,13 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
               animate="visible"
             >
               <div className="flex items-center space-x-3">
-                <motion.div 
-                  className={`w-10 h-10 rounded-xl ${theme.iconBg} flex items-center justify-center`}
+                <motion.div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${getColorStyle().className}`}
+                  style={getColorStyle().style}
                   whileHover={{ rotate: 360, scale: 1.1 }}
                   transition={{ duration: 0.6 }}
                 >
-                  <Trophy className={`h-5 w-5 ${theme.iconColor}`} />
+                  <Trophy className="h-5 w-5 text-white" />
                 </motion.div>
                 <h2 className={`text-xl font-bold ${theme.text}`}>Prêmios</h2>
               </div>
@@ -226,18 +284,19 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
                       variants={prizeItemVariants}
                       initial="hidden"
                       animate="visible"
-                      whileHover={{ 
+                      whileHover={{
                         scale: 1.03,
                         boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
                         transition: { duration: 0.2 }
                       }}
                     >
-                      <motion.div 
-                        className={`w-8 h-8 rounded-full ${theme.iconBg} flex items-center justify-center flex-shrink-0`}
+                      <motion.div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${getColorStyle().className}`}
+                        style={getColorStyle().style}
                         whileHover={{ scale: 1.2, rotate: 360 }}
                         transition={{ duration: 0.5 }}
                       >
-                        <span className={`font-bold text-sm ${theme.iconColor}`}>{index + 1}º</span>
+                        <span className="font-bold text-sm text-white">{index + 1}º</span>
                       </motion.div>
                       <p className={`font-medium ${theme.text}`}>{prize.name}</p>
                     </motion.div>
@@ -251,17 +310,19 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
                   animate="visible"
                 >
                   <motion.div
-                    animate={{ 
+                    className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl ${getColorStyle().className}`}
+                    style={getColorStyle().style}
+                    animate={{
                       y: [0, -10, 0],
                       rotate: [0, 5, -5, 0]
                     }}
-                    transition={{ 
+                    transition={{
                       duration: 2,
                       repeat: Infinity,
                       repeatType: "reverse"
                     }}
                   >
-                    <Trophy className={`h-12 w-12 ${theme.iconColor} mx-auto mb-4`} />
+                    <Trophy className="h-8 w-8 text-white" />
                   </motion.div>
                   <p className={`font-medium ${theme.text}`}>Nenhum prêmio cadastrado ainda.</p>
                 </motion.div>
@@ -277,7 +338,8 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
             >
               <motion.button
                 onClick={onClose}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold transition-colors duration-200"
+                className={`w-full text-white py-3 rounded-xl font-semibold transition-all duration-200 ${getColorStyle().className}`}
+                style={getColorStyle().style}
                 variants={buttonVariants}
                 whileHover="hover"
                 whileTap="tap"
