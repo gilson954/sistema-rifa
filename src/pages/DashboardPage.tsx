@@ -591,14 +591,14 @@ const DashboardPage: React.FC = () => {
                         aria-label={`Visualizar ${stripHtml(campaign.title)}`}
                       >
                         <Eye className="h-4 w-4" />
-                        <span className="hidden sm:inline">Visualizar</span>
+                        <span>Visualizar</span>
                       </button>
 
                       <button
                         onClick={() => handleViewSalesHistory(campaign.id)}
                         className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5"
                       >
-                        <DollarSign className="h-4 w-4" /> <span className="hidden sm:inline">Vendas</span>
+                        <DollarSign className="h-4 w-4" /> <span>Vendas</span>
                       </button>
 
                       <button
@@ -606,7 +606,7 @@ const DashboardPage: React.FC = () => {
                         className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 hover:shadow-lg text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%]"
                         title="Ver ranking de compradores"
                       >
-                        <Trophy className="h-4 w-4" /> <span className="hidden sm:inline">Ranking</span>
+                        <Trophy className="h-4 w-4" /> <span>Ranking</span>
                       </button>
 
                       {campaign.campaign_model === 'automatic' && (
@@ -615,7 +615,7 @@ const DashboardPage: React.FC = () => {
                           className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5"
                           title="Gerenciar cotas premiadas"
                         >
-                          <Award className="h-4 w-4" /> <span className="hidden sm:inline">Cotas Premiadas</span>
+                          <Award className="h-4 w-4" /> <span>Cotas Premiadas</span>
                         </button>
                       )}
 
@@ -625,7 +625,7 @@ const DashboardPage: React.FC = () => {
                           className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5"
                           title="Maior e Menor Cota"
                         >
-                          <ArrowUpDown className="h-4 w-4" /> <span className="hidden sm:inline">Maior/Menor Cota</span>
+                          <ArrowUpDown className="h-4 w-4" /> <span>Maior/Menor Cota</span>
                         </button>
                       )}
 
@@ -641,7 +641,7 @@ const DashboardPage: React.FC = () => {
                           title={campaign.is_featured ? 'Remover destaque' : 'Destacar campanha'}
                         >
                           <Star className={`h-4 w-4 ${campaign.is_featured ? 'fill-current' : ''}`} />
-                          <span className="hidden sm:inline">{campaign.is_featured ? 'Destacada' : 'Destacar'}</span>
+                          <span>{campaign.is_featured ? 'Destacada' : 'Destacar'}</span>
                         </button>
                       )}
 
@@ -650,7 +650,7 @@ const DashboardPage: React.FC = () => {
                           onClick={() => handleRealizarSorteio(campaign.id)}
                           className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500"
                         >
-                          <Trophy className="h-4 w-4" /> <span className="hidden sm:inline">Realizar sorteio</span>
+                          <Trophy className="h-4 w-4" /> <span>Realizar sorteio</span>
                         </button>
                       )}
 
@@ -659,14 +659,14 @@ const DashboardPage: React.FC = () => {
                           onClick={() => handleVerGanhadores(campaign.id)}
                           className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-green-500 via-emerald-600 to-teal-500"
                         >
-                          <Award className="h-4 w-4" /> <span className="hidden sm:inline">Ver ganhadores</span>
+                          <Award className="h-4 w-4" /> <span>Ver ganhadores</span>
                         </button>
                       )}
 
                       {campaign.status === 'draft' && !campaign.is_paid && (
                         <button
                           onClick={() => handlePublishCampaign(campaign.id)}
-                          className="px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-green-500 via-emerald-600 to-green-500"
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-green-500 via-emerald-600 to-green-500"
                         >
                           Publicar
                         </button>
@@ -674,9 +674,9 @@ const DashboardPage: React.FC = () => {
 
                       <button
                         onClick={() => handleEditCampaign(campaign.id)}
-                        className="px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600"
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600"
                       >
-                        <Edit className="h-4 w-4 inline-block mr-2" /> <span className="hidden sm:inline">Editar</span>
+                        <Edit className="h-4 w-4" /> <span>Editar</span>
                       </button>
                     </div>
                   </div>
