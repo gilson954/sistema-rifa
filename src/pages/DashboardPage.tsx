@@ -21,6 +21,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { CampaignAPI } from '../lib/api/campaigns';
 import { supabase } from '../lib/supabase';
+import CotasPremiadasAdminModal from '../components/CotasPremiadasAdminModal';
 
 /* Helper to strip HTML tags from strings (defensive: avoids showing raw HTML) */
 const stripHtml = (input?: string) => {
@@ -110,6 +111,8 @@ const DashboardPage: React.FC = () => {
   const { showSuccess, showError, showWarning } = useNotification();
   const [refreshingCampaigns, setRefreshingCampaigns] = useState(false);
   const [togglingFeatured, setTogglingFeatured] = useState<string | null>(null);
+  const [showCotasPremiadasModal, setShowCotasPremiadasModal] = useState(false);
+  const [selectedCampaignForCotas, setSelectedCampaignForCotas] = useState<Campaign | null>(null);
 
   // Paginação: 5 por página
   const [currentPage, setCurrentPage] = useState(1);
@@ -256,6 +259,20 @@ const DashboardPage: React.FC = () => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
+  };
+
+  const handleManageCotasPremiadas = (campaign: Campaign) => {
+    if (campaign.campaign_model !== 'automatic') {
+      showWarning('Cotas premiadas só estão disponíveis para campanhas no modo automático.');
+      return;
+    }
+    setSelectedCampaignForCotas(campaign);
+    setShowCotasPremiadasModal(true);
+  };
+
+  const handleCloseCotasPremiadasModal = () => {
+    setShowCotasPremiadasModal(false);
+    setSelectedCampaignForCotas(null);
   };
 
   const handleToggleFeatured = async (campaignId: string, currentFeaturedStatus: boolean) => {
@@ -529,6 +546,16 @@ const DashboardPage: React.FC = () => {
                         <DollarSign className="h-4 w-4" /> <span className="hidden sm:inline">Vendas</span>
                       </button>
 
+                      {campaign.campaign_model === 'automatic' && (
+                        <button
+                          onClick={() => handleManageCotasPremiadas(campaign)}
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5"
+                          title="Gerenciar cotas premiadas"
+                        >
+                          <Award className="h-4 w-4" /> <span className="hidden sm:inline">Cotas Premiadas</span>
+                        </button>
+                      )}
+
                       {(campaign.status === 'active' || campaign.status === 'completed') && (
                         <button
                           onClick={() => handleToggleFeatured(campaign.id, campaign.is_featured)}
@@ -614,6 +641,24 @@ const DashboardPage: React.FC = () => {
           </div>
         )}
       </main>
+
+      {selectedCampaignForCotas && (
+        <CotasPremiadasAdminModal
+          isOpen={showCotasPremiadasModal}
+          onClose={handleCloseCotasPremiadasModal}
+          campaignId={selectedCampaignForCotas.id}
+          campaignTitle={selectedCampaignForCotas.title}
+          totalTickets={selectedCampaignForCotas.total_tickets}
+          initialVisibility={selectedCampaignForCotas.cotas_premiadas_visiveis}
+          onShowNotification={(message, type) => {
+            if (type === 'success') {
+              showSuccess(message);
+            } else {
+              showError(message);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

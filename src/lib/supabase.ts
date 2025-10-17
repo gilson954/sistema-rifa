@@ -43,6 +43,7 @@ export type Database = {
           public_id: string | null
           reservation_timeout_minutes: number | null
           is_paid: boolean
+          cotas_premiadas_visiveis: boolean
         }
         Insert: {
           id?: string
@@ -113,6 +114,42 @@ export type Database = {
           public_id?: string | null
           reservation_timeout_minutes?: number | null
           is_paid?: boolean
+          cotas_premiadas_visiveis?: boolean
+        }
+      }
+      cotas_premiadas: {
+        Row: {
+          id: string
+          campaign_id: string
+          numero_cota: number
+          premio: string
+          status: string
+          winner_name: string | null
+          winner_phone: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          campaign_id: string
+          numero_cota: number
+          premio: string
+          status?: string
+          winner_name?: string | null
+          winner_phone?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          campaign_id?: string
+          numero_cota?: number
+          premio?: string
+          status?: string
+          winner_name?: string | null
+          winner_phone?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
       profiles: {

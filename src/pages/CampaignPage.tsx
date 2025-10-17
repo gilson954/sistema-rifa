@@ -11,7 +11,8 @@ import {
   ExternalLink,
   AlertTriangle,
   FileText,
-  Ticket
+  Ticket,
+  Award
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -27,12 +28,15 @@ import ReservationStep1Modal from '../components/ReservationStep1Modal';
 import ReservationStep2Modal from '../components/ReservationStep2Modal';
 import PrizesDisplayModal from '../components/PrizesDisplayModal';
 import MyTicketsModal from '../components/MyTicketsModal';
+import CotasPremiadasPublicModal from '../components/CotasPremiadasPublicModal';
 import { CustomerData as ExistingCustomer } from '../utils/customerCheck';
 import { Promotion } from '../types/promotion';
+import { CotaPremiada } from '../types/cotasPremiadas';
 import { formatCurrency } from '../utils/currency';
 import { calculateTotalWithPromotions } from '../utils/currency';
 import { socialMediaConfig, shareSectionConfig } from '../components/SocialMediaIcons';
 import { supabase } from '../lib/supabase';
+import { CotasPremiadasAPI } from '../lib/api/cotasPremiadas';
 
 interface PromotionInfo {
   promotion: Promotion;
@@ -169,6 +173,9 @@ const CampaignPage = () => {
   const [showStep2Modal, setShowStep2Modal] = useState(false);
   const [showPrizesModal, setShowPrizesModal] = useState(false);
   const [showMyTicketsModal, setShowMyTicketsModal] = useState(false);
+  const [showCotasPremiadasModal, setShowCotasPremiadasModal] = useState(false);
+  const [cotasPremiadas, setCotasPremiadas] = useState<CotaPremiada[]>([]);
+  const [loadingCotasPremiadas, setLoadingCotasPremiadas] = useState(false);
   const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomer | null>(null);
   const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
   const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
@@ -293,7 +300,7 @@ const CampaignPage = () => {
             .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
             .eq('id', campaign.user_id)
             .maybeSingle();
-          
+
           if (error) {
             console.error('Error loading organizer profile:', error);
           } else {
@@ -305,10 +312,38 @@ const CampaignPage = () => {
           setLoadingOrganizer(false);
         }
       };
-      
+
       loadOrganizerProfile();
     }
   }, [campaign?.user_id]);
+
+  useEffect(() => {
+    if (campaign?.id && campaign?.campaign_model === 'automatic' && campaign?.cotas_premiadas_visiveis) {
+      const loadCotasPremiadas = async () => {
+        setLoadingCotasPremiadas(true);
+        try {
+          const { data, error } = await CotasPremiadasAPI.getCotasPremiadasByCampaign(campaign.id);
+          if (!error && data) {
+            setCotasPremiadas(data);
+          }
+        } catch (error) {
+          console.error('Error loading cotas premiadas:', error);
+        } finally {
+          setLoadingCotasPremiadas(false);
+        }
+      };
+
+      loadCotasPremiadas();
+
+      const channel = CotasPremiadasAPI.subscribeToCotasPremiadas(campaign.id, () => {
+        loadCotasPremiadas();
+      });
+
+      return () => {
+        channel.unsubscribe();
+      };
+    }
+  }, [campaign?.id, campaign?.campaign_model, campaign?.cotas_premiadas_visiveis]);
 
   const getBestPromotionForDisplay = useCallback((quotaCount: number): PromotionInfo | null => {
     if (!campaign?.promotions || !Array.isArray(campaign.promotions) || campaign.promotions.length === 0) {
@@ -1063,6 +1098,49 @@ const CampaignPage = () => {
           </motion.section>
         )}
 
+        {/* 2.5 Cotas Premiadas - Logo após Prêmios */}
+        {!isCampaignCompleted && campaign?.campaign_model === 'automatic' && cotasPremiadas.length > 0 && campaign?.cotas_premiadas_visiveis && (
+          <motion.section
+            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer`}
+            onClick={() => setShowCotasPremiadasModal(true)}
+            whileHover={{
+              scale: [null, 1.02, 1.03],
+              y: [null, -2, -4],
+              transition: {
+                duration: 0.4,
+                times: [0, 0.5, 1],
+                ease: ["easeInOut", "easeOut"],
+              },
+            }}
+            whileTap={{ scale: 0.98 }}
+            transition={{
+              duration: 0.3,
+              ease: "easeOut",
+            }}
+          >
+            <div
+              className={getColorClassName("px-4 py-3")}
+              style={getColorStyle(true)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center justify-center gap-2 flex-1">
+                  <Award className="h-5 w-5 text-white" />
+                  <h3 className="text-lg font-bold text-white">
+                    Cotas Premiadas
+                  </h3>
+                </div>
+                <ExternalLink className="h-4 w-4 text-white/80" />
+              </div>
+            </div>
+
+            <div className={`px-4 py-3 ${themeClasses.background}`}>
+              <p className={`text-center text-sm ${themeClasses.textSecondary} font-medium`}>
+                Clique para ver todas as cotas premiadas
+              </p>
+            </div>
+          </motion.section>
+        )}
+
         {/* 3. Organizador */}
         {!isCampaignCompleted && (
         <motion.section
@@ -1564,6 +1642,18 @@ const CampaignPage = () => {
           colorMode={organizerProfile?.color_mode}
           gradientClasses={organizerProfile?.gradient_classes}
           customGradientColors={organizerProfile?.custom_gradient_colors}
+        />
+      )}
+
+      {/* Cotas Premiadas Public Modal */}
+      {campaign && (
+        <CotasPremiadasPublicModal
+          isOpen={showCotasPremiadasModal}
+          onClose={() => setShowCotasPremiadasModal(false)}
+          cotasPremiadas={cotasPremiadas}
+          campaignTitle={campaign.title}
+          campaignTheme={campaignTheme}
+          totalTickets={campaign.total_tickets}
         />
       )}
     </div>

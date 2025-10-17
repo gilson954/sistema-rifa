@@ -36,6 +36,7 @@ export interface Campaign {
   drawn_at: string | null;
   drawn_by_user_id: string | null;
   is_featured: boolean;
+  cotas_premiadas_visiveis: boolean;
 }
 
 export type CampaignStatus = 'draft' | 'active' | 'completed' | 'cancelled';
