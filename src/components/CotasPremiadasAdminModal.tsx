@@ -309,12 +309,12 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
                 </motion.div>
               ) : (
                 <>
-                  <div className="mb-4">
+                  <div className="mb-3">
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Resultado ({filteredCotas.length})
                     </p>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                     {filteredCotas.map((cota, index) => (
                       <motion.div
                         key={cota.id}
@@ -322,8 +322,8 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
                         variants={cotaCardVariants}
                         initial="hidden"
                         animate="visible"
-                        whileHover={{ scale: 1.03, y: -4 }}
-                        className={`rounded-xl p-4 border-2 relative ${
+                        whileHover={{ scale: 1.03, y: -2 }}
+                        className={`rounded-lg p-3 border-2 relative ${
                           cota.status === 'disponivel'
                             ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
                             : cota.status === 'comprada'
@@ -332,44 +332,44 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
                         }`}
                       >
                         {cota.status === 'encontrada' && (
-                          <div className="absolute top-2 right-2 px-2 py-1 bg-blue-600 text-white text-xs font-bold rounded-full">
+                          <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded-full">
                             Ganhador
                           </div>
                         )}
 
-                        <div className="mb-3">
-                          <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        <div className="mb-2">
+                          <p className="text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-0.5 truncate">
                             {cota.status === 'disponivel'
-                              ? 'Titulo disponivel'
+                              ? 'Titulo disponível'
                               : cota.status === 'comprada'
                               ? 'Titulo comprado'
                               : 'Titulo encontrado'}
                           </p>
-                          <p className="text-3xl font-extrabold text-gray-900 dark:text-white">
+                          <p className="text-2xl font-extrabold text-gray-900 dark:text-white">
                             {formatQuotaNumber(cota.numero_cota)}
                           </p>
                         </div>
 
-                        <div className="mb-3">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">Premio:</p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300">{cota.premio}</p>
+                        <div className="mb-8">
+                          <p className="text-[11px] font-semibold text-gray-900 dark:text-white mb-0.5">Premio:</p>
+                          <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-2">{cota.premio}</p>
                         </div>
 
                         {cota.winner_name && (
-                          <div className="mb-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                            <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Ganhador:</p>
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white">{cota.winner_name}</p>
+                          <div className="mb-8 pt-2 border-t border-gray-200 dark:border-gray-700">
+                            <p className="text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">Ganhador:</p>
+                            <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">{cota.winner_name}</p>
                           </div>
                         )}
 
                         <motion.button
                           onClick={() => handleDeleteCota(cota.id)}
-                          className="absolute bottom-3 right-3 p-2 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors duration-200"
+                          className="absolute bottom-2 right-2 p-1.5 rounded-md bg-red-500 hover:bg-red-600 text-white transition-colors duration-200"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           title="Excluir cota premiada"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </motion.button>
                       </motion.div>
                     ))}
