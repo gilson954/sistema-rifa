@@ -13,6 +13,7 @@ import {
   Trophy,
   Award,
   Star,
+  ArrowUpDown,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
@@ -22,6 +23,8 @@ import { useNotification } from '../context/NotificationContext';
 import { CampaignAPI } from '../lib/api/campaigns';
 import { supabase } from '../lib/supabase';
 import CotasPremiadasAdminModal from '../components/CotasPremiadasAdminModal';
+import MaiorMenorCotaModal from '../components/MaiorMenorCotaModal';
+import BuyerContactModal from '../components/BuyerContactModal';
 
 /* Helper to strip HTML tags from strings (defensive: avoids showing raw HTML) */
 const stripHtml = (input?: string) => {
@@ -113,6 +116,10 @@ const DashboardPage: React.FC = () => {
   const [togglingFeatured, setTogglingFeatured] = useState<string | null>(null);
   const [showCotasPremiadasModal, setShowCotasPremiadasModal] = useState(false);
   const [selectedCampaignForCotas, setSelectedCampaignForCotas] = useState<Campaign | null>(null);
+  const [showMaiorMenorCotaModal, setShowMaiorMenorCotaModal] = useState(false);
+  const [selectedCampaignForMaiorMenor, setSelectedCampaignForMaiorMenor] = useState<Campaign | null>(null);
+  const [showBuyerContactModal, setShowBuyerContactModal] = useState(false);
+  const [selectedBuyerData, setSelectedBuyerData] = useState<any>(null);
 
   // Paginação: 5 por página
   const [currentPage, setCurrentPage] = useState(1);
@@ -273,6 +280,26 @@ const DashboardPage: React.FC = () => {
   const handleCloseCotasPremiadasModal = () => {
     setShowCotasPremiadasModal(false);
     setSelectedCampaignForCotas(null);
+  };
+
+  const handleOpenMaiorMenorCota = (campaign: Campaign) => {
+    setSelectedCampaignForMaiorMenor(campaign);
+    setShowMaiorMenorCotaModal(true);
+  };
+
+  const handleCloseMaiorMenorCotaModal = () => {
+    setShowMaiorMenorCotaModal(false);
+    setSelectedCampaignForMaiorMenor(null);
+  };
+
+  const handleViewBuyerDetails = (ticketData: any) => {
+    setSelectedBuyerData(ticketData);
+    setShowBuyerContactModal(true);
+  };
+
+  const handleCloseBuyerContactModal = () => {
+    setShowBuyerContactModal(false);
+    setSelectedBuyerData(null);
   };
 
   const handleToggleFeatured = async (campaignId: string, currentFeaturedStatus: boolean) => {
@@ -556,6 +583,16 @@ const DashboardPage: React.FC = () => {
                         </button>
                       )}
 
+                      {campaign.status === 'active' && (
+                        <button
+                          onClick={() => handleOpenMaiorMenorCota(campaign)}
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5"
+                          title="Maior e Menor Cota"
+                        >
+                          <ArrowUpDown className="h-4 w-4" /> <span className="hidden sm:inline">Maior/Menor Cota</span>
+                        </button>
+                      )}
+
                       {(campaign.status === 'active' || campaign.status === 'completed') && (
                         <button
                           onClick={() => handleToggleFeatured(campaign.id, campaign.is_featured)}
@@ -657,6 +694,24 @@ const DashboardPage: React.FC = () => {
               showError(message);
             }
           }}
+        />
+      )}
+
+      {selectedCampaignForMaiorMenor && (
+        <MaiorMenorCotaModal
+          isOpen={showMaiorMenorCotaModal}
+          onClose={handleCloseMaiorMenorCotaModal}
+          campaignId={selectedCampaignForMaiorMenor.id}
+          onViewBuyerDetails={handleViewBuyerDetails}
+        />
+      )}
+
+      {selectedBuyerData && selectedCampaignForMaiorMenor && (
+        <BuyerContactModal
+          isOpen={showBuyerContactModal}
+          onClose={handleCloseBuyerContactModal}
+          ticketData={selectedBuyerData}
+          campaignId={selectedCampaignForMaiorMenor.id}
         />
       )}
     </div>
