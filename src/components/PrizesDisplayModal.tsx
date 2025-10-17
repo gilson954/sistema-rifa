@@ -277,7 +277,7 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
             >
               <motion.button
                 onClick={onClose}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-3 rounded-xl font-semibold transition-all duration-200 shadow-md hover:shadow-lg"
+                className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 shadow-md hover:shadow-lg ${theme.cardBg} ${theme.text} hover:opacity-90`}
                 variants={buttonVariants}
                 whileHover="hover"
                 whileTap="tap"
