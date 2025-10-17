@@ -66,7 +66,7 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
     }
   };
 
-  const getCustomGradientStyle = (customColorsJson: string) => {
+  const parseCustomGradient = (customColorsJson: string) => {
     try {
       const colors = JSON.parse(customColorsJson);
       if (Array.isArray(colors) && colors.length >= 2) {
@@ -82,10 +82,10 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
     return null;
   };
 
-  const getColorStyle = () => {
+  const getButtonColorStyle = () => {
     if (colorMode === 'gradient') {
       if (gradientClasses === 'custom' && customGradientColors) {
-        const gradientStyle = getCustomGradientStyle(customGradientColors);
+        const gradientStyle = parseCustomGradient(customGradientColors);
         if (gradientStyle) {
           return {
             background: gradientStyle,
@@ -98,7 +98,7 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
     return { backgroundColor: primaryColor || '#3B82F6' };
   };
 
-  const getColorClassName = (baseClasses: string = '') => {
+  const getButtonColorClassName = (baseClasses: string = '') => {
     if (colorMode === 'gradient') {
       if (gradientClasses === 'custom' && customGradientColors) {
         return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
@@ -373,7 +373,7 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
             >
               <motion.button
                 onClick={onClose}
-                className={getColorClassName(`
+                className={getButtonColorClassName(`
                   relative overflow-hidden
                   w-full py-3 rounded-lg 
                   font-bold text-base tracking-wide
@@ -384,7 +384,7 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
                   before:absolute before:inset-0 before:bg-white/0 hover:before:bg-white/10
                   before:transition-all before:duration-300
                 `)}
-                style={getColorStyle()}
+                style={getButtonColorStyle()}
                 variants={buttonVariants}
                 whileHover="hover"
                 whileTap="tap"
