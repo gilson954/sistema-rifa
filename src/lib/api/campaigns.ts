@@ -31,7 +31,7 @@ export class CampaignAPI {
         throw validationError;
       }
 
-      const { slug, publicId } = await generateUniqueSlugAndPublicId(data.title);
+      const { publicId } = await generateUniqueSlugAndPublicId(data.title);
       const now = new Date();
       console.log('Generated publicId:', publicId);
       const expiresAt = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
@@ -39,7 +39,6 @@ export class CampaignAPI {
       const campaignData = {
         ...data,
         user_id: userId,
-        slug,
         public_id: publicId,
         sold_tickets: 0,
         status: 'draft' as CampaignStatus,
@@ -88,10 +87,7 @@ export class CampaignAPI {
       }
 
       const { id, ...updateData } = data;
-      if (updateData.title) {
-        const { slug: newSlug } = await generateUniqueSlugAndPublicId(updateData.title, id);
-        updateData.slug = newSlug;
-      }
+      // Note: slug is deprecated, only public_id is used for URLs now
 
       console.log('🔧 [API DEBUG] Updating campaign with data:', updateData);
       const { data: campaign, error } = await supabase

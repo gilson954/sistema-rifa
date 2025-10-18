@@ -3,6 +3,7 @@ import { X, Ticket, Search, CheckCircle, Clock, Ban, ArrowLeft } from 'lucide-re
 import { motion, AnimatePresence } from 'framer-motion';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { supabase } from '../lib/supabase';
+import { TicketsAPI } from '../lib/api/tickets';
 import { formatCurrency } from '../utils/currency';
 
 interface Country {
@@ -198,28 +199,47 @@ const MyTicketsModal: React.FC<MyTicketsModalProps> = ({
     try {
       const fullPhoneNumber = `${selectedCountry.dialCode} ${phoneNumber}`;
 
-      let query = supabase
-        .from('tickets')
-        .select('*, campaigns!inner(title, organizer_id)')
-        .eq('customer_phone', fullPhoneNumber);
-
-      if (campaignId) {
-        query = query.eq('campaign_id', campaignId);
-      } else if (userId) {
-        query = query.eq('campaigns.organizer_id', userId);
-      }
-
-      query = query.order('ticket_number', { ascending: true });
-
-      const { data: ticketsData, error: ticketsError } = await query;
+      const { data: allTickets, error: ticketsError } = await TicketsAPI.getTicketsByPhoneNumber(fullPhoneNumber);
 
       if (ticketsError) throw ticketsError;
 
-      if (!ticketsData || ticketsData.length === 0) {
+      if (!allTickets || allTickets.length === 0) {
         setError('Nenhuma cota encontrada com este número de telefone.');
         setSearching(false);
         return;
       }
+
+      let filteredTickets = allTickets;
+
+      if (campaignId) {
+        filteredTickets = allTickets.filter(ticket => ticket.campaign_id === campaignId);
+      } else if (userId) {
+        const { data: userCampaigns } = await supabase
+          .from('campaigns')
+          .select('id')
+          .eq('user_id', userId);
+
+        const campaignIds = userCampaigns?.map(c => c.id) || [];
+        filteredTickets = allTickets.filter(ticket => campaignIds.includes(ticket.campaign_id));
+      }
+
+      if (filteredTickets.length === 0) {
+        setError('Nenhuma cota encontrada com este número de telefone.');
+        setSearching(false);
+        return;
+      }
+
+      const ticketsData = filteredTickets.map(ticket => ({
+        ticket_number: ticket.quota_number,
+        status: ticket.status as 'available' | 'reserved' | 'purchased',
+        customer_name: ticket.customer_name,
+        customer_phone: ticket.customer_phone,
+        price: 0,
+        campaigns: {
+          title: ticket.campaign_title,
+          organizer_id: userId || ''
+        }
+      }));
 
       setTickets(ticketsData);
       setCustomerName(ticketsData[0].customer_name || 'Cliente');
