@@ -277,15 +277,15 @@ const CustomizationPage = () => {
           cardBg: 'bg-gray-50',
           border: 'border-gray-200'
         };
-      case 'escuro':
+            case 'escuro':
         return {
-          background: 'bg-gray-800',
+          background: 'bg-slate-900',
           text: 'text-white',
-          textSecondary: 'text-gray-300',
-          cardBg: 'bg-gray-700',
-          border: 'border-gray-600'
+          textSecondary: 'text-slate-300',
+          cardBg: 'bg-slate-800',
+          border: 'border-slate-700'
         };
-      case 'escuro-preto':
+case 'escuro-preto':
         return {
           background: 'bg-black',
           text: 'text-white',
