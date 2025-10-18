@@ -287,10 +287,10 @@ const CustomizationPage = () => {
         };
       case 'escuro-preto':
         return {
-          background: 'bg-black',
+          background: 'bg-black', // Fundo principal para seleção e preview do card
           text: 'text-white',
           textSecondary: 'text-gray-300',
-          cardBg: 'bg-gray-900',
+          cardBg: 'bg-gray-900', // Card interno (progresso, etc) ligeiramente mais claro que o fundo
           border: 'border-gray-700'
         };
       default:
