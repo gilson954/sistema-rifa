@@ -57,7 +57,11 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   React.useEffect(() => {
     const validQuantity = Math.max(initialQuantity, minTicketsPerPurchase);
     setQuantity(validQuantity);
-    onQuantityChange(validQuantity);
+
+    // Use setTimeout to avoid calling parent state setter during render
+    setTimeout(() => {
+      onQuantityChange(validQuantity);
+    }, 0);
   }, [initialQuantity, minTicketsPerPurchase, onQuantityChange]);
 
   const getThemeClasses = (theme: string) => {

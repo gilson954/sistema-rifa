@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle, ShoppingCart } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { formatReservationTime } from '../utils/timeFormatters';
+import { useNotification } from '../context/NotificationContext';
 
 interface Country {
   code: string;
@@ -52,6 +53,8 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   reserving = false,
   reservationTimeoutMinutes = 15
 }) => {
+  const { showSuccess, showError, showWarning } = useNotification();
+
   const [formData, setFormData] = useState<CustomerData>({
     name: '',
     email: '',
@@ -177,6 +180,13 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     }
 
     setErrors(newErrors);
+
+    // Show toast notification for validation errors
+    if (Object.keys(newErrors).length > 0) {
+      const firstError = Object.values(newErrors)[0];
+      showWarning(firstError);
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 

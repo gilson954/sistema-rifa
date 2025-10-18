@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useNotification } from '../context/NotificationContext';
 import { useCampaignByPublicId, useCampaignByCustomDomain } from '../hooks/useCampaigns';
 import { useTickets } from '../hooks/useTickets';
 import { useCampaignWinners } from '../hooks/useCampaignWinners';
@@ -111,6 +112,7 @@ const CampaignPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme } = useTheme();
+  const { showSuccess, showError, showWarning, showInfo } = useNotification();
 
   const isValidDescription = (description: string): boolean => {
     if (!description || typeof description !== 'string') return false;
@@ -409,7 +411,7 @@ const CampaignPage = () => {
 
   const handleReservationSubmit = useCallback(async (customerData: CustomerData) => {
     if (!campaign) {
-      alert('Erro: dados da campanha não encontrados');
+      showError('Erro: dados da campanha não encontrados');
       return;
     }
 
@@ -418,13 +420,13 @@ const CampaignPage = () => {
 
       if (campaign.campaign_model === 'manual') {
         if (selectedQuotas.length === 0) {
-          alert('Selecione pelo menos uma cota para reservar');
+          showWarning('Selecione pelo menos uma cota para reservar');
           return;
         }
         quotasToReserve = selectedQuotas;
       } else {
         if (quantity <= 0) {
-          alert('Selecione uma quantidade válida de cotas');
+          showWarning('Selecione uma quantidade válida de cotas');
           return;
         }
 
@@ -432,7 +434,7 @@ const CampaignPage = () => {
         const availableQuotaNumbers = availableTickets.map(ticket => ticket.quota_number);
 
         if (availableQuotaNumbers.length < quantity) {
-          alert(`Apenas ${availableQuotaNumbers.length} cotas disponíveis`);
+          showError(`Apenas ${availableQuotaNumbers.length} cotas disponíveis`);
           return;
         }
 
@@ -440,14 +442,16 @@ const CampaignPage = () => {
         quotasToReserve = shuffled.slice(0, quantity);
       }
 
+      showInfo('Processando sua reserva...');
+
       const result = await reserveTickets(
         quotasToReserve,
         user?.id || null,
         customerData.name,
         customerData.email,
-        `${customerData.countryCode} ${customerData.phoneNumber}`
+        `${customerData.countryCode}${customerData.phoneNumber}`
       );
-      
+
       if (result) {
         const { total: totalValue } = calculateTotalWithPromotions(
           quotasToReserve.length,
@@ -462,13 +466,15 @@ const CampaignPage = () => {
         setSelectedQuotas([]);
         setQuantity(Math.max(1, campaign.min_tickets_per_purchase || 1));
 
+        showSuccess('Reserva realizada com sucesso!');
+
         navigate('/payment-confirmation', {
           state: {
             reservationData: {
               reservationId: `RES-${Date.now()}`,
               customerName: customerData.name,
               customerEmail: customerData.email,
-              customerPhone: `${customerData.countryCode} ${customerData.phoneNumber}`,
+              customerPhone: `${customerData.countryCode}${customerData.phoneNumber}`,
               quotaCount: quotasToReserve.length,
               totalValue: totalValue,
               selectedQuotas: quotasToReserve,
@@ -479,27 +485,43 @@ const CampaignPage = () => {
           }
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during reservation:', error);
-      alert('Erro ao reservar cotas. Tente novamente.');
+
+      // Parse error and show user-friendly message
+      let errorMessage = 'Erro ao reservar cotas. Tente novamente.';
+
+      if (error?.message) {
+        if (error.message.includes('já reservada')) {
+          errorMessage = 'Algumas cotas selecionadas já foram reservadas. Por favor, selecione outras cotas.';
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.';
+        } else if (error.message.includes('timeout')) {
+          errorMessage = 'A operação demorou muito tempo. Por favor, tente novamente.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      showError(errorMessage);
     } finally {
       setShowReservationModal(false);
     }
-  }, [campaign, user, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate]);
+  }, [campaign, user, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate, showSuccess, showError, showWarning, showInfo]);
 
   const handleOpenReservationModal = useCallback(() => {
     if (campaign?.campaign_model === 'manual' && selectedQuotas.length === 0) {
-      alert('Selecione pelo menos uma cota para reservar');
+      showWarning('Selecione pelo menos uma cota para reservar');
       return;
     }
 
     if (campaign?.campaign_model === 'automatic' && quantity <= 0) {
-      alert('Selecione uma quantidade válida de cotas');
+      showWarning('Selecione uma quantidade válida de cotas');
       return;
     }
 
     setShowStep1Modal(true);
-  }, [user, campaign, selectedQuotas, quantity, navigate]);
+  }, [user, campaign, selectedQuotas, quantity, navigate, showWarning]);
 
   const handleStep1NewCustomer = useCallback(() => {
     setShowStep1Modal(false);
