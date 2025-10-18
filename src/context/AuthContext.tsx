@@ -2,14 +2,25 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 
+interface PhoneUser {
+  id: string
+  phone: string
+  name: string
+  email: string
+  isPhoneAuth: boolean
+}
+
 interface AuthContextType {
   user: User | null
   session: Session | null
   isAdmin: boolean | null
   loading: boolean
+  phoneUser: PhoneUser | null
+  isPhoneAuthenticated: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signInWithGoogle: () => Promise<{ error: any }>
   signUp: (email: string, password: string, name: string, redirectTo?: string) => Promise<{ error: any }>
+  signInWithPhone: (phone: string) => Promise<{ success: boolean; error?: any; user?: PhoneUser }>
   signOut: () => Promise<void>
   updateProfile: (data: { name?: string; avatar_url?: string }) => Promise<{ error: any }>
 }
@@ -33,6 +44,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null)
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(true)
+  const [phoneUser, setPhoneUser] = useState<PhoneUser | null>(null)
+  const [isPhoneAuthenticated, setIsPhoneAuthenticated] = useState(false)
 
   // Function to check admin status from user metadata
   const checkAdminStatus = (user: User | null) => {
@@ -47,6 +60,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   useEffect(() => {
+    // Check for phone auth session in localStorage
+    const checkPhoneAuth = () => {
+      try {
+        const phoneAuthData = localStorage.getItem('rifaqui_phone_auth')
+        if (phoneAuthData) {
+          const parsed = JSON.parse(phoneAuthData)
+          const expiresAt = new Date(parsed.expiresAt)
+          if (expiresAt > new Date()) {
+            setPhoneUser(parsed.user)
+            setIsPhoneAuthenticated(true)
+          } else {
+            localStorage.removeItem('rifaqui_phone_auth')
+          }
+        }
+      } catch (error) {
+        console.error('Error checking phone auth:', error)
+        localStorage.removeItem('rifaqui_phone_auth')
+      }
+    }
+
+    checkPhoneAuth()
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -68,9 +103,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (event === 'SIGNED_IN' && session?.user) {
         // Check if this is a password recovery session
         const urlParams = new URLSearchParams(window.location.hash.substring(1))
-        const isRecovery = urlParams.get('type') === 'recovery' || 
+        const isRecovery = urlParams.get('type') === 'recovery' ||
                           window.location.pathname === '/reset-password'
-        
+
         if (isRecovery) {
           // Don't redirect to dashboard for password recovery
           return
@@ -82,6 +117,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           localStorage.removeItem('rifaqui_last_route')
           localStorage.removeItem('rifaqui_route_timestamp')
+          localStorage.removeItem('rifaqui_phone_auth')
+          setPhoneUser(null)
+          setIsPhoneAuthenticated(false)
         } catch (error) {
           console.warn('Failed to clear route history on logout:', error)
         }
@@ -144,15 +182,62 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return { error }
   }
 
+  const signInWithPhone = async (phone: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('customer_name, customer_email, customer_phone')
+        .eq('customer_phone', phone)
+        .eq('status', 'purchased')
+        .limit(1)
+        .maybeSingle()
+
+      if (error) {
+        console.error('Error fetching customer by phone:', error)
+        return { success: false, error: 'Erro ao buscar dados do cliente' }
+      }
+
+      if (!data) {
+        return { success: false, error: 'Nenhum cliente encontrado com este número' }
+      }
+
+      const phoneUserData: PhoneUser = {
+        id: `phone_${phone.replace(/\D/g, '')}`,
+        phone: data.customer_phone,
+        name: data.customer_name,
+        email: data.customer_email,
+        isPhoneAuth: true
+      }
+
+      const expiresAt = new Date()
+      expiresAt.setHours(expiresAt.getHours() + 24)
+
+      const authData = {
+        user: phoneUserData,
+        expiresAt: expiresAt.toISOString()
+      }
+
+      localStorage.setItem('rifaqui_phone_auth', JSON.stringify(authData))
+
+      setPhoneUser(phoneUserData)
+      setIsPhoneAuthenticated(true)
+
+      return { success: true, user: phoneUserData }
+    } catch (error) {
+      console.error('Error in signInWithPhone:', error)
+      return { success: false, error: 'Erro inesperado ao fazer login' }
+    }
+  }
+
   const signOut = async () => {
     try {
       // Only attempt to sign out if there's a valid session
       if (session) {
         const { error } = await supabase.auth.signOut()
-        
+
         if (error) {
           // Check if the error is specifically about session not found or missing
-          if (error.message === 'Session from session_id claim in JWT does not exist' || 
+          if (error.message === 'Session from session_id claim in JWT does not exist' ||
               error.message === 'Auth session missing!') {
             console.warn('Session already expired or invalid - proceeding with local logout')
           } else {
@@ -169,11 +254,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null)
       setSession(null)
       setIsAdmin(null)
-      
+      setPhoneUser(null)
+      setIsPhoneAuthenticated(false)
+
       // Limpa o histórico de rotas no logout
       try {
         localStorage.removeItem('rifaqui_last_route')
         localStorage.removeItem('rifaqui_route_timestamp')
+        localStorage.removeItem('rifaqui_phone_auth')
       } catch (error) {
         console.warn('Failed to clear route history on logout:', error)
       }
@@ -196,12 +284,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     session,
     isAdmin,
     loading,
+    phoneUser,
+    isPhoneAuthenticated,
     signIn,
     signInWithGoogle,
     signUp,
+    signInWithPhone,
     signOut,
     updateProfile,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
+
+export type { PhoneUser }

@@ -4,6 +4,7 @@ import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle, Shoppi
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { formatReservationTime } from '../utils/timeFormatters';
 import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
 
 interface Country {
   code: string;
@@ -54,6 +55,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   reservationTimeoutMinutes = 15
 }) => {
   const { showSuccess, showError, showWarning } = useNotification();
+  const { signInWithPhone } = useAuth();
 
   const [formData, setFormData] = useState<CustomerData>({
     name: '',
@@ -190,9 +192,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -202,6 +204,10 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       countryCode: selectedCountry.dialCode,
       phoneNumber: formData.phoneNumber
     };
+
+    const fullPhoneNumber = `${selectedCountry.dialCode} ${formData.phoneNumber}`;
+
+    await signInWithPhone(fullPhoneNumber);
 
     onReserve(customerData);
   };
