@@ -12,7 +12,8 @@ import {
   AlertTriangle,
   FileText,
   Ticket,
-  Award
+  Award,
+  Heart
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -39,6 +40,7 @@ import { calculateTotalWithPromotions } from '../utils/currency';
 import { socialMediaConfig, shareSectionConfig } from '../components/SocialMediaIcons';
 import { supabase } from '../lib/supabase';
 import { CotasPremiadasAPI } from '../lib/api/cotasPremiadas';
+import { useFavoriteCampaigns } from '../hooks/useFavoriteCampaigns';
 
 interface PromotionInfo {
   promotion: Promotion;
@@ -111,9 +113,10 @@ const slideVariants = {
 const CampaignPage = () => {
   const { publicId } = useParams<{ publicId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isPhoneAuthenticated, phoneUser } = useAuth();
   const { theme } = useTheme();
   const { showSuccess, showError, showWarning, showInfo } = useNotification();
+  const { isFavorite, toggleFavorite } = useFavoriteCampaigns();
 
   const isValidDescription = (description: string): boolean => {
     if (!description || typeof description !== 'string') return false;
@@ -842,6 +845,33 @@ const CampaignPage = () => {
                 </>
               )}
             </button>
+
+            {isPhoneAuthenticated && campaign && (
+              <button
+                onClick={async () => {
+                  try {
+                    await toggleFavorite(campaign.id);
+                    if (isFavorite(campaign.id)) {
+                      showSuccess('Removido dos favoritos');
+                    } else {
+                      showSuccess('Adicionado aos favoritos');
+                    }
+                  } catch (error) {
+                    showError('Erro ao atualizar favorito');
+                  }
+                }}
+                className={`p-2 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105 ${
+                  campaign && isFavorite(campaign.id)
+                    ? 'bg-red-500 text-white'
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+                }`}
+                title={campaign && isFavorite(campaign.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+              >
+                <Heart
+                  className={`h-5 w-5 ${campaign && isFavorite(campaign.id) ? 'fill-white' : ''}`}
+                />
+              </button>
+            )}
 
             <button
               onClick={() => setShowMyTicketsModal(true)}
