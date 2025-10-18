@@ -6,16 +6,6 @@ import { supabase } from '../lib/supabase';
 import { CustomDomainsAPI, CustomDomain } from '../lib/api/customDomains';
 import ConfirmModal from '../components/ConfirmModal';
 
-// O tipo CustomDomain e a classe CustomDomainsAPI devem ser definidos em '../lib/api/customDomains'.
-// Assumindo a interface CustomDomain como:
-// interface CustomDomain {
-//   id: string;
-//   domain_name: string;
-//   is_verified: boolean;
-//   ssl_status: 'pending' | 'active' | 'failed';
-//   dns_instructions?: string;
-// }
-
 const CustomizationPage = () => {
   const { user } = useAuth();
   const { showSuccess, showError, showWarning } = useNotification();
