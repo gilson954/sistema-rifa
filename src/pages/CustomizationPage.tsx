@@ -279,11 +279,11 @@ const CustomizationPage = () => {
         };
       case 'escuro':
         return {
-          background: 'bg-gray-800',
+          background: 'bg-slate-900',
           text: 'text-white',
-          textSecondary: 'text-gray-300',
-          cardBg: 'bg-gray-700',
-          border: 'border-gray-600'
+          textSecondary: 'text-slate-300',
+          cardBg: 'bg-slate-800',
+          border: 'border-slate-700'
         };
       case 'escuro-preto':
         return {
@@ -462,7 +462,7 @@ const CustomizationPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
+    <div className={`min-h-screen ${getThemeClasses(selectedTheme).background} ${getThemeClasses(selectedTheme).text} transition-colors duration-300`}>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header com gradiente */}
         <div className="mb-8 relative overflow-hidden rounded-2xl p-8 shadow-xl border border-purple-200/30 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/80 to-blue-50/80 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm">
@@ -1039,7 +1039,7 @@ const CustomizationPage = () => {
               </button>
             </div>
           )}
-
+          
           {/* Sua logo Tab */}
           {activeTab === 'sua-logo' && (
             <div>
@@ -1331,95 +1331,4 @@ const CustomizationPage = () => {
               </button>
             </div>
             
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              Adicione um novo domínio personalizado para suas campanhas
-            </p>
-
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
-                Digite seu domínio
-              </label>
-              <input
-                type="text"
-                value={newDomain}
-                onChange={(e) => setNewDomain(e.target.value)}
-                placeholder="Exemplo: rifaqui.com.br"
-                className="w-full bg-white dark:bg-gray-700 border-2 border-purple-500 focus:border-purple-600 dark:border-purple-600 dark:focus:border-purple-500 rounded-xl px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all duration-200"
-              />
-            </div>
-
-            <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
-              <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                <strong>Importante:</strong> Não use https:// ou barras (/), insira apenas o domínio.
-              </p>
-            </div>
-
-            <button
-              onClick={handleSaveDomain}
-              disabled={!newDomain.trim() || saving}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:scale-105"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Salvando...</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="h-5 w-5" />
-                  <span>Salvar Domínio</span>
-                </>
-              )}
-            </button>
-            
-            <div className="mt-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
-              <div className="flex items-start space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm text-blue-800 dark:text-blue-200">
-                    <strong className="block mb-1">Como funciona:</strong>
-                    Após adicionar o domínio, você receberá instruções para configurar o DNS. 
-                    O certificado SSL será ativado automaticamente após a verificação bem-sucedida.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Confirm Remove Logo Modal */}
-      <ConfirmModal
-        isOpen={showRemoveLogoConfirm}
-        title="Remover Logo"
-        message="Tem certeza que deseja remover sua logo? Esta ação não pode ser desfeita."
-        confirmText="Remover"
-        cancelText="Cancelar"
-        type="danger"
-        loading={uploadingLogo}
-        onConfirm={confirmRemoveLogo}
-        onCancel={() => setShowRemoveLogoConfirm(false)}
-      />
-
-      {/* Confirm Delete Domain Modal */}
-      <ConfirmModal
-        isOpen={showDeleteDomainConfirm}
-        title="Remover Domínio"
-        message={`Tem certeza que deseja remover o domínio ${selectedDomainToDelete?.name}? Esta ação não pode ser desfeita.`}
-        confirmText="Remover"
-        cancelText="Cancelar"
-        type="danger"
-        loading={deleting}
-        onConfirm={confirmDeleteDomain}
-        onCancel={() => {
-          setShowDeleteDomainConfirm(false);
-          setSelectedDomainToDelete(null);
-        }}
-      />
-    </div>
-  );
-};
-
-export default CustomizationPage;
+            <p class
