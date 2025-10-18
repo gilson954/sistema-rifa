@@ -5,6 +5,7 @@ import { Clock, Copy, CheckCircle, User, Mail, Phone, Hash, QrCode, AlertTriangl
 import CampaignHeader from '../components/CampaignHeader';
 import CampaignFooter from '../components/CampaignFooter';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 
 interface ReservationData {
   reservationId: string;
@@ -21,6 +22,17 @@ interface ReservationData {
   reservationTimeoutMinutes?: number;
 }
 
+interface OrganizerProfile {
+  id: string;
+  name: string;
+  logo_url?: string;
+  primary_color?: string;
+  theme?: string;
+  color_mode?: string;
+  gradient_classes?: string;
+  custom_gradient_colors?: string;
+}
+
 const PaymentConfirmationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -30,6 +42,7 @@ const PaymentConfirmationPage = () => {
   const [isExpired, setIsExpired] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedPix, setCopiedPix] = useState(false);
+  const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
 
   const reservationData = location.state?.reservationData as ReservationData;
 
@@ -43,6 +56,32 @@ const PaymentConfirmationPage = () => {
       signInWithPhone(reservationData.customerPhone);
     }
   }, [reservationData, navigate, signInWithPhone, isPhoneAuthenticated]);
+
+  useEffect(() => {
+    const loadOrganizerProfile = async () => {
+      if (reservationData?.campaignId) {
+        const { data: campaign } = await supabase
+          .from('campaigns')
+          .select('user_id')
+          .eq('id', reservationData.campaignId)
+          .maybeSingle();
+
+        if (campaign?.user_id) {
+          const { data: profile } = await supabase
+            .from('public_profiles_view')
+            .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
+            .eq('id', campaign.user_id)
+            .maybeSingle();
+
+          if (profile) {
+            setOrganizerProfile(profile);
+          }
+        }
+      }
+    };
+
+    loadOrganizerProfile();
+  }, [reservationData]);
 
   useEffect(() => {
     if (!reservationData?.expiresAt) return;
@@ -116,7 +155,17 @@ const PaymentConfirmationPage = () => {
   if (isExpired) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex flex-col">
-        <CampaignHeader onMyTicketsClick={() => navigate('/my-tickets')} />
+        <CampaignHeader
+          logoUrl={organizerProfile?.logo_url}
+          organizerName={organizerProfile?.name}
+          organizerId={organizerProfile?.id}
+          primaryColor={organizerProfile?.primary_color}
+          colorMode={organizerProfile?.color_mode}
+          gradientClasses={organizerProfile?.gradient_classes}
+          customGradientColors={organizerProfile?.custom_gradient_colors}
+          campaignTheme={organizerProfile?.theme}
+          onMyTicketsClick={() => navigate('/my-tickets')}
+        />
 
         <div className="flex-1 flex items-center justify-center px-4 py-12">
           <motion.div
@@ -157,7 +206,17 @@ const PaymentConfirmationPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex flex-col">
-      <CampaignHeader onMyTicketsClick={() => navigate('/my-tickets')} />
+      <CampaignHeader
+        logoUrl={organizerProfile?.logo_url}
+        organizerName={organizerProfile?.name}
+        organizerId={organizerProfile?.id}
+        primaryColor={organizerProfile?.primary_color}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
+        campaignTheme={organizerProfile?.theme}
+        onMyTicketsClick={() => navigate('/my-tickets')}
+      />
 
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         <motion.div

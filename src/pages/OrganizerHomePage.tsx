@@ -7,6 +7,7 @@ import { Campaign } from '../types/campaign';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/currency';
 import MyTicketsModal from '../components/MyTicketsModal';
+import CampaignFooter from '../components/CampaignFooter';
 import { useAuth } from '../context/AuthContext';
 
 interface OrganizerProfile {
@@ -425,6 +426,8 @@ const OrganizerHomePage: React.FC = () => {
           customGradientColors={organizerProfile?.custom_gradient_colors}
         />
       )}
+
+      <CampaignFooter campaignTheme={organizerTheme} />
     </div>
   );
 };

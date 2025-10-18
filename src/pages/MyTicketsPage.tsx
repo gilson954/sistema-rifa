@@ -7,6 +7,7 @@ import CountryPhoneSelect from '../components/CountryPhoneSelect';
 import CampaignHeader from '../components/CampaignHeader';
 import CampaignFooter from '../components/CampaignFooter';
 import { TicketsAPI, CustomerTicket } from '../lib/api/tickets';
+import { supabase } from '../lib/supabase';
 
 interface Country {
   code: string;
@@ -25,6 +26,17 @@ interface GroupedTickets {
   status: 'purchased' | 'reserved' | 'expired';
 }
 
+interface OrganizerProfile {
+  id: string;
+  name: string;
+  logo_url?: string;
+  primary_color?: string;
+  theme?: string;
+  color_mode?: string;
+  gradient_classes?: string;
+  custom_gradient_colors?: string;
+}
+
 const MyTicketsPage = () => {
   const navigate = useNavigate();
   const { isPhoneAuthenticated, phoneUser, signInWithPhone } = useAuth();
@@ -40,12 +52,40 @@ const MyTicketsPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [authenticating, setAuthenticating] = useState(false);
+  const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
 
   useEffect(() => {
     if (isPhoneAuthenticated && phoneUser) {
       loadUserTickets(phoneUser.phone);
     }
   }, [isPhoneAuthenticated, phoneUser]);
+
+  useEffect(() => {
+    const loadOrganizerFromTickets = async () => {
+      if (tickets.length > 0) {
+        const firstTicket = tickets[0];
+        const { data: campaign } = await supabase
+          .from('campaigns')
+          .select('user_id')
+          .eq('id', firstTicket.campaign_id)
+          .maybeSingle();
+
+        if (campaign?.user_id) {
+          const { data: profile } = await supabase
+            .from('public_profiles_view')
+            .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
+            .eq('id', campaign.user_id)
+            .maybeSingle();
+
+          if (profile) {
+            setOrganizerProfile(profile);
+          }
+        }
+      }
+    };
+
+    loadOrganizerFromTickets();
+  }, [tickets]);
 
   const loadUserTickets = async (phone: string) => {
     setLoading(true);
@@ -191,7 +231,17 @@ const MyTicketsPage = () => {
   if (!isPhoneAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300 flex flex-col">
-        <CampaignHeader onMyTicketsClick={() => {}} />
+        <CampaignHeader
+          logoUrl={organizerProfile?.logo_url}
+          organizerName={organizerProfile?.name}
+          organizerId={organizerProfile?.id}
+          primaryColor={organizerProfile?.primary_color}
+          colorMode={organizerProfile?.color_mode}
+          gradientClasses={organizerProfile?.gradient_classes}
+          customGradientColors={organizerProfile?.custom_gradient_colors}
+          campaignTheme={organizerProfile?.theme}
+          onMyTicketsClick={() => {}}
+        />
 
         <div className="flex-1 flex items-center justify-center px-4 py-12">
           <motion.div
@@ -260,7 +310,17 @@ const MyTicketsPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300 flex flex-col">
-      <CampaignHeader onMyTicketsClick={() => {}} />
+      <CampaignHeader
+        logoUrl={organizerProfile?.logo_url}
+        organizerName={organizerProfile?.name}
+        organizerId={organizerProfile?.id}
+        primaryColor={organizerProfile?.primary_color}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
+        campaignTheme={organizerProfile?.theme}
+        onMyTicketsClick={() => {}}
+      />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         <motion.div

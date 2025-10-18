@@ -30,6 +30,7 @@ import ReservationStep2Modal from '../components/ReservationStep2Modal';
 import PrizesDisplayModal from '../components/PrizesDisplayModal';
 import MyTicketsModal from '../components/MyTicketsModal';
 import CotasPremiadasPublicModal from '../components/CotasPremiadasPublicModal';
+import CampaignFooter from '../components/CampaignFooter';
 import { CustomerData as ExistingCustomer } from '../utils/customerCheck';
 import { Promotion } from '../types/promotion';
 import { CotaPremiada } from '../types/cotasPremiadas';
@@ -1686,6 +1687,8 @@ const CampaignPage = () => {
           customGradientColors={organizerProfile?.custom_gradient_colors}
         />
       )}
+
+      <CampaignFooter campaignTheme={campaignTheme} />
     </div>
   );
 };
