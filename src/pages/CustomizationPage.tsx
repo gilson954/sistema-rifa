@@ -279,19 +279,19 @@ const CustomizationPage = () => {
         };
       case 'escuro':
         return {
-          background: 'bg-gray-800',
+          background: 'bg-slate-800',
           text: 'text-white',
           textSecondary: 'text-gray-300',
-          cardBg: 'bg-gray-700',
-          border: 'border-gray-600'
+          cardBg: 'bg-slate-700',
+          border: 'border-slate-600'
         };
       case 'escuro-preto':
         return {
-          background: 'bg-black', // Fundo principal para seleção e preview do card
+          background: 'bg-slate-900',
           text: 'text-white',
           textSecondary: 'text-gray-300',
-          cardBg: 'bg-gray-900', // Card interno (progresso, etc) ligeiramente mais claro que o fundo
-          border: 'border-gray-700'
+          cardBg: 'bg-slate-800',
+          border: 'border-slate-700'
         };
       default:
         return {
@@ -544,51 +544,6 @@ const CustomizationPage = () => {
                             <div 
                               className={`h-2 rounded-full w-2/3 ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
                               style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                            ></div>
-                          </div>
-                        </div>
-                        <div 
-                          className={`text-white text-xs py-2 px-3 rounded-lg text-center font-semibold shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                        >
-                          Participar
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-center text-base font-bold text-gray-900 dark:text-white">Claro</p>
-                  </div>
-
-                  {/* Dark Theme */}
-                  <div
-                    onClick={() => setSelectedTheme('escuro')}
-                    className={`cursor-pointer rounded-2xl p-5 transition-all duration-300 hover:scale-105 ${
-                      selectedTheme === 'escuro'
-                        ? 'ring-4 ring-purple-500 shadow-xl'
-                        : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
-                    }`}
-                  >
-                    <div className={`w-full h-40 ${getThemeClasses('escuro').background} rounded-xl p-4 mb-4 border-2 ${getThemeClasses('escuro').border} shadow-inner`}>
-                      <div className="space-y-2">
-                        <div className={`text-sm font-bold ${getThemeClasses('escuro').text}`}>
-                          Rifa do iPhone 15
-                        </div>
-                        <div className={`text-xs ${getThemeClasses('escuro').textSecondary}`}>
-                          R$ 5,00 por bilhete
-                        </div>
-                        <div className={`${getThemeClasses('escuro').cardBg} rounded-lg p-3 space-y-2`}>
-                          <div className={`text-xs font-medium ${getThemeClasses('escuro').textSecondary}`}>
-                            Progresso
-                          </div>
-                          <div className="bg-gray-600 rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full w-2/3 ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                              style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                            ></div>
-                          </div>
-                        </div>
-                        <div 
-                          className={`text-white text-xs py-2 px-3 rounded-lg text-center font-semibold shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
                         >
                           Participar
                         </div>
@@ -618,7 +573,7 @@ const CustomizationPage = () => {
                           <div className={`text-xs font-medium ${getThemeClasses('escuro-preto').textSecondary}`}>
                             Progresso
                           </div>
-                          <div className="bg-gray-700 rounded-full h-2">
+                          <div className="bg-slate-700 rounded-full h-2">
                             <div 
                               className={`h-2 rounded-full w-2/3 ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
                               style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
@@ -832,226 +787,7 @@ const CustomizationPage = () => {
                   {/* Seletor de Gradiente Customizado */}
                   {isCustomGradient && colorMode === 'gradient' && (
                     <>
-                      <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl p-8 border border-gray-200/50 dark:border-gray-700/50 mb-6">
-                        <div className="flex items-center justify-between mb-6">
-                          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                            Suas cores personalizadas
-                          </h3>
-                          <button
-                            onClick={colorMode === 'gradient' ? handleRandomGradient : undefined}
-                            disabled={colorMode === 'solid'}
-                            className={`px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-lg text-white rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 hover:scale-105 ${
-                              colorMode === 'solid' ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                          >
-                            <Sparkles className="h-4 w-4" />
-                            Random
-                          </button>
-                        </div>
-
-                        <div className="space-y-4">
-                          {customGradientColors.map((color, index) => (
-                            <div key={index} className="flex items-center gap-4">
-                              <div className="flex-shrink-0 text-sm font-bold text-gray-700 dark:text-gray-300 w-16">
-                                Cor {index + 1}
-                              </div>
-                              
-                              {/* Color Picker */}
-                              <div className="relative flex-1">
-                                <input
-                                  type="color"
-                                  value={color}
-                                  onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
-                                  className="w-full h-12 rounded-xl border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
-                                  style={{ backgroundColor: color }}
-                                />
-                              </div>
-
-                              {/* Color Preview & Code */}
-                              <div className="flex items-center gap-3 flex-1">
-                                <div 
-                                  className="w-12 h-12 rounded-xl shadow-lg border-2 border-white dark:border-gray-700"
-                                  style={{ backgroundColor: color }}
-                                ></div>
-                                <input
-                                  type="text"
-                                  value={color.toUpperCase()}
-                                  onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
-                                  className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                  placeholder="#000000"
-                                />
-                              </div>
-
-                              {/* Remove Button */}
-                              {customGradientColors.length > 2 && (
-                                <button
-                                  onClick={() => handleRemoveCustomColor(index)}
-                                  className="flex-shrink-0 p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-all duration-300"
-                                  title="Remover cor"
-                                >
-                                  <X className="h-5 w-5" />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Add Color Button */}
-                        {customGradientColors.length < 3 && (
-                          <button
-                            onClick={handleAddCustomColor}
-                            className="mt-4 w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-600 dark:text-gray-400 hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 flex items-center justify-center gap-2 font-semibold"
-                          >
-                            <Plus className="h-5 w-5" />
-                            Adicionar cor (máx. 3)
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Preview do Gradiente Customizado */}
-                      <div className="mb-6 p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Gradiente personalizado:</p>
-                        <div 
-                          className="w-full h-20 rounded-2xl shadow-xl animate-gradient-x bg-[length:200%_200%]"
-                          style={{ 
-                            background: getCustomGradientStyle(),
-                            backgroundSize: '200% 200%'
-                          }}
-                        ></div>
-                      </div>
-                    </>
-                  )}
-
-                  {/* Preview do Gradiente Predefinido */}
-                  {!isCustomGradient && colorMode === 'gradient' && (
-                    <div className="mb-6 p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Gradiente selecionado:</p>
-                      <div className={`w-full h-20 rounded-2xl shadow-xl bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`}></div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Preview em Tempo Real */}
-              <div className="mb-8">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                  <Eye className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                  Pré-visualização
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Veja como sua campanha ficará para os visitantes
-                </p>
-                <div className={`${getThemeClasses(selectedTheme).background} rounded-2xl p-8 ${getThemeClasses(selectedTheme).border} border-2 transition-all duration-300 shadow-xl`}>
-                  <div className="space-y-5">
-                    {/* Título da campanha */}
-                    <h4 className={`text-2xl font-bold ${getThemeClasses(selectedTheme).text}`}>
-                      Rifa do iPhone 15 Pro Max
-                    </h4>
-                    
-                    {/* Informações do organizador */}
-                    <div className={`${getThemeClasses(selectedTheme).cardBg} rounded-xl p-4 inline-flex items-center space-x-3 shadow-md`}>
-                      <div 
-                        className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                        style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                      >
-                        G
-                      </div>
-                      <div>
-                        <div className={`text-xs ${getThemeClasses(selectedTheme).textSecondary}`}>
-                          Organizado por:
-                        </div>
-                        <div className={`font-bold ${getThemeClasses(selectedTheme).text}`}>
-                          João Silva
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Progresso da campanha */}
-                    <div className={`${getThemeClasses(selectedTheme).cardBg} rounded-xl p-5 shadow-md`}>
-                      <div className={`text-sm font-semibold ${getThemeClasses(selectedTheme).textSecondary} mb-3`}>
-                        Progresso da campanha
-                      </div>
-                      <div className="bg-gray-300 dark:bg-gray-600 rounded-full h-4 mb-3 shadow-inner">
-                        <div 
-                          className={`h-4 rounded-full w-3/4 transition-all duration-300 shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                        ></div>
-                      </div>
-                      <div className={`text-base font-bold ${getThemeClasses(selectedTheme).text}`}>
-                        750/1000 bilhetes vendidos
-                      </div>
-                    </div>
-                    
-                    {/* Botão de participar */}
-                    <button 
-                      className={`text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl shadow-lg ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                      style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                    >
-                      Participar da Rifa
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
-                  <p className="text-sm text-blue-800 dark:text-blue-200 text-center">
-                    Esta é uma prévia de como sua campanha aparecerá para os visitantes
-                  </p>
-                </div>
-              </div>
-
-              {/* Dica de Acessibilidade */}
-              <div className="mb-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl shadow-md">
-                <div className="flex items-start space-x-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <Sparkles className="text-white h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-blue-900 dark:text-blue-100 text-base font-bold mb-2">
-                      Dica de Design
-                    </p>
-                    <p className="text-blue-800 dark:text-blue-200 text-sm">
-                      {colorMode === 'solid' 
-                        ? 'Para melhor legibilidade, escolha cores mais escuras como cor principal. Cores muito claras podem dificultar a leitura do texto branco nos botões.'
-                        : 'Gradientes animados criam um efeito visual impressionante e moderno. Eles são perfeitos para destacar botões e elementos importantes da sua campanha.'
-                      }
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Save Button */}
-              <button 
-                onClick={handleSaveChanges}
-                disabled={saving}
-                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:scale-105 animate-gradient-x bg-[length:200%_200%]"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Salvando...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Salvar alterações</span>
-                    <ArrowRight className="h-5 w-5" />
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-
-          {/* Sua logo Tab */}
-          {activeTab === 'sua-logo' && (
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
-                <Upload className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-                Sua logo
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-8">
-                Adicione sua logo e deixe suas campanhas com a identidade da sua marca
-              </p>
-
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
+                      <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                   Logo da empresa
                 </h3>
@@ -1422,4 +1158,268 @@ const CustomizationPage = () => {
   );
 };
 
-export default CustomizationPage;
+export default CustomizationPage;:from-gray-800 dark:to-gray-800/50 rounded-2xl p-8 border border-gray-200/50 dark:border-gray-700/50 mb-6">
+                        <div className="flex items-center justify-between mb-6">
+                          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                            Suas cores personalizadas
+                          </h3>
+                          <button
+                            onClick={colorMode === 'gradient' ? handleRandomGradient : undefined}
+                            disabled={colorMode === 'solid'}
+                            className={`px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-lg text-white rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 hover:scale-105 ${
+                              colorMode === 'solid' ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            <Sparkles className="h-4 w-4" />
+                            Random
+                          </button>
+                        </div>
+
+                        <div className="space-y-4">
+                          {customGradientColors.map((color, index) => (
+                            <div key={index} className="flex items-center gap-4">
+                              <div className="flex-shrink-0 text-sm font-bold text-gray-700 dark:text-gray-300 w-16">
+                                Cor {index + 1}
+                              </div>
+                              
+                              {/* Color Picker */}
+                              <div className="relative flex-1">
+                                <input
+                                  type="color"
+                                  value={color}
+                                  onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
+                                  className="w-full h-12 rounded-xl border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
+                                  style={{ backgroundColor: color }}
+                                />
+                              </div>
+
+                              {/* Color Preview & Code */}
+                              <div className="flex items-center gap-3 flex-1">
+                                <div 
+                                  className="w-12 h-12 rounded-xl shadow-lg border-2 border-white dark:border-gray-700"
+                                  style={{ backgroundColor: color }}
+                                ></div>
+                                <input
+                                  type="text"
+                                  value={color.toUpperCase()}
+                                  onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
+                                  className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                  placeholder="#000000"
+                                />
+                              </div>
+
+                              {/* Remove Button */}
+                              {customGradientColors.length > 2 && (
+                                <button
+                                  onClick={() => handleRemoveCustomColor(index)}
+                                  className="flex-shrink-0 p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-all duration-300"
+                                  title="Remover cor"
+                                >
+                                  <X className="h-5 w-5" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Add Color Button */}
+                        {customGradientColors.length < 3 && (
+                          <button
+                            onClick={handleAddCustomColor}
+                            className="mt-4 w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-600 dark:text-gray-400 hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 flex items-center justify-center gap-2 font-semibold"
+                          >
+                            <Plus className="h-5 w-5" />
+                            Adicionar cor (máx. 3)
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Preview do Gradiente Customizado */}
+                      <div className="mb-6 p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
+                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Gradiente personalizado:</p>
+                        <div 
+                          className="w-full h-20 rounded-2xl shadow-xl animate-gradient-x bg-[length:200%_200%]"
+                          style={{ 
+                            background: getCustomGradientStyle(),
+                            backgroundSize: '200% 200%'
+                          }}
+                        ></div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Preview do Gradiente Predefinido */}
+                  {!isCustomGradient && colorMode === 'gradient' && (
+                    <div className="mb-6 p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
+                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Gradiente selecionado:</p>
+                      <div className={`w-full h-20 rounded-2xl shadow-xl bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`}></div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Preview em Tempo Real */}
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                  <Eye className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  Pré-visualização
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Veja como sua campanha ficará para os visitantes
+                </p>
+                <div className={`${getThemeClasses(selectedTheme).background} rounded-2xl p-8 ${getThemeClasses(selectedTheme).border} border-2 transition-all duration-300 shadow-xl`}>
+                  <div className="space-y-5">
+                    {/* Título da campanha */}
+                    <h4 className={`text-2xl font-bold ${getThemeClasses(selectedTheme).text}`}>
+                      Rifa do iPhone 15 Pro Max
+                    </h4>
+                    
+                    {/* Informações do organizador */}
+                    <div className={`${getThemeClasses(selectedTheme).cardBg} rounded-xl p-4 inline-flex items-center space-x-3 shadow-md`}>
+                      <div 
+                        className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                        style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                      >
+                        G
+                      </div>
+                      <div>
+                        <div className={`text-xs ${getThemeClasses(selectedTheme).textSecondary}`}>
+                          Organizado por:
+                        </div>
+                        <div className={`font-bold ${getThemeClasses(selectedTheme).text}`}>
+                          João Silva
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Progresso da campanha */}
+                    <div className={`${getThemeClasses(selectedTheme).cardBg} rounded-xl p-5 shadow-md`}>
+                      <div className={`text-sm font-semibold ${getThemeClasses(selectedTheme).textSecondary} mb-3`}>
+                        Progresso da campanha
+                      </div>
+                      <div className={`${selectedTheme === 'claro' ? 'bg-gray-300' : selectedTheme === 'escuro' ? 'bg-slate-600' : 'bg-slate-700'} rounded-full h-4 mb-3 shadow-inner`}>
+                        <div 
+                          className={`h-4 rounded-full w-3/4 transition-all duration-300 shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                        ></div>
+                      </div>
+                      <div className={`text-base font-bold ${getThemeClasses(selectedTheme).text}`}>
+                        750/1000 bilhetes vendidos
+                      </div>
+                    </div>
+                    
+                    {/* Botão de participar */}
+                    <button 
+                      className={`text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl shadow-lg ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                      style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                    >
+                      Participar da Rifa
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                  <p className="text-sm text-blue-800 dark:text-blue-200 text-center">
+                    Esta é uma prévia de como sua campanha aparecerá para os visitantes
+                  </p>
+                </div>
+              </div>
+
+              {/* Dica de Acessibilidade */}
+              <div className="mb-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl shadow-md">
+                <div className="flex items-start space-x-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <Sparkles className="text-white h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-blue-900 dark:text-blue-100 text-base font-bold mb-2">
+                      Dica de Design
+                    </p>
+                    <p className="text-blue-800 dark:text-blue-200 text-sm">
+                      {colorMode === 'solid' 
+                        ? 'Para melhor legibilidade, escolha cores mais escuras como cor principal. Cores muito claras podem dificultar a leitura do texto branco nos botões.'
+                        : 'Gradientes animados criam um efeito visual impressionante e moderno. Eles são perfeitos para destacar botões e elementos importantes da sua campanha.'
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <button 
+                onClick={handleSaveChanges}
+                disabled={saving}
+                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:scale-105 animate-gradient-x bg-[length:200%_200%]"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Salvando...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Salvar alterações</span>
+                    <ArrowRight className="h-5 w-5" />
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Sua logo Tab */}
+          {activeTab === 'sua-logo' && (
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+                <Upload className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                Sua logo
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-8">
+                Adicione sua logo e deixe suas campanhas com a identidade da sua marca
+              </p>
+
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark(), backgroundSize: '200% 200%' } : {})}
+                            ></div>
+                          </div>
+                        </div>
+                        <div 
+                          className={`text-white text-xs py-2 px-3 rounded-lg text-center font-semibold shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                        >
+                          Participar
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-center text-base font-bold text-gray-900 dark:text-white">Claro</p>
+                  </div>
+
+                  {/* Dark Theme */}
+                  <div
+                    onClick={() => setSelectedTheme('escuro')}
+                    className={`cursor-pointer rounded-2xl p-5 transition-all duration-300 hover:scale-105 ${
+                      selectedTheme === 'escuro'
+                        ? 'ring-4 ring-purple-500 shadow-xl'
+                        : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
+                    }`}
+                  >
+                    <div className={`w-full h-40 ${getThemeClasses('escuro').background} rounded-xl p-4 mb-4 border-2 ${getThemeClasses('escuro').border} shadow-inner`}>
+                      <div className="space-y-2">
+                        <div className={`text-sm font-bold ${getThemeClasses('escuro').text}`}>
+                          Rifa do iPhone 15
+                        </div>
+                        <div className={`text-xs ${getThemeClasses('escuro').textSecondary}`}>
+                          R$ 5,00 por bilhete
+                        </div>
+                        <div className={`${getThemeClasses('escuro').cardBg} rounded-lg p-3 space-y-2`}>
+                          <div className={`text-xs font-medium ${getThemeClasses('escuro').textSecondary}`}>
+                            Progresso
+                          </div>
+                          <div className="bg-slate-600 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full w-2/3 ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                              style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                            ></div>
+                          </div>
+                        </div>
+                        <div 
+                          className={`text-white text-xs py-2 px-3 rounded-lg text-center font-semibold shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle
