@@ -20,7 +20,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signInWithGoogle: () => Promise<{ error: any }>
   signUp: (email: string, password: string, name: string, redirectTo?: string) => Promise<{ error: any }>
-  signInWithPhone: (phone: string) => Promise<{ success: boolean; error?: any; user?: PhoneUser }>
+  signInWithPhone: (phone: string, userData?: { name: string; email: string }) => Promise<{ success: boolean; error?: any; user?: PhoneUser }>
   signOut: () => Promise<void>
   updateProfile: (data: { name?: string; avatar_url?: string }) => Promise<{ error: any }>
 }
@@ -182,13 +182,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return { error }
   }
 
-  const signInWithPhone = async (phone: string) => {
+  const signInWithPhone = async (phone: string, userData?: { name: string; email: string }) => {
     try {
+      // Se os dados do usuário foram fornecidos (após reserva), usa eles diretamente
+      if (userData) {
+        const phoneUserData: PhoneUser = {
+          id: `phone_${phone.replace(/\D/g, '')}`,
+          phone: phone,
+          name: userData.name,
+          email: userData.email,
+          isPhoneAuth: true
+        }
+
+        // Sessão permanente (365 dias)
+        const expiresAt = new Date()
+        expiresAt.setDate(expiresAt.getDate() + 365)
+
+        const authData = {
+          user: phoneUserData,
+          expiresAt: expiresAt.toISOString()
+        }
+
+        localStorage.setItem('rifaqui_phone_auth', JSON.stringify(authData))
+
+        setPhoneUser(phoneUserData)
+        setIsPhoneAuthenticated(true)
+
+        return { success: true, user: phoneUserData }
+      }
+
+      // Busca dados do cliente no banco (qualquer status de cota)
       const { data, error } = await supabase
         .from('tickets')
         .select('customer_name, customer_email, customer_phone')
         .eq('customer_phone', phone)
-        .eq('status', 'purchased')
         .limit(1)
         .maybeSingle()
 
@@ -198,7 +225,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (!data) {
-        return { success: false, error: 'Nenhum cliente encontrado com este número' }
+        return { success: false, error: 'Nenhuma cota encontrada com este número de telefone' }
       }
 
       const phoneUserData: PhoneUser = {
@@ -209,8 +236,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isPhoneAuth: true
       }
 
+      // Sessão permanente (365 dias)
       const expiresAt = new Date()
-      expiresAt.setHours(expiresAt.getHours() + 24)
+      expiresAt.setDate(expiresAt.getDate() + 365)
 
       const authData = {
         user: phoneUserData,

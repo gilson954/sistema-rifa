@@ -207,13 +207,16 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 
     const fullPhoneNumber = `${selectedCountry.dialCode} ${formData.phoneNumber}`;
 
-    // Tentar fazer login com o telefone
-    const loginResult = await signInWithPhone(fullPhoneNumber);
+    // Fazer login automático com dados do cliente
+    const loginResult = await signInWithPhone(fullPhoneNumber, {
+      name: formData.name,
+      email: formData.email
+    });
 
     if (loginResult.success) {
       console.log('Auto-login realizado com sucesso:', loginResult.user);
     } else {
-      console.log('Primeiro acesso - conta será criada automaticamente');
+      console.log('Erro ao fazer auto-login:', loginResult.error);
     }
 
     onReserve(customerData);

@@ -127,7 +127,15 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
             )}
           </button>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
+            {isPhoneAuthenticated && phoneUser && (
+              <div className="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {phoneUser.name}
+                </span>
+              </div>
+            )}
             {isPhoneAuthenticated ? (
               <>
                 <button
