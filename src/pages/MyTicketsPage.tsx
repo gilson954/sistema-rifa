@@ -32,7 +32,7 @@ interface OrganizerProfile {
 const MyTicketsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isPhoneAuthenticated, phoneUser, signInWithPhone, signOut } = useAuth();
+  const { isPhoneAuthenticated, phoneUser, signInWithPhone, signOut, loading: authLoading } = useAuth();
 
   const [tickets, setTickets] = useState<CustomerTicket[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,6 +47,21 @@ const MyTicketsPage = () => {
 
   const handleLogout = async () => {
     await signOut();
+    // Redirecionar para a página inicial do organizador se tivermos o organizerId
+    if (tickets.length > 0) {
+      const firstTicket = tickets[0];
+      const { data: campaign } = await supabase
+        .from('campaigns')
+        .select('user_id')
+        .eq('id', firstTicket.campaign_id)
+        .maybeSingle();
+
+      if (campaign?.user_id) {
+        navigate(`/org/${campaign.user_id}`);
+        return;
+      }
+    }
+    // Fallback para home
     navigate('/');
   };
 
@@ -200,23 +215,29 @@ const MyTicketsPage = () => {
     }
   };
 
-  // Redirecionar usuários não autenticados
+  // Redirecionar usuários não autenticados para home
   useEffect(() => {
-    if (!isPhoneAuthenticated) {
-      navigate('/');
+    if (!authLoading && !isPhoneAuthenticated) {
+      navigate('/', { replace: true });
     }
-  }, [isPhoneAuthenticated, navigate]);
+  }, [isPhoneAuthenticated, authLoading, navigate]);
 
-  if (!isPhoneAuthenticated) {
+  // Mostrar loading enquanto verifica autenticação
+  if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
+  // Se não estiver autenticado, não renderiza nada (será redirecionado)
+  if (!isPhoneAuthenticated) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300 flex flex-col">
       {/* Header customizado com botão de logout */}
       <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -231,7 +252,7 @@ const MyTicketsPage = () => {
                 />
               ) : (
                 <div className="flex items-center">
-                  <Ticket className="h-8 w-8 text-purple-600" />
+                  <Ticket className="h-8 w-8 text-blue-600" />
                   <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">Minhas Cotas</span>
                 </div>
               )}
@@ -269,7 +290,7 @@ const MyTicketsPage = () => {
         {/* Ticket Content */}
         {loading ? (
               <div className="flex items-center justify-center py-20">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600"></div>
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
               </div>
             ) : error ? (
           <motion.div
@@ -299,7 +320,7 @@ const MyTicketsPage = () => {
             </p>
             <button
               onClick={() => navigate('/')}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-bold transition-all duration-200 shadow-lg"
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-8 py-3 rounded-xl font-bold transition-all duration-200 shadow-lg"
             >
               Explorar Campanhas
             </button>
@@ -352,11 +373,13 @@ const MyTicketsPage = () => {
                         </span>
                       </div>
 
-                      {/* Mostrar os números das cotas */}
+                      {/* Mostrar TODOS os números das cotas */}
                       <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                        <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Números:</span>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {group.tickets.slice(0, 10).map((ticket) => (
+                        <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                          Números ({group.total_tickets} {group.total_tickets === 1 ? 'cota' : 'cotas'}):
+                        </span>
+                        <div className="mt-2 flex flex-wrap gap-2 max-h-48 overflow-y-auto">
+                          {group.tickets.map((ticket) => (
                             <span
                               key={ticket.ticket_id}
                               className={`px-2 py-1 text-xs font-bold rounded ${
@@ -370,16 +393,11 @@ const MyTicketsPage = () => {
                               {ticket.quota_number.toString().padStart(4, '0')}
                             </span>
                           ))}
-                          {group.total_tickets > 10 && (
-                            <span className="px-2 py-1 text-xs font-bold rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                              +{group.total_tickets - 10} mais
-                            </span>
-                          )}
                         </div>
                       </div>
                     </div>
 
-                    <button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3 rounded-xl font-bold transition-all duration-200 shadow-md flex items-center justify-center space-x-2 group-hover:shadow-lg">
+                    <button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white py-3 rounded-xl font-bold transition-all duration-200 shadow-md flex items-center justify-center space-x-2 group-hover:shadow-lg">
                       <span>Ver Detalhes</span>
                       <ChevronRight className="h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-200" />
                     </button>

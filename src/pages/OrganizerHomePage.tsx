@@ -261,7 +261,7 @@ const OrganizerHomePage: React.FC = () => {
             </div>
             <div className="flex-1 flex justify-end">
               <button
-                onClick={() => navigate('/minhas-cotas')}
+                onClick={() => navigate('/my-tickets')}
                 className={getColorClassName("text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105")}
                 style={getColorStyle(true, false)}
               >
