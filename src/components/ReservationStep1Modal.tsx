@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, CheckCircle, ShoppingCart, ArrowRight } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { checkCustomerByPhone, CustomerData as ExistingCustomer } from '../utils/customerCheck';
+import { useAuth } from '../context/AuthContext';
 
 interface Country {
   code: string;
@@ -42,6 +44,8 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
   customGradientColors,
   campaignTheme
 }) => {
+  const navigate = useNavigate();
+  const { signInWithPhone } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<Country>({
     code: 'BR',
@@ -182,19 +186,16 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
 
     try {
       const fullPhoneNumber = `${selectedCountry.dialCode} ${phoneNumber}`;
-      const { data, error: checkError } = await checkCustomerByPhone(fullPhoneNumber);
 
-      if (checkError) {
-        setError('Erro ao verificar número. Tente novamente.');
-        setChecking(false);
-        return;
-      }
+      // Primeiro tenta fazer login para verificar se o número existe
+      const loginResult = await signInWithPhone(fullPhoneNumber);
 
-      if (data) {
-        // Cliente existente
-        onExistingCustomer(data);
+      if (loginResult.success) {
+        // Cliente existente - fazer login e navegar para MyTicketsPage
+        onClose();
+        navigate('/minhas-cotas');
       } else {
-        // Cliente novo
+        // Cliente novo - abrir modal de cadastro
         onNewCustomer();
       }
     } catch (err) {

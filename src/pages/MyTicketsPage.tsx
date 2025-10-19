@@ -1,21 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Ticket, Calendar, CheckCircle, Clock, XCircle, ChevronRight, AlertCircle } from 'lucide-react';
+import { Ticket, Calendar, CheckCircle, Clock, XCircle, ChevronRight, AlertCircle, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import CountryPhoneSelect from '../components/CountryPhoneSelect';
-import CampaignHeader from '../components/CampaignHeader';
 import CampaignFooter from '../components/CampaignFooter';
 import { TicketsAPI, CustomerTicket } from '../lib/api/tickets';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/currency';
-
-interface Country {
-  code: string;
-  name: string;
-  dialCode: string;
-  flag: string;
-}
 
 interface GroupedTickets {
   campaign_id: string;
@@ -40,19 +31,12 @@ interface OrganizerProfile {
 
 const MyTicketsPage = () => {
   const navigate = useNavigate();
-  const { isPhoneAuthenticated, phoneUser, signInWithPhone } = useAuth();
+  const location = useLocation();
+  const { isPhoneAuthenticated, phoneUser, signInWithPhone, signOut } = useAuth();
 
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState<Country>({
-    code: 'BR',
-    name: 'Brasil',
-    dialCode: '+55',
-    flag: '🇧🇷'
-  });
   const [tickets, setTickets] = useState<CustomerTicket[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [authenticating, setAuthenticating] = useState(false);
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
 
   useEffect(() => {
@@ -60,6 +44,11 @@ const MyTicketsPage = () => {
       loadUserTickets(phoneUser.phone);
     }
   }, [isPhoneAuthenticated, phoneUser]);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   useEffect(() => {
     const loadOrganizerFromTickets = async () => {
@@ -106,40 +95,6 @@ const MyTicketsPage = () => {
       setError('Erro inesperado. Tente novamente.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleLogin = async () => {
-    if (!phoneNumber.trim()) {
-      setError('Por favor, digite seu número de celular');
-      return;
-    }
-
-    setAuthenticating(true);
-    setError(null);
-
-    try {
-      const cleanPhone = phoneNumber.replace(/\D/g, '');
-      const fullPhoneNumber = `${selectedCountry.dialCode} ${phoneNumber}`;
-
-      const result = await signInWithPhone(fullPhoneNumber);
-
-      if (result.success) {
-        await loadUserTickets(fullPhoneNumber);
-      } else {
-        setError(result.error || 'Erro ao fazer login');
-      }
-    } catch (error) {
-      console.error('Error during login:', error);
-      setError('Erro inesperado ao fazer login.');
-    } finally {
-      setAuthenticating(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleLogin();
     }
   };
 
@@ -191,6 +146,15 @@ const MyTicketsPage = () => {
 
   const groupedTickets = groupTicketsByStatus();
 
+  // Verificar quantos tickets temos no total
+  console.log('Total de tickets carregados:', tickets.length);
+  console.log('Tickets agrupados:', groupedTickets.length);
+  console.log('Detalhes dos grupos:', groupedTickets.map(g => ({
+    campaign: g.campaign_title,
+    total: g.total_tickets,
+    tickets: g.tickets.length
+  })));
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'purchased':
@@ -236,99 +200,56 @@ const MyTicketsPage = () => {
     }
   };
 
+  // Redirecionar usuários não autenticados
+  useEffect(() => {
+    if (!isPhoneAuthenticated) {
+      navigate('/');
+    }
+  }, [isPhoneAuthenticated, navigate]);
+
   if (!isPhoneAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300 flex flex-col">
-        <CampaignHeader
-          logoUrl={organizerProfile?.logo_url}
-          organizerName={organizerProfile?.name}
-          organizerId={organizerProfile?.id}
-          primaryColor={organizerProfile?.primary_color}
-          colorMode={organizerProfile?.color_mode}
-          gradientClasses={organizerProfile?.gradient_classes}
-          customGradientColors={organizerProfile?.custom_gradient_colors}
-          campaignTheme={organizerProfile?.theme}
-          onMyTicketsClick={() => {}}
-        />
-
-        <div className="flex-1 flex items-center justify-center px-4 py-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="w-full max-w-md"
-          >
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-800">
-              <div className="text-center mb-8">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-                  className="w-20 h-20 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg"
-                >
-                  <Ticket className="h-10 w-10 text-white" />
-                </motion.div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                  Minhas Cotas
-                </h1>
-                <p className="text-gray-600 dark:text-gray-400 text-lg">
-                  Entre com seu número de celular para visualizar suas cotas
-                </p>
-              </div>
-
-              <div className="space-y-6">
-                <CountryPhoneSelect
-                  selectedCountry={selectedCountry}
-                  onCountryChange={setSelectedCountry}
-                  phoneNumber={phoneNumber}
-                  onPhoneChange={setPhoneNumber}
-                  placeholder="Seu número de celular"
-                  error={error}
-                />
-
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleLogin}
-                  onKeyPress={handleKeyPress}
-                  disabled={authenticating || !phoneNumber.trim()}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg flex items-center justify-center space-x-2"
-                >
-                  {authenticating ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      <span>Entrando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Ticket className="h-5 w-5" />
-                      <span>Ver Minhas Cotas</span>
-                    </>
-                  )}
-                </motion.button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        <CampaignFooter />
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600"></div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300 flex flex-col">
-      <CampaignHeader
-        logoUrl={organizerProfile?.logo_url}
-        organizerName={organizerProfile?.name}
-        organizerId={organizerProfile?.id}
-        primaryColor={organizerProfile?.primary_color}
-        colorMode={organizerProfile?.color_mode}
-        gradientClasses={organizerProfile?.gradient_classes}
-        customGradientColors={organizerProfile?.custom_gradient_colors}
-        campaignTheme={organizerProfile?.theme}
-        onMyTicketsClick={() => {}}
-      />
+      {/* Header customizado com botão de logout */}
+      <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex-1"></div>
+            <div className="flex items-center justify-center flex-1">
+              {organizerProfile?.logo_url ? (
+                <img
+                  src={organizerProfile.logo_url}
+                  alt="Logo"
+                  className="h-14 w-auto max-w-[200px] object-contain"
+                />
+              ) : (
+                <div className="flex items-center">
+                  <Ticket className="h-8 w-8 text-purple-600" />
+                  <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">Minhas Cotas</span>
+                </div>
+              )}
+            </div>
+            <div className="flex-1 flex justify-end">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleLogout}
+                className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all duration-200 shadow-md"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sair</span>
+              </motion.button>
+            </div>
+          </div>
+        </div>
+      </header>
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         <motion.div
@@ -419,16 +340,42 @@ const MyTicketsPage = () => {
 
                     <div className="space-y-3 mb-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Cotas</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Total de Cotas</span>
                         <span className="font-bold text-gray-900 dark:text-white">
                           {group.total_tickets}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Status</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Status Geral</span>
                         <span className={`font-semibold ${getStatusColor(group.status)}`}>
                           {getStatusText(group.status)}
                         </span>
+                      </div>
+
+                      {/* Mostrar os números das cotas */}
+                      <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Números:</span>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {group.tickets.slice(0, 10).map((ticket) => (
+                            <span
+                              key={ticket.ticket_id}
+                              className={`px-2 py-1 text-xs font-bold rounded ${
+                                normalizeStatus(ticket.status) === 'purchased'
+                                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                  : normalizeStatus(ticket.status) === 'reserved'
+                                  ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                  : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                              }`}
+                            >
+                              {ticket.quota_number.toString().padStart(4, '0')}
+                            </span>
+                          ))}
+                          {group.total_tickets > 10 && (
+                            <span className="px-2 py-1 text-xs font-bold rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                              +{group.total_tickets - 10} mais
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 

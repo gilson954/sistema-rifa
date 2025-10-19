@@ -6,7 +6,6 @@ import { CampaignAPI } from '../lib/api/campaigns';
 import { Campaign } from '../types/campaign';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/currency';
-import MyTicketsModal from '../components/MyTicketsModal';
 import CampaignFooter from '../components/CampaignFooter';
 import { useAuth } from '../context/AuthContext';
 
@@ -31,7 +30,6 @@ const OrganizerHomePage: React.FC = () => {
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [showMyTicketsModal, setShowMyTicketsModal] = useState(false);
   const campaignsPerPage = 6;
 
   useEffect(() => {
@@ -263,7 +261,7 @@ const OrganizerHomePage: React.FC = () => {
             </div>
             <div className="flex-1 flex justify-end">
               <button
-                onClick={() => setShowMyTicketsModal(true)}
+                onClick={() => navigate('/minhas-cotas')}
                 className={getColorClassName("text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105")}
                 style={getColorStyle(true, false)}
               >
@@ -413,19 +411,6 @@ const OrganizerHomePage: React.FC = () => {
           </div>
         )}
       </main>
-
-      {userId && (
-        <MyTicketsModal
-          isOpen={showMyTicketsModal}
-          onClose={() => setShowMyTicketsModal(false)}
-          userId={userId}
-          campaignTheme={organizerProfile?.theme}
-          primaryColor={organizerProfile?.primary_color}
-          colorMode={organizerProfile?.color_mode}
-          gradientClasses={organizerProfile?.gradient_classes}
-          customGradientColors={organizerProfile?.custom_gradient_colors}
-        />
-      )}
 
       <CampaignFooter campaignTheme={organizerTheme} />
     </div>
