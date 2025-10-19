@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Ticket, Calendar, CheckCircle, Clock, XCircle, ChevronRight, AlertCircle, Heart, Star } from 'lucide-react';
+import { Ticket, Calendar, CheckCircle, Clock, XCircle, ChevronRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import CountryPhoneSelect from '../components/CountryPhoneSelect';
 import CampaignHeader from '../components/CampaignHeader';
 import CampaignFooter from '../components/CampaignFooter';
 import { TicketsAPI, CustomerTicket } from '../lib/api/tickets';
 import { supabase } from '../lib/supabase';
-import { useFavoriteCampaigns } from '../hooks/useFavoriteCampaigns';
 import { formatCurrency } from '../utils/currency';
 
 interface Country {
@@ -55,9 +54,6 @@ const MyTicketsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [authenticating, setAuthenticating] = useState(false);
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
-  const [activeTab, setActiveTab] = useState<'tickets' | 'favorites'>('tickets');
-
-  const { favorites, loading: loadingFavorites, toggleFavorite } = useFavoriteCampaigns();
 
   useEffect(() => {
     if (isPhoneAuthenticated && phoneUser) {
@@ -158,6 +154,13 @@ const MyTicketsPage = () => {
     });
   };
 
+  const normalizeStatus = (status: string): 'purchased' | 'reserved' | 'expired' => {
+    const statusLower = status.toLowerCase();
+    if (statusLower === 'comprado' || statusLower === 'purchased') return 'purchased';
+    if (statusLower === 'reservado' || statusLower === 'reserved') return 'reserved';
+    return 'expired';
+  };
+
   const groupTicketsByStatus = (): GroupedTickets[] => {
     const grouped = tickets.reduce((groups, ticket) => {
       const existingGroup = groups.find(g => g.campaign_id === ticket.campaign_id);
@@ -173,7 +176,7 @@ const MyTicketsPage = () => {
           prize_image_urls: ticket.prize_image_urls,
           tickets: [ticket],
           total_tickets: 1,
-          status: ticket.status as 'purchased' | 'reserved' | 'expired'
+          status: normalizeStatus(ticket.status)
         });
       }
 
@@ -342,66 +345,8 @@ const MyTicketsPage = () => {
           </p>
         </motion.div>
 
-        {/* Tabs */}
-        <div className="flex space-x-4 mb-8 border-b border-gray-200 dark:border-gray-800">
-          <button
-            onClick={() => setActiveTab('tickets')}
-            className={`pb-4 px-4 font-semibold transition-all duration-200 relative ${
-              activeTab === 'tickets'
-                ? 'text-purple-600 dark:text-purple-400'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            <div className="flex items-center space-x-2">
-              <Ticket className="h-5 w-5" />
-              <span>Minhas Cotas</span>
-              {groupedTickets.length > 0 && (
-                <span className="ml-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-bold px-2 py-0.5 rounded-full">
-                  {groupedTickets.length}
-                </span>
-              )}
-            </div>
-            {activeTab === 'tickets' && (
-              <motion.div
-                layoutId="activeTab"
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 dark:bg-purple-400"
-                initial={false}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('favorites')}
-            className={`pb-4 px-4 font-semibold transition-all duration-200 relative ${
-              activeTab === 'favorites'
-                ? 'text-purple-600 dark:text-purple-400'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            <div className="flex items-center space-x-2">
-              <Heart className="h-5 w-5" />
-              <span>Favoritas</span>
-              {favorites.length > 0 && (
-                <span className="ml-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-bold px-2 py-0.5 rounded-full">
-                  {favorites.length}
-                </span>
-              )}
-            </div>
-            {activeTab === 'favorites' && (
-              <motion.div
-                layoutId="activeTab"
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 dark:bg-purple-400"
-                initial={false}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              />
-            )}
-          </button>
-        </div>
-
-        {/* Conteúdo das Abas */}
-        {activeTab === 'tickets' && (
-          <>
-            {loading ? (
+        {/* Ticket Content */}
+        {loading ? (
               <div className="flex items-center justify-center py-20">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600"></div>
               </div>
@@ -496,111 +441,6 @@ const MyTicketsPage = () => {
               ))}
             </AnimatePresence>
           </div>
-        )}
-          </>
-        )}
-
-        {/* Aba de Favoritas */}
-        {activeTab === 'favorites' && (
-          <>
-            {loadingFavorites ? (
-              <div className="flex items-center justify-center py-20">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600"></div>
-              </div>
-            ) : favorites.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-12 text-center border border-gray-200 dark:border-gray-800"
-              >
-                <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Heart className="h-10 w-10 text-gray-400" />
-                </div>
-                <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Nenhuma campanha favorita
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Adicione campanhas aos favoritos para acessá-las rapidamente.
-                </p>
-                <button
-                  onClick={() => navigate('/')}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-bold transition-all duration-200 shadow-lg"
-                >
-                  Explorar Campanhas
-                </button>
-              </motion.div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <AnimatePresence>
-                  {favorites.map((campaign, index) => (
-                    <motion.div
-                      key={campaign.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                      whileHover={{ y: -4, scale: 1.02 }}
-                      onClick={() => campaign.public_id && navigate(`/c/${campaign.public_id}`)}
-                      className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden cursor-pointer group"
-                    >
-                      <div className="relative h-48">
-                        <img
-                          src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=600'}
-                          alt={campaign.title}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFavorite(campaign.id);
-                          }}
-                          className="absolute top-4 right-4 p-2 rounded-full bg-red-500/90 backdrop-blur-sm hover:bg-red-600 transition-colors"
-                        >
-                          <Heart className="h-5 w-5 text-white fill-white" />
-                        </button>
-                        {campaign.status === 'active' && (
-                          <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full backdrop-blur-sm bg-green-500/90">
-                            <span className="text-white text-sm font-semibold">Ativa</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="p-6">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 truncate">
-                          {campaign.title}
-                        </h3>
-
-                        <div className="space-y-3 mb-4">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">Valor da Cota</span>
-                            <span className="font-bold text-gray-900 dark:text-white">
-                              {formatCurrency(campaign.ticket_price)}
-                            </span>
-                          </div>
-                          {campaign.show_percentage && (
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                              <div
-                                className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-300"
-                                style={{
-                                  width: `${Math.min((campaign.sold_tickets / campaign.total_tickets) * 100, 100)}%`
-                                }}
-                              />
-                            </div>
-                          )}
-                        </div>
-
-                        <button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3 rounded-xl font-bold transition-all duration-200 shadow-md flex items-center justify-center space-x-2 group-hover:shadow-lg">
-                          <span>Ver Campanha</span>
-                          <ChevronRight className="h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-200" />
-                        </button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            )}
-          </>
         )}
       </main>
 

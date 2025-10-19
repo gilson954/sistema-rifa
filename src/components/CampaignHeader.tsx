@@ -76,7 +76,11 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
 
   const handleLogout = async () => {
     await signOut();
-    navigate('/');
+    if (organizerId) {
+      navigate(`/org/${organizerId}`);
+    } else {
+      navigate('/');
+    }
   };
 
   const handleMyTicketsClick = () => {

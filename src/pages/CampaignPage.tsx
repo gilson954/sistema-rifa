@@ -113,7 +113,7 @@ const slideVariants = {
 const CampaignPage = () => {
   const { publicId } = useParams<{ publicId: string }>();
   const navigate = useNavigate();
-  const { user, isPhoneAuthenticated, phoneUser } = useAuth();
+  const { user, isPhoneAuthenticated, phoneUser, signInWithPhone } = useAuth();
   const { theme } = useTheme();
   const { showSuccess, showError, showWarning, showInfo } = useNotification();
   const { isFavorite, toggleFavorite } = useFavoriteCampaigns();
@@ -470,6 +470,15 @@ const CampaignPage = () => {
         setSelectedQuotas([]);
         setQuantity(Math.max(1, campaign.min_tickets_per_purchase || 1));
 
+        const fullPhoneNumber = `${customerData.countryCode}${customerData.phoneNumber}`;
+
+        if (!isPhoneAuthenticated) {
+          await signInWithPhone(fullPhoneNumber, {
+            name: customerData.name,
+            email: customerData.email
+          });
+        }
+
         showSuccess('Reserva realizada com sucesso!');
 
         navigate('/payment-confirmation', {
@@ -478,7 +487,7 @@ const CampaignPage = () => {
               reservationId: `RES-${Date.now()}`,
               customerName: customerData.name,
               customerEmail: customerData.email,
-              customerPhone: `${customerData.countryCode}${customerData.phoneNumber}`,
+              customerPhone: fullPhoneNumber,
               quotaCount: quotasToReserve.length,
               totalValue: totalValue,
               selectedQuotas: quotasToReserve,
@@ -511,7 +520,7 @@ const CampaignPage = () => {
     } finally {
       setShowReservationModal(false);
     }
-  }, [campaign, user, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate, showSuccess, showError, showWarning, showInfo]);
+  }, [campaign, user, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate, showSuccess, showError, showWarning, showInfo, isPhoneAuthenticated, signInWithPhone]);
 
   const handleOpenReservationModal = useCallback(() => {
     if (campaign?.campaign_model === 'manual' && selectedQuotas.length === 0) {
