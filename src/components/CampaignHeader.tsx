@@ -27,7 +27,7 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
   hideMyTicketsButton = false
 }) => {
   const navigate = useNavigate();
-  const { isPhoneAuthenticated, phoneUser, signOut } = useAuth();
+  const { isPhoneAuthenticated, phoneUser, signOut, signInWithPhone } = useAuth();
 
   const getCustomGradientStyle = () => {
     if (!customGradientColors) return {};
@@ -83,9 +83,18 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
     }
   };
 
-  const handleMyTicketsClick = () => {
-    // Navegar para a página de "Minhas Cotas"
-    navigate('/my-tickets');
+  const handleMyTicketsClick = async () => {
+    // Se o usuário já está autenticado, navega direto para a página
+    if (isPhoneAuthenticated) {
+      navigate('/my-tickets');
+    } else {
+      // Se não está autenticado, abre o modal de login
+      // Após o login bem-sucedido, o usuário será navegado para /my-tickets
+      const shouldLogin = await signInWithPhone();
+      if (shouldLogin) {
+        navigate('/my-tickets');
+      }
+    }
   };
 
   const themeClasses = campaignTheme === 'escuro' || campaignTheme === 'escuro-preto' ? 'bg-black' : 'bg-white dark:bg-gray-900';
@@ -148,38 +157,28 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
             )}
             {!hideMyTicketsButton && (
               <>
-                {isPhoneAuthenticated ? (
-                  <>
-                    <button
-                      onClick={handleMyTicketsClick}
-                      className={`text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105 ${getColorClassName()}`}
-                      style={getColorStyle()}
-                    >
-                      <Ticket className="h-4 w-4" />
-                      <span className="hidden sm:inline">Minhas Cotas</span>
-                      <span className="sm:hidden">Cotas</span>
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className={`p-2 rounded-lg transition-colors duration-200 ${
-                        campaignTheme === 'claro'
-                          ? 'hover:bg-gray-100 dark:hover:bg-gray-800'
-                          : 'hover:bg-gray-800'
-                      }`}
-                      title="Sair"
-                    >
-                      <LogOut className={`h-5 w-5 ${textClass}`} />
-                    </button>
-                  </>
-                ) : (
+                <button
+                  onClick={handleMyTicketsClick}
+                  className={`text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105 ${getColorClassName()}`}
+                  style={getColorStyle()}
+                >
+                  <Ticket className="h-4 w-4" />
+                  <span className="hidden sm:inline">
+                    {isPhoneAuthenticated ? 'Minhas Cotas' : 'Ver Minhas Cotas'}
+                  </span>
+                  <span className="sm:hidden">Cotas</span>
+                </button>
+                {isPhoneAuthenticated && (
                   <button
-                    onClick={handleMyTicketsClick}
-                    className={`text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105 ${getColorClassName()}`}
-                    style={getColorStyle()}
+                    onClick={handleLogout}
+                    className={`p-2 rounded-lg transition-colors duration-200 ${
+                      campaignTheme === 'claro'
+                        ? 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                        : 'hover:bg-gray-800'
+                    }`}
+                    title="Sair"
                   >
-                    <Ticket className="h-4 w-4" />
-                    <span className="hidden sm:inline">Ver Minhas Cotas</span>
-                    <span className="sm:hidden">Cotas</span>
+                    <LogOut className={`h-5 w-5 ${textClass}`} />
                   </button>
                 )}
               </>
