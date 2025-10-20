@@ -303,31 +303,48 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
       </div>
 
       <style>{`
-        /* Barra de rolagem personalizada */
-        ::-webkit-scrollbar {
+        /* Barra de rolagem personalizada para todo o modal e dropdowns */
+        .phone-login-modal ::-webkit-scrollbar,
+        div[role="listbox"]::-webkit-scrollbar,
+        *::-webkit-scrollbar {
           width: 8px;
           height: 8px;
         }
         
-        ::-webkit-scrollbar-track {
-          background: transparent;
+        .phone-login-modal ::-webkit-scrollbar-track,
+        div[role="listbox"]::-webkit-scrollbar-track,
+        *::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.1);
           border-radius: 10px;
         }
         
-        ::-webkit-scrollbar-thumb {
+        .phone-login-modal ::-webkit-scrollbar-thumb,
+        div[role="listbox"]::-webkit-scrollbar-thumb,
+        *::-webkit-scrollbar-thumb {
           background: linear-gradient(135deg, ${primaryColor}88, ${primaryColor}cc);
           border-radius: 10px;
           transition: all 0.3s ease;
         }
         
-        ::-webkit-scrollbar-thumb:hover {
+        .phone-login-modal ::-webkit-scrollbar-thumb:hover,
+        div[role="listbox"]::-webkit-scrollbar-thumb:hover,
+        *::-webkit-scrollbar-thumb:hover {
           background: linear-gradient(135deg, ${primaryColor}aa, ${primaryColor}ff);
         }
 
         /* Para Firefox */
+        .phone-login-modal *,
+        div[role="listbox"],
         * {
           scrollbar-width: thin;
-          scrollbar-color: ${primaryColor}88 transparent;
+          scrollbar-color: ${primaryColor}88 rgba(0, 0, 0, 0.1);
+        }
+
+        /* Garantir que o dropdown tenha scroll suave */
+        div[role="listbox"] {
+          max-height: 250px;
+          overflow-y: auto;
+          scroll-behavior: smooth;
         }
       `}</style>
     </AnimatePresence>
