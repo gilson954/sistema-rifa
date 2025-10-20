@@ -29,7 +29,6 @@ import ReservationModal, { CustomerData } from '../components/ReservationModal';
 import ReservationStep1Modal from '../components/ReservationStep1Modal';
 import ReservationStep2Modal from '../components/ReservationStep2Modal';
 import PrizesDisplayModal from '../components/PrizesDisplayModal';
-import MyTicketsModal from '../components/MyTicketsModal';
 import CotasPremiadasPublicModal from '../components/CotasPremiadasPublicModal';
 import CampaignFooter from '../components/CampaignFooter';
 import { CustomerData as ExistingCustomer } from '../utils/customerCheck';
@@ -178,7 +177,6 @@ const CampaignPage = () => {
   const [showStep1Modal, setShowStep1Modal] = useState(false);
   const [showStep2Modal, setShowStep2Modal] = useState(false);
   const [showPrizesModal, setShowPrizesModal] = useState(false);
-  const [showMyTicketsModal, setShowMyTicketsModal] = useState(false);
   const [showCotasPremiadasModal, setShowCotasPremiadasModal] = useState(false);
   const [cotasPremiadas, setCotasPremiadas] = useState<CotaPremiada[]>([]);
   const [loadingCotasPremiadas, setLoadingCotasPremiadas] = useState(false);
@@ -883,7 +881,7 @@ const CampaignPage = () => {
             )}
 
             <button
-              onClick={() => setShowMyTicketsModal(true)}
+              onClick={() => navigate('/my-tickets')}
               className={`text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105 ${getColorClassName()}`}
               style={getColorStyle(true, false)}
             >
@@ -1696,20 +1694,6 @@ const CampaignPage = () => {
         />
       )}
 
-      {/* My Tickets Modal */}
-      {campaign && (
-        <MyTicketsModal
-          isOpen={showMyTicketsModal}
-          onClose={() => setShowMyTicketsModal(false)}
-          campaignId={campaign.id}
-          campaignTitle={campaign.title}
-          campaignTheme={campaignTheme}
-          primaryColor={primaryColor}
-          colorMode={organizerProfile?.color_mode}
-          gradientClasses={organizerProfile?.gradient_classes}
-          customGradientColors={organizerProfile?.custom_gradient_colors}
-        />
-      )}
 
       {/* Cotas Premiadas Public Modal */}
       {campaign && (

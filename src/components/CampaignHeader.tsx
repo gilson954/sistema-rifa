@@ -12,7 +12,6 @@ interface CampaignHeaderProps {
   gradientClasses?: string;
   customGradientColors?: string;
   campaignTheme?: string;
-  onMyTicketsClick?: () => void;
   hideMyTicketsButton?: boolean;
 }
 
@@ -25,7 +24,6 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
   gradientClasses,
   customGradientColors,
   campaignTheme = 'claro',
-  onMyTicketsClick,
   hideMyTicketsButton = false
 }) => {
   const navigate = useNavigate();
@@ -86,9 +84,7 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
   };
 
   const handleMyTicketsClick = () => {
-    if (onMyTicketsClick) {
-      onMyTicketsClick();
-    }
+    navigate('/my-tickets');
   };
 
   const themeClasses = campaignTheme === 'escuro' || campaignTheme === 'escuro-preto' ? 'bg-black' : 'bg-white dark:bg-gray-900';
