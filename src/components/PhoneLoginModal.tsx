@@ -252,28 +252,24 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Campo único integrado de telefone */}
+              {/* Campo de telefone com seletor de país */}
               <div>
                 <label className={`block text-sm font-semibold ${themeClasses.text} mb-3`}>
                   Número de Telefone
                 </label>
-                <div className={`flex items-center gap-3 px-4 py-3.5 ${themeClasses.inputBg} ${themeClasses.inputBorder} border-2 rounded-xl ${themeClasses.inputFocus} focus-within:outline-none focus-within:ring-2 transition-all duration-200`}>
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 flex-shrink-0"
-                  >
-                    <span className="text-2xl">{selectedCountry.flag}</span>
-                    <span className={`text-sm font-medium ${themeClasses.inputText}`}>
-                      {selectedCountry.dialCode}
-                    </span>
-                  </button>
-                  <div className="w-px h-6 bg-gray-300 dark:bg-gray-600"></div>
+                <div className="flex gap-3">
+                  <div className="w-32 flex-shrink-0">
+                    <CountryPhoneSelect
+                      selectedCountry={selectedCountry}
+                      onCountryChange={setSelectedCountry}
+                    />
+                  </div>
                   <input
                     type="tel"
                     value={formatPhoneNumber(phoneNumber)}
                     onChange={handlePhoneNumberChange}
                     placeholder="(11) 98765-4321"
-                    className={`flex-1 bg-transparent ${themeClasses.inputText} ${themeClasses.inputPlaceholder} focus:outline-none font-medium`}
+                    className={`flex-1 px-4 py-3.5 ${themeClasses.inputBg} ${themeClasses.inputBorder} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} border-2 rounded-xl ${themeClasses.inputFocus} focus:outline-none focus:ring-2 transition-all duration-200 font-medium`}
                     maxLength={15}
                   />
                 </div>
