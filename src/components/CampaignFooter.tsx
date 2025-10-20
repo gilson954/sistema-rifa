@@ -7,11 +7,11 @@ interface CampaignFooterProps {
 
 const CampaignFooter: React.FC<CampaignFooterProps> = ({ campaignTheme = 'claro' }) => {
   const navigate = useNavigate();
-
+  
   const bgClass = campaignTheme === 'escuro' || campaignTheme === 'escuro-preto' ? 'bg-black' : 'bg-white dark:bg-gray-900';
   const borderClass = campaignTheme === 'claro' ? 'border-gray-200' : 'border-gray-800';
-  const textClass = campaignTheme === 'claro' ? 'text-gray-600' : 'text-gray-400';
-
+  const textClass = campaignTheme === 'claro' ? 'text-gray-600' : 'text-white';
+  
   return (
     <footer className={`${bgClass} border-t ${borderClass} py-6 mt-auto`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
