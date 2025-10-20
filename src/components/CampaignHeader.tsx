@@ -12,7 +12,6 @@ interface CampaignHeaderProps {
   gradientClasses?: string;
   customGradientColors?: string;
   campaignTheme?: string;
-  onMyTicketsClick?: () => void;
   hideMyTicketsButton?: boolean;
 }
 
@@ -25,7 +24,6 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
   gradientClasses,
   customGradientColors,
   campaignTheme = 'claro',
-  onMyTicketsClick,
   hideMyTicketsButton = false
 }) => {
   const navigate = useNavigate();
@@ -86,13 +84,13 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
   };
 
   const handleMyTicketsClick = () => {
-    if (onMyTicketsClick) {
-      onMyTicketsClick();
-    }
+    // Navegar para a página de "Minhas Cotas"
+    navigate('/my-tickets');
   };
 
   const themeClasses = campaignTheme === 'escuro' || campaignTheme === 'escuro-preto' ? 'bg-black' : 'bg-white dark:bg-gray-900';
   const borderClass = campaignTheme === 'claro' ? 'border-gray-200' : 'border-gray-800';
+  const textClass = campaignTheme === 'claro' ? 'text-gray-600 dark:text-gray-400' : 'text-gray-400';
 
   return (
     <header className={`shadow-sm border-b ${borderClass} ${themeClasses}`}>
@@ -128,16 +126,22 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
                   alt="Rifaqui Logo"
                   className="w-10 h-10 object-contain"
                 />
-                <span className="ml-2 text-2xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
+                <span className={`ml-2 text-2xl font-bold ${campaignTheme === 'claro' ? 'text-gray-900 dark:text-white' : 'text-white'}`}>
+                  Rifaqui
+                </span>
               </>
             )}
           </button>
 
           <div className="flex items-center space-x-3">
             {isPhoneAuthenticated && phoneUser && (
-              <div className="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <div className={`hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg border ${
+                campaignTheme === 'claro' 
+                  ? 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700' 
+                  : 'bg-gray-800 border-gray-700'
+              }`}>
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <span className={`text-sm font-medium ${campaignTheme === 'claro' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-300'}`}>
                   {phoneUser.name}
                 </span>
               </div>
@@ -157,10 +161,14 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
                     </button>
                     <button
                       onClick={handleLogout}
-                      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                      className={`p-2 rounded-lg transition-colors duration-200 ${
+                        campaignTheme === 'claro'
+                          ? 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                          : 'hover:bg-gray-800'
+                      }`}
                       title="Sair"
                     >
-                      <LogOut className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                      <LogOut className={`h-5 w-5 ${textClass}`} />
                     </button>
                   </>
                 ) : (
@@ -179,10 +187,14 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
             {hideMyTicketsButton && isPhoneAuthenticated && (
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                className={`p-2 rounded-lg transition-colors duration-200 ${
+                  campaignTheme === 'claro'
+                    ? 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                    : 'hover:bg-gray-800'
+                }`}
                 title="Sair"
               >
-                <LogOut className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                <LogOut className={`h-5 w-5 ${textClass}`} />
               </button>
             )}
           </div>
