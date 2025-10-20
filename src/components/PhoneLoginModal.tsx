@@ -256,20 +256,10 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                 <label className={`block text-sm font-semibold ${themeClasses.text} mb-3`}>
                   Número de Telefone
                 </label>
-                <div className="flex gap-3">
-                  <CountryPhoneSelect
-                    selectedCountry={selectedCountry}
-                    onCountryChange={setSelectedCountry}
-                  />
-                  <input
-                    type="tel"
-                    value={formatPhoneNumber(phoneNumber)}
-                    onChange={handlePhoneNumberChange}
-                    placeholder="(11) 98765-4321"
-                    className={`flex-1 px-4 py-3.5 ${themeClasses.inputBg} ${themeClasses.inputBorder} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} border-2 rounded-xl ${themeClasses.inputFocus} focus:outline-none focus:ring-2 transition-all duration-200 font-medium`}
-                    maxLength={15}
-                  />
-                </div>
+                <CountryPhoneSelect
+                  selectedCountry={selectedCountry}
+                  onCountryChange={setSelectedCountry}
+                />
               </div>
 
               {error && (
