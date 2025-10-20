@@ -257,17 +257,10 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                   Número de Telefone
                 </label>
                 <div className="flex gap-3">
-                  <div className="w-24 flex-shrink-0">
-                    <button
-                      type="button"
-                      className={`w-full flex items-center justify-center gap-2 px-3 py-3.5 ${themeClasses.inputBg} ${themeClasses.inputBorder} border-2 rounded-xl transition-all duration-200`}
-                    >
-                      <span className="text-xl">{selectedCountry.flag}</span>
-                      <span className={`text-sm font-medium ${themeClasses.inputText}`}>
-                        {selectedCountry.dialCode}
-                      </span>
-                    </button>
-                  </div>
+                  <CountryPhoneSelect
+                    selectedCountry={selectedCountry}
+                    onCountryChange={setSelectedCountry}
+                  />
                   <input
                     type="tel"
                     value={formatPhoneNumber(phoneNumber)}
