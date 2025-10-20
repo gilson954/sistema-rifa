@@ -252,22 +252,10 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                 <label className={`block text-sm font-medium ${themeClasses.labelText} mb-2`}>
                   Número de Celular
                 </label>
-                <div className="flex space-x-3">
-                  <CountryPhoneSelect
-                    selectedCountry={selectedCountry}
-                    onCountryChange={setSelectedCountry}
-                  />
-                  <input
-                    type="tel"
-                    value={formatPhoneNumber(phoneNumber)}
-                    onChange={handlePhoneNumberChange}
-                    placeholder="(11) 98765-4321"
-                    className={`flex-1 px-4 py-3 ${themeClasses.inputBg} ${themeClasses.inputBorder} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200`}
-                    style={{
-                      focusRing: colorMode === 'gradient' ? undefined : primaryColor
-                    }}
-                  />
-                </div>
+                <CountryPhoneSelect
+                  selectedCountry={selectedCountry}
+                  onCountryChange={setSelectedCountry}
+                />
               </div>
 
               {error && (
