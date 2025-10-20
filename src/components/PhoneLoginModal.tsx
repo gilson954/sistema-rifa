@@ -257,8 +257,8 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                 <label className={`block text-sm font-semibold ${themeClasses.text} mb-3`}>
                   Número de Telefone
                 </label>
-                <div className="flex gap-3">
-                  <div className="w-32 flex-shrink-0">
+                <div className="space-y-3">
+                  <div className="w-full">
                     <CountryPhoneSelect
                       selectedCountry={selectedCountry}
                       onCountryChange={setSelectedCountry}
@@ -269,7 +269,7 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                     value={formatPhoneNumber(phoneNumber)}
                     onChange={handlePhoneNumberChange}
                     placeholder="(11) 98765-4321"
-                    className={`flex-1 px-4 py-3.5 ${themeClasses.inputBg} ${themeClasses.inputBorder} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} border-2 rounded-xl ${themeClasses.inputFocus} focus:outline-none focus:ring-2 transition-all duration-200 font-medium`}
+                    className={`w-full px-4 py-3.5 ${themeClasses.inputBg} ${themeClasses.inputBorder} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} border-2 rounded-xl ${themeClasses.inputFocus} focus:outline-none focus:ring-2 transition-all duration-200 font-medium`}
                     maxLength={15}
                   />
                 </div>
@@ -305,6 +305,13 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                 )}
               </button>
             </form>
+
+            {/* Estilo customizado para esconder campos desnecessários do CountryPhoneSelect */}
+            <style>{`
+              /* Esconder campos vazios extras */
+              form > div:first-child > div > div > input[type="text"]:not([placeholder]) {
+                display: none !important;
+              }
           </div>
         </motion.div>
       </div>
