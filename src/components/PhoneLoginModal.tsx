@@ -219,7 +219,7 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           transition={{ type: "spring", duration: 0.5 }}
-          className={`relative ${themeClasses.background} rounded-3xl shadow-2xl max-w-md w-full overflow-hidden`}
+          className={`relative ${themeClasses.background} rounded-3xl shadow-2xl max-w-md w-full overflow-hidden phone-login-modal`}
         >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
@@ -303,48 +303,30 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
       </div>
 
       <style>{`
-        /* Barra de rolagem personalizada para todo o modal e dropdowns */
-        .phone-login-modal ::-webkit-scrollbar,
-        div[role="listbox"]::-webkit-scrollbar,
-        *::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
+        /* Barra de rolagem personalizada para o dropdown de países */
+        .phone-login-modal *::-webkit-scrollbar {
+          width: 6px;
         }
         
-        .phone-login-modal ::-webkit-scrollbar-track,
-        div[role="listbox"]::-webkit-scrollbar-track,
-        *::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.1);
+        .phone-login-modal *::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
           border-radius: 10px;
         }
         
-        .phone-login-modal ::-webkit-scrollbar-thumb,
-        div[role="listbox"]::-webkit-scrollbar-thumb,
-        *::-webkit-scrollbar-thumb {
-          background: linear-gradient(135deg, ${primaryColor}88, ${primaryColor}cc);
+        .phone-login-modal *::-webkit-scrollbar-thumb {
+          background: ${primaryColor};
           border-radius: 10px;
           transition: all 0.3s ease;
         }
         
-        .phone-login-modal ::-webkit-scrollbar-thumb:hover,
-        div[role="listbox"]::-webkit-scrollbar-thumb:hover,
-        *::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(135deg, ${primaryColor}aa, ${primaryColor}ff);
+        .phone-login-modal *::-webkit-scrollbar-thumb:hover {
+          background: ${primaryColor}dd;
         }
 
         /* Para Firefox */
-        .phone-login-modal *,
-        div[role="listbox"],
-        * {
+        .phone-login-modal * {
           scrollbar-width: thin;
-          scrollbar-color: ${primaryColor}88 rgba(0, 0, 0, 0.1);
-        }
-
-        /* Garantir que o dropdown tenha scroll suave */
-        div[role="listbox"] {
-          max-height: 250px;
-          overflow-y: auto;
-          scroll-behavior: smooth;
+          scrollbar-color: ${primaryColor} rgba(255, 255, 255, 0.05);
         }
       `}</style>
     </AnimatePresence>
