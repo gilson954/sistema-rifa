@@ -219,7 +219,7 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           transition={{ type: "spring", duration: 0.5 }}
-          className={`relative ${themeClasses.background} rounded-3xl shadow-2xl max-w-md w-full overflow-hidden phone-login-modal`}
+          className={`relative ${themeClasses.background} rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto phone-login-modal`}
         >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
@@ -303,30 +303,36 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
       </div>
 
       <style>{`
-        /* Barra de rolagem personalizada para o dropdown de países */
-        .phone-login-modal *::-webkit-scrollbar {
-          width: 6px;
+        /* Barra de rolagem personalizada para o card do modal */
+        .phone-login-modal::-webkit-scrollbar {
+          width: 8px;
         }
         
-        .phone-login-modal *::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.05);
+        .phone-login-modal::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.1);
           border-radius: 10px;
+          margin: 10px 0;
         }
         
-        .phone-login-modal *::-webkit-scrollbar-thumb {
-          background: ${primaryColor};
+        .phone-login-modal::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg, ${primaryColor}aa, ${primaryColor}ff);
           border-radius: 10px;
           transition: all 0.3s ease;
         }
         
-        .phone-login-modal *::-webkit-scrollbar-thumb:hover {
-          background: ${primaryColor}dd;
+        .phone-login-modal::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(135deg, ${primaryColor}cc, ${primaryColor});
         }
 
         /* Para Firefox */
-        .phone-login-modal * {
+        .phone-login-modal {
           scrollbar-width: thin;
-          scrollbar-color: ${primaryColor} rgba(255, 255, 255, 0.05);
+          scrollbar-color: ${primaryColor} rgba(0, 0, 0, 0.1);
+        }
+
+        /* Scroll suave */
+        .phone-login-modal {
+          scroll-behavior: smooth;
         }
       `}</style>
     </AnimatePresence>
