@@ -256,17 +256,24 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                 <label className={`block text-sm font-semibold ${themeClasses.text} mb-3`}>
                   Número de Telefone
                 </label>
-                <div className="space-y-3">
-                  <CountryPhoneSelect
-                    selectedCountry={selectedCountry}
-                    onCountryChange={setSelectedCountry}
-                  />
+                <div className="flex gap-3">
+                  <div className="w-24 flex-shrink-0">
+                    <button
+                      type="button"
+                      className={`w-full flex items-center justify-center gap-2 px-3 py-3.5 ${themeClasses.inputBg} ${themeClasses.inputBorder} border-2 rounded-xl transition-all duration-200`}
+                    >
+                      <span className="text-xl">{selectedCountry.flag}</span>
+                      <span className={`text-sm font-medium ${themeClasses.inputText}`}>
+                        {selectedCountry.dialCode}
+                      </span>
+                    </button>
+                  </div>
                   <input
                     type="tel"
                     value={formatPhoneNumber(phoneNumber)}
                     onChange={handlePhoneNumberChange}
                     placeholder="(11) 98765-4321"
-                    className={`w-full px-4 py-3.5 ${themeClasses.inputBg} ${themeClasses.inputBorder} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} border-2 rounded-xl ${themeClasses.inputFocus} focus:outline-none focus:ring-2 transition-all duration-200 font-medium`}
+                    className={`flex-1 px-4 py-3.5 ${themeClasses.inputBg} ${themeClasses.inputBorder} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} border-2 rounded-xl ${themeClasses.inputFocus} focus:outline-none focus:ring-2 transition-all duration-200 font-medium`}
                     maxLength={15}
                   />
                 </div>
