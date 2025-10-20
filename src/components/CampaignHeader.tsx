@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Ticket } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import PhoneLoginModal from './PhoneLoginModal';
 
 interface CampaignHeaderProps {
   logoUrl?: string;
@@ -28,6 +29,7 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
 }) => {
   const navigate = useNavigate();
   const { isPhoneAuthenticated, phoneUser, signOut } = useAuth();
+  const [showPhoneLoginModal, setShowPhoneLoginModal] = useState(false);
 
   const getCustomGradientStyle = () => {
     if (!customGradientColors) return {};
@@ -84,13 +86,18 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
   };
 
   const handleMyTicketsClick = () => {
-    navigate('/my-tickets');
+    if (isPhoneAuthenticated) {
+      navigate('/my-tickets');
+    } else {
+      setShowPhoneLoginModal(true);
+    }
   };
 
   const themeClasses = campaignTheme === 'escuro' || campaignTheme === 'escuro-preto' ? 'bg-black' : 'bg-white dark:bg-gray-900';
   const borderClass = campaignTheme === 'claro' ? 'border-gray-200' : 'border-gray-800';
 
   return (
+    <>
     <header className={`shadow-sm border-b ${borderClass} ${themeClasses}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
@@ -185,6 +192,17 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
         </div>
       </div>
     </header>
+
+    <PhoneLoginModal
+      isOpen={showPhoneLoginModal}
+      onClose={() => setShowPhoneLoginModal(false)}
+      primaryColor={primaryColor}
+      colorMode={colorMode}
+      gradientClasses={gradientClasses}
+      customGradientColors={customGradientColors}
+      campaignTheme={campaignTheme}
+    />
+    </>
   );
 };
 

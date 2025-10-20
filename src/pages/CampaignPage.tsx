@@ -31,6 +31,7 @@ import ReservationStep2Modal from '../components/ReservationStep2Modal';
 import PrizesDisplayModal from '../components/PrizesDisplayModal';
 import CotasPremiadasPublicModal from '../components/CotasPremiadasPublicModal';
 import CampaignFooter from '../components/CampaignFooter';
+import PhoneLoginModal from '../components/PhoneLoginModal';
 import { CustomerData as ExistingCustomer } from '../utils/customerCheck';
 import { Promotion } from '../types/promotion';
 import { CotaPremiada } from '../types/cotasPremiadas';
@@ -178,6 +179,7 @@ const CampaignPage = () => {
   const [showStep2Modal, setShowStep2Modal] = useState(false);
   const [showPrizesModal, setShowPrizesModal] = useState(false);
   const [showCotasPremiadasModal, setShowCotasPremiadasModal] = useState(false);
+  const [showPhoneLoginModal, setShowPhoneLoginModal] = useState(false);
   const [cotasPremiadas, setCotasPremiadas] = useState<CotaPremiada[]>([]);
   const [loadingCotasPremiadas, setLoadingCotasPremiadas] = useState(false);
   const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomer | null>(null);
@@ -881,7 +883,13 @@ const CampaignPage = () => {
             )}
 
             <button
-              onClick={() => navigate('/my-tickets')}
+              onClick={() => {
+                if (isPhoneAuthenticated) {
+                  navigate('/my-tickets');
+                } else {
+                  setShowPhoneLoginModal(true);
+                }
+              }}
               className={`text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105 ${getColorClassName()}`}
               style={getColorStyle(true, false)}
             >
@@ -1710,6 +1718,16 @@ const CampaignPage = () => {
           customGradientColors={organizerProfile?.custom_gradient_colors}
         />
       )}
+
+      <PhoneLoginModal
+        isOpen={showPhoneLoginModal}
+        onClose={() => setShowPhoneLoginModal(false)}
+        primaryColor={primaryColor}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
+        campaignTheme={campaignTheme}
+      />
 
       <CampaignFooter campaignTheme={campaignTheme} />
     </div>
