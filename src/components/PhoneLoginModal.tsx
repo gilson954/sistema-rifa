@@ -58,41 +58,41 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
         return {
           background: 'bg-white',
           text: 'text-gray-900',
-          textSecondary: 'text-gray-600',
-          inputBg: 'bg-gray-50',
-          inputBorder: 'border-gray-200',
-          inputFocus: 'focus:border-blue-500 focus:ring-blue-500',
+          textSecondary: 'text-gray-700',
+          inputBg: 'bg-white',
+          inputBorder: 'border-gray-300',
           inputText: 'text-gray-900',
-          inputPlaceholder: 'placeholder-gray-400',
-          iconColor: 'text-gray-500',
-          overlayBg: 'bg-black/50'
+          inputPlaceholder: 'placeholder-gray-500',
+          labelText: 'text-gray-900',
+          iconColor: 'text-gray-600',
+          overlayBg: 'bg-gray-900/40'
         };
       case 'escuro':
       case 'escuro-preto':
         return {
           background: 'bg-gray-900',
           text: 'text-white',
-          textSecondary: 'text-gray-400',
+          textSecondary: 'text-gray-300',
           inputBg: 'bg-gray-800',
-          inputBorder: 'border-gray-700',
-          inputFocus: 'focus:border-blue-500 focus:ring-blue-500',
+          inputBorder: 'border-gray-600',
           inputText: 'text-white',
-          inputPlaceholder: 'placeholder-gray-500',
+          inputPlaceholder: 'placeholder-gray-400',
+          labelText: 'text-gray-100',
           iconColor: 'text-gray-400',
-          overlayBg: 'bg-black/70'
+          overlayBg: 'bg-black/60'
         };
       default:
         return {
           background: 'bg-white',
           text: 'text-gray-900',
-          textSecondary: 'text-gray-600',
-          inputBg: 'bg-gray-50',
-          inputBorder: 'border-gray-200',
-          inputFocus: 'focus:border-blue-500 focus:ring-blue-500',
+          textSecondary: 'text-gray-700',
+          inputBg: 'bg-white',
+          inputBorder: 'border-gray-300',
           inputText: 'text-gray-900',
-          inputPlaceholder: 'placeholder-gray-400',
-          iconColor: 'text-gray-500',
-          overlayBg: 'bg-black/50'
+          inputPlaceholder: 'placeholder-gray-500',
+          labelText: 'text-gray-900',
+          iconColor: 'text-gray-600',
+          overlayBg: 'bg-gray-900/40'
         };
     }
   };
@@ -134,21 +134,6 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
       return `bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
     }
     return '';
-  };
-
-  const formatPhoneNumber = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    
-    if (selectedCountry.code === 'BR') {
-      if (numbers.length <= 2) return numbers;
-      if (numbers.length <= 7) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
-      if (numbers.length <= 11) {
-        return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7)}`;
-      }
-      return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
-    }
-    
-    return numbers;
   };
 
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -215,61 +200,55 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
         />
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          transition={{ type: "spring", duration: 0.5 }}
-          className={`relative ${themeClasses.background} rounded-3xl shadow-2xl max-w-md w-full overflow-hidden`}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          className={`relative ${themeClasses.background} rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto`}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
+          <div className="sticky top-0 z-10 flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
             <h2 className={`text-2xl font-bold ${themeClasses.text}`}>
               Ver Minhas Cotas
             </h2>
             <button
               onClick={onClose}
-              className={`p-2 ${themeClasses.iconColor} hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all duration-200`}
+              className={`p-2 ${themeClasses.iconColor} hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200`}
             >
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6" />
             </button>
           </div>
 
-          {/* Content */}
-          <div className="p-8">
-            <div className="mb-8 text-center">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: "spring" }}
-                className={`w-20 h-20 ${getColorClassName()} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg`}
+          <div className="p-6">
+            <div className="mb-6 text-center">
+              <div
+                className={`w-16 h-16 ${getColorClassName()} rounded-full flex items-center justify-center mx-auto mb-4`}
                 style={getColorStyle()}
               >
-                <Phone className="h-10 w-10 text-white" />
-              </motion.div>
-              <p className={`${themeClasses.textSecondary} text-sm leading-relaxed`}>
-                Digite seu número de telefone para<br />visualizar suas cotas
+                <Phone className="h-8 w-8 text-white" />
+              </div>
+              <p className={`${themeClasses.textSecondary} text-sm`}>
+                Digite seu número de telefone para ver suas cotas
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Campo de telefone com seletor de país */}
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className={`block text-sm font-semibold ${themeClasses.text} mb-3`}>
+                <label className={`block text-sm font-medium ${themeClasses.labelText} mb-2`}>
                   Número de Telefone
                 </label>
-                <div className="flex gap-3">
-                  <div className="w-32 flex-shrink-0">
-                    <CountryPhoneSelect
-                      selectedCountry={selectedCountry}
-                      onCountryChange={setSelectedCountry}
-                    />
-                  </div>
+                <div className="flex space-x-2">
+                  <CountryPhoneSelect
+                    selectedCountry={selectedCountry}
+                    onCountryChange={setSelectedCountry}
+                  />
                   <input
                     type="tel"
-                    value={formatPhoneNumber(phoneNumber)}
+                    value={phoneNumber}
                     onChange={handlePhoneNumberChange}
-                    placeholder="(11) 98765-4321"
-                    className={`flex-1 px-4 py-3.5 ${themeClasses.inputBg} ${themeClasses.inputBorder} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} border-2 rounded-xl ${themeClasses.inputFocus} focus:outline-none focus:ring-2 transition-all duration-200 font-medium`}
+                    placeholder="11987654321"
+                    className={`flex-1 px-4 py-3 ${themeClasses.inputBg} ${themeClasses.inputBorder} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200`}
+                    style={{
+                      focusRing: colorMode === 'gradient' ? undefined : primaryColor
+                    }}
                     maxLength={15}
                   />
                 </div>
@@ -279,9 +258,8 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2"
+                  className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm"
                 >
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                   {error}
                 </motion.div>
               )}
@@ -289,12 +267,12 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full ${getColorClassName()} text-white py-4 rounded-xl font-bold text-base transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 mt-6`}
+                className={`w-full ${getColorClassName()} text-white py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
                 style={getColorStyle()}
               >
                 {loading ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
                     <span>Verificando...</span>
                   </>
                 ) : (
@@ -308,35 +286,6 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
           </div>
         </motion.div>
       </div>
-
-      <style>{`
-        /* Barra de rolagem personalizada */
-        ::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-          background: transparent;
-          border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          background: linear-gradient(135deg, ${primaryColor}88, ${primaryColor}cc);
-          border-radius: 10px;
-          transition: all 0.3s ease;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(135deg, ${primaryColor}aa, ${primaryColor}ff);
-        }
-
-        /* Para Firefox */
-        * {
-          scrollbar-width: thin;
-          scrollbar-color: ${primaryColor}88 transparent;
-        }
-      `}</style>
     </AnimatePresence>
   );
 };
