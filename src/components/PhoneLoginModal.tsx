@@ -136,10 +136,27 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
     return '';
   };
 
+  const formatPhoneNumber = (value: string): string => {
+    const cleaned = value.replace(/\D/g, '');
+
+    if (cleaned.length <= 2) {
+      return cleaned;
+    } else if (cleaned.length <= 7) {
+      return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2)}`;
+    } else if (cleaned.length <= 11) {
+      return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
+    }
+
+    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7, 11)}`;
+  };
+
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '');
-    setPhoneNumber(value);
-    setError('');
+
+    if (value.length <= 11) {
+      setPhoneNumber(value);
+      setError('');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -233,23 +250,22 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className={`block text-sm font-medium ${themeClasses.labelText} mb-2`}>
-                  Número de Telefone
+                  Número de Celular
                 </label>
-                <div className="flex space-x-2">
+                <div className="flex space-x-3">
                   <CountryPhoneSelect
                     selectedCountry={selectedCountry}
                     onCountryChange={setSelectedCountry}
                   />
                   <input
                     type="tel"
-                    value={phoneNumber}
+                    value={formatPhoneNumber(phoneNumber)}
                     onChange={handlePhoneNumberChange}
-                    placeholder="11987654321"
+                    placeholder="(11) 98765-4321"
                     className={`flex-1 px-4 py-3 ${themeClasses.inputBg} ${themeClasses.inputBorder} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200`}
                     style={{
                       focusRing: colorMode === 'gradient' ? undefined : primaryColor
                     }}
-                    maxLength={15}
                   />
                 </div>
               </div>
