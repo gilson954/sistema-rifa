@@ -252,18 +252,15 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Campo de telefone com seletor de país */}
               <div>
                 <label className={`block text-sm font-semibold ${themeClasses.text} mb-3`}>
                   Número de Telefone
                 </label>
                 <div className="space-y-3">
-                  <div className="w-full">
-                    <CountryPhoneSelect
-                      selectedCountry={selectedCountry}
-                      onCountryChange={setSelectedCountry}
-                    />
-                  </div>
+                  <CountryPhoneSelect
+                    selectedCountry={selectedCountry}
+                    onCountryChange={setSelectedCountry}
+                  />
                   <input
                     type="tel"
                     value={formatPhoneNumber(phoneNumber)}
@@ -305,13 +302,6 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                 )}
               </button>
             </form>
-
-            {/* Estilo customizado para esconder campos desnecessários do CountryPhoneSelect */}
-            <style>{`
-              /* Esconder campos vazios extras */
-              form > div:first-child > div > div > input[type="text"]:not([placeholder]) {
-                display: none !important;
-              }
           </div>
         </motion.div>
       </div>
