@@ -83,18 +83,9 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
     }
   };
 
-  const handleMyTicketsClick = async () => {
-    // Se o usuário já está autenticado, navega direto para a página
-    if (isPhoneAuthenticated) {
-      navigate('/my-tickets');
-    } else {
-      // Se não está autenticado, abre o modal de login
-      // Após o login bem-sucedido, o usuário será navegado para /my-tickets
-      const shouldLogin = await signInWithPhone();
-      if (shouldLogin) {
-        navigate('/my-tickets');
-      }
-    }
+  const handleMyTicketsClick = () => {
+    // SEMPRE navega para a página, nunca abre modal
+    navigate('/my-tickets');
   };
 
   const themeClasses = campaignTheme === 'escuro' || campaignTheme === 'escuro-preto' ? 'bg-black' : 'bg-white dark:bg-gray-900';
