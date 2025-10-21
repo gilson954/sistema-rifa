@@ -549,46 +549,84 @@ const CampaignPage = () => {
   }, []);
 
   const handleStep1ExistingCustomer = useCallback(async (customerData: ExistingCustomer) => {
+    console.log('=== handleStep1ExistingCustomer START ===');
+    console.log('Customer data:', customerData);
+    console.log('Campaign:', campaign);
+    console.log('Selected quotas:', selectedQuotas);
+    console.log('Quantity:', quantity);
+
     setShowStep1Modal(false);
     setReserving(true);
 
     try {
-      if (!campaign) return;
-
-      const quotasToReserve = campaign.campaign_model === 'manual' ? selectedQuotas : [];
-      const quantityToReserve = campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity;
-
-      const availableTickets = await getAvailableTickets(
-        campaign.id,
-        quotasToReserve,
-        quantityToReserve
-      );
-
-      if (availableTickets.length === 0) {
-        showError('As cotas selecionadas não estão mais disponíveis. Por favor, tente novamente.');
+      if (!campaign) {
+        console.error('ERROR: Campaign is null or undefined!');
+        showError('Erro: campanha não encontrada.');
         setReserving(false);
         return;
       }
 
-      const result = await reserveTickets({
-        campaignId: campaign.id,
-        customerName: customerData.customer_name,
-        customerEmail: customerData.customer_email,
-        customerPhone: customerData.customer_phone,
-        selectedQuotas: quotasToReserve,
-        quantity: quantityToReserve,
-        userId: user?.id
-      });
+      let quotasToReserve: number[] = [];
 
-      if (result.success) {
-        navigate(`/payment-confirmation/${result.reservationId}`);
+      if (campaign.campaign_model === 'manual') {
+        if (selectedQuotas.length === 0) {
+          console.error('ERROR: No quotas selected in manual mode');
+          showError('Selecione pelo menos uma cota para reservar');
+          setReserving(false);
+          return;
+        }
+        quotasToReserve = selectedQuotas;
       } else {
-        showError(result.error || 'Erro ao reservar cotas. Tente novamente.');
+        if (quantity <= 0) {
+          console.error('ERROR: Invalid quantity in automatic mode');
+          showError('Selecione uma quantidade válida de cotas');
+          setReserving(false);
+          return;
+        }
+
+        const availableTickets = getAvailableTickets();
+        const availableQuotaNumbers = availableTickets.map(ticket => ticket.quota_number);
+
+        console.log('Available tickets:', availableTickets.length);
+        console.log('Available quota numbers:', availableQuotaNumbers);
+
+        if (availableQuotaNumbers.length < quantity) {
+          console.error('ERROR: Not enough available tickets');
+          showError(`Apenas ${availableQuotaNumbers.length} cotas disponíveis`);
+          setReserving(false);
+          return;
+        }
+
+        const shuffled = [...availableQuotaNumbers].sort(() => 0.5 - Math.random());
+        quotasToReserve = shuffled.slice(0, quantity);
+      }
+
+      console.log('Quotas to reserve:', quotasToReserve);
+      console.log('Reserving tickets...');
+
+      const results = await reserveTickets(
+        quotasToReserve,
+        user?.id || null,
+        customerData.customer_name,
+        customerData.customer_email,
+        customerData.customer_phone
+      );
+
+      console.log('Reservation results:', results);
+
+      if (results && results.length > 0) {
+        const firstReservation = results[0];
+        console.log('SUCCESS! Navigating to:', `/payment-confirmation/${firstReservation.id}`);
+        navigate(`/payment-confirmation/${firstReservation.id}`);
+      } else {
+        console.error('ERROR: No reservations returned');
+        showError('Erro ao reservar cotas. Tente novamente.');
       }
     } catch (error) {
-      console.error('Error during reservation:', error);
+      console.error('EXCEPTION during reservation:', error);
       showError('Erro ao reservar cotas. Tente novamente.');
     } finally {
+      console.log('=== handleStep1ExistingCustomer END ===');
       setReserving(false);
     }
   }, [campaign, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate, user, showError]);
