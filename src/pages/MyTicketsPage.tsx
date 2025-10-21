@@ -280,8 +280,17 @@ const MyTicketsPage = () => {
       <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.headerBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            <div className="flex-1"></div>
-            <div className="flex items-center justify-center flex-1">
+            {/* Logo clicável à esquerda */}
+            <button
+              onClick={() => {
+                if (organizerProfile?.id) {
+                  navigate(`/org/${organizerProfile.id}`);
+                } else {
+                  navigate('/');
+                }
+              }}
+              className="flex items-center hover:opacity-80 transition-opacity duration-200"
+            >
               {organizerProfile?.logo_url ? (
                 <img
                   src={organizerProfile.logo_url}
@@ -294,8 +303,23 @@ const MyTicketsPage = () => {
                   <span className={`ml-2 text-xl font-bold ${themeClasses.text}`}>Minhas Cotas</span>
                 </div>
               )}
-            </div>
-            <div className="flex-1 flex justify-end">
+            </button>
+
+            {/* Botão de logout à direita */}
+            <div className="flex items-center gap-3">
+              {phoneUser && (
+                <div className={`hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg border ${
+                  campaignTheme === 'claro' 
+                    ? 'bg-gray-100 border-gray-200' 
+                    : 'bg-gray-800 border-gray-700'
+                }`}>
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                  <span className={`text-sm font-medium ${themeClasses.text}`}>
+                    {phoneUser.name}
+                  </span>
+                </div>
+              )}
+              
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
