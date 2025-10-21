@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Ticket, Calendar, CheckCircle, Clock, XCircle, ChevronRight, AlertCircle, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import CampaignHeader from '../components/CampaignHeader';
 import CampaignFooter from '../components/CampaignFooter';
 import { TicketsAPI, CustomerTicket } from '../lib/api/tickets';
 import { supabase } from '../lib/supabase';
