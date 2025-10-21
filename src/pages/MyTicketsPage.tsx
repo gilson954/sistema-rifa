@@ -161,15 +161,6 @@ const MyTicketsPage = () => {
 
   const groupedTickets = groupTicketsByStatus();
 
-  // Verificar quantos tickets temos no total
-  console.log('Total de tickets carregados:', tickets.length);
-  console.log('Tickets agrupados:', groupedTickets.length);
-  console.log('Detalhes dos grupos:', groupedTickets.map(g => ({
-    campaign: g.campaign_title,
-    total: g.total_tickets,
-    tickets: g.tickets.length
-  })));
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'purchased':
@@ -235,6 +226,9 @@ const MyTicketsPage = () => {
   if (!isPhoneAuthenticated) {
     return null;
   }
+
+  // Pegar o tema do organizador (padrão: claro)
+  const campaignTheme = organizerProfile?.theme || 'claro';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300 flex flex-col">
@@ -409,7 +403,7 @@ const MyTicketsPage = () => {
         )}
       </main>
 
-      <CampaignFooter />
+      <CampaignFooter campaignTheme={campaignTheme} />
     </div>
   );
 };
