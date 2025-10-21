@@ -10,7 +10,7 @@ const CampaignFooter: React.FC<CampaignFooterProps> = ({ campaignTheme = 'claro'
   
   const bgClass = campaignTheme === 'escuro' || campaignTheme === 'escuro-preto' ? 'bg-black' : 'bg-white dark:bg-gray-900';
   const borderClass = campaignTheme === 'claro' ? 'border-gray-200' : 'border-gray-800';
-  const textClass = campaignTheme === 'claro' ? 'text-gray-600' : 'text-white';
+  const textClass = campaignTheme === 'claro' ? 'text-white' : 'text-white';
   
   return (
     <footer className={`${bgClass} border-t ${borderClass} py-6 mt-auto`}>
