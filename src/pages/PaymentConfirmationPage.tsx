@@ -46,8 +46,54 @@ const PaymentConfirmationPage = () => {
 
   const reservationData = location.state?.reservationData as ReservationData;
 
-  // Pegar o tema do organizador (padrão: claro)
   const campaignTheme = organizerProfile?.theme || 'claro';
+
+  const getThemeClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200',
+          inputBg: 'bg-gray-50',
+          hover: 'hover:bg-gray-100'
+        };
+      case 'escuro':
+        return {
+          background: 'bg-slate-900',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-slate-800',
+          border: 'border-slate-700',
+          inputBg: 'bg-slate-700',
+          hover: 'hover:bg-slate-700'
+        };
+      case 'escuro-preto':
+        return {
+          background: 'bg-black',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-900',
+          border: 'border-gray-800',
+          inputBg: 'bg-gray-800',
+          hover: 'hover:bg-gray-800'
+        };
+      default:
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200',
+          inputBg: 'bg-gray-50',
+          hover: 'hover:bg-gray-100'
+        };
+    }
+  };
+
+  const themeClasses = getThemeClasses(campaignTheme);
 
   useEffect(() => {
     if (!reservationData) {
@@ -149,7 +195,7 @@ const PaymentConfirmationPage = () => {
 
   if (!reservationData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center">
+      <div className={`min-h-screen ${themeClasses.background} flex items-center justify-center`}>
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600"></div>
       </div>
     );
@@ -157,7 +203,7 @@ const PaymentConfirmationPage = () => {
 
   if (isExpired) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex flex-col">
+      <div className={`min-h-screen ${themeClasses.background} transition-colors duration-300 flex flex-col`}>
         <CampaignHeader
           logoUrl={organizerProfile?.logo_url}
           organizerName={organizerProfile?.name}
@@ -174,15 +220,15 @@ const PaymentConfirmationPage = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-12 text-center border border-gray-200 dark:border-gray-800 max-w-md"
+            className={`${themeClasses.cardBg} rounded-2xl shadow-2xl p-12 text-center border ${themeClasses.border} max-w-md`}
           >
             <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
               <Timer className="h-10 w-10 text-red-600 dark:text-red-400" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+            <h2 className={`text-2xl font-bold ${themeClasses.text} mb-3`}>
               Pagamento Expirado
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className={`${themeClasses.textSecondary} mb-6`}>
               Seu pagamento foi expirado. Caso o pagamento não seja confirmado, os títulos voltam a ficar disponíveis.
             </p>
             <div className="space-y-3">
@@ -194,7 +240,7 @@ const PaymentConfirmationPage = () => {
               </button>
               <button
                 onClick={() => navigate('/')}
-                className="w-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white py-3 rounded-xl font-bold transition-all duration-200"
+                className={`w-full ${themeClasses.inputBg} ${themeClasses.hover} ${themeClasses.text} py-3 rounded-xl font-bold transition-all duration-200`}
               >
                 Ir para Home
               </button>
@@ -208,7 +254,7 @@ const PaymentConfirmationPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex flex-col">
+    <div className={`min-h-screen ${themeClasses.background} transition-colors duration-300 flex flex-col`}>
       <CampaignHeader
         logoUrl={organizerProfile?.logo_url}
         organizerName={organizerProfile?.name}
@@ -228,27 +274,27 @@ const PaymentConfirmationPage = () => {
           transition={{ duration: 0.5 }}
           className="mb-6"
         >
-          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-2xl p-6 border border-yellow-200 dark:border-yellow-800 shadow-lg">
+          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} shadow-lg`}>
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
                 <Hourglass className="h-8 w-8 text-white" />
               </div>
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                <h2 className={`text-2xl font-bold ${themeClasses.text} mb-1`}>
                   Aguardando Pagamento!
                 </h2>
-                <p className="text-gray-700 dark:text-gray-300">
+                <p className={themeClasses.textSecondary}>
                   Realize o pagamento
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                <div className={`text-sm ${themeClasses.textSecondary} mb-1`}>
                   Você tem
                 </div>
                 <div className={`text-3xl font-bold ${timeRemaining.startsWith('0:') && parseInt(timeRemaining.split(':')[1]) < 5 ? 'text-red-600 dark:text-red-400 animate-pulse' : 'text-orange-600 dark:text-orange-400'}`}>
                   {timeRemaining}
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">
+                <div className={`text-xs ${themeClasses.textSecondary}`}>
                   para pagar
                 </div>
               </div>
@@ -263,104 +309,104 @@ const PaymentConfirmationPage = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="space-y-6"
           >
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 border border-gray-200 dark:border-gray-800">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center space-x-2">
+            <div className={`${themeClasses.cardBg} rounded-2xl shadow-xl p-6 border ${themeClasses.border}`}>
+              <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 flex items-center space-x-2`}>
                 <Package className="h-6 w-6 text-purple-600" />
                 <span>{reservationData.campaignTitle}</span>
               </h3>
 
-              <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-4 mb-6 border border-purple-200 dark:border-purple-800">
+              <div className={`${themeClasses.inputBg} rounded-xl p-4 mb-6 border ${themeClasses.border}`}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Pacote Promocional</span>
+                  <span className={`text-sm ${themeClasses.textSecondary}`}>Pacote Promocional</span>
                   <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                     R$0,05
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-700 dark:text-gray-300">Títulos: {String(reservationData.quotaCount).padStart(3, '0')}</span>
+                  <span className={themeClasses.textSecondary}>Títulos: {String(reservationData.quotaCount).padStart(3, '0')}</span>
                 </div>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 mb-4">
+              <div className={`${themeClasses.inputBg} rounded-xl p-4 mb-4`}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Código de Identificação</span>
+                  <span className={`text-sm ${themeClasses.textSecondary}`}>Código de Identificação</span>
                   <button
                     onClick={handleCopyReservationId}
-                    className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    className={`p-1.5 ${themeClasses.hover} rounded-lg transition-colors`}
                     title="Copiar código"
                   >
                     {copied ? (
                       <CheckCircle className="h-4 w-4 text-green-600" />
                     ) : (
-                      <Copy className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                      <Copy className={`h-4 w-4 ${themeClasses.textSecondary}`} />
                     )}
                   </button>
                 </div>
-                <div className="font-mono text-xs text-gray-900 dark:text-white break-all">
+                <div className={`font-mono text-xs ${themeClasses.text} break-all`}>
                   {reservationData.reservationId}
                 </div>
               </div>
 
               <div className="space-y-3">
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <div className={`flex items-center space-x-3 p-3 ${themeClasses.inputBg} rounded-lg`}>
                   <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
                     <User className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500 dark:text-gray-500">Comprador</div>
-                    <div className="font-medium text-gray-900 dark:text-white">{reservationData.customerName}</div>
+                    <div className={`text-xs ${themeClasses.textSecondary}`}>Comprador</div>
+                    <div className={`font-medium ${themeClasses.text}`}>{reservationData.customerName}</div>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <div className={`flex items-center space-x-3 p-3 ${themeClasses.inputBg} rounded-lg`}>
                   <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
                     <Phone className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500 dark:text-gray-500">Telefone</div>
-                    <div className="font-medium text-gray-900 dark:text-white">{reservationData.customerPhone}</div>
+                    <div className={`text-xs ${themeClasses.textSecondary}`}>Telefone</div>
+                    <div className={`font-medium ${themeClasses.text}`}>{reservationData.customerPhone}</div>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <div className={`flex items-center space-x-3 p-3 ${themeClasses.inputBg} rounded-lg`}>
                   <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
                     <Mail className="h-5 w-5 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500 dark:text-gray-500">Email</div>
-                    <div className="font-medium text-gray-900 dark:text-white truncate">{reservationData.customerEmail}</div>
+                    <div className={`text-xs ${themeClasses.textSecondary}`}>Email</div>
+                    <div className={`font-medium ${themeClasses.text} truncate`}>{reservationData.customerEmail}</div>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <div className={`flex items-center space-x-3 p-3 ${themeClasses.inputBg} rounded-lg`}>
                   <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
                     <Hash className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500 dark:text-gray-500">Quantidade</div>
-                    <div className="font-medium text-gray-900 dark:text-white">{reservationData.quotaCount}</div>
+                    <div className={`text-xs ${themeClasses.textSecondary}`}>Quantidade</div>
+                    <div className={`font-medium ${themeClasses.text}`}>{reservationData.quotaCount}</div>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <div className={`flex items-center space-x-3 p-3 ${themeClasses.inputBg} rounded-lg`}>
                   <div className="w-10 h-10 bg-pink-100 dark:bg-pink-900/30 rounded-lg flex items-center justify-center">
                     <Clock className="h-5 w-5 text-pink-600 dark:text-pink-400" />
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500 dark:text-gray-500">Data/horário</div>
-                    <div className="font-medium text-gray-900 dark:text-white text-sm">
+                    <div className={`text-xs ${themeClasses.textSecondary}`}>Data/horário</div>
+                    <div className={`font-medium ${themeClasses.text} text-sm`}>
                       {new Date().toLocaleString('pt-BR')}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <div className={`flex items-center space-x-3 p-3 ${themeClasses.inputBg} rounded-lg`}>
                   <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
                     <Timer className="h-5 w-5 text-red-600 dark:text-red-400" />
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500 dark:text-gray-500">Expira em</div>
-                    <div className="font-medium text-gray-900 dark:text-white text-sm">
+                    <div className={`text-xs ${themeClasses.textSecondary}`}>Expira em</div>
+                    <div className={`font-medium ${themeClasses.text} text-sm`}>
                       {new Date(reservationData.expiresAt).toLocaleString('pt-BR')}
                     </div>
                   </div>
@@ -368,19 +414,19 @@ const PaymentConfirmationPage = () => {
               </div>
 
               {reservationData.selectedQuotas && reservationData.selectedQuotas.length > 0 && (
-                <div className="mt-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
-                  <div className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+                <div className={`mt-4 ${themeClasses.inputBg} rounded-xl p-4 border ${themeClasses.border}`}>
+                  <div className={`text-sm font-medium ${themeClasses.text} mb-2`}>
                     Títulos:
                   </div>
-                  <div className="font-mono text-sm text-blue-900 dark:text-blue-100 font-semibold">
+                  <div className={`font-mono text-sm ${themeClasses.text} font-semibold`}>
                     {reservationData.selectedQuotas.sort((a, b) => a - b).join(', ')}
                   </div>
                 </div>
               )}
 
-              <div className="mt-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
+              <div className={`mt-6 ${themeClasses.inputBg} rounded-xl p-4`}>
                 <div className="flex items-center justify-between text-lg font-bold">
-                  <span className="text-gray-900 dark:text-white">Total</span>
+                  <span className={themeClasses.text}>Total</span>
                   <span className="text-green-600 dark:text-green-400">
                     {formatCurrency(reservationData.totalValue)}
                   </span>
@@ -388,10 +434,10 @@ const PaymentConfirmationPage = () => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 rounded-2xl p-6 border border-orange-200 dark:border-orange-800 shadow-lg">
+            <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} shadow-lg`}>
               <div className="flex items-start space-x-3">
                 <AlertTriangle className="h-6 w-6 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-1" />
-                <div className="text-sm text-orange-800 dark:text-orange-200">
+                <div className={`text-sm ${themeClasses.textSecondary}`}>
                   <p className="font-semibold mb-2">Este pagamento só pode ser realizado dentro do tempo. Após este período, caso o pagamento não seja confirmado, os títulos voltam a ficar disponíveis.</p>
                 </div>
               </div>
@@ -404,8 +450,8 @@ const PaymentConfirmationPage = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="space-y-6"
           >
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 border border-gray-200 dark:border-gray-800">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+            <div className={`${themeClasses.cardBg} rounded-2xl shadow-xl p-6 border ${themeClasses.border}`}>
+              <h3 className={`text-xl font-bold ${themeClasses.text} mb-6`}>
                 Como Pagar
               </h3>
 
@@ -414,7 +460,7 @@ const PaymentConfirmationPage = () => {
                   <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-purple-600 dark:text-purple-400 font-bold">1</span>
                   </div>
-                  <p className="text-gray-700 dark:text-gray-300 pt-1">
+                  <p className={`${themeClasses.textSecondary} pt-1`}>
                     Copie o código PIX abaixo
                   </p>
                 </div>
@@ -422,7 +468,7 @@ const PaymentConfirmationPage = () => {
                   <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-purple-600 dark:text-purple-400 font-bold">2</span>
                   </div>
-                  <p className="text-gray-700 dark:text-gray-300 pt-1">
+                  <p className={`${themeClasses.textSecondary} pt-1`}>
                     Abra o app do seu banco e escolha a opção PIX, como se fosse fazer uma transferência.
                   </p>
                 </div>
@@ -430,28 +476,28 @@ const PaymentConfirmationPage = () => {
                   <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-purple-600 dark:text-purple-400 font-bold">3</span>
                   </div>
-                  <p className="text-gray-700 dark:text-gray-300 pt-1">
+                  <p className={`${themeClasses.textSecondary} pt-1`}>
                     Selecione a opção PIX copia e cola, cole a chave copiada e confirme o pagamento.
                   </p>
                 </div>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 mb-4">
-                <div className="w-full aspect-square bg-white border-4 border-gray-200 dark:border-gray-700 rounded-xl flex items-center justify-center mb-4">
-                  <QrCode className="h-32 w-32 text-gray-400" />
+              <div className={`${themeClasses.inputBg} rounded-xl p-4 mb-4`}>
+                <div className={`w-full aspect-square ${themeClasses.cardBg} border-4 ${themeClasses.border} rounded-xl flex items-center justify-center mb-4`}>
+                  <QrCode className={`h-32 w-32 ${themeClasses.textSecondary}`} />
                 </div>
-                <p className="text-center text-sm text-gray-600 dark:text-gray-400 mb-1">
+                <p className={`text-center text-sm ${themeClasses.textSecondary} mb-1`}>
                   Mostrar QR Code
                 </p>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 mb-6">
+              <div className={`${themeClasses.inputBg} rounded-xl p-4 mb-6`}>
                 <div className="flex items-start justify-between space-x-3">
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                    <div className={`text-sm font-medium ${themeClasses.textSecondary} mb-2`}>
                       Chave PIX (Copia e Cola)
                     </div>
-                    <div className="font-mono text-xs text-gray-900 dark:text-white bg-white dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-700 break-all">
+                    <div className={`font-mono text-xs ${themeClasses.text} ${themeClasses.cardBg} p-3 rounded-lg border ${themeClasses.border} break-all`}>
                       00020126580014br.gov.bcb.pix0136{reservationData.reservationId}5204000053039865802BR5925RIFAQUI PAGAMENTOS LTDA6009SAO PAULO62070503***6304ABCD
                     </div>
                   </div>
@@ -470,8 +516,8 @@ const PaymentConfirmationPage = () => {
               </div>
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <div className={`${themeClasses.inputBg} rounded-xl p-4 text-center`}>
+              <p className={`text-sm ${themeClasses.textSecondary}`}>
                 Problemas com sua compra?{' '}
                 <button className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
                   Clique aqui
