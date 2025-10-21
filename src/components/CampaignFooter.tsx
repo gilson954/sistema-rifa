@@ -8,10 +8,10 @@ interface CampaignFooterProps {
 const CampaignFooter: React.FC<CampaignFooterProps> = ({ campaignTheme = 'claro' }) => {
   const navigate = useNavigate();
   
-  // Footer branco no tema claro, escuro nos temas escuros
+  // Footer com branco puro no tema claro, escuro nos temas escuros
   const bgClass = campaignTheme === 'claro' ? 'bg-white' : 'bg-gray-900';
-  const borderClass = campaignTheme === 'claro' ? 'border-gray-200' : 'border-gray-800';
-  const textClass = campaignTheme === 'claro' ? 'text-gray-900' : 'text-white';
+  const borderClass = campaignTheme === 'claro' ? 'border-gray-300' : 'border-gray-800';
+  const textClass = campaignTheme === 'claro' ? 'text-gray-800' : 'text-white';
   
   return (
     <footer className={`${bgClass} border-t ${borderClass} py-6 mt-auto`}>
