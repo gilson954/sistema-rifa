@@ -86,6 +86,12 @@ const maskPhoneNumber = (phone: string | null): string => {
   return phone.substring(0, 4) + '****' + phone.substring(phone.length - 2);
 };
 
+// ✅ FUNÇÃO HELPER PARA LIMPAR NÚMERO DE TELEFONE
+const cleanPhoneNumber = (phone: string): string => {
+  // Remove tudo que não é número
+  return phone.replace(/\D/g, '');
+};
+
 const slideVariants = {
   enter: (direction: number) => ({
     x: direction > 0 ? 300 : -300,
@@ -448,12 +454,16 @@ const CampaignPage = () => {
 
       showInfo('Processando sua reserva...');
 
+      // ✅ CORREÇÃO: Limpar formatação do número antes de usar
+      const cleanPhone = cleanPhoneNumber(customerData.phoneNumber);
+      const fullPhoneNumber = `${customerData.countryCode}${cleanPhone}`;
+
       const result = await reserveTickets(
         quotasToReserve,
         user?.id || null,
         customerData.name,
         customerData.email,
-        `${customerData.countryCode}${customerData.phoneNumber}`
+        fullPhoneNumber  // Agora enviando número limpo
       );
 
       if (result) {
@@ -469,8 +479,6 @@ const CampaignPage = () => {
 
         setSelectedQuotas([]);
         setQuantity(Math.max(1, campaign.min_tickets_per_purchase || 1));
-
-        const fullPhoneNumber = `${customerData.countryCode}${customerData.phoneNumber}`;
 
         if (!isPhoneAuthenticated) {
           await signInWithPhone(fullPhoneNumber, {
@@ -501,7 +509,6 @@ const CampaignPage = () => {
     } catch (error: any) {
       console.error('Error during reservation:', error);
 
-      // Parse error and show user-friendly message
       let errorMessage = 'Erro ao reservar cotas. Tente novamente.';
 
       if (error?.message) {
@@ -912,7 +919,7 @@ const CampaignPage = () => {
           {campaign.title}
         </motion.h1>
 
-        {/* Seção de Ganhadores - Exibida apenas quando campanha encerrada com ganhadores */}
+        {/* Seção de Ganhadores */}
         {isCampaignCompleted && (
           <motion.section
             initial={{ opacity: 0, y: 20 }}
@@ -920,7 +927,6 @@ const CampaignPage = () => {
             transition={{ duration: 0.5 }}
             className={`${themeClasses.cardBg} rounded-xl shadow-lg border ${themeClasses.border} overflow-hidden mb-6 max-w-3xl mx-auto`}
           >
-            {/* Header com gradiente/cor primária */}
             <div
               className={getColorClassName("px-6 py-4")}
               style={getColorStyle(true)}
@@ -938,7 +944,6 @@ const CampaignPage = () => {
               )}
             </div>
 
-            {/* Lista de Ganhadores */}
             <div className="p-6">
               {winnersLoading ? (
                 <div className="flex items-center justify-center py-8">
@@ -954,7 +959,6 @@ const CampaignPage = () => {
                       transition={{ duration: 0.4, delay: index * 0.1 }}
                       className={`${themeClasses.background} rounded-lg p-4 border ${themeClasses.border} space-y-3`}
                     >
-                      {/* Nome do Prêmio */}
                       <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
                         <Gift className="h-5 w-5 flex-shrink-0" style={{ color: primaryColor }} />
                         <h3
@@ -966,7 +970,6 @@ const CampaignPage = () => {
                         </h3>
                       </div>
 
-                      {/* Número Vencedor */}
                       <div className="text-center py-2">
                         <p className={`text-xs ${themeClasses.textSecondary} mb-1`}>
                           Número Vencedor
@@ -979,7 +982,6 @@ const CampaignPage = () => {
                         </div>
                       </div>
 
-                      {/* Informações do Ganhador */}
                       <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                         <div className="flex items-start gap-2">
                           <Users className={`h-4 w-4 mt-0.5 flex-shrink-0 ${themeClasses.textSecondary}`} />
@@ -1013,7 +1015,7 @@ const CampaignPage = () => {
           </motion.section>
         )}
 
-        {/* 1. Galeria de imagens com barra de progresso e data */}
+        {/* Galeria de imagens */}
         <motion.section
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -1085,7 +1087,7 @@ const CampaignPage = () => {
             </div>
           </div>
 
-          {/* Barra de progresso e Data/Hora abaixo da galeria */}
+          {/* Barra de progresso e Data */}
           <div className="p-4 space-y-3">
             {!isCampaignCompleted && campaign.show_percentage && (
               <div className="relative">
@@ -1121,7 +1123,7 @@ const CampaignPage = () => {
           </div>
         </motion.section>
 
-        {/* 2. Prêmios - Logo após a galeria */}
+        {/* Prêmios */}
         {!isCampaignCompleted && campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
           <motion.section 
             className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer`}
@@ -1141,7 +1143,6 @@ const CampaignPage = () => {
               ease: "easeOut",
             }}
           >
-            {/* Header com gradiente/cor sólida */}
             <div 
               className={getColorClassName("px-4 py-3")}
               style={getColorStyle(true)}
@@ -1157,7 +1158,6 @@ const CampaignPage = () => {
               </div>
             </div>
 
-            {/* Mensagem de clique */}
             <div className={`px-4 py-3 ${themeClasses.background}`}>
               <p className={`text-center text-sm ${themeClasses.textSecondary} font-medium`}>
                 Clique para ver todos os prêmios
@@ -1166,7 +1166,7 @@ const CampaignPage = () => {
           </motion.section>
         )}
 
-        {/* 2.5 Cotas Premiadas - Logo após Prêmios */}
+        {/* Cotas Premiadas */}
         {!isCampaignCompleted && campaign?.campaign_model === 'automatic' && cotasPremiadas.length > 0 && campaign?.cotas_premiadas_visiveis && (
           <motion.section
             className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer`}
@@ -1209,7 +1209,7 @@ const CampaignPage = () => {
           </motion.section>
         )}
 
-        {/* 3. Organizador */}
+        {/* Organizador */}
         {!isCampaignCompleted && (
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -1295,7 +1295,7 @@ const CampaignPage = () => {
         </motion.section>
         )}
 
-        {/* 4. Promoções Disponíveis */}
+        {/* Promoções */}
         {!isCampaignCompleted && campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
           <motion.section
             initial={{ opacity: 0, x: -20 }}
@@ -1360,7 +1360,7 @@ const CampaignPage = () => {
           </motion.section>
         )}
 
-        {/* 5. Compra/seleção de cota */}
+        {/* Compra/seleção de cota */}
         {!isCampaignCompleted && (
         <motion.section
           initial={{ opacity: 0, y: 30 }}
@@ -1509,7 +1509,7 @@ const CampaignPage = () => {
         </motion.section>
         )}
 
-        {/* 6. Descrição com Scroll */}
+        {/* Descrição */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1540,7 +1540,7 @@ const CampaignPage = () => {
           )}
         </motion.section>
 
-        {/* 7. Método de Sorteio */}
+        {/* Método de Sorteio */}
         {!isCampaignCompleted && (
         <motion.section
           initial={{ opacity: 0, scale: 0.95 }}
@@ -1702,7 +1702,6 @@ const CampaignPage = () => {
         />
       )}
 
-
       {/* Cotas Premiadas Public Modal */}
       {campaign && (
         <CotasPremiadasPublicModal
@@ -1719,6 +1718,7 @@ const CampaignPage = () => {
         />
       )}
 
+      {/* Phone Login Modal */}
       <PhoneLoginModal
         isOpen={showPhoneLoginModal}
         onClose={() => setShowPhoneLoginModal(false)}
