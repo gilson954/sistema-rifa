@@ -230,10 +230,54 @@ const MyTicketsPage = () => {
   // Pegar o tema do organizador (padrão: claro)
   const campaignTheme = organizerProfile?.theme || 'claro';
 
+  // Função para obter as classes de tema
+  const getThemeClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200',
+          headerBg: 'bg-white'
+        };
+      case 'escuro':
+        return {
+          background: 'bg-slate-900',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-slate-800',
+          border: 'border-slate-700',
+          headerBg: 'bg-black'
+        };
+      case 'escuro-preto':
+        return {
+          background: 'bg-black',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-900',
+          border: 'border-gray-800',
+          headerBg: 'bg-black'
+        };
+      default:
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200',
+          headerBg: 'bg-white'
+        };
+    }
+  };
+
+  const themeClasses = getThemeClasses(campaignTheme);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300 flex flex-col">
+    <div className={`min-h-screen transition-colors duration-300 flex flex-col ${themeClasses.background}`}>
       {/* Header customizado com botão de logout */}
-      <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
+      <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.headerBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex-1"></div>
@@ -247,7 +291,7 @@ const MyTicketsPage = () => {
               ) : (
                 <div className="flex items-center">
                   <Ticket className="h-8 w-8 text-blue-600" />
-                  <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">Minhas Cotas</span>
+                  <span className={`ml-2 text-xl font-bold ${themeClasses.text}`}>Minhas Cotas</span>
                 </div>
               )}
             </div>
@@ -273,10 +317,10 @@ const MyTicketsPage = () => {
           transition={{ duration: 0.5 }}
           className="mb-8"
         >
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className={`text-3xl md:text-4xl font-bold ${themeClasses.text} mb-2`}>
             Minhas Cotas
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className={themeClasses.textSecondary}>
             Bem-vindo, {phoneUser?.name || 'Cliente'}
           </p>
         </motion.div>
@@ -290,7 +334,7 @@ const MyTicketsPage = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-red-200 dark:border-red-800"
+            className={`${themeClasses.cardBg} rounded-2xl shadow-xl p-8 border border-red-200 dark:border-red-800`}
           >
             <div className="flex items-center space-x-3 text-red-600 dark:text-red-400">
               <AlertCircle className="h-6 w-6" />
@@ -301,15 +345,15 @@ const MyTicketsPage = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-12 text-center border border-gray-200 dark:border-gray-800"
+            className={`${themeClasses.cardBg} rounded-2xl shadow-xl p-12 text-center border ${themeClasses.border}`}
           >
-            <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className={`w-20 h-20 ${campaignTheme === 'claro' ? 'bg-gray-100' : 'bg-gray-800'} rounded-full flex items-center justify-center mx-auto mb-6`}>
               <Ticket className="h-10 w-10 text-gray-400" />
             </div>
-            <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className={`text-2xl font-semibold ${themeClasses.text} mb-2`}>
               Nenhuma cota encontrada
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className={`${themeClasses.textSecondary} mb-6`}>
               Você ainda não possui cotas compradas ou reservadas.
             </p>
             <button
@@ -331,7 +375,7 @@ const MyTicketsPage = () => {
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                   whileHover={{ y: -4, scale: 1.02 }}
                   onClick={() => handleCardClick(group)}
-                  className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden cursor-pointer group"
+                  className={`${themeClasses.cardBg} rounded-2xl shadow-lg border ${themeClasses.border} overflow-hidden cursor-pointer group`}
                 >
                   <div className="relative h-48">
                     <img
@@ -349,27 +393,27 @@ const MyTicketsPage = () => {
                   </div>
 
                   <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 truncate">
+                    <h3 className={`text-xl font-bold ${themeClasses.text} mb-3 truncate`}>
                       {group.campaign_title}
                     </h3>
 
                     <div className="space-y-3 mb-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Total de Cotas</span>
-                        <span className="font-bold text-gray-900 dark:text-white">
+                        <span className={`text-sm ${themeClasses.textSecondary}`}>Total de Cotas</span>
+                        <span className={`font-bold ${themeClasses.text}`}>
                           {group.total_tickets}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Status Geral</span>
+                        <span className={`text-sm ${themeClasses.textSecondary}`}>Status Geral</span>
                         <span className={`font-semibold ${getStatusColor(group.status)}`}>
                           {getStatusText(group.status)}
                         </span>
                       </div>
 
                       {/* Mostrar TODOS os números das cotas */}
-                      <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                        <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                      <div className={`pt-2 border-t ${themeClasses.border}`}>
+                        <span className={`text-xs ${themeClasses.textSecondary} font-semibold`}>
                           Números ({group.total_tickets} {group.total_tickets === 1 ? 'cota' : 'cotas'}):
                         </span>
                         <div className="mt-2 flex flex-wrap gap-2 max-h-48 overflow-y-auto">
