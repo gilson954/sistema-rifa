@@ -7,6 +7,7 @@ import { Campaign } from '../types/campaign';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/currency';
 import CampaignFooter from '../components/CampaignFooter';
+import PhoneLoginModal from '../components/PhoneLoginModal';
 import { useAuth } from '../context/AuthContext';
 
 interface OrganizerProfile {
@@ -24,12 +25,13 @@ interface OrganizerProfile {
 const OrganizerHomePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isPhoneAuthenticated } = useAuth();
   const [featuredCampaign, setFeaturedCampaign] = useState<Campaign | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const campaignsPerPage = 6;
 
   useEffect(() => {
@@ -189,6 +191,14 @@ const OrganizerHomePage: React.FC = () => {
     }
   };
 
+  const handleMyTicketsClick = () => {
+    if (isPhoneAuthenticated) {
+      navigate('/my-tickets');
+    } else {
+      setIsPhoneModalOpen(true);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -261,12 +271,14 @@ const OrganizerHomePage: React.FC = () => {
             </div>
             <div className="flex-1 flex justify-end">
               <button
-                onClick={() => navigate('/my-tickets')}
+                onClick={handleMyTicketsClick}
                 className={getColorClassName("text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105")}
                 style={getColorStyle(true, false)}
               >
                 <Ticket className="h-4 w-4" />
-                <span className="hidden sm:inline">Ver Minhas Cotas</span>
+                <span className="hidden sm:inline">
+                  {isPhoneAuthenticated ? 'Minhas Cotas' : 'Ver Minhas Cotas'}
+                </span>
                 <span className="sm:hidden">Cotas</span>
               </button>
             </div>
@@ -411,6 +423,17 @@ const OrganizerHomePage: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Phone Login Modal */}
+      <PhoneLoginModal
+        isOpen={isPhoneModalOpen}
+        onClose={() => setIsPhoneModalOpen(false)}
+        primaryColor={organizerProfile?.primary_color}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
+        campaignTheme={organizerTheme}
+      />
 
       <CampaignFooter campaignTheme={organizerTheme} />
     </div>
