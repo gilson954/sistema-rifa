@@ -379,7 +379,7 @@ const OrganizerHomePage: React.FC = () => {
                     </div>
 
                     <motion.button
-                      className={getColorClassName("w-[160px] mx-auto px-4 py-2 rounded-lg font-bold text-sm text-white shadow-md pointer-events-none")}
+                      className={getColorClassName("w-[160px] mx-auto block px-4 py-2 rounded-lg font-bold text-sm text-white shadow-md pointer-events-none")}
                       style={getColorStyle(true)}
                       animate={{ opacity: [1, 0.3, 1] }}
                       transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -432,7 +432,6 @@ const OrganizerHomePage: React.FC = () => {
         )}
       </main>
 
-      {/* Phone Login Modal */}
       <PhoneLoginModal
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
