@@ -71,108 +71,377 @@ const OrganizerHomePage: React.FC = () => {
     loadOrganizerData();
   }, [userId]);
 
+  const getCustomGradientStyle = (customColorsJson: string) => {
+    try {
+      const colors = JSON.parse(customColorsJson);
+      if (Array.isArray(colors) && colors.length >= 2) {
+        if (colors.length === 2) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]})`;
+        } else if (colors.length === 3) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing custom gradient colors:', error);
+    }
+    return null;
+  };
+
+  const getColorStyle = (isBackground: boolean = true, isText: boolean = false) => {
+    const colorMode = organizerProfile?.color_mode || 'solid';
+    const primaryColor = organizerProfile?.primary_color || '#3B82F6';
+
+    if (colorMode === 'gradient') {
+      const gradientClasses = organizerProfile?.gradient_classes;
+      const customGradientColors = organizerProfile?.custom_gradient_colors;
+
+      if (gradientClasses === 'custom' && customGradientColors) {
+        const gradientStyle = getCustomGradientStyle(customGradientColors);
+        if (gradientStyle) {
+          return {
+            background: gradientStyle,
+            backgroundSize: '200% 200%',
+            ...(isText && {
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              color: 'transparent'
+            })
+          };
+        }
+      }
+
+      if (isText) {
+        return {
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          color: 'transparent'
+        };
+      }
+      return {};
+    }
+
+    if (isText) {
+      return { color: primaryColor };
+    }
+
+    return isBackground ? { backgroundColor: primaryColor } : { color: primaryColor };
+  };
+
+  const getColorClassName = (baseClasses: string = '') => {
+    const colorMode = organizerProfile?.color_mode || 'solid';
+
+    if (colorMode === 'gradient') {
+      const gradientClasses = organizerProfile?.gradient_classes;
+      const customGradientColors = organizerProfile?.custom_gradient_colors;
+
+      if (gradientClasses === 'custom' && customGradientColors) {
+        return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
+      }
+
+      if (gradientClasses && gradientClasses !== 'custom') {
+        return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
+      }
+    }
+
+    return baseClasses;
+  };
+
+  const getThemeClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200'
+        };
+      case 'escuro':
+        return {
+          background: 'bg-slate-900',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-slate-800',
+          border: 'border-slate-700'
+        };
+      case 'escuro-preto':
+        return {
+          background: 'bg-black',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-900',
+          border: 'border-gray-800'
+        };
+      default:
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200'
+        };
+    }
+  };
+
   const handleCampaignClick = (publicId: string | null) => {
-    if (publicId) navigate(`/c/${publicId}`);
+    if (publicId) {
+      navigate(`/c/${publicId}`);
+    }
   };
 
   const handleMyTicketsClick = () => {
-    if (isPhoneAuthenticated) navigate('/my-tickets');
-    else setIsPhoneModalOpen(true);
+    if (isPhoneAuthenticated) {
+      navigate('/my-tickets');
+    } else {
+      setIsPhoneModalOpen(true);
+    }
   };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit', month: '2-digit', year: 'numeric'
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
     });
   };
 
   const organizerTheme = organizerProfile?.theme || 'claro';
+  const themeClasses = getThemeClasses(organizerTheme);
+  const primaryColor = organizerProfile?.primary_color || '#3B82F6';
+
+  const totalPages = Math.max(1, Math.ceil(campaigns.length / campaignsPerPage));
+  const paginatedCampaigns = campaigns.slice(
+    (currentPage - 1) * campaignsPerPage,
+    currentPage * campaignsPerPage
+  );
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+    return (
+      <div className={`min-h-screen ${themeClasses.background} flex items-center justify-center`}>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2" style={{ borderColor: primaryColor }}></div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="shadow-sm border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-20 items-center">
-          <div className="flex-1" />
-          <div className="flex-1 flex justify-center">
-            {organizerProfile?.logo_url && (
-              <img src={organizerProfile.logo_url} alt="Logo" className="h-14 w-auto object-contain" />
-            )}
-          </div>
-          <div className="flex-1 flex justify-end">
-            <button
-              onClick={handleMyTicketsClick}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-md transition"
-            >
-              <Ticket className="inline-block mr-2 h-4 w-4" />
-              Minhas Cotas
-            </button>
+    <div className={`min-h-screen ${themeClasses.background} transition-colors duration-300`}>
+      <header className={`shadow-sm border-b ${themeClasses.border} ${organizerTheme === 'escuro' ? 'bg-black' : themeClasses.cardBg}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex-1"></div>
+            <div className="flex items-center justify-center flex-1">
+              {organizerProfile?.logo_url ? (
+                organizerProfile.color_mode === 'gradient' ? (
+                  <div
+                    className={getColorClassName("p-1 rounded-lg shadow-md")}
+                    style={getColorStyle(true)}
+                  >
+                    <img
+                      src={organizerProfile.logo_url}
+                      alt="Logo do organizador"
+                      className="h-14 w-auto max-w-[200px] object-contain bg-white dark:bg-gray-800 rounded-md"
+                    />
+                  </div>
+                ) : (
+                  <img
+                    src={organizerProfile.logo_url}
+                    alt="Logo do organizador"
+                    className="h-16 w-auto max-w-[200px] object-contain shadow-md rounded-lg"
+                  />
+                )
+              ) : (
+                <div className="flex items-center">
+                  <img
+                    src="/logo-chatgpt.png"
+                    alt="Rifaqui Logo"
+                    className="w-10 h-10 object-contain"
+                  />
+                  <span className="ml-2 text-2xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
+                </div>
+              )}
+            </div>
+            <div className="flex-1 flex justify-end">
+              <button
+                onClick={handleMyTicketsClick}
+                className={getColorClassName("text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105")}
+                style={getColorStyle(true, false)}
+              >
+                <Ticket className="h-4 w-4" />
+                <span className="hidden sm:inline">
+                  {isPhoneAuthenticated ? 'Minhas Cotas' : 'Ver Minhas Cotas'}
+                </span>
+                <span className="sm:hidden">Cotas</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {featuredCampaign && (
-          <section className="mb-12">
-            <div className="relative h-[400px] sm:h-[500px] rounded-2xl overflow-hidden shadow-lg">
-              <img
-                src={featuredCampaign.prize_image_urls?.[0] || ''}
-                alt={featuredCampaign.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6">
-                <h2 className="text-white text-3xl font-bold mb-4">{featuredCampaign.title}</h2>
-                <motion.button
-                  className="w-[180px] bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-2 rounded-lg font-semibold shadow-md"
-                  animate={{ opacity: [1, 0.4, 1] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  Adquira Já!
-                </motion.button>
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-12"
+          >
+            <h2 className={`text-xl font-bold ${themeClasses.text} mb-2 flex items-center gap-2`}>
+              <Trophy className="h-6 w-6 text-yellow-500" />
+              Campanha em Destaque
+            </h2>
+            <motion.div
+              whileHover={{ y: -4, scale: 1.01 }}
+              transition={{ duration: 0.3 }}
+              onClick={() => handleCampaignClick(featuredCampaign.public_id)}
+              className={`${themeClasses.cardBg} rounded-2xl shadow-xl border ${themeClasses.border} overflow-hidden cursor-pointer`}
+            >
+              <div className="relative h-[400px] sm:h-[500px]">
+                <img
+                  src={featuredCampaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200'}
+                  alt={featuredCampaign.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+
+                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+                  <h3 className="text-2xl sm:text-4xl font-bold text-white mb-4">{featuredCampaign.title}</h3>
+
+                  {featuredCampaign.show_draw_date && featuredCampaign.draw_date && (
+                    <div className="flex flex-wrap gap-3 mb-4">
+                      <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
+                        <Calendar className="h-5 w-5 text-white" />
+                        <span className="text-white font-medium text-sm">
+                          {formatDate(featuredCampaign.draw_date)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <motion.button
+                    className={getColorClassName("w-[180px] px-6 py-2 rounded-lg font-bold text-lg text-white shadow-lg pointer-events-none")}
+                    style={getColorStyle(true)}
+                    animate={{ opacity: [1, 0.3, 1] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                  >
+                    {featuredCampaign.status === 'active' ? 'Adquira Já!' : 'Concluída'}
+                  </motion.button>
+                </div>
               </div>
-            </div>
-          </section>
+            </motion.div>
+          </motion.section>
         )}
 
         {campaigns.length > 0 && (
           <section>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">Mais Campanhas</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {campaigns.map((c, i) => (
+            <h2 className={`text-xl font-bold ${themeClasses.text} mb-6`}>
+              Mais Campanhas
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {paginatedCampaigns.map((campaign, index) => (
                 <motion.div
-                  key={c.id}
+                  key={campaign.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: i * 0.1 }}
-                  whileHover={{ scale: 1.02 }}
-                  className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md overflow-hidden cursor-pointer"
-                  onClick={() => handleCampaignClick(c.public_id)}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  onClick={() => handleCampaignClick(campaign.public_id)}
+                  className={`${themeClasses.cardBg} rounded-xl shadow-lg border ${themeClasses.border} overflow-hidden cursor-pointer`}
                 >
-                  <img
-                    src={c.prize_image_urls?.[0] || ''}
-                    alt={c.title}
-                    className="h-48 w-full object-cover"
-                  />
-                  <div className="p-4 text-center">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 truncate">{c.title}</h3>
-                    <p className="text-gray-500 mb-4">{formatCurrency(c.ticket_price)}</p>
+                  <div className="relative h-48">
+                    <img
+                      src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=600'}
+                      alt={campaign.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  <div className="p-4">
+                    <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 truncate`}>
+                      {campaign.title}
+                    </h3>
+
+                    <div className="flex items-center justify-center mb-4">
+                      <span className={`text-lg font-bold ${themeClasses.text}`}>
+                        {formatCurrency(campaign.ticket_price)}
+                      </span>
+                    </div>
+
                     <motion.button
-                      className="w-[160px] mx-auto bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-2 rounded-lg font-semibold shadow-md"
-                      animate={{ opacity: [1, 0.4, 1] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      className={getColorClassName("w-[160px] mx-auto px-4 py-2 rounded-lg font-bold text-sm text-white shadow-md pointer-events-none")}
+                      style={getColorStyle(true)}
+                      animate={{ opacity: [1, 0.3, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                     >
-                      Adquira Já!
+                      {campaign.status === 'active' ? 'Adquira Já!' : 'Concluída'}
                     </motion.button>
                   </div>
                 </motion.div>
               ))}
             </div>
+
+            {totalPages > 1 && (
+              <div className={`flex items-center justify-center gap-4 p-4 rounded-xl ${themeClasses.cardBg} border ${themeClasses.border}`}>
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="h-5 w-5" style={{ color: primaryColor }} />
+                </button>
+
+                <span className={`font-semibold ${themeClasses.text}`}>
+                  Página {currentPage} de {totalPages}
+                </span>
+
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="h-5 w-5" style={{ color: primaryColor }} />
+                </button>
+              </div>
+            )}
           </section>
         )}
+
+        {!featuredCampaign && campaigns.length === 0 && (
+          <div className="text-center py-20">
+            <Trophy className="h-16 w-16 mx-auto mb-4 opacity-50" style={{ color: primaryColor }} />
+            <h2 className={`text-2xl font-bold ${themeClasses.text} mb-2`}>
+              Nenhuma campanha disponível
+            </h2>
+            <p className={themeClasses.textSecondary}>
+              Este organizador ainda não possui campanhas ativas.
+            </p>
+          </div>
+        )}
       </main>
+
+      {/* Phone Login Modal */}
+      <PhoneLoginModal
+        isOpen={isPhoneModalOpen}
+        onClose={() => setIsPhoneModalOpen(false)}
+        primaryColor={organizerProfile?.primary_color}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
+        campaignTheme={organizerTheme}
+      />
 
       <CampaignFooter campaignTheme={organizerTheme} />
     </div>
