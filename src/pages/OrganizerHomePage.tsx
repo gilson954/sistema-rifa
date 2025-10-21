@@ -240,31 +240,49 @@ const OrganizerHomePage: React.FC = () => {
             <div className="flex items-center justify-center flex-1">
               {organizerProfile?.logo_url ? (
                 organizerProfile.color_mode === 'gradient' ? (
-                  <div
+                  <motion.div
                     className={getColorClassName("p-1 rounded-lg shadow-md")}
                     style={getColorStyle(true)}
+                    whileHover={{ rotate: [0, -5, 5, -5, 0], scale: 1.05, transition: { duration: 0.5 } }}
+                    whileTap={{ scale: 0.95 }}
                   >
                     <img
                       src={organizerProfile.logo_url}
                       alt="Logo do organizador"
                       className="h-14 w-auto max-w-[200px] object-contain bg-white dark:bg-gray-800 rounded-md"
                     />
-                  </div>
+                  </motion.div>
                 ) : (
-                  <img
+                  <motion.img
                     src={organizerProfile.logo_url}
                     alt="Logo do organizador"
                     className="h-16 w-auto max-w-[200px] object-contain shadow-md rounded-lg"
+                    whileHover={{ rotate: [0, -5, 5, -5, 0], scale: 1.05, transition: { duration: 0.5 } }}
+                    whileTap={{ scale: 0.95 }}
                   />
                 )
               ) : (
                 <div className="flex items-center">
-                  <img
+                  <motion.img
                     src="/logo-chatgpt.png"
                     alt="Rifaqui Logo"
                     className="w-10 h-10 object-contain"
+                    whileHover={{ 
+                      rotate: 360,
+                      scale: 1.2,
+                      transition: { duration: 0.6, ease: "easeInOut" }
+                    }}
                   />
-                  <span className="ml-2 text-2xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
+                  <motion.span
+                    className="ml-2 text-2xl font-bold text-gray-900 dark:text-white"
+                    whileHover={{
+                      scale: 1.1,
+                      color: organizerProfile?.primary_color || '#3B82F6',
+                      transition: { duration: 0.3 }
+                    }}
+                  >
+                    Rifaqui
+                  </motion.span>
                 </div>
               )}
             </div>
