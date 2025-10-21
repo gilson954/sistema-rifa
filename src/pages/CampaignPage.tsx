@@ -862,33 +862,6 @@ const CampaignPage = () => {
               )}
             </button>
 
-            {isPhoneAuthenticated && campaign && (
-              <button
-                onClick={async () => {
-                  try {
-                    await toggleFavorite(campaign.id);
-                    if (isFavorite(campaign.id)) {
-                      showSuccess('Removido dos favoritos');
-                    } else {
-                      showSuccess('Adicionado aos favoritos');
-                    }
-                  } catch (error) {
-                    showError('Erro ao atualizar favorito');
-                  }
-                }}
-                className={`p-2 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105 ${
-                  campaign && isFavorite(campaign.id)
-                    ? 'bg-red-500 text-white'
-                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300'
-                }`}
-                title={campaign && isFavorite(campaign.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-              >
-                <Heart
-                  className={`h-5 w-5 ${campaign && isFavorite(campaign.id) ? 'fill-white' : ''}`}
-                />
-              </button>
-            )}
-
             <button
               onClick={() => {
                 if (isPhoneAuthenticated) {
