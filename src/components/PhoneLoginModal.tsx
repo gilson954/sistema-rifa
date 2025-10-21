@@ -136,39 +136,19 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
     return '';
   };
 
-  const formatPhoneNumber = (value: string): string => {
-    const cleaned = value.replace(/\D/g, '');
-
-    if (cleaned.length <= 2) {
-      return cleaned;
-    } else if (cleaned.length <= 7) {
-      return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2)}`;
-    } else if (cleaned.length <= 11) {
-      return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
-    }
-
-    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7, 11)}`;
-  };
-
-  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '');
-
-    if (value.length <= 11) {
-      setPhoneNumber(value);
-      setError('');
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!phoneNumber) {
+    // Remove formatação do número
+    const cleanPhone = phoneNumber.replace(/\D/g, '');
+
+    if (!cleanPhone) {
       setError('Por favor, insira seu número de telefone');
       return;
     }
 
-    if (phoneNumber.length < 10) {
+    if (cleanPhone.length < 10) {
       setError('Número de telefone inválido');
       return;
     }
@@ -176,7 +156,7 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
     setLoading(true);
 
     try {
-      const fullPhoneNumber = `${selectedCountry.dialCode}${phoneNumber}`;
+      const fullPhoneNumber = `${selectedCountry.dialCode}${cleanPhone}`;
 
       const { data: tickets } = await TicketsAPI.getTicketsByPhoneNumber(fullPhoneNumber);
 
@@ -252,33 +232,16 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                 <label className={`block text-sm font-medium ${themeClasses.labelText} mb-2`}>
                   Número de Celular
                 </label>
-                <div className="flex space-x-3">
-                  <CountryPhoneSelect
-                    selectedCountry={selectedCountry}
-                    onCountryChange={setSelectedCountry}
-                  />
-                  <input
-                    type="tel"
-                    value={formatPhoneNumber(phoneNumber)}
-                    onChange={handlePhoneNumberChange}
-                    placeholder="(11) 98765-4321"
-                    className={`flex-1 px-4 py-3 ${themeClasses.inputBg} ${themeClasses.inputBorder} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200`}
-                    style={{
-                      focusRing: colorMode === 'gradient' ? undefined : primaryColor
-                    }}
-                  />
-                </div>
+                <CountryPhoneSelect
+                  selectedCountry={selectedCountry}
+                  onCountryChange={setSelectedCountry}
+                  phoneNumber={phoneNumber}
+                  onPhoneChange={setPhoneNumber}
+                  placeholder="(11) 98765-4321"
+                  error={error}
+                  theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
+                />
               </div>
-
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm"
-                >
-                  {error}
-                </motion.div>
-              )}
 
               <button
                 type="submit"
