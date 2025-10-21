@@ -245,7 +245,7 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                     onCountryChange={setSelectedCountry}
                     phoneNumber={phoneNumber}
                     onPhoneChange={setPhoneNumber}
-                    placeholder="(11) 98765-4321"
+                    placeholder="(00) 00000-0000"
                     error={error}
                     theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
                   />
