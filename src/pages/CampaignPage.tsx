@@ -716,11 +716,11 @@ const CampaignPage = () => {
         };
       case 'escuro':
         return {
-          background: 'bg-slate-900',
+          background: 'bg-[#1a1a1a]',
           text: 'text-white',
-          textSecondary: 'text-gray-300',
-          cardBg: 'bg-slate-800',
-          border: 'border-slate-700'
+          textSecondary: 'text-gray-400',
+          cardBg: 'bg-[#2a2a2a]',
+          border: 'border-gray-700'
         };
       case 'escuro-preto':
         return {
