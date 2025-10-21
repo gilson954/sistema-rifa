@@ -610,9 +610,36 @@ const CampaignPage = () => {
       console.log('Reservation results:', results);
 
       if (results && results.length > 0) {
-        const firstReservation = results[0];
-        console.log('SUCCESS! Navigating to:', `/payment-confirmation/${firstReservation.id}`);
-        navigate(`/payment-confirmation/${firstReservation.id}`);
+        // Calcula o valor total com promoções
+        const { total: totalValue } = calculateTotalWithPromotions(
+          quotasToReserve.length,
+          campaign.ticket_price,
+          campaign.promotions || []
+        );
+
+        // Calcula tempo de expiração
+        const reservationTimeoutMinutes = campaign.reservation_timeout_minutes || 30;
+        const expiresAt = new Date(Date.now() + reservationTimeoutMinutes * 60 * 1000).toISOString();
+
+        console.log('SUCCESS! Navigating to payment-confirmation with state');
+        navigate('/payment-confirmation', {
+          state: {
+            reservationData: {
+              reservationId: `${campaign.id}_${quotasToReserve[0]}`,
+              customerName: customerData.customer_name,
+              customerEmail: customerData.customer_email,
+              customerPhone: customerData.customer_phone,
+              quotaCount: quotasToReserve.length,
+              totalValue,
+              selectedQuotas: quotasToReserve,
+              campaignTitle: campaign.title,
+              campaignId: campaign.id,
+              campaignPublicId: campaign.public_id,
+              expiresAt,
+              reservationTimeoutMinutes
+            }
+          }
+        });
       } else {
         console.error('ERROR: No reservations returned');
         showError('Erro ao reservar cotas. Tente novamente.');
