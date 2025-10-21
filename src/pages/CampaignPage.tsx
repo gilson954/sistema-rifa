@@ -556,13 +556,11 @@ const CampaignPage = () => {
     console.log('Quantity:', quantity);
 
     setShowStep1Modal(false);
-    setReserving(true);
 
     try {
       if (!campaign) {
         console.error('ERROR: Campaign is null or undefined!');
         showError('Erro: campanha não encontrada.');
-        setReserving(false);
         return;
       }
 
@@ -572,7 +570,6 @@ const CampaignPage = () => {
         if (selectedQuotas.length === 0) {
           console.error('ERROR: No quotas selected in manual mode');
           showError('Selecione pelo menos uma cota para reservar');
-          setReserving(false);
           return;
         }
         quotasToReserve = selectedQuotas;
@@ -580,7 +577,6 @@ const CampaignPage = () => {
         if (quantity <= 0) {
           console.error('ERROR: Invalid quantity in automatic mode');
           showError('Selecione uma quantidade válida de cotas');
-          setReserving(false);
           return;
         }
 
@@ -593,7 +589,6 @@ const CampaignPage = () => {
         if (availableQuotaNumbers.length < quantity) {
           console.error('ERROR: Not enough available tickets');
           showError(`Apenas ${availableQuotaNumbers.length} cotas disponíveis`);
-          setReserving(false);
           return;
         }
 
@@ -627,7 +622,6 @@ const CampaignPage = () => {
       showError('Erro ao reservar cotas. Tente novamente.');
     } finally {
       console.log('=== handleStep1ExistingCustomer END ===');
-      setReserving(false);
     }
   }, [campaign, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate, user, showError]);
 
