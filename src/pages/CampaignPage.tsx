@@ -548,109 +548,11 @@ const CampaignPage = () => {
     setShowReservationModal(true);
   }, []);
 
-  const handleStep1ExistingCustomer = useCallback(async (customerData: ExistingCustomer) => {
-    console.log('=== handleStep1ExistingCustomer START ===');
-    console.log('Customer data:', customerData);
-    console.log('Campaign:', campaign);
-    console.log('Selected quotas:', selectedQuotas);
-    console.log('Quantity:', quantity);
-
+  const handleStep1ExistingCustomer = useCallback((customerData: ExistingCustomer) => {
+    setExistingCustomerData(customerData);
     setShowStep1Modal(false);
-
-    try {
-      if (!campaign) {
-        console.error('ERROR: Campaign is null or undefined!');
-        showError('Erro: campanha não encontrada.');
-        return;
-      }
-
-      let quotasToReserve: number[] = [];
-
-      if (campaign.campaign_model === 'manual') {
-        if (selectedQuotas.length === 0) {
-          console.error('ERROR: No quotas selected in manual mode');
-          showError('Selecione pelo menos uma cota para reservar');
-          return;
-        }
-        quotasToReserve = selectedQuotas;
-      } else {
-        if (quantity <= 0) {
-          console.error('ERROR: Invalid quantity in automatic mode');
-          showError('Selecione uma quantidade válida de cotas');
-          return;
-        }
-
-        const availableTickets = getAvailableTickets();
-        const availableQuotaNumbers = availableTickets.map(ticket => ticket.quota_number);
-
-        console.log('Available tickets:', availableTickets.length);
-        console.log('Available quota numbers:', availableQuotaNumbers);
-
-        if (availableQuotaNumbers.length < quantity) {
-          console.error('ERROR: Not enough available tickets');
-          showError(`Apenas ${availableQuotaNumbers.length} cotas disponíveis`);
-          return;
-        }
-
-        const shuffled = [...availableQuotaNumbers].sort(() => 0.5 - Math.random());
-        quotasToReserve = shuffled.slice(0, quantity);
-      }
-
-      console.log('Quotas to reserve:', quotasToReserve);
-      console.log('Reserving tickets...');
-
-      const results = await reserveTickets(
-        quotasToReserve,
-        user?.id || null,
-        customerData.customer_name,
-        customerData.customer_email,
-        customerData.customer_phone
-      );
-
-      console.log('Reservation results:', results);
-
-      if (results && results.length > 0) {
-        // Calcula o valor total com promoções
-        const { total: totalValue } = calculateTotalWithPromotions(
-          quotasToReserve.length,
-          campaign.ticket_price,
-          campaign.promotions || []
-        );
-
-        // Calcula tempo de expiração
-        const reservationTimeoutMinutes = campaign.reservation_timeout_minutes || 30;
-        const expiresAt = new Date(Date.now() + reservationTimeoutMinutes * 60 * 1000).toISOString();
-
-        console.log('SUCCESS! Navigating to payment-confirmation with state');
-        navigate('/payment-confirmation', {
-          state: {
-            reservationData: {
-              reservationId: `${campaign.id}_${quotasToReserve[0]}`,
-              customerName: customerData.customer_name,
-              customerEmail: customerData.customer_email,
-              customerPhone: customerData.customer_phone,
-              quotaCount: quotasToReserve.length,
-              totalValue,
-              selectedQuotas: quotasToReserve,
-              campaignTitle: campaign.title,
-              campaignId: campaign.id,
-              campaignPublicId: campaign.public_id,
-              expiresAt,
-              reservationTimeoutMinutes
-            }
-          }
-        });
-      } else {
-        console.error('ERROR: No reservations returned');
-        showError('Erro ao reservar cotas. Tente novamente.');
-      }
-    } catch (error) {
-      console.error('EXCEPTION during reservation:', error);
-      showError('Erro ao reservar cotas. Tente novamente.');
-    } finally {
-      console.log('=== handleStep1ExistingCustomer END ===');
-    }
-  }, [campaign, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate, user, showError]);
+    setShowStep2Modal(true);
+  }, []);
 
   const handleStep2Confirm = useCallback(async () => {
     if (!existingCustomerData || !campaign) return;
@@ -814,11 +716,11 @@ const CampaignPage = () => {
         };
       case 'escuro':
         return {
-          background: 'bg-slate-900',
+          background: 'bg-[#1a1a1a]',
           text: 'text-white',
-          textSecondary: 'text-gray-300',
-          cardBg: 'bg-slate-800',
-          border: 'border-slate-700'
+          textSecondary: 'text-gray-400',
+          cardBg: 'bg-[#2a2a2a]',
+          border: 'border-gray-700'
         };
       case 'escuro-preto':
         return {
