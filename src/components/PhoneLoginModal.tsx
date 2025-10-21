@@ -58,41 +58,44 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
         return {
           background: 'bg-white',
           text: 'text-gray-900',
-          textSecondary: 'text-gray-700',
+          textSecondary: 'text-gray-600',
           inputBg: 'bg-white',
           inputBorder: 'border-gray-300',
           inputText: 'text-gray-900',
           inputPlaceholder: 'placeholder-gray-500',
           labelText: 'text-gray-900',
           iconColor: 'text-gray-600',
-          overlayBg: 'bg-gray-900/40'
+          overlayBg: 'bg-gray-900/40',
+          borderColor: 'border-gray-200'
         };
       case 'escuro':
       case 'escuro-preto':
         return {
           background: 'bg-gray-900',
           text: 'text-white',
-          textSecondary: 'text-gray-300',
+          textSecondary: 'text-gray-400',
           inputBg: 'bg-gray-800',
           inputBorder: 'border-gray-600',
           inputText: 'text-white',
           inputPlaceholder: 'placeholder-gray-400',
           labelText: 'text-gray-100',
           iconColor: 'text-gray-400',
-          overlayBg: 'bg-black/60'
+          overlayBg: 'bg-black/60',
+          borderColor: 'border-gray-800'
         };
       default:
         return {
           background: 'bg-white',
           text: 'text-gray-900',
-          textSecondary: 'text-gray-700',
+          textSecondary: 'text-gray-600',
           inputBg: 'bg-white',
           inputBorder: 'border-gray-300',
           inputText: 'text-gray-900',
           inputPlaceholder: 'placeholder-gray-500',
           labelText: 'text-gray-900',
           iconColor: 'text-gray-600',
-          overlayBg: 'bg-gray-900/40'
+          overlayBg: 'bg-gray-900/40',
+          borderColor: 'border-gray-200'
         };
     }
   };
@@ -140,7 +143,6 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
     e.preventDefault();
     setError('');
 
-    // Remove formatação do número
     const cleanPhone = phoneNumber.replace(/\D/g, '');
 
     if (!cleanPhone) {
@@ -200,9 +202,11 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className={`relative ${themeClasses.background} rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto`}
+          className={`relative ${themeClasses.background} rounded-2xl shadow-2xl w-full max-w-md overflow-hidden modal-scrollbar`}
+          style={{ maxHeight: '90vh' }}
         >
-          <div className="sticky top-0 z-10 flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          {/* Header */}
+          <div className={`flex items-center justify-between p-6 border-b ${themeClasses.borderColor}`}>
             <h2 className={`text-2xl font-bold ${themeClasses.text}`}>
               Ver Minhas Cotas
             </h2>
@@ -210,60 +214,91 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
               onClick={onClose}
               className={`p-2 ${themeClasses.iconColor} hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200`}
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
-          <div className="p-6">
-            <div className="mb-6 text-center">
-              <div
-                className={`w-16 h-16 ${getColorClassName()} rounded-full flex items-center justify-center mx-auto mb-4`}
-                style={getColorStyle()}
-              >
-                <Phone className="h-8 w-8 text-white" />
+          {/* Content - Scrollable */}
+          <div className="overflow-y-auto modal-scrollbar" style={{ maxHeight: 'calc(90vh - 80px)' }}>
+            <div className="p-6">
+              {/* Icon and Description */}
+              <div className="mb-6 text-center">
+                <div
+                  className={`w-16 h-16 ${getColorClassName()} rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg`}
+                  style={getColorStyle()}
+                >
+                  <Phone className="h-8 w-8 text-white" />
+                </div>
+                <p className={`${themeClasses.textSecondary} text-sm leading-relaxed`}>
+                  Digite seu número de telefone para ver suas cotas
+                </p>
               </div>
-              <p className={`${themeClasses.textSecondary} text-sm`}>
-                Digite seu número de telefone para ver suas cotas
-              </p>
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label className={`block text-sm font-medium ${themeClasses.labelText} mb-2`}>
+                    Número de Celular
+                  </label>
+                  <CountryPhoneSelect
+                    selectedCountry={selectedCountry}
+                    onCountryChange={setSelectedCountry}
+                    phoneNumber={phoneNumber}
+                    onPhoneChange={setPhoneNumber}
+                    placeholder="(11) 98765-4321"
+                    error={error}
+                    theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`w-full ${getColorClassName()} text-white py-3.5 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]`}
+                  style={getColorStyle()}
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                      <span>Verificando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Ver Minhas Cotas</span>
+                      <ArrowRight className="h-5 w-5" />
+                    </>
+                  )}
+                </button>
+              </form>
             </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className={`block text-sm font-medium ${themeClasses.labelText} mb-2`}>
-                  Número de Celular
-                </label>
-                <CountryPhoneSelect
-                  selectedCountry={selectedCountry}
-                  onCountryChange={setSelectedCountry}
-                  phoneNumber={phoneNumber}
-                  onPhoneChange={setPhoneNumber}
-                  placeholder="(11) 98765-4321"
-                  error={error}
-                  theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className={`w-full ${getColorClassName()} text-white py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
-                style={getColorStyle()}
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                    <span>Verificando...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Ver Minhas Cotas</span>
-                    <ArrowRight className="h-5 w-5" />
-                  </>
-                )}
-              </button>
-            </form>
           </div>
         </motion.div>
+
+        {/* Custom Scrollbar Styles */}
+        <style>{`
+          .modal-scrollbar::-webkit-scrollbar {
+            width: 6px;
+          }
+          
+          .modal-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          
+          .modal-scrollbar::-webkit-scrollbar-thumb {
+            background: ${campaignTheme === 'claro' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'};
+            border-radius: 10px;
+          }
+          
+          .modal-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: ${campaignTheme === 'claro' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)'};
+          }
+          
+          /* Firefox */
+          .modal-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: ${campaignTheme === 'claro' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'} transparent;
+          }
+        `}</style>
       </div>
     </AnimatePresence>
   );
