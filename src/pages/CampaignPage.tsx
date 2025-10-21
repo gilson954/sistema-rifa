@@ -548,11 +548,50 @@ const CampaignPage = () => {
     setShowReservationModal(true);
   }, []);
 
-  const handleStep1ExistingCustomer = useCallback((customerData: ExistingCustomer) => {
-    setExistingCustomerData(customerData);
+  const handleStep1ExistingCustomer = useCallback(async (customerData: ExistingCustomer) => {
     setShowStep1Modal(false);
-    setShowStep2Modal(true);
-  }, []);
+    setReserving(true);
+
+    try {
+      if (!campaign) return;
+
+      const quotasToReserve = campaign.campaign_model === 'manual' ? selectedQuotas : [];
+      const quantityToReserve = campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity;
+
+      const availableTickets = await getAvailableTickets(
+        campaign.id,
+        quotasToReserve,
+        quantityToReserve
+      );
+
+      if (availableTickets.length === 0) {
+        showError('As cotas selecionadas não estão mais disponíveis. Por favor, tente novamente.');
+        setReserving(false);
+        return;
+      }
+
+      const result = await reserveTickets({
+        campaignId: campaign.id,
+        customerName: customerData.customer_name,
+        customerEmail: customerData.customer_email,
+        customerPhone: customerData.customer_phone,
+        selectedQuotas: quotasToReserve,
+        quantity: quantityToReserve,
+        userId: user?.id
+      });
+
+      if (result.success) {
+        navigate(`/payment-confirmation/${result.reservationId}`);
+      } else {
+        showError(result.error || 'Erro ao reservar cotas. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('Error during reservation:', error);
+      showError('Erro ao reservar cotas. Tente novamente.');
+    } finally {
+      setReserving(false);
+    }
+  }, [campaign, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate, user, showError]);
 
   const handleStep2Confirm = useCallback(async () => {
     if (!existingCustomerData || !campaign) return;

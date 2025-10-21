@@ -187,13 +187,16 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
     try {
       const fullPhoneNumber = `${selectedCountry.dialCode}${phoneNumber}`;
 
-      // Tenta fazer login para verificar se o número existe
-      const loginResult = await signInWithPhone(fullPhoneNumber);
+      // Verifica se o cliente existe no banco
+      const customerData = await checkCustomerByPhone(fullPhoneNumber);
 
-      if (loginResult.success) {
-        // Cliente existente - fazer login e navegar para MyTicketsPage
-        onClose();
-        navigate('/my-tickets');
+      if (customerData) {
+        // Cliente existente - fazer login e chamar callback
+        await signInWithPhone(fullPhoneNumber, {
+          name: customerData.name,
+          email: customerData.email
+        });
+        onExistingCustomer(customerData);
       } else {
         // Cliente novo - abrir modal de cadastro (Step2Modal)
         onNewCustomer();
