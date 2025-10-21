@@ -329,8 +329,8 @@ const OrganizerHomePage: React.FC = () => {
                   <motion.button
                     className={getColorClassName("w-[180px] px-6 py-2 rounded-lg font-bold text-lg text-white shadow-lg pointer-events-none")}
                     style={getColorStyle(true)}
-                    animate={{ opacity: [1, 0.3, 1] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    animate={{ opacity: [1, 0, 1] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                     whileHover={{ scale: 1.04 }}
                     whileTap={{ scale: 0.96 }}
                   >
@@ -368,7 +368,7 @@ const OrganizerHomePage: React.FC = () => {
                   </div>
 
                   <div className="p-4">
-                    <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 truncate`}>
+                    <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center`}>
                       {campaign.title}
                     </h3>
 
@@ -381,8 +381,8 @@ const OrganizerHomePage: React.FC = () => {
                     <motion.button
                       className={getColorClassName("w-[160px] mx-auto block px-4 py-2 rounded-lg font-bold text-sm text-white shadow-md pointer-events-none")}
                       style={getColorStyle(true)}
-                      animate={{ opacity: [1, 0.3, 1] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      animate={{ opacity: [1, 0, 1] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                     >
