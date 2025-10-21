@@ -46,6 +46,9 @@ const PaymentConfirmationPage = () => {
 
   const reservationData = location.state?.reservationData as ReservationData;
 
+  // Pegar o tema do organizador (padrão: claro)
+  const campaignTheme = organizerProfile?.theme || 'claro';
+
   useEffect(() => {
     if (!reservationData) {
       navigate('/');
@@ -163,8 +166,8 @@ const PaymentConfirmationPage = () => {
           colorMode={organizerProfile?.color_mode}
           gradientClasses={organizerProfile?.gradient_classes}
           customGradientColors={organizerProfile?.custom_gradient_colors}
-          campaignTheme={organizerProfile?.theme}
-          onMyTicketsClick={() => navigate('/my-tickets')}
+          campaignTheme={campaignTheme}
+          hideMyTicketsButton={true}
         />
 
         <div className="flex-1 flex items-center justify-center px-4 py-12">
@@ -199,7 +202,7 @@ const PaymentConfirmationPage = () => {
           </motion.div>
         </div>
 
-        <CampaignFooter />
+        <CampaignFooter campaignTheme={campaignTheme} />
       </div>
     );
   }
@@ -214,8 +217,8 @@ const PaymentConfirmationPage = () => {
         colorMode={organizerProfile?.color_mode}
         gradientClasses={organizerProfile?.gradient_classes}
         customGradientColors={organizerProfile?.custom_gradient_colors}
-        campaignTheme={organizerProfile?.theme}
-        onMyTicketsClick={() => navigate('/my-tickets')}
+        campaignTheme={campaignTheme}
+        hideMyTicketsButton={true}
       />
 
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
@@ -479,7 +482,7 @@ const PaymentConfirmationPage = () => {
         </div>
       </main>
 
-      <CampaignFooter />
+      <CampaignFooter campaignTheme={campaignTheme} />
     </div>
   );
 };
