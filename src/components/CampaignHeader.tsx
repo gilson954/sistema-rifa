@@ -88,9 +88,9 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
     navigate('/my-tickets');
   };
 
-  const themeClasses = campaignTheme === 'escuro' || campaignTheme === 'escuro-preto' ? 'bg-black' : 'bg-white dark:bg-gray-900';
-  const borderClass = campaignTheme === 'claro' ? 'border-gray-200' : 'border-gray-800';
-  const textClass = campaignTheme === 'claro' ? 'text-gray-600 dark:text-gray-400' : 'text-gray-400';
+  const themeClasses = campaignTheme === 'escuro' || campaignTheme === 'escuro-preto' ? 'bg-black' : 'bg-white';
+  const borderClass = campaignTheme === 'claro' ? 'border-gray-300' : 'border-gray-800';
+  const textClass = campaignTheme === 'claro' ? 'text-gray-700' : 'text-gray-400';
 
   return (
     <header className={`shadow-sm border-b ${borderClass} ${themeClasses}`}>
@@ -126,7 +126,7 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
                   alt="Rifaqui Logo"
                   className="w-10 h-10 object-contain"
                 />
-                <span className={`ml-2 text-2xl font-bold ${campaignTheme === 'claro' ? 'text-gray-900 dark:text-white' : 'text-white'}`}>
+                <span className={`ml-2 text-2xl font-bold ${campaignTheme === 'claro' ? 'text-gray-900' : 'text-white'}`}>
                   Rifaqui
                 </span>
               </>
@@ -137,11 +137,11 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
             {isPhoneAuthenticated && phoneUser && (
               <div className={`hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg border ${
                 campaignTheme === 'claro' 
-                  ? 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700' 
+                  ? 'bg-gray-100 border-gray-300' 
                   : 'bg-gray-800 border-gray-700'
               }`}>
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span className={`text-sm font-medium ${campaignTheme === 'claro' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-300'}`}>
+                <span className={`text-sm font-medium ${campaignTheme === 'claro' ? 'text-gray-800' : 'text-gray-300'}`}>
                   {phoneUser.name}
                 </span>
               </div>
@@ -164,7 +164,7 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
                     onClick={handleLogout}
                     className={`p-2 rounded-lg transition-colors duration-200 ${
                       campaignTheme === 'claro'
-                        ? 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'hover:bg-gray-100'
                         : 'hover:bg-gray-800'
                     }`}
                     title="Sair"
@@ -179,7 +179,7 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
                 onClick={handleLogout}
                 className={`p-2 rounded-lg transition-colors duration-200 ${
                   campaignTheme === 'claro'
-                    ? 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                    ? 'hover:bg-gray-100'
                     : 'hover:bg-gray-800'
                 }`}
                 title="Sair"
