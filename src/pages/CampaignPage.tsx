@@ -1144,24 +1144,13 @@ const CampaignPage = () => {
             }}
           >
             <div 
-              className={getColorClassName("px-4 py-3")}
+              className={getColorClassName("px-4 py-3 flex items-center justify-center gap-2")}
               style={getColorStyle(true)}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center justify-center gap-2 flex-1">
-                  <Trophy className="h-5 w-5 text-white" />
-                  <h3 className="text-lg font-bold text-white">
-                    Prêmios
-                  </h3>
-                </div>
-                <ExternalLink className="h-4 w-4 text-white/80" />
-              </div>
-            </div>
-
-            <div className={`px-4 py-3 ${themeClasses.background}`}>
-              <p className={`text-center text-sm ${themeClasses.textSecondary} font-medium`}>
-                Clique para ver todos os prêmios
-              </p>
+              <Trophy className="h-5 w-5 text-white" />
+              <h3 className="text-lg font-bold text-white">
+                Prêmios
+              </h3>
             </div>
           </motion.section>
         )}
@@ -1187,24 +1176,13 @@ const CampaignPage = () => {
             }}
           >
             <div
-              className={getColorClassName("px-4 py-3")}
+              className={getColorClassName("px-4 py-3 flex items-center justify-center gap-2")}
               style={getColorStyle(true)}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center justify-center gap-2 flex-1">
-                  <Award className="h-5 w-5 text-white" />
-                  <h3 className="text-lg font-bold text-white">
-                    Cotas Premiadas
-                  </h3>
-                </div>
-                <ExternalLink className="h-4 w-4 text-white/80" />
-              </div>
-            </div>
-
-            <div className={`px-4 py-3 ${themeClasses.background}`}>
-              <p className={`text-center text-sm ${themeClasses.textSecondary} font-medium`}>
-                Clique para ver todas as cotas premiadas
-              </p>
+              <Award className="h-5 w-5 text-white" />
+              <h3 className="text-lg font-bold text-white">
+                Cotas Premiadas
+              </h3>
             </div>
           </motion.section>
         )}
