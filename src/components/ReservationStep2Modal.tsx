@@ -474,7 +474,7 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
                     <motion.div
                       className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center ${
                         acceptTerms
-                          ? 'bg-green-500 border-green-500'
+                          ? 'bg-transparent border-transparent'
                           : `bg-transparent ${theme.inputBorder} group-hover:border-gray-400`
                       }`}
                       animate={acceptTerms ? { scale: [1, 1.2, 1] } : {}}
@@ -482,24 +482,14 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
                     >
                       <AnimatePresence>
                         {acceptTerms && (
-                          <motion.svg
-                            className="w-3 h-3 text-white"
-                            viewBox="0 0 12 10"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
+                          <motion.div
                             initial={{ scale: 0, rotate: -180 }}
                             animate={{ scale: 1, rotate: 0 }}
                             exit={{ scale: 0, rotate: 180 }}
                             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                           >
-                            <path
-                              d="M10.6667 1L4 7.66667L1.33333 5"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </motion.svg>
+                            <CheckCircle className="w-5 h-5 text-green-500" />
+                          </motion.div>
                         )}
                       </AnimatePresence>
                     </motion.div>
