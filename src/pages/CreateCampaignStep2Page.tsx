@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Plus, Trash2, AlertTriangle, ChevronDown, Calendar, Gift, Trophy, Settings, Image as ImageIcon, FileText } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Plus, Trash2, AlertTriangle, ChevronDown, Calendar, Gift, Trophy, Settings, Image as ImageIcon, FileText, Check } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaignWithRefetch } from '../hooks/useCampaigns';
 import { CampaignAPI } from '../lib/api/campaigns';
@@ -11,59 +11,73 @@ import PrizesModal from '../components/PrizesModal';
 import DateTimePickerModal from '../components/DateTimePickerModal';
 import { Promotion, Prize } from '../types/promotion';
 import 'react-datepicker/dist/react-datepicker.css';
+import { motion } from 'framer-motion'; // Importação do framer-motion
 
-// ====================================================================
-// NOVO COMPONENTE: AnimatedToggleSwitch
-// Utiliza classes Tailwind CSS para simular um toggle animado.
-// Substitui os checkboxes simples para "Mostrar ranking" e "Mostrar porcentagem".
-// ====================================================================
-interface AnimatedToggleSwitchProps {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
+// Novo componente de Checkbox Animado
+interface AnimatedCheckboxProps {
   id: string;
-  description?: string;
-  colorClass: string; // Ex: 'blue', 'green'
+  name: string;
+  checked: boolean;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  label: string;
+  color: 'blue' | 'green';
 }
 
-const AnimatedToggleSwitch: React.FC<AnimatedToggleSwitchProps> = ({ label, checked, onChange, id, description, colorClass }) => {
-  const baseColor = colorClass === 'blue' ? 'blue' : 'green';
-  const checkedBgColor = baseColor === 'blue' ? 'bg-blue-600' : 'bg-green-600';
-  const focusRingColor = baseColor === 'blue' ? 'ring-blue-500' : 'ring-green-500';
-  const borderColor = baseColor === 'blue' ? 'border-blue-200/50 dark:border-blue-800/50' : 'border-green-200/50 dark:border-green-800/50';
-  const bgColor = baseColor === 'blue' ? 'bg-blue-50/30 dark:bg-blue-900/10' : 'bg-green-50/30 dark:bg-green-900/10';
-  const hoverBorderColor = baseColor === 'blue' ? 'hover:border-blue-300/50 dark:hover:border-blue-700/50' : 'hover:border-green-300/50 dark:hover:border-green-700/50';
+const AnimatedCheckbox: React.FC<AnimatedCheckboxProps> = ({ id, name, checked, onChange, label, color }) => {
+  const baseClasses = 'flex items-center space-x-4 p-4 rounded-xl border transition-all duration-200 cursor-pointer';
+  const colorClasses = {
+    blue: {
+      unchecked: 'border-blue-100/20 dark:border-blue-900/30 bg-blue-50/30 dark:bg-blue-900/10 hover:border-blue-300/50 dark:hover:border-blue-700/50',
+      checked: 'border-blue-400/50 dark:border-blue-600/50 bg-blue-100/60 dark:bg-blue-800/20 shadow-lg ring-2 ring-blue-500/30',
+      icon: 'text-blue-600 dark:text-blue-400',
+      fill: 'bg-blue-600',
+    },
+    green: {
+      unchecked: 'border-green-100/20 dark:border-green-900/30 bg-green-50/30 dark:bg-green-900/10 hover:border-green-300/50 dark:hover:border-green-700/50',
+      checked: 'border-green-400/50 dark:border-green-600/50 bg-green-100/60 dark:bg-green-800/20 shadow-lg ring-2 ring-green-500/30',
+      icon: 'text-green-600 dark:text-green-400',
+      fill: 'bg-green-600',
+    },
+  };
+
+  const currentColors = colorClasses[color];
+  const containerClass = `${baseClasses} ${checked ? currentColors.checked : currentColors.unchecked}`;
 
   return (
-    <div className={`p-4 rounded-xl border ${borderColor} ${bgColor} ${hoverBorderColor} transition-all duration-200`}>
-      <div className="flex items-center justify-between">
-        <label htmlFor={id} className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1 font-medium">
-          {label}
-          {description && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{description}</p>
-          )}
-        </label>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={checked}
-          onClick={() => onChange(!checked)}
-          className={`${
-            checked ? checkedBgColor : 'bg-gray-300 dark:bg-gray-600'
-          } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 ${focusRingColor} focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900`}
-        >
-          <span
-            aria-hidden="true"
-            className={`${
-              checked ? 'translate-x-5' : 'translate-x-0'
-            } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out`}
-          />
-        </button>
-      </div>
-    </div>
+    <motion.label
+      htmlFor={id}
+      className={containerClass}
+      whileTap={{ scale: 0.98 }}
+    >
+      <input
+        type="checkbox"
+        id={id}
+        name={name}
+        checked={checked}
+        onChange={onChange}
+        className="sr-only" // Esconde o input original
+      />
+      <motion.div
+        className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors duration-200 flex-shrink-0 ${checked ? currentColors.fill : 'border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'}`}
+        initial={false}
+        animate={{ scale: checked ? 1 : 1 }}
+      >
+        {checked && (
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          >
+            <Check className="w-4 h-4 text-white" />
+          </motion.div>
+        )}
+      </motion.div>
+      <span className="text-sm text-gray-700 dark:text-gray-300 flex-1 font-medium select-none">
+        {label}
+      </span>
+    </motion.label>
   );
 };
-// ====================================================================
 
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
@@ -153,7 +167,6 @@ const CreateCampaignStep2Page = () => {
     const { name, value, type } = e.target;
     
     if (type === 'checkbox') {
-      // NOTE: Checkboxes foram substituídos, mas mantemos o handler para outros casos
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else if (type === 'number') {
@@ -173,11 +186,6 @@ const CreateCampaignStep2Page = () => {
         }
       }
     }
-  };
-
-  // NOVO: Handler específico para os Toggles
-  const handleToggleChange = (name: string, checked: boolean) => {
-    setFormData(prev => ({ ...prev, [name]: checked }));
   };
 
   const handleDescriptionChange = (value: string) => {
@@ -292,7 +300,7 @@ const CreateCampaignStep2Page = () => {
         id: campaignId,
         description: normalizedDescription,
         prize_image_urls: imageUrls.length > 0 ? imageUrls : campaign?.prize_image_urls || [],
-        require_email: true, // Mantido como true, como no estado inicial
+        require_email: true,
         show_ranking: formData.showRanking,
         min_tickets_per_purchase: formData.minTicketsPerPurchase,
         max_tickets_per_purchase: formData.maxTicketsPerPurchase,
@@ -826,26 +834,24 @@ const CreateCampaignStep2Page = () => {
                 )}
               </div>
 
-              {/* Checkboxes Section (AGORA SÃO TOGGLES) */}
+              {/* Checkboxes Section - USANDO NOVO AnimatedCheckbox */}
               <div className="space-y-3 pt-4 border-t-2 border-gray-200/20 dark:border-gray-700/30">
-                {/* Mostrar ranking de compradores */}
-                <AnimatedToggleSwitch
+                <AnimatedCheckbox
                   id="showRanking"
-                  label="Mostrar ranking de compradores"
-                  description="Exibe uma lista com os principais compradores na página da campanha."
+                  name="showRanking"
                   checked={formData.showRanking}
-                  onChange={(checked) => handleToggleChange('showRanking', checked)}
-                  colorClass="blue"
+                  onChange={handleInputChange}
+                  label="Mostrar ranking de compradores"
+                  color="blue"
                 />
 
-                {/* Mostrar porcentagem de vendas */}
-                <AnimatedToggleSwitch
+                <AnimatedCheckbox
                   id="showPercentage"
-                  label="Mostrar porcentagem de vendas"
-                  description="Exibe uma barra de progresso com a porcentagem de cotas vendidas."
+                  name="showPercentage"
                   checked={formData.showPercentage}
-                  onChange={(checked) => handleToggleChange('showPercentage', checked)}
-                  colorClass="green"
+                  onChange={handleInputChange}
+                  label="Mostrar porcentagem de vendas"
+                  color="green"
                 />
               </div>
             </div>
