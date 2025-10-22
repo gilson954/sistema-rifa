@@ -105,7 +105,6 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
 
   const themeClasses = campaignTheme === 'escuro' || campaignTheme === 'escuro-preto' ? 'bg-black' : 'bg-white';
   const borderClass = campaignTheme === 'claro' ? 'border-gray-300' : 'border-gray-800';
-  const textClass = campaignTheme === 'claro' ? 'text-gray-700' : 'text-gray-400';
 
   return (
     <header className={`shadow-sm border-b ${borderClass} ${themeClasses}`}>
@@ -150,13 +149,13 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
 
           <div className="flex items-center space-x-3">
             {isPhoneAuthenticated && phoneUser && (
-              <div className={`hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg border ${
+              <div className={`hidden md:flex items-center space-x-2 px-4 py-2 rounded-lg border ${
                 campaignTheme === 'claro' 
-                  ? 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700' 
-                  : 'bg-gray-800 border-gray-700'
+                  ? 'bg-gray-900 border-gray-700' 
+                  : 'bg-gray-900 border-gray-700'
               }`}>
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span className={`text-sm font-medium ${campaignTheme === 'claro' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-300'}`}>
+                <span className="text-sm font-medium text-white">
                   {phoneUser.name}
                 </span>
               </div>
@@ -177,14 +176,10 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
                 {isPhoneAuthenticated && (
                   <button
                     onClick={handleLogout}
-                    className={`p-2 rounded-lg transition-colors duration-200 ${
-                      campaignTheme === 'claro'
-                        ? 'hover:bg-gray-100 dark:hover:bg-gray-800'
-                        : 'hover:bg-gray-800'
-                    }`}
-                    title="Sair"
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg"
                   >
-                    <LogOut className={`h-5 w-5 ${textClass}`} />
+                    <LogOut className="h-4 w-4" />
+                    <span className="hidden sm:inline">Sair</span>
                   </button>
                 )}
               </>
@@ -192,14 +187,10 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
             {hideMyTicketsButton && isPhoneAuthenticated && (
               <button
                 onClick={handleLogout}
-                className={`p-2 rounded-lg transition-colors duration-200 ${
-                  campaignTheme === 'claro'
-                    ? 'hover:bg-gray-100 dark:hover:bg-gray-800'
-                    : 'hover:bg-gray-800'
-                }`}
-                title="Sair"
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg"
               >
-                <LogOut className={`h-5 w-5 ${textClass}`} />
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Sair</span>
               </button>
             )}
           </div>
