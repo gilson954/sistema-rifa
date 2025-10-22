@@ -474,10 +474,9 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
                     <motion.div
                       className={`w-5 h-5 rounded border-2 transition-all duration-200 ${
                         acceptTerms
-                          ? 'border-transparent'
+                          ? 'bg-green-500 border-green-500'
                           : `${theme.inputBorder} group-hover:border-gray-400`
                       }`}
-                      style={acceptTerms ? getColorStyle() : {}}
                       animate={acceptTerms ? { scale: [1, 1.2, 1] } : {}}
                       transition={{ duration: 0.3 }}
                     >
