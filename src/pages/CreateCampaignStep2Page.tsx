@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Plus, Trash2, AlertTriangle, ChevronDown, Calendar, Gift, Trophy, Settings, Image as ImageIcon, FileText } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Plus, Trash2, AlertTriangle, ChevronDown, Calendar, Gift, Trophy, Settings, Image as ImageIcon, FileText, Check, BarChart3 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaignWithRefetch } from '../hooks/useCampaigns';
 import { CampaignAPI } from '../lib/api/campaigns';
@@ -10,7 +10,96 @@ import PromotionModal from '../components/PromotionModal';
 import PrizesModal from '../components/PrizesModal';
 import DateTimePickerModal from '../components/DateTimePickerModal';
 import { Promotion, Prize } from '../types/promotion';
+import { motion } from 'framer-motion'; // Importação do framer-motion
 import 'react-datepicker/dist/react-datepicker.css';
+
+// =========================================================================
+// NOVO COMPONENTE: AnimatedCheckboxCard
+// Este componente substitui os checkboxes simples por cards animados e bonitos
+// =========================================================================
+interface AnimatedCheckboxCardProps {
+  id: string;
+  name: string;
+  checked: boolean;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  colorClass: string;
+}
+
+const AnimatedCheckboxCard: React.FC<AnimatedCheckboxCardProps> = ({
+  id,
+  name,
+  checked,
+  onChange,
+  icon,
+  title,
+  description,
+  colorClass,
+}) => {
+  const baseColor = `border-2 border-transparent ${colorClass.split('-')[0]}-600`; // Ex: blue-600
+  const checkMarkVariants = {
+    checked: { scale: 1, opacity: 1 },
+    unchecked: { scale: 0.5, opacity: 0 },
+  };
+
+  return (
+    <motion.label
+      htmlFor={id}
+      className={`relative flex flex-col p-4 rounded-2xl cursor-pointer transition-all duration-300 ${
+        checked
+          ? `shadow-lg ring-4 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 ${colorClass.split('-')[0]}-500/50 ${colorClass.replace('bg-', 'bg-')}/40 dark:bg-opacity-20 backdrop-blur-sm border-2 ${colorClass.replace('bg-', 'border-')}`
+          : 'bg-white/50 dark:bg-gray-800/50 border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+      }`}
+      whileHover={{ y: -3 }}
+      animate={{
+        borderColor: checked ? colorClass.replace('bg-', '').split('/')[0].replace('100', '400').replace('50', '400') : '#D1D5DB', // Ajuste mais simples para cor da borda
+      }}
+      initial={false}
+      transition={{ duration: 0.2 }}
+    >
+      <input
+        type="checkbox"
+        id={id}
+        name={name}
+        checked={checked}
+        onChange={onChange}
+        className="sr-only"
+      />
+      
+      <div className="flex items-center justify-between w-full">
+        <div className="flex items-center space-x-4">
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${colorClass.split('/')[0].replace('50', '600').replace('100', '600')}`}>
+            {React.cloneElement(icon as React.ReactElement, { className: 'w-6 h-6 text-white' })}
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
+        </div>
+        
+        <motion.div
+          className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors duration-300 ${checked ? baseColor : 'bg-gray-200 dark:bg-gray-700'}`}
+          animate={checked ? 'checked' : 'unchecked'}
+          initial={false}
+        >
+          <motion.div
+            variants={checkMarkVariants}
+            className="w-full h-full flex items-center justify-center"
+          >
+            <Check className={`w-4 h-4 ${checked ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} strokeWidth={3} />
+          </motion.div>
+        </motion.div>
+      </div>
+      
+      <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+        {description}
+      </p>
+    </motion.label>
+  );
+};
+// =========================================================================
+// FIM AnimatedCheckboxCard
+// =========================================================================
+
 
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
@@ -767,35 +856,29 @@ const CreateCampaignStep2Page = () => {
                 )}
               </div>
 
-              {/* Checkboxes Section */}
-              <div className="space-y-3 pt-4 border-t-2 border-gray-200/20 dark:border-gray-700/30">
-                <div className="flex items-center space-x-4 p-4 rounded-xl border border-blue-100/20 dark:border-blue-900/30 bg-blue-50/30 dark:bg-blue-900/10 backdrop-blur-sm hover:border-blue-300/50 dark:hover:border-blue-700/50 transition-all duration-200">
-                  <input
-                    type="checkbox"
-                    id="showRanking"
-                    name="showRanking"
-                    checked={formData.showRanking}
-                    onChange={handleInputChange}
-                    className="w-5 h-5 text-blue-600 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:ring-2 cursor-pointer"
-                  />
-                  <label htmlFor="showRanking" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1 font-medium">
-                    Mostrar ranking de compradores
-                  </label>
-                </div>
+              {/* Checkboxes Section (Updated with AnimatedCheckboxCard) */}
+              <div className="grid md:grid-cols-2 gap-4 pt-4 border-t-2 border-gray-200/20 dark:border-gray-700/30">
+                <AnimatedCheckboxCard
+                  id="showRanking"
+                  name="showRanking"
+                  checked={formData.showRanking}
+                  onChange={handleInputChange}
+                  icon={<Trophy />}
+                  title="Mostrar Ranking"
+                  description="Exibir publicamente um ranking dos maiores compradores da campanha."
+                  colorClass="bg-blue-50/30 border-blue-600"
+                />
 
-                <div className="flex items-center space-x-4 p-4 rounded-xl border border-green-100/20 dark:border-green-900/30 bg-green-50/30 dark:bg-green-900/10 backdrop-blur-sm hover:border-green-300/50 dark:hover:border-green-700/50 transition-all duration-200">
-                  <input
-                    type="checkbox"
-                    id="showPercentage"
-                    name="showPercentage"
-                    checked={formData.showPercentage}
-                    onChange={handleInputChange}
-                    className="w-5 h-5 text-green-600 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-green-500 focus:ring-2 cursor-pointer"
-                  />
-                  <label htmlFor="showPercentage" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1 font-medium">
-                    Mostrar porcentagem de vendas
-                  </label>
-                </div>
+                <AnimatedCheckboxCard
+                  id="showPercentage"
+                  name="showPercentage"
+                  checked={formData.showPercentage}
+                  onChange={handleInputChange}
+                  icon={<BarChart3 />}
+                  title="Mostrar Progresso"
+                  description="Exibir a porcentagem de cotas vendidas na página da campanha."
+                  colorClass="bg-green-50/30 border-green-600"
+                />
               </div>
             </div>
           </div>
