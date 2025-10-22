@@ -418,7 +418,17 @@ const PaymentConfirmationPage = () => {
                   <div className={`text-sm font-medium ${themeClasses.text} mb-2`}>
                     Títulos:
                   </div>
-                  <div className={`font-mono text-sm ${themeClasses.text} font-semibold max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-gray-200 dark:scrollbar-track-gray-700`}>
+                  <div 
+                    className={`font-mono text-sm ${themeClasses.text} font-semibold max-h-48 overflow-y-auto pr-2`}
+                    style={{
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: campaignTheme === 'claro' 
+                        ? '#9333ea #e5e7eb' 
+                        : campaignTheme === 'escuro'
+                        ? '#a855f7 #334155'
+                        : '#a855f7 #1f2937'
+                    }}
+                  >
                     {reservationData.selectedQuotas.sort((a, b) => a - b).join(', ')}
                   </div>
                 </div>
