@@ -472,24 +472,34 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
                       className="peer sr-only"
                     />
                     <motion.div
-                      className={`w-5 h-5 rounded border-2 transition-all duration-200 ${
+                      className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center ${
                         acceptTerms
                           ? 'bg-green-500 border-green-500'
-                          : `${theme.inputBorder} group-hover:border-gray-400`
+                          : `bg-transparent ${theme.inputBorder} group-hover:border-gray-400`
                       }`}
                       animate={acceptTerms ? { scale: [1, 1.2, 1] } : {}}
                       transition={{ duration: 0.3 }}
                     >
                       <AnimatePresence>
                         {acceptTerms && (
-                          <motion.div
+                          <motion.svg
+                            className="w-3 h-3 text-white"
+                            viewBox="0 0 12 10"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
                             initial={{ scale: 0, rotate: -180 }}
                             animate={{ scale: 1, rotate: 0 }}
                             exit={{ scale: 0, rotate: 180 }}
                             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                           >
-                            <CheckCircle className="w-5 h-5 text-white -mt-0.5 -ml-0.5" />
-                          </motion.div>
+                            <path
+                              d="M10.6667 1L4 7.66667L1.33333 5"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </motion.svg>
                         )}
                       </AnimatePresence>
                     </motion.div>
