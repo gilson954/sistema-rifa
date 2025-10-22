@@ -11,7 +11,73 @@ import PrizesModal from '../components/PrizesModal';
 import DateTimePickerModal from '../components/DateTimePickerModal';
 import { Promotion, Prize } from '../types/promotion';
 import 'react-datepicker/dist/react-datepicker.css';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'; // Importação do framer-motion
+
+// Novo componente de Checkbox Animado
+interface AnimatedCheckboxProps {
+  id: string;
+  name: string;
+  checked: boolean;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  label: string;
+  color: 'blue' | 'green';
+}
+
+const AnimatedCheckbox: React.FC<AnimatedCheckboxProps> = ({ id, name, checked, onChange, label, color }) => {
+  const baseClasses = 'flex items-center space-x-4 p-4 rounded-xl border transition-all duration-200 cursor-pointer';
+  const colorClasses = {
+    blue: {
+      unchecked: 'border-blue-100/20 dark:border-blue-900/30 bg-blue-50/30 dark:bg-blue-900/10 hover:border-blue-300/50 dark:hover:border-blue-700/50',
+      checked: 'border-blue-400/50 dark:border-blue-600/50 bg-blue-100/60 dark:bg-blue-800/20 shadow-lg ring-2 ring-blue-500/30',
+      icon: 'text-blue-600 dark:text-blue-400',
+      fill: 'bg-blue-600',
+    },
+    green: {
+      unchecked: 'border-green-100/20 dark:border-green-900/30 bg-green-50/30 dark:bg-green-900/10 hover:border-green-300/50 dark:hover:border-green-700/50',
+      checked: 'border-green-400/50 dark:border-green-600/50 bg-green-100/60 dark:bg-green-800/20 shadow-lg ring-2 ring-green-500/30',
+      icon: 'text-green-600 dark:text-green-400',
+      fill: 'bg-green-600',
+    },
+  };
+
+  const currentColors = colorClasses[color];
+  const containerClass = `${baseClasses} ${checked ? currentColors.checked : currentColors.unchecked}`;
+
+  return (
+    <motion.label
+      htmlFor={id}
+      className={containerClass}
+      whileTap={{ scale: 0.98 }}
+    >
+      <input
+        type="checkbox"
+        id={id}
+        name={name}
+        checked={checked}
+        onChange={onChange}
+        className="sr-only" // Esconde o input original
+      />
+      <motion.div
+        className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors duration-200 flex-shrink-0 ${checked ? currentColors.fill : 'border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'}`}
+        initial={false}
+        animate={{ scale: checked ? 1 : 1 }}
+      >
+        {checked && (
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          >
+            <Check className="w-4 h-4 text-white" />
+          </motion.div>
+        )}
+      </motion.div>
+      <span className="text-sm text-gray-700 dark:text-gray-300 flex-1 font-medium select-none">
+        {label}
+      </span>
+    </motion.label>
+  );
+};
 
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
@@ -768,77 +834,25 @@ const CreateCampaignStep2Page = () => {
                 )}
               </div>
 
-              {/* Checkboxes Section */}
+              {/* Checkboxes Section - USANDO NOVO AnimatedCheckbox */}
               <div className="space-y-3 pt-4 border-t-2 border-gray-200/20 dark:border-gray-700/30">
-                <motion.div 
-                  className="flex items-center p-4 rounded-xl border border-blue-100/20 dark:border-blue-900/30 bg-blue-50/30 dark:bg-blue-900/10 backdrop-blur-sm hover:border-blue-300/50 dark:hover:border-blue-700/50 transition-all duration-200"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <label className="flex items-center cursor-pointer flex-1">
-                    <input
-                      type="checkbox"
-                      id="showRanking"
-                      name="showRanking"
-                      checked={formData.showRanking}
-                      onChange={handleInputChange}
-                      className="hidden"
-                    />
-                    <motion.div 
-                      className={`w-5 h-5 rounded-lg flex items-center justify-center ${formData.showRanking ? 'bg-blue-600 border-blue-600' : 'border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'}`}
-                      animate={{ scale: formData.showRanking ? 1.05 : 1 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    >
-                      {formData.showRanking && (
-                        <motion.span
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <Check className="w-3 h-3 text-white" />
-                        </motion.span>
-                      )}
-                    </motion.div>
-                    <span className="ml-4 text-sm text-gray-700 dark:text-gray-300 font-medium">
-                      Mostrar ranking de compradores
-                    </span>
-                  </label>
-                </motion.div>
+                <AnimatedCheckbox
+                  id="showRanking"
+                  name="showRanking"
+                  checked={formData.showRanking}
+                  onChange={handleInputChange}
+                  label="Mostrar ranking de compradores"
+                  color="blue"
+                />
 
-                <motion.div 
-                  className="flex items-center p-4 rounded-xl border border-green-100/20 dark:border-green-900/30 bg-green-50/30 dark:bg-green-900/10 backdrop-blur-sm hover:border-green-300/50 dark:hover:border-green-700/50 transition-all duration-200"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <label className="flex items-center cursor-pointer flex-1">
-                    <input
-                      type="checkbox"
-                      id="showPercentage"
-                      name="showPercentage"
-                      checked={formData.showPercentage}
-                      onChange={handleInputChange}
-                      className="hidden"
-                    />
-                    <motion.div 
-                      className={`w-5 h-5 rounded-lg flex items-center justify-center ${formData.showPercentage ? 'bg-green-600 border-green-600' : 'border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'}`}
-                      animate={{ scale: formData.showPercentage ? 1.05 : 1 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    >
-                      {formData.showPercentage && (
-                        <motion.span
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <Check className="w-3 h-3 text-white" />
-                        </motion.span>
-                      )}
-                    </motion.div>
-                    <span className="ml-4 text-sm text-gray-700 dark:text-gray-300 font-medium">
-                      Mostrar porcentagem de vendas
-                    </span>
-                  </label>
-                </motion.div>
+                <AnimatedCheckbox
+                  id="showPercentage"
+                  name="showPercentage"
+                  checked={formData.showPercentage}
+                  onChange={handleInputChange}
+                  label="Mostrar porcentagem de vendas"
+                  color="green"
+                />
               </div>
             </div>
           </div>
