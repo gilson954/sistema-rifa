@@ -835,6 +835,15 @@ const CreateCampaignStep2Page = () => {
                         className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/20 to-cyan-500/20 blur-xl -z-10"
                       />
                     )}
+                    
+                    {/* Glow effect when checked */}
+                    {formData.showRanking && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/20 to-cyan-500/20 blur-xl -z-10"
+                      />
+                    )}
                   </label>
                 </motion.div>
 
