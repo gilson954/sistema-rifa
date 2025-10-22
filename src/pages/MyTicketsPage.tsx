@@ -1,23 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Ticket, Calendar, CheckCircle, Clock, XCircle, ChevronRight, AlertCircle, LogOut } from 'lucide-react';
+import { Ticket, Calendar, CheckCircle, Clock, XCircle, AlertCircle, LogOut, Timer } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import CampaignFooter from '../components/CampaignFooter';
-import { TicketsAPI, CustomerTicket } from '../lib/api/tickets';
+import { TicketsAPI, CustomerOrder } from '../lib/api/tickets';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/currency';
-
-interface GroupedTickets {
-  campaign_id: string;
-  campaign_title: string;
-  campaign_public_id: string | null;
-  prize_image_urls: string[] | null;
-  tickets: CustomerTicket[];
-  total_tickets: number;
-  status: 'purchased' | 'reserved' | 'expired';
-  campaign_model?: string;
-}
 
 interface OrganizerProfile {
   id: string;
@@ -33,79 +22,81 @@ interface OrganizerProfile {
 const MyTicketsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isPhoneAuthenticated, phoneUser, signInWithPhone, signOut, loading: authLoading } = useAuth();
+  const { isPhoneAuthenticated, phoneUser, signOut, loading: authLoading } = useAuth();
 
-  const [tickets, setTickets] = useState<CustomerTicket[]>([]);
+  const [orders, setOrders] = useState<CustomerOrder[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
-  const [campaignModels, setCampaignModels] = useState<Record<string, string>>({});
+  const [timeRemainingMap, setTimeRemainingMap] = useState<Record<string, string>>({});
 
   // Campaign context from navigation state
   const campaignContext = location.state as { campaignId?: string; organizerId?: string } | null;
 
   useEffect(() => {
     if (isPhoneAuthenticated && phoneUser) {
-      loadUserTickets(phoneUser.phone);
+      loadUserOrders(phoneUser.phone);
     }
   }, [isPhoneAuthenticated, phoneUser, campaignContext?.organizerId]);
 
-  // Buscar campaign_model para cada campanha
+  // Timer effect for pending orders
   useEffect(() => {
-    const fetchCampaignModels = async () => {
-      if (tickets.length === 0) return;
+    const pendingOrders = orders.filter(order => order.status === 'reserved' && order.reservation_expires_at);
 
-      const uniqueCampaignIds = [...new Set(tickets.map(t => t.campaign_id))];
-      const models: Record<string, string> = {};
+    if (pendingOrders.length === 0) return;
 
-      await Promise.all(
-        uniqueCampaignIds.map(async (campaignId) => {
-          const { data } = await supabase
-            .from('campaigns')
-            .select('campaign_model')
-            .eq('id', campaignId)
-            .maybeSingle();
+    const updateTimers = () => {
+      const now = new Date().getTime();
+      const newTimeMap: Record<string, string> = {};
 
-          if (data) {
-            models[campaignId] = data.campaign_model || 'manual';
-          }
-        })
-      );
+      pendingOrders.forEach(order => {
+        if (!order.reservation_expires_at) return;
 
-      setCampaignModels(models);
+        const expiration = new Date(order.reservation_expires_at).getTime();
+        const difference = expiration - now;
+
+        if (difference <= 0) {
+          newTimeMap[order.order_id] = 'EXPIRADO';
+          // Update order status to expired
+          setOrders(prev => prev.map(o =>
+            o.order_id === order.order_id ? { ...o, status: 'expired' as const } : o
+          ));
+        } else {
+          const minutes = Math.floor(difference / (1000 * 60));
+          const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+          newTimeMap[order.order_id] = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+      });
+
+      setTimeRemainingMap(newTimeMap);
     };
 
-    fetchCampaignModels();
-  }, [tickets]);
+    updateTimers();
+    const interval = setInterval(updateTimers, 1000);
+
+    return () => clearInterval(interval);
+  }, [orders]);
 
   const handleLogout = async () => {
     await signOut();
     // Redirecionar para a página inicial do organizador se tivermos o organizerId
-    if (tickets.length > 0) {
-      const firstTicket = tickets[0];
-      const { data: campaign } = await supabase
-        .from('campaigns')
-        .select('user_id')
-        .eq('id', firstTicket.campaign_id)
-        .maybeSingle();
-
-      if (campaign?.user_id) {
-        navigate(`/org/${campaign.user_id}`);
-        return;
-      }
+    if (orders.length > 0 && organizerProfile?.id) {
+      navigate(`/org/${organizerProfile.id}`);
+      return;
     }
     // Fallback para home
     navigate('/');
   };
 
   useEffect(() => {
-    const loadOrganizerFromTickets = async () => {
-      if (tickets.length > 0) {
-        const firstTicket = tickets[0];
+    const loadOrganizerFromOrders = async () => {
+      if (orders.length > 0) {
+        // Get organizer from first order's campaign
+        const firstOrder = orders[0];
         const { data: campaign } = await supabase
           .from('campaigns')
           .select('user_id')
-          .eq('id', firstTicket.campaign_id)
+          .eq('id', firstOrder.campaign_id)
           .maybeSingle();
 
         if (campaign?.user_id) {
@@ -122,23 +113,23 @@ const MyTicketsPage = () => {
       }
     };
 
-    loadOrganizerFromTickets();
-  }, [tickets]);
+    loadOrganizerFromOrders();
+  }, [orders]);
 
-  const loadUserTickets = async (phone: string) => {
+  const loadUserOrders = async (phone: string) => {
     setLoading(true);
     setError(null);
 
     try {
-      const { data, error: apiError } = await TicketsAPI.getTicketsByPhoneNumber(phone);
+      const { data, error: apiError } = await TicketsAPI.getOrdersByPhoneNumber(phone);
 
       if (apiError) {
-        setError('Erro ao buscar suas cotas. Tente novamente.');
-        console.error('Error fetching tickets:', apiError);
+        setError('Erro ao buscar seus pedidos. Tente novamente.');
+        console.error('Error fetching orders:', apiError);
       } else {
-        let filteredTickets = data || [];
+        let filteredOrders = data || [];
 
-        // Filter tickets by organizer if campaign context is available
+        // Filter orders by organizer if campaign context is available
         if (campaignContext?.organizerId) {
           // Get all campaigns from this organizer
           const { data: organizerCampaigns } = await supabase
@@ -148,16 +139,16 @@ const MyTicketsPage = () => {
 
           const organizerCampaignIds = organizerCampaigns?.map(c => c.id) || [];
 
-          // Filter tickets to only show those from campaigns owned by this organizer
-          filteredTickets = filteredTickets.filter(ticket =>
-            organizerCampaignIds.includes(ticket.campaign_id)
+          // Filter orders to only show those from campaigns owned by this organizer
+          filteredOrders = filteredOrders.filter(order =>
+            organizerCampaignIds.includes(order.campaign_id)
           );
         }
 
-        setTickets(filteredTickets);
+        setOrders(filteredOrders);
       }
     } catch (error) {
-      console.error('Error loading tickets:', error);
+      console.error('Error loading orders:', error);
       setError('Erro inesperado. Tente novamente.');
     } finally {
       setLoading(false);
@@ -175,87 +166,67 @@ const MyTicketsPage = () => {
     });
   };
 
-  const normalizeStatus = (status: string): 'purchased' | 'reserved' | 'expired' => {
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'comprado' || statusLower === 'purchased') return 'purchased';
-    if (statusLower === 'reservado' || statusLower === 'reserved') return 'reserved';
-    return 'expired';
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case 'purchased':
+        return {
+          label: 'Pago',
+          icon: CheckCircle,
+          color: 'text-green-600 dark:text-green-400',
+          bgColor: 'bg-green-50 dark:bg-green-900/20',
+          borderColor: 'border-green-500',
+          buttonColor: 'bg-green-600'
+        };
+      case 'reserved':
+        return {
+          label: 'Aguardando Pagamento',
+          icon: Clock,
+          color: 'text-yellow-600 dark:text-yellow-400',
+          bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
+          borderColor: 'border-yellow-500',
+          buttonColor: 'bg-yellow-600'
+        };
+      case 'expired':
+        return {
+          label: 'Compra Cancelada',
+          icon: XCircle,
+          color: 'text-red-600 dark:text-red-400',
+          bgColor: 'bg-red-50 dark:bg-red-900/20',
+          borderColor: 'border-red-500',
+          buttonColor: 'bg-red-600'
+        };
+      default:
+        return {
+          label: 'Desconhecido',
+          icon: AlertCircle,
+          color: 'text-gray-600 dark:text-gray-400',
+          bgColor: 'bg-gray-50 dark:bg-gray-900/20',
+          borderColor: 'border-gray-500',
+          buttonColor: 'bg-gray-600'
+        };
+    }
   };
 
-  const groupTicketsByStatus = (): GroupedTickets[] => {
-    const grouped = tickets.reduce((groups, ticket) => {
-      const existingGroup = groups.find(g => g.campaign_id === ticket.campaign_id);
-
-      if (existingGroup) {
-        existingGroup.tickets.push(ticket);
-        existingGroup.total_tickets++;
-      } else {
-        groups.push({
-          campaign_id: ticket.campaign_id,
-          campaign_title: ticket.campaign_title,
-          campaign_public_id: ticket.campaign_public_id,
-          prize_image_urls: ticket.prize_image_urls,
-          tickets: [ticket],
-          total_tickets: 1,
-          status: normalizeStatus(ticket.status),
-          campaign_model: campaignModels[ticket.campaign_id] || 'manual'
-        });
+  const handlePayment = (order: CustomerOrder) => {
+    // Navigate to payment confirmation page with order data
+    navigate('/payment-confirmation', {
+      state: {
+        reservationData: {
+          reservationId: order.order_id,
+          customerName: order.customer_name || '',
+          customerEmail: order.customer_email || '',
+          customerPhone: order.customer_phone || '',
+          quotaCount: order.ticket_count,
+          totalValue: order.total_value,
+          selectedQuotas: order.ticket_numbers,
+          campaignTitle: order.campaign_title,
+          campaignId: order.campaign_id,
+          campaignPublicId: order.campaign_public_id,
+          expiresAt: order.reservation_expires_at,
+          reservationTimeoutMinutes: 30
+        }
       }
-
-      return groups;
-    }, [] as GroupedTickets[]);
-
-    return grouped.sort((a, b) => {
-      const statusOrder = { purchased: 0, reserved: 1, expired: 2 };
-      return statusOrder[a.status] - statusOrder[b.status];
     });
-  };
-
-  const groupedTickets = groupTicketsByStatus();
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'purchased':
-        return 'text-green-600 dark:text-green-400';
-      case 'reserved':
-        return 'text-yellow-600 dark:text-yellow-400';
-      case 'expired':
-        return 'text-red-600 dark:text-red-400';
-      default:
-        return 'text-gray-600 dark:text-gray-400';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'purchased':
-        return <CheckCircle className="h-5 w-5" />;
-      case 'reserved':
-        return <Clock className="h-5 w-5" />;
-      case 'expired':
-        return <XCircle className="h-5 w-5" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'purchased':
-        return 'Comprado';
-      case 'reserved':
-        return 'Aguardando Pagamento';
-      case 'expired':
-        return 'Expirado';
-      default:
-        return status;
-    }
-  };
-
-  const handleCardClick = (group: GroupedTickets) => {
-    if (group.campaign_public_id) {
-      navigate(`/c/${group.campaign_public_id}`);
-    }
   };
 
   // Redirecionar usuários não autenticados para home
@@ -352,7 +323,7 @@ const MyTicketsPage = () => {
               ) : (
                 <div className="flex items-center">
                   <Ticket className="h-8 w-8 text-blue-600" />
-                  <span className={`ml-2 text-xl font-bold ${themeClasses.text}`}>Minhas Cotas</span>
+                  <span className={`ml-2 text-xl font-bold ${themeClasses.text}`}>Meus Pedidos</span>
                 </div>
               )}
             </button>
@@ -361,8 +332,8 @@ const MyTicketsPage = () => {
             <div className="flex items-center gap-3">
               {phoneUser && (
                 <div className={`hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg border ${
-                  campaignTheme === 'claro' 
-                    ? 'bg-gray-100 border-gray-200' 
+                  campaignTheme === 'claro'
+                    ? 'bg-gray-100 border-gray-200'
                     : 'bg-gray-800 border-gray-700'
                 }`}>
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
@@ -371,7 +342,7 @@ const MyTicketsPage = () => {
                   </span>
                 </div>
               )}
-              
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -394,19 +365,19 @@ const MyTicketsPage = () => {
           className="mb-8"
         >
           <h1 className={`text-3xl md:text-4xl font-bold ${themeClasses.text} mb-2`}>
-            Minhas Cotas
+            Meus Pedidos
           </h1>
           <p className={themeClasses.textSecondary}>
             Bem-vindo, {phoneUser?.name || 'Cliente'}
           </p>
         </motion.div>
 
-        {/* Ticket Content */}
+        {/* Orders Content */}
         {loading ? (
-              <div className="flex items-center justify-center py-20">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
-              </div>
-            ) : error ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+          </div>
+        ) : error ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -417,7 +388,7 @@ const MyTicketsPage = () => {
               <span className="font-medium">{error}</span>
             </div>
           </motion.div>
-        ) : groupedTickets.length === 0 ? (
+        ) : orders.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -427,10 +398,10 @@ const MyTicketsPage = () => {
               <Ticket className="h-10 w-10 text-gray-400" />
             </div>
             <h3 className={`text-2xl font-semibold ${themeClasses.text} mb-2`}>
-              Nenhuma cota encontrada
+              Nenhum pedido encontrado
             </h3>
             <p className={`${themeClasses.textSecondary} mb-6`}>
-              Você ainda não possui cotas compradas ou reservadas.
+              Você ainda não possui pedidos.
             </p>
             <button
               onClick={() => navigate('/')}
@@ -440,102 +411,122 @@ const MyTicketsPage = () => {
             </button>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-4">
             <AnimatePresence>
-              {groupedTickets.map((group, index) => (
-                <motion.div
-                  key={group.campaign_id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                  whileHover={{ y: -4, scale: 1.02 }}
-                  onClick={() => handleCardClick(group)}
-                  className={`${themeClasses.cardBg} rounded-2xl shadow-lg border ${themeClasses.border} overflow-hidden cursor-pointer group`}
-                >
-                  <div className="relative h-48">
-                    <img
-                      src={group.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=600'}
-                      alt={group.campaign_title}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-full backdrop-blur-sm flex items-center space-x-2 ${group.status === 'purchased' ? 'bg-green-500/90' : group.status === 'reserved' ? 'bg-yellow-500/90' : 'bg-red-500/90'}`}>
-                      {getStatusIcon(group.status)}
-                      <span className="text-white text-sm font-semibold">
-                        {getStatusText(group.status)}
-                      </span>
-                    </div>
-                  </div>
+              {orders.map((order, index) => {
+                const statusInfo = getStatusInfo(order.status);
+                const StatusIcon = statusInfo.icon;
+                const timeRemaining = timeRemainingMap[order.order_id];
 
-                  <div className="p-6">
-                    <h3 className={`text-xl font-bold ${themeClasses.text} mb-3 truncate`}>
-                      {group.campaign_title}
-                    </h3>
-
-                    <div className="space-y-3 mb-4">
-                      <div className="flex items-center justify-between">
-                        <span className={`text-sm ${themeClasses.textSecondary}`}>Total de Cotas</span>
-                        <span className={`font-bold ${themeClasses.text}`}>
-                          {group.total_tickets}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className={`text-sm ${themeClasses.textSecondary}`}>Status Geral</span>
-                        <span className={`font-semibold ${getStatusColor(group.status)}`}>
-                          {getStatusText(group.status)}
-                        </span>
-                      </div>
-
-                      {/* Mostrar números das cotas apenas em modo manual */}
-                      {group.campaign_model === 'manual' && (
-                        <div className={`pt-2 border-t ${themeClasses.border}`}>
-                          <span className={`text-xs ${themeClasses.textSecondary} font-semibold`}>
-                            Números ({group.total_tickets} {group.total_tickets === 1 ? 'cota' : 'cotas'}):
-                          </span>
-                          <div className="mt-2 flex flex-wrap gap-2 max-h-48 overflow-y-auto">
-                            {group.tickets.map((ticket) => (
-                              <span
-                                key={ticket.ticket_id}
-                                className={`px-2 py-1 text-xs font-bold rounded ${
-                                  normalizeStatus(ticket.status) === 'purchased'
-                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                    : normalizeStatus(ticket.status) === 'reserved'
-                                    ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                }`}
-                              >
-                                {ticket.quota_number.toString().padStart(4, '0')}
-                              </span>
-                            ))}
-                          </div>
+                return (
+                  <motion.div
+                    key={order.order_id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className={`${themeClasses.cardBg} rounded-2xl shadow-lg border-l-4 ${statusInfo.borderColor} overflow-hidden`}
+                  >
+                    <div className="p-6">
+                      <div className="flex flex-col md:flex-row gap-6">
+                        {/* Image */}
+                        <div className="flex-shrink-0">
+                          <img
+                            src={order.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400'}
+                            alt={order.campaign_title}
+                            className="w-full md:w-32 h-32 object-cover rounded-xl"
+                          />
                         </div>
-                      )}
-                      {/* Mensagem para modo automático */}
-                      {group.campaign_model === 'automatic' && (
-                        <div className={`pt-2 border-t ${themeClasses.border}`}>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Ticket className={`w-4 h-4 ${themeClasses.textSecondary}`} />
-                            <span className={`text-xs ${themeClasses.textSecondary} font-semibold`}>
-                              Números Secretos ({group.total_tickets} {group.total_tickets === 1 ? 'cota' : 'cotas'})
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className={`text-xl font-bold ${themeClasses.text} mb-2 truncate`}>
+                            {order.campaign_title}
+                          </h3>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                            <div className="flex items-center text-sm">
+                              <Calendar className={`h-4 w-4 mr-2 ${themeClasses.textSecondary}`} />
+                              <span className={themeClasses.textSecondary}>
+                                {formatDate(order.reserved_at || order.created_at)}
+                              </span>
+                            </div>
+                            <div className="flex items-center text-sm">
+                              <Ticket className={`h-4 w-4 mr-2 ${themeClasses.textSecondary}`} />
+                              <span className={themeClasses.textSecondary}>
+                                {order.ticket_count} {order.ticket_count === 1 ? 'cota' : 'cotas'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Status Badge */}
+                          <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg ${statusInfo.bgColor} mb-4`}>
+                            <StatusIcon className={`h-5 w-5 ${statusInfo.color}`} />
+                            <span className={`font-semibold ${statusInfo.color}`}>
+                              {statusInfo.label}
+                            </span>
+                            {order.status === 'reserved' && timeRemaining && timeRemaining !== 'EXPIRADO' && (
+                              <>
+                                <span className={statusInfo.color}>•</span>
+                                <Timer className={`h-4 w-4 ${statusInfo.color}`} />
+                                <span className={`font-mono font-bold ${statusInfo.color}`}>
+                                  {timeRemaining}
+                                </span>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Ticket Numbers for Paid Orders */}
+                          {order.status === 'purchased' && order.ticket_numbers.length > 0 && (
+                            <div className="mb-4">
+                              <div className={`text-xs ${themeClasses.textSecondary} font-semibold mb-2`}>
+                                Números das Cotas:
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {order.ticket_numbers.map((num) => (
+                                  <span
+                                    key={num}
+                                    className="px-3 py-1 text-sm font-bold rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                  >
+                                    {num.toString().padStart(4, '0')}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Total Value */}
+                          <div className="flex items-baseline gap-2 mb-4">
+                            <span className={`text-sm ${themeClasses.textSecondary}`}>Valor Total:</span>
+                            <span className={`text-2xl font-bold ${themeClasses.text}`}>
+                              {formatCurrency(order.total_value)}
                             </span>
                           </div>
-                          <div className={`mt-2 p-3 rounded-lg ${themeClasses.inputBg} border ${themeClasses.border}`}>
-                            <p className={`text-xs ${themeClasses.textSecondary} leading-relaxed`}>
-                              Esta campanha possui cotas premiadas surpresa! Seus números permanecerão secretos até a confirmação do pagamento para garantir a imparcialidade do sorteio.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
 
-                    <button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white py-3 rounded-xl font-bold transition-all duration-200 shadow-md flex items-center justify-center space-x-2 group-hover:shadow-lg">
-                      <span>Ver Detalhes</span>
-                      <ChevronRight className="h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-200" />
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
+                          {/* Payment Button for Reserved Orders */}
+                          {order.status === 'reserved' && (
+                            <button
+                              onClick={() => handlePayment(order)}
+                              className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg`}
+                            >
+                              Efetuar Pagamento
+                            </button>
+                          )}
+
+                          {/* Expired Message */}
+                          {order.status === 'expired' && (
+                            <div className={`text-center py-2 px-4 rounded-lg ${statusInfo.bgColor}`}>
+                              <span className={`text-sm font-medium ${statusInfo.color}`}>
+                                As cotas foram liberadas. Faça uma nova reserva se desejar.
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
         )}

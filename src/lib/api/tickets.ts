@@ -41,6 +41,25 @@ export interface CustomerTicket {
   customer_phone: string | null;
 }
 
+export interface CustomerOrder {
+  order_id: string;
+  campaign_id: string;
+  campaign_title: string;
+  campaign_public_id: string | null;
+  prize_image_urls: string[] | null;
+  ticket_count: number;
+  total_value: number;
+  status: 'reserved' | 'purchased' | 'expired';
+  created_at: string;
+  reserved_at: string | null;
+  bought_at: string | null;
+  reservation_expires_at: string | null;
+  customer_name: string | null;
+  customer_email: string | null;
+  customer_phone: string | null;
+  ticket_numbers: number[];
+}
+
 export class TicketsAPI {
   /**
    * Busca o status de todos os tickets de uma campanha (otimizado para frontend)
@@ -177,6 +196,23 @@ export class TicketsAPI {
       return { data, error };
     } catch (error) {
       console.error('Error fetching tickets by phone:', error);
+      return { data: null, error };
+    }
+  }
+
+  /**
+   * Busca pedidos (orders) por número de telefone
+   * Retorna pedidos agrupados em vez de tickets individuais
+   */
+  static async getOrdersByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerOrder[] | null; error: any }> {
+    try {
+      const { data, error } = await supabase.rpc('get_orders_by_phone', {
+        p_phone_number: phoneNumber
+      });
+
+      return { data, error };
+    } catch (error) {
+      console.error('Error fetching orders by phone:', error);
       return { data: null, error };
     }
   }
