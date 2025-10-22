@@ -193,7 +193,11 @@ const OrganizerHomePage: React.FC = () => {
 
   const handleMyTicketsClick = () => {
     if (isPhoneAuthenticated) {
-      navigate('/my-tickets');
+      navigate('/my-tickets', {
+        state: {
+          organizerId: userId
+        }
+      });
     } else {
       setIsPhoneModalOpen(true);
     }
@@ -439,6 +443,7 @@ const OrganizerHomePage: React.FC = () => {
         gradientClasses={organizerProfile?.gradient_classes}
         customGradientColors={organizerProfile?.custom_gradient_colors}
         campaignTheme={organizerTheme}
+        organizerId={userId}
       />
 
       <CampaignFooter campaignTheme={organizerTheme} />

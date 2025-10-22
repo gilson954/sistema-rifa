@@ -13,6 +13,7 @@ interface CampaignHeaderProps {
   customGradientColors?: string;
   campaignTheme?: string;
   hideMyTicketsButton?: boolean;
+  campaignId?: string;
 }
 
 const CampaignHeader: React.FC<CampaignHeaderProps> = ({
@@ -24,7 +25,8 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
   gradientClasses,
   customGradientColors,
   campaignTheme = 'claro',
-  hideMyTicketsButton = false
+  hideMyTicketsButton = false,
+  campaignId
 }) => {
   const navigate = useNavigate();
   const { isPhoneAuthenticated, phoneUser, signOut } = useAuth();
@@ -100,7 +102,13 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
 
   const handleMyTicketsClick = () => {
     // SEMPRE navega para a página, nunca abre modal
-    navigate('/my-tickets');
+    // Passa o contexto da campanha se disponível
+    navigate('/my-tickets', {
+      state: {
+        campaignId,
+        organizerId
+      }
+    });
   };
 
   const themeClasses = campaignTheme === 'escuro' || campaignTheme === 'escuro-preto' ? 'bg-black' : 'bg-white';

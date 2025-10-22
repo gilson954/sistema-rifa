@@ -221,6 +221,7 @@ const PaymentConfirmationPage = () => {
           customGradientColors={organizerProfile?.custom_gradient_colors}
           campaignTheme={campaignTheme}
           hideMyTicketsButton={false}
+          campaignId={reservationData?.campaignId}
         />
 
         <div className="flex-1 flex items-center justify-center px-4 py-12">
@@ -272,6 +273,7 @@ const PaymentConfirmationPage = () => {
         customGradientColors={organizerProfile?.custom_gradient_colors}
         campaignTheme={campaignTheme}
         hideMyTicketsButton={false}
+        campaignId={reservationData?.campaignId}
       />
 
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
