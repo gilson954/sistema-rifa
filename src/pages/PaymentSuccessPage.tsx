@@ -132,15 +132,7 @@ const PaymentSuccessPage = () => {
       {/* Header */}
       <div className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200/20 dark:border-gray-800/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <button
-              onClick={handleGoHome}
-              className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              <Home className="h-5 w-5" />
-              <span className="hidden sm:inline">Página Inicial</span>
-            </button>
-            
+          <div className="flex items-center justify-center h-16">
             <div className="flex items-center gap-2">
               <img 
                 src="/logo-chatgpt.png" 
@@ -294,23 +286,13 @@ const PaymentSuccessPage = () => {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <button
-              onClick={handleGoToDashboard}
-              className="w-full animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-xl text-white px-6 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg transform hover:-translate-y-0.5"
-            >
-              <span>Ir para Dashboard</span>
-              <ArrowRight className="h-5 w-5" />
-            </button>
-            
-            <button
-              onClick={handleGoHome}
-              className="w-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white px-6 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md"
-            >
-              <Home className="h-5 w-5" />
-              <span>Voltar ao Início</span>
-            </button>
-          </div>
+          <button
+            onClick={handleGoToDashboard}
+            className="w-full animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-xl text-white px-6 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg transform hover:-translate-y-0.5"
+          >
+            <span>Ir para Dashboard</span>
+            <ArrowRight className="h-5 w-5" />
+          </button>
         </div>
       </div>
 
