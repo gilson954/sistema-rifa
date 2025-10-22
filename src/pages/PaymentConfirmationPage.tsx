@@ -418,7 +418,7 @@ const PaymentConfirmationPage = () => {
                   <div className={`text-sm font-medium ${themeClasses.text} mb-2`}>
                     Títulos:
                   </div>
-                  <div className={`font-mono text-sm ${themeClasses.text} font-semibold`}>
+                  <div className={`font-mono text-sm ${themeClasses.text} font-semibold max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-gray-200 dark:scrollbar-track-gray-700`}>
                     {reservationData.selectedQuotas.sort((a, b) => a - b).join(', ')}
                   </div>
                 </div>
