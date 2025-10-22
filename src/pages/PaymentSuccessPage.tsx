@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle, ArrowRight, Home, Receipt, Loader2, Calendar, CreditCard, DollarSign, Sparkles, Mail } from 'lucide-react';
+import { CheckCircle, ArrowRight, Home, Receipt, Loader2, Calendar, CreditCard, DollarSign, Sparkles } from 'lucide-react';
 import { StripeAPI } from '../lib/api/stripe';
 import { getProductByPriceId, formatPrice } from '../stripe-config';
 import { useAuth } from '../context/AuthContext';
@@ -91,7 +91,7 @@ const PaymentSuccessPage = () => {
             <div className="flex items-center justify-center h-16">
               <div className="flex items-center gap-2">
                 <img 
-                  src="/32132123.png" 
+                  src="/logo-chatgpt.png" 
                   alt="Rifaqui Logo" 
                   className="w-8 h-8 object-contain"
                 />
@@ -143,9 +143,9 @@ const PaymentSuccessPage = () => {
             
             <div className="flex items-center gap-2">
               <img 
-                src="/32132123.png" 
+                src="/logo-chatgpt.png" 
                 alt="Rifaqui Logo" 
-                className="w-8 h-8 object-contain"
+                className="w-10 h-10 object-contain"
               />
               <span className="text-xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
             </div>
@@ -154,14 +154,14 @@ const PaymentSuccessPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
         {/* Success Banner */}
-        <div className="mb-8 rounded-2xl p-6 bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border border-green-200/50 dark:border-green-800/30 text-center">
-          <div className="inline-flex w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full items-center justify-center mx-auto mb-6 shadow-2xl animate-bounce">
-            <CheckCircle className="h-14 w-14 text-white" />
+        <div className="mb-8 rounded-2xl p-8 bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border border-green-200/50 dark:border-green-800/30 text-center shadow-xl">
+          <div className="inline-flex w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full items-center justify-center mx-auto mb-6 shadow-2xl">
+            <CheckCircle className="h-12 w-12 text-white" />
           </div>
 
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3">
             Pagamento Confirmado!
           </h1>
           
@@ -178,180 +178,138 @@ const PaymentSuccessPage = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Payment Details */}
-          <div className="space-y-6">
-            {/* Order Details Card */}
-            {order && (
-              <div className="rounded-2xl p-6 border transition-all duration-200 bg-white/60 dark:bg-gray-900/40 border-gray-200/20 dark:border-gray-700/20 shadow-lg">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                  <Receipt className="h-5 w-5 text-purple-600" />
-                  Detalhes do Pagamento
-                </h2>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                      <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm text-gray-600 dark:text-gray-400">Produto</div>
-                      <div className="font-medium text-gray-900 dark:text-white truncate">
-                        {product?.name || 'Rifaqui'}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                      <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm text-gray-600 dark:text-gray-400">Valor Pago</div>
-                      <div className="font-semibold text-gray-900 dark:text-white text-lg">
-                        {formatPrice(order.amount_total / 100, order.currency)}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                      <CreditCard className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm text-gray-600 dark:text-gray-400">Status</div>
-                      <div className="font-medium text-green-600 dark:text-green-400">
-                        Pagamento Aprovado
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
-                      <Calendar className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm text-gray-600 dark:text-gray-400">Data</div>
-                      <div className="font-medium text-gray-900 dark:text-white">
-                        {new Date(order.created_at).toLocaleDateString('pt-BR', {
-                          day: '2-digit',
-                          month: 'long',
-                          year: 'numeric'
-                        })}
-                      </div>
-                    </div>
+        {/* Payment Details Card */}
+        {order && (
+          <div className="rounded-2xl p-6 border transition-all duration-200 bg-white/60 dark:bg-gray-900/40 border-gray-200/20 dark:border-gray-700/20 shadow-lg mb-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-purple-600" />
+              Detalhes do Pagamento
+            </h2>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                  <Sparkles className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Produto</div>
+                  <div className="font-medium text-gray-900 dark:text-white truncate">
+                    {product?.name || 'Rifaqui'}
                   </div>
                 </div>
               </div>
-            )}
 
-            {/* Receipt Download */}
-            <div className="rounded-2xl p-6 border transition-all duration-200 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200/30 dark:border-blue-800/30 shadow-lg">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Mail className="h-5 w-5 text-white" />
+              <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                  <DollarSign className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
-                <div>
-                  <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
-                    Comprovante Enviado
-                  </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                    Um email com o comprovante de pagamento foi enviado para o seu endereço cadastrado.
-                  </p>
-                  <button className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
-                    Reenviar comprovante
-                  </button>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Valor Pago</div>
+                  <div className="font-semibold text-gray-900 dark:text-white text-lg">
+                    {formatPrice(order.amount_total / 100, order.currency)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                  <CreditCard className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Status</div>
+                  <div className="font-medium text-green-600 dark:text-green-400">
+                    Pagamento Aprovado
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
+                  <Calendar className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Data</div>
+                  <div className="font-medium text-gray-900 dark:text-white">
+                    {new Date(order.created_at).toLocaleDateString('pt-BR', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Right Column - Next Steps */}
-          <div className="space-y-6">
-            {/* Campaign Status */}
-            <div className="rounded-2xl p-6 border transition-all duration-200 bg-white/60 dark:bg-gray-900/40 border-gray-200/20 dark:border-gray-700/20 shadow-lg">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-yellow-600" />
-                Próximos Passos
-              </h2>
+        {/* Next Steps Card */}
+        <div className="rounded-2xl p-6 border transition-all duration-200 bg-white/60 dark:bg-gray-900/40 border-gray-200/20 dark:border-gray-700/20 shadow-lg mb-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-yellow-600" />
+            Próximos Passos
+          </h2>
 
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200/50 dark:border-green-800/30 rounded-xl p-4 mb-6">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <CheckCircle className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-green-800 dark:text-green-200 mb-1">
-                      {campaign?.is_paid && campaign?.status === 'active' 
-                        ? 'Campanha Ativa!' 
-                        : 'Ativação em Andamento'
-                      }
-                    </p>
-                    <p className="text-xs text-green-700 dark:text-green-300">
-                      {campaign?.is_paid && campaign?.status === 'active' 
-                        ? 'Sua campanha foi ativada com sucesso! Você já pode começar a receber participantes.'
-                        : 'Sua campanha será ativada automaticamente em alguns instantes. Você receberá uma confirmação por email.'
-                      }
-                    </p>
-                  </div>
-                </div>
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200/50 dark:border-green-800/30 rounded-xl p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="h-6 w-6 text-white" />
               </div>
-
-              <div className="space-y-3 text-sm mb-6">
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 flex-shrink-0"></div>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Acesse seu dashboard para gerenciar a campanha
-                  </span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 flex-shrink-0"></div>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Compartilhe o link da campanha com seus clientes
-                  </span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 flex-shrink-0"></div>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Acompanhe as vendas em tempo real
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <button
-                  onClick={handleGoToDashboard}
-                  className="w-full animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-xl text-white px-6 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg transform hover:-translate-y-0.5"
-                >
-                  <span>Ir para Dashboard</span>
-                  <ArrowRight className="h-5 w-5" />
-                </button>
-                
-                <button
-                  onClick={handleGoHome}
-                  className="w-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white px-6 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md"
-                >
-                  <Home className="h-5 w-5" />
-                  <span>Voltar ao Início</span>
-                </button>
+              <div>
+                <p className="text-sm font-semibold text-green-800 dark:text-green-200 mb-1">
+                  {campaign?.is_paid && campaign?.status === 'active' 
+                    ? 'Campanha Ativa!' 
+                    : 'Ativação em Andamento'
+                  }
+                </p>
+                <p className="text-xs text-green-700 dark:text-green-300">
+                  {campaign?.is_paid && campaign?.status === 'active' 
+                    ? 'Sua campanha foi ativada com sucesso! Você já pode começar a receber participantes.'
+                    : 'Sua campanha será ativada automaticamente em alguns instantes. Você receberá uma confirmação por email.'
+                  }
+                </p>
               </div>
             </div>
+          </div>
 
-            {/* Support Section */}
-            <div className="rounded-2xl p-6 border transition-all duration-200 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-purple-200/30 dark:border-purple-800/30 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Precisa de Ajuda?
-              </h3>
-              
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Nossa equipe está pronta para ajudar com qualquer dúvida sobre seu pagamento ou campanha.
-              </p>
-
-              <button className="w-full animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 hover:shadow-lg text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 inline-flex items-center justify-center gap-2">
-                <Mail className="h-4 w-4" />
-                <span>Falar com Suporte</span>
-              </button>
+          <div className="space-y-3 text-sm mb-6">
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 flex-shrink-0"></div>
+              <span className="text-gray-600 dark:text-gray-400">
+                Acesse seu dashboard para gerenciar a campanha
+              </span>
             </div>
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 flex-shrink-0"></div>
+              <span className="text-gray-600 dark:text-gray-400">
+                Compartilhe o link da campanha com seus clientes
+              </span>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 flex-shrink-0"></div>
+              <span className="text-gray-600 dark:text-gray-400">
+                Acompanhe as vendas em tempo real
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              onClick={handleGoToDashboard}
+              className="w-full animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-xl text-white px-6 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg transform hover:-translate-y-0.5"
+            >
+              <span>Ir para Dashboard</span>
+              <ArrowRight className="h-5 w-5" />
+            </button>
+            
+            <button
+              onClick={handleGoHome}
+              className="w-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white px-6 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md"
+            >
+              <Home className="h-5 w-5" />
+              <span>Voltar ao Início</span>
+            </button>
           </div>
         </div>
       </div>
