@@ -16,6 +16,7 @@ interface GroupedTickets {
   tickets: CustomerTicket[];
   total_tickets: number;
   status: 'purchased' | 'reserved' | 'expired';
+  campaign_model?: string;
 }
 
 interface OrganizerProfile {
@@ -38,12 +39,41 @@ const MyTicketsPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
+  const [campaignModels, setCampaignModels] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (isPhoneAuthenticated && phoneUser) {
       loadUserTickets(phoneUser.phone);
     }
   }, [isPhoneAuthenticated, phoneUser]);
+
+  // Buscar campaign_model para cada campanha
+  useEffect(() => {
+    const fetchCampaignModels = async () => {
+      if (tickets.length === 0) return;
+
+      const uniqueCampaignIds = [...new Set(tickets.map(t => t.campaign_id))];
+      const models: Record<string, string> = {};
+
+      await Promise.all(
+        uniqueCampaignIds.map(async (campaignId) => {
+          const { data } = await supabase
+            .from('campaigns')
+            .select('campaign_model')
+            .eq('id', campaignId)
+            .maybeSingle();
+
+          if (data) {
+            models[campaignId] = data.campaign_model || 'manual';
+          }
+        })
+      );
+
+      setCampaignModels(models);
+    };
+
+    fetchCampaignModels();
+  }, [tickets]);
 
   const handleLogout = async () => {
     await signOut();
@@ -146,7 +176,8 @@ const MyTicketsPage = () => {
           prize_image_urls: ticket.prize_image_urls,
           tickets: [ticket],
           total_tickets: 1,
-          status: normalizeStatus(ticket.status)
+          status: normalizeStatus(ticket.status),
+          campaign_model: campaignModels[ticket.campaign_id] || 'manual'
         });
       }
 
@@ -435,28 +466,46 @@ const MyTicketsPage = () => {
                         </span>
                       </div>
 
-                      {/* Mostrar TODOS os números das cotas */}
-                      <div className={`pt-2 border-t ${themeClasses.border}`}>
-                        <span className={`text-xs ${themeClasses.textSecondary} font-semibold`}>
-                          Números ({group.total_tickets} {group.total_tickets === 1 ? 'cota' : 'cotas'}):
-                        </span>
-                        <div className="mt-2 flex flex-wrap gap-2 max-h-48 overflow-y-auto">
-                          {group.tickets.map((ticket) => (
-                            <span
-                              key={ticket.ticket_id}
-                              className={`px-2 py-1 text-xs font-bold rounded ${
-                                normalizeStatus(ticket.status) === 'purchased'
-                                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                  : normalizeStatus(ticket.status) === 'reserved'
-                                  ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                  : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                              }`}
-                            >
-                              {ticket.quota_number.toString().padStart(4, '0')}
-                            </span>
-                          ))}
+                      {/* Mostrar números das cotas apenas em modo manual */}
+                      {group.campaign_model === 'manual' && (
+                        <div className={`pt-2 border-t ${themeClasses.border}`}>
+                          <span className={`text-xs ${themeClasses.textSecondary} font-semibold`}>
+                            Números ({group.total_tickets} {group.total_tickets === 1 ? 'cota' : 'cotas'}):
+                          </span>
+                          <div className="mt-2 flex flex-wrap gap-2 max-h-48 overflow-y-auto">
+                            {group.tickets.map((ticket) => (
+                              <span
+                                key={ticket.ticket_id}
+                                className={`px-2 py-1 text-xs font-bold rounded ${
+                                  normalizeStatus(ticket.status) === 'purchased'
+                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                    : normalizeStatus(ticket.status) === 'reserved'
+                                    ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                }`}
+                              >
+                                {ticket.quota_number.toString().padStart(4, '0')}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
+                      {/* Mensagem para modo automático */}
+                      {group.campaign_model === 'automatic' && (
+                        <div className={`pt-2 border-t ${themeClasses.border}`}>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Ticket className={`w-4 h-4 ${themeClasses.textSecondary}`} />
+                            <span className={`text-xs ${themeClasses.textSecondary} font-semibold`}>
+                              Números Secretos ({group.total_tickets} {group.total_tickets === 1 ? 'cota' : 'cotas'})
+                            </span>
+                          </div>
+                          <div className={`mt-2 p-3 rounded-lg ${themeClasses.inputBg} border ${themeClasses.border}`}>
+                            <p className={`text-xs ${themeClasses.textSecondary} leading-relaxed`}>
+                              Esta campanha possui cotas premiadas surpresa! Seus números permanecerão secretos até a confirmação do pagamento para garantir a imparcialidade do sorteio.
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white py-3 rounded-xl font-bold transition-all duration-200 shadow-md flex items-center justify-center space-x-2 group-hover:shadow-lg">

@@ -20,6 +20,7 @@ interface ReservationData {
   campaignPublicId?: string;
   expiresAt: string;
   reservationTimeoutMinutes?: number;
+  campaignModel?: string;
 }
 
 interface OrganizerProfile {
@@ -43,6 +44,7 @@ const PaymentConfirmationPage = () => {
   const [copied, setCopied] = useState(false);
   const [copiedPix, setCopiedPix] = useState(false);
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
+  const [campaignModel, setCampaignModel] = useState<string>('manual');
 
   const reservationData = location.state?.reservationData as ReservationData;
 
@@ -111,19 +113,24 @@ const PaymentConfirmationPage = () => {
       if (reservationData?.campaignId) {
         const { data: campaign } = await supabase
           .from('campaigns')
-          .select('user_id')
+          .select('user_id, campaign_model')
           .eq('id', reservationData.campaignId)
           .maybeSingle();
 
-        if (campaign?.user_id) {
-          const { data: profile } = await supabase
-            .from('public_profiles_view')
-            .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
-            .eq('id', campaign.user_id)
-            .maybeSingle();
+        if (campaign) {
+          // Define o campaign_model
+          setCampaignModel(campaign.campaign_model || 'manual');
 
-          if (profile) {
-            setOrganizerProfile(profile);
+          if (campaign.user_id) {
+            const { data: profile } = await supabase
+              .from('public_profiles_view')
+              .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
+              .eq('id', campaign.user_id)
+              .maybeSingle();
+
+            if (profile) {
+              setOrganizerProfile(profile);
+            }
           }
         }
       }
@@ -413,23 +420,34 @@ const PaymentConfirmationPage = () => {
                 </div>
               </div>
 
-              {reservationData.selectedQuotas && reservationData.selectedQuotas.length > 0 && (
+              {campaignModel === 'manual' && reservationData.selectedQuotas && reservationData.selectedQuotas.length > 0 && (
                 <div className={`mt-4 ${themeClasses.inputBg} rounded-xl p-4 border ${themeClasses.border}`}>
                   <div className={`text-sm font-medium ${themeClasses.text} mb-2`}>
                     Títulos:
                   </div>
-                  <div 
+                  <div
                     className={`font-mono text-sm ${themeClasses.text} font-semibold max-h-48 overflow-y-auto pr-2`}
                     style={{
                       scrollbarWidth: 'thin',
-                      scrollbarColor: campaignTheme === 'claro' 
-                        ? '#9333ea #e5e7eb' 
+                      scrollbarColor: campaignTheme === 'claro'
+                        ? '#9333ea #e5e7eb'
                         : campaignTheme === 'escuro'
                         ? '#a855f7 #334155'
                         : '#a855f7 #1f2937'
                     }}
                   >
                     {reservationData.selectedQuotas.sort((a, b) => a - b).join(', ')}
+                  </div>
+                </div>
+              )}
+              {campaignModel === 'automatic' && (
+                <div className={`mt-4 ${themeClasses.inputBg} rounded-xl p-4 border ${themeClasses.border}`}>
+                  <div className={`text-sm font-medium ${themeClasses.text} mb-2 flex items-center gap-2`}>
+                    <Package className="w-4 h-4" />
+                    Títulos Secretos
+                  </div>
+                  <div className={`text-sm ${themeClasses.textSecondary}`}>
+                    Seus números serão revelados após a confirmação do pagamento. Esta campanha possui cotas premiadas surpresa!
                   </div>
                 </div>
               )}
