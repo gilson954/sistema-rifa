@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion'; // ADICIONADO: motion e AnimatePresence
-import { ArrowLeft, ArrowRight, Plus, Trash2, AlertTriangle, ChevronDown, Calendar, Gift, Trophy, Settings, Image as ImageIcon, FileText, CheckCircle } from 'lucide-react'; // ADICIONADO: CheckCircle
+import { ArrowLeft, ArrowRight, Plus, Trash2, AlertTriangle, ChevronDown, Calendar, Gift, Trophy, Settings, Image as ImageIcon, FileText } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaignWithRefetch } from '../hooks/useCampaigns';
 import { CampaignAPI } from '../lib/api/campaigns';
@@ -770,55 +769,19 @@ const CreateCampaignStep2Page = () => {
 
               {/* Checkboxes Section */}
               <div className="space-y-3 pt-4 border-t-2 border-gray-200/20 dark:border-gray-700/30">
-                {/* Animated Checkbox for showRanking (Copiado de ReservationStep2Modal.tsx) */}
-                <div className={`p-4 rounded-xl border transition-all duration-200 ${
-                    formData.showRanking
-                      ? 'border-blue-300/50 dark:border-blue-700/50 bg-blue-50/30 dark:bg-blue-900/10 backdrop-blur-sm'
-                      : 'border-blue-100/20 dark:border-blue-900/30 bg-blue-50/30 dark:bg-blue-900/10 backdrop-blur-sm hover:border-blue-300/50 dark:hover:border-blue-700/50'
-                  }`}>
-                  <label htmlFor="showRanking" className="flex items-start gap-3 cursor-pointer group">
-                    <motion.div 
-                      className="relative flex-shrink-0 mt-0.5"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <input
-                        type="checkbox"
-                        id="showRanking"
-                        name="showRanking"
-                        checked={formData.showRanking}
-                        onChange={handleInputChange}
-                        className="peer sr-only"
-                      />
-                      <motion.div
-                        className={`w-5 h-5 rounded-lg border-2 transition-all duration-200 flex items-center justify-center ${
-                          formData.showRanking
-                            ? 'bg-blue-600 border-blue-600' // Checked state style
-                            : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 group-hover:border-blue-400' // Unchecked state style
-                        }`}
-                        animate={formData.showRanking ? { scale: [1, 1.2, 1] } : {}}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <AnimatePresence>
-                          {formData.showRanking && (
-                            <motion.div
-                              initial={{ scale: 0, rotate: -180 }}
-                              animate={{ scale: 1, rotate: 0 }}
-                              exit={{ scale: 0, rotate: 180 }}
-                              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                            >
-                              <CheckCircle className="w-5 h-5 text-white" />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </motion.div>
-                    </motion.div>
-                    <span className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1 font-medium pt-0.5">
-                      Mostrar ranking de compradores
-                    </span>
+                <div className="flex items-center space-x-4 p-4 rounded-xl border border-blue-100/20 dark:border-blue-900/30 bg-blue-50/30 dark:bg-blue-900/10 backdrop-blur-sm hover:border-blue-300/50 dark:hover:border-blue-700/50 transition-all duration-200">
+                  <input
+                    type="checkbox"
+                    id="showRanking"
+                    name="showRanking"
+                    checked={formData.showRanking}
+                    onChange={handleInputChange}
+                    className="w-5 h-5 text-blue-600 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                  />
+                  <label htmlFor="showRanking" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1 font-medium">
+                    Mostrar ranking de compradores
                   </label>
                 </div>
-
 
                 <div className="flex items-center space-x-4 p-4 rounded-xl border border-green-100/20 dark:border-green-900/30 bg-green-50/30 dark:bg-green-900/10 backdrop-blur-sm hover:border-green-300/50 dark:hover:border-green-700/50 transition-all duration-200">
                   <input
