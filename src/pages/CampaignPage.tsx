@@ -919,7 +919,12 @@ const CampaignPage = () => {
             <button
               onClick={() => {
                 if (isPhoneAuthenticated) {
-                  navigate('/my-tickets');
+                  navigate('/my-tickets', {
+                    state: {
+                      campaignId: campaign?.id,
+                      organizerId: campaign?.user_id
+                    }
+                  });
                 } else {
                   setShowPhoneLoginModal(true);
                 }
@@ -1732,6 +1737,8 @@ const CampaignPage = () => {
         gradientClasses={organizerProfile?.gradient_classes}
         customGradientColors={organizerProfile?.custom_gradient_colors}
         campaignTheme={campaignTheme}
+        campaignId={campaign?.id}
+        organizerId={campaign?.user_id}
       />
 
       <CampaignFooter campaignTheme={campaignTheme} />

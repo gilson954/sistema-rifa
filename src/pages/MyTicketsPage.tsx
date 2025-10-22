@@ -41,11 +41,14 @@ const MyTicketsPage = () => {
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [campaignModels, setCampaignModels] = useState<Record<string, string>>({});
 
+  // Campaign context from navigation state
+  const campaignContext = location.state as { campaignId?: string; organizerId?: string } | null;
+
   useEffect(() => {
     if (isPhoneAuthenticated && phoneUser) {
       loadUserTickets(phoneUser.phone);
     }
-  }, [isPhoneAuthenticated, phoneUser]);
+  }, [isPhoneAuthenticated, phoneUser, campaignContext?.organizerId]);
 
   // Buscar campaign_model para cada campanha
   useEffect(() => {
@@ -133,7 +136,25 @@ const MyTicketsPage = () => {
         setError('Erro ao buscar suas cotas. Tente novamente.');
         console.error('Error fetching tickets:', apiError);
       } else {
-        setTickets(data || []);
+        let filteredTickets = data || [];
+
+        // Filter tickets by organizer if campaign context is available
+        if (campaignContext?.organizerId) {
+          // Get all campaigns from this organizer
+          const { data: organizerCampaigns } = await supabase
+            .from('campaigns')
+            .select('id')
+            .eq('user_id', campaignContext.organizerId);
+
+          const organizerCampaignIds = organizerCampaigns?.map(c => c.id) || [];
+
+          // Filter tickets to only show those from campaigns owned by this organizer
+          filteredTickets = filteredTickets.filter(ticket =>
+            organizerCampaignIds.includes(ticket.campaign_id)
+          );
+        }
+
+        setTickets(filteredTickets);
       }
     } catch (error) {
       console.error('Error loading tickets:', error);

@@ -21,6 +21,8 @@ interface PhoneLoginModalProps {
   gradientClasses?: string;
   customGradientColors?: string;
   campaignTheme?: string;
+  campaignId?: string;
+  organizerId?: string;
 }
 
 const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
@@ -30,7 +32,9 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
   colorMode = 'solid',
   gradientClasses,
   customGradientColors,
-  campaignTheme = 'claro'
+  campaignTheme = 'claro',
+  campaignId,
+  organizerId
 }) => {
   const navigate = useNavigate();
   const { signInWithPhone } = useAuth();
@@ -177,7 +181,12 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
       });
 
       onClose();
-      navigate('/my-tickets');
+      navigate('/my-tickets', {
+        state: {
+          campaignId,
+          organizerId
+        }
+      });
     } catch (error) {
       console.error('Error during phone login:', error);
       setError('Erro ao fazer login. Tente novamente.');
