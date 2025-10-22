@@ -75,11 +75,26 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
   };
 
   const handleLogout = async () => {
-    await signOut();
-    if (organizerId) {
-      navigate(`/org/${organizerId}`);
-    } else {
-      navigate('/');
+    try {
+      // Limpar autenticação por telefone
+      await signOut();
+      
+      // Limpar localStorage relacionado à autenticação
+      localStorage.removeItem('phoneUser');
+      localStorage.removeItem('isPhoneAuthenticated');
+      
+      // Forçar reload da página para garantir limpeza completa do estado
+      if (organizerId) {
+        window.location.href = `/org/${organizerId}`;
+      } else {
+        window.location.href = '/';
+      }
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      // Mesmo com erro, tenta limpar e redirecionar
+      localStorage.removeItem('phoneUser');
+      localStorage.removeItem('isPhoneAuthenticated');
+      window.location.href = '/';
     }
   };
 
