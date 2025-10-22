@@ -663,50 +663,51 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 initial="hidden"
                 animate="visible"
               >
-                {/* Checkbox de Termos - NOVO DESIGN */}
+                {/* Checkbox de Termos */}
                 <motion.div 
-                  className={`p-4 rounded-xl border ${theme.border} ${theme.cardBg}`}
+                  className={`flex items-start space-x-3 p-4 rounded-xl border-2 ${theme.border} ${theme.cardBg}`}
                   whileHover={{ scale: 1.01 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                 >
-                  <label className="flex items-start gap-3 cursor-pointer group">
-                    <motion.div 
-                      className="relative flex-shrink-0 mt-0.5"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.acceptTerms}
-                        onChange={(e) => {
-                          setFormData({ ...formData, acceptTerms: e.target.checked });
-                          setErrors({ ...errors, acceptTerms: '' });
-                        }}
-                        className="peer sr-only"
-                      />
-                      <motion.div
-                        className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center ${
-                          formData.acceptTerms
-                            ? 'bg-transparent border-transparent'
-                            : `bg-transparent ${theme.inputBorder} group-hover:border-gray-400`
-                        }`}
-                        animate={formData.acceptTerms ? { scale: [1, 1.2, 1] } : {}}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <AnimatePresence>
-                    {errors.acceptTerms && (
-                      <motion.p 
-                        className="text-red-500 text-xs mt-2 font-medium"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {errors.acceptTerms}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
+                  <input
+                    type="checkbox"
+                    id="acceptTerms"
+                    checked={formData.acceptTerms}
+                    onChange={(e) => setFormData({ ...formData, acceptTerms: e.target.checked })}
+                    className="w-5 h-5 rounded-lg border-2 border-gray-400 focus:ring-2 mt-0.5 cursor-pointer"
+                    style={{ 
+                      accentColor: primaryColor || '#3B82F6',
+                      '--tw-ring-color': `${primaryColor || '#3B82F6'}33`
+                    } as React.CSSProperties}
+                    disabled={reserving}
+                    required
+                  />
+                  <label htmlFor="acceptTerms" className={`text-sm ${theme.textSecondary} leading-relaxed cursor-pointer`}>
+                    Ao reservar, declaro ter lido e concordado com os{' '}
+                    <a href="#" className="font-semibold hover:underline" style={{ color: primaryColor || '#3B82F6' }}>
+                      termos de uso
+                    </a>{' '}
+                    e a{' '}
+                    <a href="#" className="font-semibold hover:underline" style={{ color: primaryColor || '#3B82F6' }}>
+                      política de privacidade
+                    </a>
+                    .
+                  </label>
                 </motion.div>
+                <AnimatePresence>
+                  {errors.acceptTerms && (
+                    <motion.p 
+                      className="text-red-500 text-sm font-medium flex items-center gap-1"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      {errors.acceptTerms}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
 
                 {/* Aviso Importante */}
                 <motion.div 
@@ -835,32 +836,4 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   );
 };
 
-export default ReservationModal;>
-                          {formData.acceptTerms && (
-                            <motion.div
-                              initial={{ scale: 0, rotate: -180 }}
-                              animate={{ scale: 1, rotate: 0 }}
-                              exit={{ scale: 0, rotate: 180 }}
-                              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                            >
-                              <CheckCircle className="w-5 h-5 text-green-500" />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </motion.div>
-                    </motion.div>
-                    <span className={`text-sm ${theme.text} leading-relaxed`}>
-                      Ao realizar esta ação e confirmar minha participação nesta ação, declaro ter lido e concordado com os{' '}
-                      <a
-                        href="/termos"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-semibold underline hover:opacity-80 transition-opacity"
-                        style={{ color: primaryColor || '#3B82F6' }}
-                      >
-                        termos de uso
-                      </a>{' '}
-                      desta plataforma.
-                    </span>
-                  </label>
-                  <AnimatePresence
+export default ReservationModal;
