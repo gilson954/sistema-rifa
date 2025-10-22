@@ -564,31 +564,41 @@ const CampaignPage = () => {
     console.log('Quantity:', quantity);
 
     try {
-      const quotasToReserve = campaign.campaign_model === 'manual' ? selectedQuotas : [];
-      const quantityToReserve = campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity;
+      let quotaNumbersToReserve: number[] = [];
 
-      console.log('Getting available tickets...');
-      const availableTickets = await getAvailableTickets(
-        campaign.id,
-        quotasToReserve,
-        quantityToReserve
-      );
+      if (campaign.campaign_model === 'manual') {
+        // Modo manual: usar cotas selecionadas
+        quotaNumbersToReserve = selectedQuotas;
+      } else {
+        // Modo automático: pegar cotas disponíveis aleatoriamente
+        const availableTickets = getAvailableTickets();
+        const availableQuotaNumbers = availableTickets.map(ticket => ticket.quota_number);
 
-      console.log('Available tickets:', availableTickets.length);
-      console.log('Available quota numbers:', availableTickets);
+        console.log('Available quota numbers:', availableQuotaNumbers.length);
 
-      if (availableTickets.length === 0) {
-        showError('As cotas selecionadas não estão mais disponíveis. Por favor, tente novamente.');
+        if (availableQuotaNumbers.length < quantity) {
+          showError(`Apenas ${availableQuotaNumbers.length} cotas disponíveis`);
+          setShowStep2Modal(false);
+          return;
+        }
+
+        const shuffled = [...availableQuotaNumbers].sort(() => 0.5 - Math.random());
+        quotaNumbersToReserve = shuffled.slice(0, quantity);
+      }
+
+      console.log('Quotas to reserve:', quotaNumbersToReserve);
+
+      if (quotaNumbersToReserve.length === 0) {
+        showError('Nenhuma cota disponível para reserva.');
         setShowStep2Modal(false);
         return;
       }
 
-      console.log('Quotas to reserve:', availableTickets);
       console.log('Reserving tickets...');
 
       const results = await reserveTickets(
         campaign.id,
-        availableTickets,
+        quotaNumbersToReserve,
         user?.id || null,
         existingCustomerData.customer_name,
         existingCustomerData.customer_email,
@@ -600,7 +610,7 @@ const CampaignPage = () => {
       if (results && results.length > 0) {
         // Calcula o valor total com promoções
         const { total: totalValue } = calculateTotalWithPromotions(
-          availableTickets.length,
+          quotaNumbersToReserve.length,
           campaign.ticket_price,
           campaign.promotions || []
         );
@@ -617,13 +627,13 @@ const CampaignPage = () => {
         navigate('/payment-confirmation', {
           state: {
             reservationData: {
-              reservationId: `${campaign.id}_${availableTickets[0]}`,
+              reservationId: `${campaign.id}_${quotaNumbersToReserve[0]}`,
               customerName: existingCustomerData.customer_name,
               customerEmail: existingCustomerData.customer_email,
               customerPhone: existingCustomerData.customer_phone,
-              quotaCount: availableTickets.length,
+              quotaCount: quotaNumbersToReserve.length,
               totalValue,
-              selectedQuotas: availableTickets,
+              selectedQuotas: quotaNumbersToReserve,
               campaignTitle: campaign.title,
               campaignId: campaign.id,
               campaignPublicId: campaign.public_id,
