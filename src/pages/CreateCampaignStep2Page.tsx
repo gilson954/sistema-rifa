@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, Plus, Trash2, AlertTriangle, ChevronDown, Calendar, Gift, Trophy, Settings, Image as ImageIcon, FileText } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useCampaignWithRefetch } from '../hooks/useCampaigns';
 import { CampaignAPI } from '../lib/api/campaigns';
 import { ImageUpload } from '../components/ImageUpload';
@@ -578,6 +577,20 @@ const CreateCampaignStep2Page = () => {
                       : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-500'
                   }`}
                 >
+                  <div className="flex items-center justify-center space-x-2">
+                    <Calendar className="w-4 h-4" />
+                    <span>Mostrar data</span>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDrawDateOptionChange('no-date')}
+                  className={`py-4 px-6 rounded-xl font-bold transition-all duration-300 border-2 ${
+                    formData.showDrawDateOption === 'no-date'
+                      ? 'animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white border-transparent shadow-lg'
+                      : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-500'
+                  }`}
+                >
                   Não mostrar data
                 </button>
               </div>
@@ -754,180 +767,35 @@ const CreateCampaignStep2Page = () => {
                 )}
               </div>
 
-              {/* Animated Checkboxes Section */}
-              <div className="space-y-4 pt-6 border-t-2 border-gray-200/20 dark:border-gray-700/30">
-                {/* Show Ranking Checkbox */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <label
-                    htmlFor="showRanking"
-                    className="relative flex items-center p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 group"
-                    style={{
-                      borderColor: formData.showRanking 
-                        ? 'rgba(59, 130, 246, 0.5)' 
-                        : 'rgba(156, 163, 175, 0.3)',
-                      background: formData.showRanking
-                        ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 197, 253, 0.05) 100%)'
-                        : 'rgba(249, 250, 251, 0.5)'
-                    }}
-                  >
-                    <div className="flex items-center flex-1 space-x-4">
-                      {/* Custom Animated Checkbox */}
-                      <motion.div
-                        className="relative flex items-center justify-center w-6 h-6 rounded-lg border-2 transition-all duration-300"
-                        style={{
-                          borderColor: formData.showRanking ? '#3B82F6' : '#D1D5DB',
-                          background: formData.showRanking 
-                            ? 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)' 
-                            : '#FFFFFF'
-                        }}
-                        whileTap={{ scale: 0.9 }}
-                      >
-                        <input
-                          type="checkbox"
-                          id="showRanking"
-                          name="showRanking"
-                          checked={formData.showRanking}
-                          onChange={handleInputChange}
-                          className="sr-only"
-                        />
-                        <AnimatePresence>
-                          {formData.showRanking && (
-                            <motion.svg
-                              initial={{ scale: 0, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              exit={{ scale: 0, opacity: 0 }}
-                              transition={{ duration: 0.2 }}
-                              className="w-4 h-4 text-white"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={3}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M5 13l4 4L19 7"
-                              />
-                            </motion.svg>
-                          )}
-                        </AnimatePresence>
-                      </motion.div>
-                      
-                      <div className="flex-1">
-                        <span className="text-base font-semibold text-gray-900 dark:text-white block mb-1">
-                          Mostrar ranking de compradores
-                        </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          Exibe uma lista com os maiores compradores da campanha
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Glow effect when checked */}
-                    {formData.showRanking && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/20 to-cyan-500/20 blur-xl -z-10"
-                      />
-                    )}
-                    
-                    {/* Glow effect when checked */}
-                    {formData.showRanking && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/20 to-cyan-500/20 blur-xl -z-10"
-                      />
-                    )}
+              {/* Checkboxes Section */}
+              <div className="space-y-3 pt-4 border-t-2 border-gray-200/20 dark:border-gray-700/30">
+                <div className="flex items-center space-x-4 p-4 rounded-xl border border-blue-100/20 dark:border-blue-900/30 bg-blue-50/30 dark:bg-blue-900/10 backdrop-blur-sm hover:border-blue-300/50 dark:hover:border-blue-700/50 transition-all duration-200">
+                  <input
+                    type="checkbox"
+                    id="showRanking"
+                    name="showRanking"
+                    checked={formData.showRanking}
+                    onChange={handleInputChange}
+                    className="w-5 h-5 text-blue-600 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                  />
+                  <label htmlFor="showRanking" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1 font-medium">
+                    Mostrar ranking de compradores
                   </label>
-                </motion.div>
+                </div>
 
-                {/* Show Percentage Checkbox */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 }}
-                >
-                  <label
-                    htmlFor="showPercentage"
-                    className="relative flex items-center p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 group"
-                    style={{
-                      borderColor: formData.showPercentage 
-                        ? 'rgba(16, 185, 129, 0.5)' 
-                        : 'rgba(156, 163, 175, 0.3)',
-                      background: formData.showPercentage
-                        ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(110, 231, 183, 0.05) 100%)'
-                        : 'rgba(249, 250, 251, 0.5)'
-                    }}
-                  >
-                    <div className="flex items-center flex-1 space-x-4">
-                      {/* Custom Animated Checkbox */}
-                      <motion.div
-                        className="relative flex items-center justify-center w-6 h-6 rounded-lg border-2 transition-all duration-300"
-                        style={{
-                          borderColor: formData.showPercentage ? '#10B981' : '#D1D5DB',
-                          background: formData.showPercentage 
-                            ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
-                            : '#FFFFFF'
-                        }}
-                        whileTap={{ scale: 0.9 }}
-                      >
-                        <input
-                          type="checkbox"
-                          id="showPercentage"
-                          name="showPercentage"
-                          checked={formData.showPercentage}
-                          onChange={handleInputChange}
-                          className="sr-only"
-                        />
-                        <AnimatePresence>
-                          {formData.showPercentage && (
-                            <motion.svg
-                              initial={{ scale: 0, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              exit={{ scale: 0, opacity: 0 }}
-                              transition={{ duration: 0.2 }}
-                              className="w-4 h-4 text-white"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={3}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M5 13l4 4L19 7"
-                              />
-                            </motion.svg>
-                          )}
-                        </AnimatePresence>
-                      </motion.div>
-                      
-                      <div className="flex-1">
-                        <span className="text-base font-semibold text-gray-900 dark:text-white block mb-1">
-                          Mostrar porcentagem de vendas
-                        </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          Exibe o percentual de cotas vendidas na página da campanha
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Glow effect when checked */}
-                    {formData.showPercentage && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="absolute inset-0 rounded-2xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 blur-xl -z-10"
-                      />
-                    )}
+                <div className="flex items-center space-x-4 p-4 rounded-xl border border-green-100/20 dark:border-green-900/30 bg-green-50/30 dark:bg-green-900/10 backdrop-blur-sm hover:border-green-300/50 dark:hover:border-green-700/50 transition-all duration-200">
+                  <input
+                    type="checkbox"
+                    id="showPercentage"
+                    name="showPercentage"
+                    checked={formData.showPercentage}
+                    onChange={handleInputChange}
+                    className="w-5 h-5 text-green-600 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-green-500 focus:ring-2 cursor-pointer"
+                  />
+                  <label htmlFor="showPercentage" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1 font-medium">
+                    Mostrar porcentagem de vendas
                   </label>
-                </motion.div>
+                </div>
               </div>
             </div>
           </div>
@@ -985,18 +853,4 @@ const CreateCampaignStep2Page = () => {
   );
 };
 
-export default CreateCampaignStep2Page;-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-500'
-                  }`}
-                >
-                  <div className="flex items-center justify-center space-x-2">
-                    <Calendar className="w-4 h-4" />
-                    <span>Mostrar data</span>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDrawDateOptionChange('no-date')}
-                  className={`py-4 px-6 rounded-xl font-bold transition-all duration-300 border-2 ${
-                    formData.showDrawDateOption === 'no-date'
-                      ? 'animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white border-transparent shadow-lg'
-                      : 'bg-white/50 dark:bg-gray-800/50 text
+export default CreateCampaignStep2Page;
