@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Plus, Trash2, AlertTriangle, ChevronDown, Calendar, Gift, Trophy, Settings, Image as ImageIcon, FileText, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Plus, Trash2, AlertTriangle, ChevronDown, Calendar, Gift, Trophy, Settings, Image as ImageIcon, FileText } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCampaignWithRefetch } from '../hooks/useCampaigns';
 import { CampaignAPI } from '../lib/api/campaigns';
@@ -11,103 +11,6 @@ import PrizesModal from '../components/PrizesModal';
 import DateTimePickerModal from '../components/DateTimePickerModal';
 import { Promotion, Prize } from '../types/promotion';
 import 'react-datepicker/dist/react-datepicker.css';
-import { motion, AnimatePresence } from 'framer-motion'; // Importação do Framer Motion
-
-// =================================================================
-// NOVO COMPONENTE: AnimatedCheckbox
-// =================================================================
-
-interface AnimatedCheckboxProps {
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  label: string;
-  description?: string;
-  name: string;
-}
-
-/**
- * Componente de Checkbox animado com Framer Motion e estilizado com Tailwind CSS.
- * Utiliza a animação pathLength para o ícone de check.
- */
-const AnimatedCheckbox: React.FC<AnimatedCheckboxProps> = ({ checked, onChange, label, description, name }) => {
-  const checkVariants = {
-    checked: { pathLength: 1, opacity: 1 },
-    unchecked: { pathLength: 0, opacity: 0 }
-  };
-
-  return (
-    <div className="relative">
-      <input
-        type="checkbox"
-        id={name}
-        name={name}
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="sr-only"
-      />
-      
-      <label 
-        htmlFor={name} 
-        className="flex items-start p-4 bg-white/60 dark:bg-gray-800/60 rounded-2xl cursor-pointer transition-all duration-300 hover:bg-white/90 dark:hover:bg-gray-800/80 border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md"
-      >
-        <div className="flex-shrink-0 pt-1">
-          <motion.div
-            className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors duration-200 ease-in-out border-2 ${
-              checked
-                ? 'bg-gradient-to-br from-purple-600 to-blue-600 border-transparent shadow-lg shadow-purple-500/50'
-                : 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600'
-            }`}
-            initial={false}
-            animate={checked ? 'checked' : 'unchecked'}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <AnimatePresence initial={false}>
-              {checked && (
-                <motion.svg
-                  key="check"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="stroke-white"
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.5, opacity: 0 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                >
-                  <motion.path
-                    d="M5 13L9 17L19 7"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    variants={checkVariants}
-                    initial="unchecked"
-                    animate="checked"
-                    transition={{ duration: 0.3 }}
-                  />
-                </motion.svg>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </div>
-
-        <div className="ml-4">
-          <span className="text-lg font-semibold text-gray-900 dark:text-white">{label}</span>
-          {description && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{description}</p>
-          )}
-        </div>
-      </label>
-    </div>
-  );
-};
-
-
-// =================================================================
-// CreateCampaignStep2Page
-// =================================================================
 
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
@@ -197,7 +100,6 @@ const CreateCampaignStep2Page = () => {
     const { name, value, type } = e.target;
     
     if (type === 'checkbox') {
-      // Este bloco agora é reservado para checkboxes não animados ou outros inputs com type='checkbox'
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else if (type === 'number') {
@@ -217,13 +119,6 @@ const CreateCampaignStep2Page = () => {
         }
       }
     }
-  };
-
-  /**
-   * Novo handler para os checkboxes animados, que recebem o nome e o status.
-   */
-  const handleAnimatedCheckboxChange = (name: keyof typeof formData, checked: boolean) => {
-    setFormData(prev => ({ ...prev, [name]: checked }));
   };
 
   const handleDescriptionChange = (value: string) => {
@@ -338,7 +233,7 @@ const CreateCampaignStep2Page = () => {
         id: campaignId,
         description: normalizedDescription,
         prize_image_urls: imageUrls.length > 0 ? imageUrls : campaign?.prize_image_urls || [],
-        require_email: formData.requireEmail, // Manteve requireEmail do formData
+        require_email: true,
         show_ranking: formData.showRanking,
         min_tickets_per_purchase: formData.minTicketsPerPurchase,
         max_tickets_per_purchase: formData.maxTicketsPerPurchase,
@@ -472,332 +367,445 @@ const CreateCampaignStep2Page = () => {
               </div>
             </div>
           )}
-          
-          {/* ======================================= */}
-          {/* Seção: Configurações Adicionais (Novos Checkboxes) */}
-          {/* ======================================= */}
-          <section className="bg-white/50 dark:bg-gray-900/50 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-xl border border-gray-200/50 dark:border-gray-800/50">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
-              <Settings className="h-6 w-6 mr-3 text-purple-600 dark:text-purple-400" />
-              Configurações Adicionais
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Checkbox: showRanking */}
-              <AnimatedCheckbox
-                name="showRanking"
-                label="Mostrar Ranking de Compradores"
-                description="Exibe um ranking público com os nomes e o total de cotas dos maiores compradores."
-                checked={formData.showRanking}
-                onChange={(checked) => handleAnimatedCheckboxChange('showRanking', checked)}
-              />
 
-              {/* Checkbox: showPercentage */}
-              <AnimatedCheckbox
-                name="showPercentage"
-                label="Mostrar Percentual de Cotas Vendidas"
-                description="Exibe na página da campanha a porcentagem de cotas já vendidas."
-                checked={formData.showPercentage}
-                onChange={(checked) => handleAnimatedCheckboxChange('showPercentage', checked)}
-              />
-
-              {/* Checkbox: requireEmail (Usando o input padrão para referência) */}
-              <label htmlFor="requireEmail" className="flex items-start p-4 bg-white/60 dark:bg-gray-800/60 rounded-2xl cursor-pointer transition-all duration-300 hover:bg-white/90 dark:hover:bg-gray-800/80 border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md">
-                <div className="flex-shrink-0 pt-1">
-                  <input
-                    id="requireEmail"
-                    name="requireEmail"
-                    type="checkbox"
-                    checked={formData.requireEmail}
-                    onChange={handleInputChange}
-                    className="w-6 h-6 rounded-md text-purple-600 border-gray-300 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-purple-600"
-                  />
-                </div>
-                <div className="ml-4">
-                  <span className="text-lg font-semibold text-gray-900 dark:text-white">Obrigar Email na Compra</span>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Solicita o email do comprador em todas as finalizações de compra.</p>
-                </div>
-              </label>
-
-              {/* Outras configurações do formulário podem vir aqui */}
-
+          {/* Campaign Images Section */}
+          <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
+            <div className="flex items-center space-x-3 p-5 border-b border-gray-200/20 dark:border-gray-700/30">
+              <div className="w-10 h-10 rounded-xl animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 flex items-center justify-center shadow-md">
+                <ImageIcon className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Imagens do prêmio
+              </h2>
             </div>
-          </section>
-
-          {/* ... Outras seções do formulário (Imagens, Descrição, Prêmios, Promoções, etc.) ... */}
-
-          {/* Seção: Imagens do Prêmio */}
-          <section className="bg-white/50 dark:bg-gray-900/50 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-xl border border-gray-200/50 dark:border-gray-800/50">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
-              <ImageIcon className="h-6 w-6 mr-3 text-purple-600 dark:text-purple-400" />
-              Imagens do Prêmio
-            </h2>
-            <ImageUpload
-              images={images}
-              uploading={uploadingImages}
-              uploadProgress={uploadProgress}
-              onAddImages={addImages}
-              onRemoveImage={removeImage}
-              onReorderImages={reorderImages}
-              multiple={true}
-            />
-          </section>
-
-          {/* Seção: Descrição */}
-          <section className="bg-white/50 dark:bg-gray-900/50 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-xl border border-gray-200/50 dark:border-gray-800/50">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
-              <FileText className="h-6 w-6 mr-3 text-purple-600 dark:text-purple-400" />
-              Descrição Detalhada
-            </h2>
-            <RichTextEditor
-              value={formData.description}
-              onChange={handleDescriptionChange}
-              placeholder="Descreva seu prêmio, regras e detalhes importantes..."
-            />
-          </section>
-
-          {/* Seção: Prêmios Adicionais e Promoções */}
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Prêmios Adicionais */}
-            <div className="bg-white/50 dark:bg-gray-900/50 rounded-3xl p-6 backdrop-blur-sm shadow-xl border border-gray-200/50 dark:border-gray-800/50">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-                <Trophy className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
-                Prêmios Adicionais ({prizes.length})
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Adicione prêmios para outros compradores (ex: 2º, 3º lugar, etc.).
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowPrizesModal(true)}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-3 border border-purple-600 text-purple-600 rounded-xl hover:bg-purple-50 dark:hover:bg-gray-800 transition-colors duration-200"
-              >
-                <Plus className="h-5 w-5" />
-                <span>Gerenciar Prêmios</span>
-              </button>
-              {prizes.length > 0 && (
-                <ul className="mt-4 space-y-2 max-h-48 overflow-y-auto">
-                  {prizes.map((prize, index) => (
-                    <li key={index} className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                      <span>{prize.name} ({prize.ticket_amount} cotas)</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+            <div className="p-6">
+              <ImageUpload
+                images={images}
+                uploading={uploadingImages}
+                uploadProgress={uploadProgress}
+                onAddImages={addImages}
+                onRemoveImage={removeImage}
+                onReorderImage={reorderImages}
+              />
             </div>
+          </div>
 
-            {/* Promoções */}
-            <div className="bg-white/50 dark:bg-gray-900/50 rounded-3xl p-6 backdrop-blur-sm shadow-xl border border-gray-200/50 dark:border-gray-800/50">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-                <Gift className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
-                Promoções de Compra ({promotions.length})
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Configure descontos para a compra de múltiplas cotas.
-              </p>
+          {/* Campaign Description Section */}
+          <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
+            <div className="flex items-center space-x-3 p-5 border-b border-gray-200/20 dark:border-gray-700/30">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
+                <FileText className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Descrição da campanha
+              </h2>
+            </div>
+            <div className="p-6">
+              <RichTextEditor
+                value={formData.description}
+                onChange={handleDescriptionChange}
+                placeholder="Descreva sua campanha, prêmio e regras..."
+              />
+            </div>
+          </div>
+
+          {/* Promotions Section */}
+          <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-gray-200/20 dark:border-gray-700/30">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center shadow-md">
+                  <Gift className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Promoções
+                </h2>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowPromotionModal(true)}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-3 border border-purple-600 text-purple-600 rounded-xl hover:bg-purple-50 dark:hover:bg-gray-800 transition-colors duration-200"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 text-white"
               >
-                <Plus className="h-5 w-5" />
-                <span>Gerenciar Promoções</span>
-              </button>
-              {promotions.length > 0 && (
-                <ul className="mt-4 space-y-2 max-h-48 overflow-y-auto">
-                  {promotions.map((promo, index) => (
-                    <li key={index} className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                      <span>{promo.tickets_min} Cotas - {promo.discount_type === 'percentage' ? `${promo.discount_value}% OFF` : `R$ ${promo.discount_value.toFixed(2)} OFF`}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </section>
-
-          {/* Seção: Modelo e Limites */}
-          <section className="bg-white/50 dark:bg-gray-900/50 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-xl border border-gray-200/50 dark:border-gray-800/50">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
-              <Settings className="h-6 w-6 mr-3 text-purple-600 dark:text-purple-400" />
-              Modelo e Limites de Compra
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Modelo de Campanha */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block">
-                  Modelo de Escolha de Cotas
-                </label>
-                <select
-                  name="campaignModel"
-                  value={formData.campaignModel}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 transition-colors duration-200 appearance-none"
-                  disabled={campaignModelError.includes('modelo manual não é permitido')}
-                >
-                  <option value="automatic">Automático (Escolha do sistema)</option>
-                  <option value="manual">Manual (Escolha do comprador)</option>
-                </select>
-                {campaignModelError && (
-                  <p className="text-sm text-red-500 mt-1 flex items-center">
-                    <AlertTriangle className="h-4 w-4 mr-1" /> {campaignModelError}
-                  </p>
-                )}
-              </div>
-              
-              {/* Tempo de Reserva */}
-              <div className="space-y-2">
-                <label htmlFor="reservationTimeoutMinutes" className="text-sm font-medium text-gray-700 dark:text-gray-300 block">
-                  Tempo de Reserva de Cotas
-                </label>
-                <select
-                  id="reservationTimeoutMinutes"
-                  name="reservationTimeoutMinutes"
-                  value={formData.reservationTimeoutMinutes}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 transition-colors duration-200 appearance-none"
-                >
-                  {reservationTimeoutOptions.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Tempo que o comprador tem para finalizar o pagamento antes da cota ser liberada.
-                </p>
-              </div>
-
-              {/* Limite Mínimo */}
-              <div className="space-y-2">
-                <label htmlFor="minTicketsPerPurchase" className="text-sm font-medium text-gray-700 dark:text-gray-300 block">
-                  Mínimo de Cotas por Compra
-                </label>
-                <input
-                  id="minTicketsPerPurchase"
-                  name="minTicketsPerPurchase"
-                  type="number"
-                  min="1"
-                  max={formData.maxTicketsPerPurchase}
-                  value={formData.minTicketsPerPurchase}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border ${errors.minTicketsPerPurchase ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 transition-colors duration-200`}
-                />
-                {errors.minTicketsPerPurchase && (
-                  <p className="text-sm text-red-500 mt-1 flex items-center">
-                    <AlertTriangle className="h-4 w-4 mr-1" /> {errors.minTicketsPerPurchase}
-                  </p>
-                )}
-              </div>
-
-              {/* Limite Máximo */}
-              <div className="space-y-2">
-                <label htmlFor="maxTicketsPerPurchase" className="text-sm font-medium text-gray-700 dark:text-gray-300 block">
-                  Máximo de Cotas por Compra
-                </label>
-                <input
-                  id="maxTicketsPerPurchase"
-                  name="maxTicketsPerPurchase"
-                  type="number"
-                  min={formData.minTicketsPerPurchase}
-                  max={campaign.total_tickets}
-                  value={formData.maxTicketsPerPurchase}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border ${errors.maxTicketsPerPurchase ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 transition-colors duration-200`}
-                />
-                {errors.maxTicketsPerPurchase && (
-                  <p className="text-sm text-red-500 mt-1 flex items-center">
-                    <AlertTriangle className="h-4 w-4 mr-1" /> {errors.maxTicketsPerPurchase}
-                  </p>
-                )}
-              </div>
-            </div>
-          </section>
-
-          {/* Seção: Data do Sorteio */}
-          <section className="bg-white/50 dark:bg-gray-900/50 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-xl border border-gray-200/50 dark:border-gray-800/50">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
-              <Calendar className="h-6 w-6 mr-3 text-purple-600 dark:text-purple-400" />
-              Data do Sorteio
-            </h2>
-
-            <div className="flex space-x-4 mb-4">
-              <button
-                type="button"
-                onClick={() => handleDrawDateOptionChange('no-date')}
-                className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-colors duration-200 ${
-                  formData.showDrawDateOption === 'no-date'
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-500/50'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                }`}
-              >
-                Sem Data Prevista
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDrawDateOptionChange('show-date')}
-                className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-colors duration-200 ${
-                  formData.showDrawDateOption === 'show-date'
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-500/50'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                }`}
-              >
-                Com Data Prevista
+                <Plus className="h-4 w-4" />
+                Adicionar
               </button>
             </div>
-
-            <AnimatePresence>
-              {showInlineDatePicker && formData.showDrawDateOption === 'show-date' && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden pt-4"
-                >
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block">
-                      Data e Hora do Sorteio
-                    </label>
-                    <div className="flex items-center space-x-3">
-                      <div className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white flex items-center justify-between">
-                        <span>
-                          {formData.drawDate
-                            ? formatDateTimeDisplay(formData.drawDate)
-                            : 'Selecione uma data e hora'}
-                        </span>
-                        <Calendar className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleOpenDateTimeModal}
-                        className="p-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors duration-200 flex-shrink-0"
+            <div className="p-6">
+              {promotions.length > 0 ? (
+                <div className="space-y-3">
+                  {promotions.map((promo) => {
+                    const originalValue = promo.ticketQuantity * (campaign?.ticket_price || 0);
+                    const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0;
+                    
+                    return (
+                      <div
+                        key={promo.id}
+                        className="rounded-xl p-5 border border-purple-100/20 dark:border-purple-900/30 bg-purple-50/50 dark:bg-purple-900/10 backdrop-blur-sm hover:shadow-md transition-all duration-300"
                       >
-                        <ChevronDown className="h-6 w-6 transform rotate-90" />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <span className="text-2xl">🎁</span>
+                              <span className="font-bold text-lg text-gray-900 dark:text-white">
+                                {promo.ticketQuantity} Bilhetes
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-3 text-sm mb-2">
+                              <span className="text-gray-500 dark:text-gray-400">De:</span>
+                              <span className="line-through text-gray-500 dark:text-gray-400">
+                                {formatCurrency(originalValue)}
+                              </span>
+                              <span className="text-gray-400">→</span>
+                              <span className="text-gray-500 dark:text-gray-400">Por:</span>
+                              <span className="text-green-600 dark:text-green-400 font-bold text-base">
+                                {formatCurrency(promo.discountedTotalValue)}
+                              </span>
+                            </div>
+                            <div className="inline-flex items-center px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+                              <span className="text-xs font-bold text-green-700 dark:text-green-400">
+                                Desconto: {formatCurrency(promo.fixedDiscountAmount)} ({discountPercentage}%)
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setPromotions(prev => prev.filter(p => p.id !== promo.id))}
+                            className="p-3 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-all duration-200"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                  <div className="text-6xl mb-3">🎁</div>
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">
+                    Nenhuma promoção adicionada
+                  </p>
+                  <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
+                    Adicione promoções para incentivar compras maiores
+                  </p>
+                </div>
               )}
-            </AnimatePresence>
-          </section>
+            </div>
+          </div>
 
-          {/* Botões de Ação */}
-          <div className="flex justify-end space-x-4 pt-6">
-            <button
-              type="button"
-              onClick={handleGoBack}
-              className="px-6 py-3 rounded-xl font-semibold text-gray-700 dark:text-gray-300 bg-gray-200/50 dark:bg-gray-800/50 hover:bg-gray-300/50 dark:hover:bg-gray-700/50 transition-colors duration-200 flex items-center space-x-2 shadow-sm"
-            >
-              <ArrowLeft className="h-6 w-6" />
-              <span>Voltar</span>
-            </button>
+          {/* Prizes Section */}
+          <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-gray-200/20 dark:border-gray-700/30">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-yellow-600 flex items-center justify-center shadow-md">
+                  <Trophy className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Prêmios
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPrizesModal(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Plus className="h-4 w-4" />
+                Adicionar
+              </button>
+            </div>
+            <div className="p-6">
+              {prizes.length > 0 ? (
+                <div className="space-y-3">
+                  {prizes.map((prize, index) => (
+                    <div
+                      key={prize.id}
+                      className="rounded-xl p-5 border border-yellow-100/20 dark:border-yellow-900/30 bg-yellow-50/50 dark:bg-yellow-900/10 backdrop-blur-sm hover:shadow-md transition-all duration-300"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-yellow-600 rounded-xl flex items-center justify-center shadow-md">
+                            <span className="text-white font-bold text-lg">
+                              {index + 1}º
+                            </span>
+                          </div>
+                          <span className="text-gray-900 dark:text-white font-medium text-lg">
+                            {prize.name}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setPrizes(prev => prev.filter(p => p.id !== prize.id))}
+                          className="p-3 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-all duration-200"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                  <div className="text-6xl mb-3">🏆</div>
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">
+                    Nenhum prêmio adicionado
+                  </p>
+                  <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
+                    Defina os prêmios que serão sorteados
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Draw Date Section */}
+          <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
+            <div className="flex items-center space-x-3 p-5 border-b border-gray-200/20 dark:border-gray-700/30">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
+                <Calendar className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Data do sorteio
+              </h2>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <button
+                  type="button"
+                  onClick={() => handleDrawDateOptionChange('show-date')}
+                  className={`py-4 px-6 rounded-xl font-bold transition-all duration-300 border-2 ${
+                    formData.showDrawDateOption === 'show-date'
+                      ? 'animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white border-transparent shadow-lg'
+                      : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-center space-x-2">
+                    <Calendar className="w-4 h-4" />
+                    <span>Mostrar data</span>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDrawDateOptionChange('no-date')}
+                  className={`py-4 px-6 rounded-xl font-bold transition-all duration-300 border-2 ${
+                    formData.showDrawDateOption === 'no-date'
+                      ? 'animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white border-transparent shadow-lg'
+                      : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-500'
+                  }`}
+                >
+                  Não mostrar data
+                </button>
+              </div>
+
+              {formData.showDrawDateOption === 'show-date' && (
+                <div className="space-y-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    Selecione a data e hora do sorteio
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleOpenDateTimeModal}
+                    className="w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 border-gray-300 dark:border-gray-600 font-medium shadow-sm text-left cursor-pointer hover:shadow-md"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={formData.drawDate ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}>
+                        {formData.drawDate ? formatDateTimeDisplay(formData.drawDate) : 'Clique para selecionar data e hora'}
+                      </span>
+                      <Calendar className="w-5 h-5 text-blue-500" />
+                    </div>
+                  </button>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-2">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+                    <span>A data será exibida publicamente na página da campanha</span>
+                  </p>
+                </div>
+              )}
+
+              {formData.showDrawDateOption === 'no-date' && (
+                <div className="rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                  <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">
+                    A data do sorteio não será exibida publicamente
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Campaign Settings Section */}
+          <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
+            <div className="flex items-center space-x-3 p-5 border-b border-gray-200/20 dark:border-gray-700/30">
+              <div className="w-10 h-10 rounded-xl bg-gray-700 flex items-center justify-center shadow-md">
+                <Settings className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Configurações da campanha
+              </h2>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* Reservation Timeout */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  Tempo de reserva das cotas
+                </label>
+                <div className="relative">
+                  <select
+                    name="reservationTimeoutMinutes"
+                    value={formData.reservationTimeoutMinutes}
+                    onChange={handleInputChange}
+                    className="w-full appearance-none px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 border-gray-300 dark:border-gray-600"
+                  >
+                    {reservationTimeoutOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Min and Max Tickets Grid */}
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Min Tickets Per Purchase */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    Mínimo de bilhetes por compra
+                  </label>
+                  <input
+                    type="number"
+                    name="minTicketsPerPurchase"
+                    value={formData.minTicketsPerPurchase}
+                    onChange={handleInputChange}
+                    min="1"
+                    className={`w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                      errors.minTicketsPerPurchase ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                  />
+                  {errors.minTicketsPerPurchase && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center space-x-1">
+                      <AlertTriangle className="w-4 h-4" />
+                      <span>{errors.minTicketsPerPurchase}</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Max Tickets Per Purchase */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    Máximo de bilhetes por compra
+                  </label>
+                  <input
+                    type="number"
+                    name="maxTicketsPerPurchase"
+                    value={formData.maxTicketsPerPurchase}
+                    onChange={handleInputChange}
+                    min="1"
+                    className={`w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                      errors.maxTicketsPerPurchase ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                  />
+                  {errors.maxTicketsPerPurchase && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center space-x-1">
+                      <AlertTriangle className="w-4 h-4" />
+                      <span>{errors.maxTicketsPerPurchase}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Campaign Model with Preview */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  Modelo da campanha
+                </label>
+                <div className="relative">
+                  <select
+                    name="campaignModel"
+                    value={formData.campaignModel}
+                    onChange={handleInputChange}
+                    className={`w-full appearance-none px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                      campaignModelError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                  >
+                    <option value="automatic">Automático</option>
+                    <option value="manual">Manual</option>
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                </div>
+                
+                {/* Preview Image */}
+                <div className="mt-4 rounded-xl overflow-hidden border-2 border-gray-200/30 dark:border-gray-700/30 bg-gradient-to-br from-gray-50/50 to-gray-100/50 dark:from-gray-800/50 dark:to-gray-900/50 p-3">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      Pré-visualização do modelo
+                    </span>
+                  </div>
+                  <div className="rounded-lg overflow-hidden shadow-md max-w-sm mx-auto">
+                    <img
+                      src={formData.campaignModel === 'automatic' ? '/Automatico.png' : '/Manual.png'}
+                      alt={`Modelo ${formData.campaignModel === 'automatic' ? 'Automático' : 'Manual'}`}
+                      className="w-full h-auto object-contain"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+                    {formData.campaignModel === 'automatic' 
+                      ? 'Modelo Automático: Os números são gerados automaticamente'
+                      : 'Modelo Manual: Os compradores escolhem seus próprios números'
+                    }
+                  </p>
+                </div>
+                
+                {campaignModelError && (
+                  <div className="mt-3 flex items-start space-x-3 rounded-xl p-4 border border-orange-200/20 dark:border-orange-800/30 bg-orange-50/60 dark:bg-orange-900/20 backdrop-blur-sm">
+                    <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md">
+                      <AlertTriangle className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="text-orange-800 dark:text-orange-200 text-sm font-medium pt-1">
+                      {campaignModelError}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Checkboxes Section */}
+              <div className="space-y-3 pt-4 border-t-2 border-gray-200/20 dark:border-gray-700/30">
+                <div className="flex items-center space-x-4 p-4 rounded-xl border border-blue-100/20 dark:border-blue-900/30 bg-blue-50/30 dark:bg-blue-900/10 backdrop-blur-sm hover:border-blue-300/50 dark:hover:border-blue-700/50 transition-all duration-200">
+                  <input
+                    type="checkbox"
+                    id="showRanking"
+                    name="showRanking"
+                    checked={formData.showRanking}
+                    onChange={handleInputChange}
+                    className="w-5 h-5 text-blue-600 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                  />
+                  <label htmlFor="showRanking" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1 font-medium">
+                    Mostrar ranking de compradores
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-4 p-4 rounded-xl border border-green-100/20 dark:border-green-900/30 bg-green-50/30 dark:bg-green-900/10 backdrop-blur-sm hover:border-green-300/50 dark:hover:border-green-700/50 transition-all duration-200">
+                  <input
+                    type="checkbox"
+                    id="showPercentage"
+                    name="showPercentage"
+                    checked={formData.showPercentage}
+                    onChange={handleInputChange}
+                    className="w-5 h-5 text-green-600 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-green-500 focus:ring-2 cursor-pointer"
+                  />
+                  <label htmlFor="showPercentage" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1 font-medium">
+                    Mostrar porcentagem de vendas
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex justify-end pt-4">
             <button
               type="submit"
               disabled={loading || !isFormValid}
-              className="px-8 py-3 rounded-xl font-bold transition-all duration-300 ease-in-out flex items-center justify-center space-x-3 
-                disabled:opacity-50 disabled:cursor-not-allowed
-                bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white"
+              className="inline-flex items-center gap-3 px-10 py-4 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white"
             >
               {loading ? (
                 <>
