@@ -597,7 +597,6 @@ const CampaignPage = () => {
       console.log('Reserving tickets...');
 
       const results = await reserveTickets(
-        campaign.id,
         quotaNumbersToReserve,
         user?.id || null,
         existingCustomerData.customer_name,
