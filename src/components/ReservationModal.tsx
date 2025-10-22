@@ -663,35 +663,62 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 initial="hidden"
                 animate="visible"
               >
-                {/* Checkbox de Termos */}
+                {/* Checkbox de Termos - ATUALIZADO com animação */}
                 <motion.div 
-                  className={`flex items-start space-x-3 p-4 rounded-xl border-2 ${theme.border} ${theme.cardBg}`}
+                  className={`p-4 rounded-xl border-2 ${theme.border} ${theme.cardBg}`}
                   whileHover={{ scale: 1.01 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                 >
-                  <input
-                    type="checkbox"
-                    id="acceptTerms"
-                    checked={formData.acceptTerms}
-                    onChange={(e) => setFormData({ ...formData, acceptTerms: e.target.checked })}
-                    className="w-5 h-5 rounded-lg border-2 border-gray-400 focus:ring-2 mt-0.5 cursor-pointer"
-                    style={{ 
-                      accentColor: primaryColor || '#3B82F6',
-                      '--tw-ring-color': `${primaryColor || '#3B82F6'}33`
-                    } as React.CSSProperties}
-                    disabled={reserving}
-                    required
-                  />
-                  <label htmlFor="acceptTerms" className={`text-sm ${theme.textSecondary} leading-relaxed cursor-pointer`}>
-                    Ao reservar, declaro ter lido e concordado com os{' '}
-                    <a href="#" className="font-semibold hover:underline" style={{ color: primaryColor || '#3B82F6' }}>
-                      termos de uso
-                    </a>{' '}
-                    e a{' '}
-                    <a href="#" className="font-semibold hover:underline" style={{ color: primaryColor || '#3B82F6' }}>
-                      política de privacidade
-                    </a>
-                    .
+                  <label htmlFor="acceptTerms" className="flex items-start gap-3 cursor-pointer group">
+                    <motion.div 
+                      className="relative flex-shrink-0 mt-0.5"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <input
+                        type="checkbox"
+                        id="acceptTerms"
+                        checked={formData.acceptTerms}
+                        onChange={(e) => setFormData({ ...formData, acceptTerms: e.target.checked })}
+                        className="peer sr-only" // Input real, invisível mas acessível
+                        disabled={reserving}
+                        required
+                      />
+                      <motion.div
+                        className={`w-5 h-5 rounded-lg border-2 transition-all duration-200 flex items-center justify-center ${
+                          formData.acceptTerms
+                            ? 'bg-transparent border-transparent'
+                            : `${theme.inputBorder} group-hover:border-gray-400`
+                        }`}
+                        animate={formData.acceptTerms ? { scale: [1, 1.2, 1] } : {}}
+                        transition={{ duration: 0.3 }}
+                        style={formData.acceptTerms ? { borderColor: 'transparent', backgroundColor: 'transparent' } : {} as React.CSSProperties} // Garante transparência
+                      >
+                        <AnimatePresence>
+                          {formData.acceptTerms && (
+                            <motion.div
+                              initial={{ scale: 0, rotate: -180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              exit={{ scale: 0, rotate: 180 }}
+                              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                            >
+                              <CheckCircle className="w-5 h-5 text-green-500" />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    </motion.div>
+                    <span className={`text-sm ${theme.textSecondary} leading-relaxed cursor-pointer`}>
+                      Ao reservar, declaro ter lido e concordado com os{' '}
+                      <a href="#" className="font-semibold hover:underline" style={{ color: primaryColor || '#3B82F6' }}>
+                        termos de uso
+                      </a>{' '}
+                      e a{' '}
+                      <a href="#" className="font-semibold hover:underline" style={{ color: primaryColor || '#3B82F6' }}>
+                        política de privacidade
+                      </a>
+                      .
+                    </span>
                   </label>
                 </motion.div>
                 <AnimatePresence>
