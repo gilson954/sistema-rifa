@@ -157,14 +157,23 @@ const PaymentConfirmationPage = () => {
       const difference = expiration - now;
 
       if (difference <= 0) {
-        setTimeRemaining('00:00');
+        setTimeRemaining('Expirado');
         setIsExpired(true);
         return;
       }
 
-      const minutes = Math.floor(difference / (1000 * 60));
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-      setTimeRemaining(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+
+      if (days > 0) {
+        setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
+      } else if (hours > 0) {
+        setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
+      } else {
+        setTimeRemaining(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+      }
     };
 
     updateTimer();
@@ -215,31 +224,138 @@ const PaymentConfirmationPage = () => {
           campaignId={reservationData?.campaignId}
         />
 
-        <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+          {/* Alerta de Expiração */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className={`${themeClasses.cardBg} rounded-2xl shadow-2xl p-12 text-center border ${themeClasses.border} max-w-md`}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-8"
           >
-            <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Timer className="h-10 w-10 text-red-600 dark:text-red-400" />
-            </div>
-            <h2 className={`text-2xl font-bold ${themeClasses.text} mb-3`}>
-              Pagamento Expirado
-            </h2>
-            <p className={`${themeClasses.textSecondary} mb-6`}>
-              Seu pagamento foi expirado. Caso o pagamento não seja confirmado, os títulos voltam a ficar disponíveis.
-            </p>
-            <div className="space-y-3">
-              <button
-                onClick={() => navigate(`/c/${reservationData.campaignPublicId || reservationData.campaignId}`)}
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3 rounded-xl font-bold transition-all duration-200 shadow-lg"
-              >
-                Voltar para Campanha
-              </button>
+            <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-500 rounded-2xl p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-red-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Timer className="h-7 w-7 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">
+                    Pedido cancelado!
+                  </h2>
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    O prazo para pagamento do seu pedido expirou.
+                  </p>
+                </div>
+              </div>
             </div>
           </motion.div>
-        </div>
+
+          {/* Detalhes da Compra Expirada */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} shadow-lg`}>
+              <div className="flex items-start gap-4 mb-6">
+                <img
+                  src={campaignImageUrl || reservationData.prizeImageUrl || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400'}
+                  alt="Campanha"
+                  className="w-24 h-24 rounded-xl object-cover flex-shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <h3 className={`text-lg font-bold ${themeClasses.text} mb-1`}>
+                    {reservationData.campaignTitle}
+                  </h3>
+                  <p className={`text-sm ${themeClasses.textSecondary} mb-2`}>
+                    Sorteio pela Loteria Federal!
+                  </p>
+                  <span className="inline-block px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
+                    Cancelado
+                  </span>
+                </div>
+              </div>
+
+              <div className="border-t border-b py-4 mb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className={`text-sm font-medium ${themeClasses.text}`}>
+                    <Package className="inline h-4 w-4 mr-1" />
+                    Detalhes da sua compra
+                  </span>
+                </div>
+                <div className={`text-xs ${themeClasses.textSecondary} font-mono mb-4 bg-gray-100 dark:bg-gray-800 p-2 rounded`}>
+                  {reservationData.reservationId}
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${themeClasses.textSecondary}`}>
+                      {reservationData.customerName}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                      <Phone className="h-4 w-4" />
+                      Telefone
+                    </span>
+                    <span className={`text-sm font-medium ${themeClasses.text}`}>
+                      {reservationData.customerPhone}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                      <Clock className="h-4 w-4" />
+                      Data/Hora
+                    </span>
+                    <span className={`text-sm font-medium ${themeClasses.text}`}>
+                      {new Date().toLocaleString('pt-BR', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                      <Hash className="h-4 w-4" />
+                      {reservationData.quotaCount} Cota(s)
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                      Valor
+                    </span>
+                    <span className={`text-lg font-bold ${themeClasses.text}`}>
+                      {formatCurrency(reservationData.totalValue)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 text-center">
+                <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                  As cotas serão geradas após o pagamento.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Botão Voltar */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="mt-6"
+          >
+            <button
+              onClick={() => navigate(`/c/${reservationData.campaignPublicId || reservationData.campaignId}`)}
+              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3 rounded-xl font-bold transition-all duration-200 shadow-lg"
+            >
+              Voltar para Campanha
+            </button>
+          </motion.div>
+        </main>
 
         <CampaignFooter campaignTheme={campaignTheme} />
       </div>
@@ -288,11 +404,11 @@ const PaymentConfirmationPage = () => {
                 <div className={`text-sm ${themeClasses.textSecondary} mb-1`}>
                   Tempo restante
                 </div>
-                <div className={`text-3xl sm:text-4xl font-bold ${parseInt(timeRemaining.split(':')[0]) < 5 ? 'text-red-600 dark:text-red-400 animate-pulse' : 'text-orange-600 dark:text-orange-400'}`}>
+                <div className={`text-3xl sm:text-4xl font-bold ${timeRemaining === 'Expirado' ? 'text-red-600 dark:text-red-400' : timeRemaining.includes('m') && !timeRemaining.includes('d') && !timeRemaining.includes('h') && parseInt(timeRemaining.split(':')[0]) < 5 ? 'text-red-600 dark:text-red-400 animate-pulse' : 'text-orange-600 dark:text-orange-400'}`}>
                   {timeRemaining}
                 </div>
                 <div className={`text-xs ${themeClasses.textSecondary}`}>
-                  minutos
+                  {timeRemaining === 'Expirado' ? '' : timeRemaining.includes('d') ? '' : timeRemaining.includes('h') ? '' : 'minutos'}
                 </div>
               </div>
             </div>
