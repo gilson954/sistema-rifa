@@ -20,8 +20,8 @@ const CampaignFooter: React.FC<CampaignFooterProps> = ({ campaignTheme = 'claro'
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-center space-y-4">
           {/* Logo e texto "Sistema desenvolvido por" */}
-          <div className="flex items-center justify-center space-x-2">
-            <span className={`text-base ${textClass}`}>Sistema desenvolvido por</span>
+          <div className="flex items-center justify-center space-x-3">
+            <span className={`text-lg sm:text-xl font-medium ${textClass}`}>Sistema desenvolvido por</span>
             <motion.button
               onClick={() => navigate('/')}
               className="inline-flex items-center transition-opacity duration-200"
@@ -32,7 +32,7 @@ const CampaignFooter: React.FC<CampaignFooterProps> = ({ campaignTheme = 'claro'
               <motion.img
                 src="/logo-chatgpt.png"
                 alt="Rifaqui"
-                className="h-7 w-7 object-contain"
+                className="h-9 w-9 sm:h-10 sm:w-10 object-contain"
                 whileHover={{ 
                   rotate: [0, -10, 10, -10, 0],
                   transition: { 
@@ -44,7 +44,7 @@ const CampaignFooter: React.FC<CampaignFooterProps> = ({ campaignTheme = 'claro'
               
               {/* Texto com gradiente animado ao hover */}
               <motion.span
-                className={`ml-2 text-base font-bold ${textClass} relative overflow-hidden`}
+                className={`ml-2 text-lg sm:text-xl font-bold ${textClass} relative overflow-hidden`}
                 whileHover="hover"
                 initial="initial"
               >
