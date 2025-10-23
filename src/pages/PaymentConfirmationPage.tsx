@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, Copy, CheckCircle, User, Mail, Phone, Hash, QrCode, AlertTriangle, Timer, Hourglass, Package } from 'lucide-react';
+import { Clock, Copy, CheckCircle, User, Mail, Phone, Hash, QrCode, AlertTriangle, Timer, Package, DollarSign } from 'lucide-react';
 import CampaignHeader from '../components/CampaignHeader';
 import CampaignFooter from '../components/CampaignFooter';
 import { useAuth } from '../context/AuthContext';
@@ -20,6 +20,8 @@ interface ReservationData {
   campaignPublicId?: string;
   expiresAt: string;
   reservationTimeoutMinutes?: number;
+  campaignModel?: string;
+  prizeImageUrl?: string;
 }
 
 interface OrganizerProfile {
@@ -40,9 +42,10 @@ const PaymentConfirmationPage = () => {
 
   const [timeRemaining, setTimeRemaining] = useState<string>('');
   const [isExpired, setIsExpired] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [copiedPix, setCopiedPix] = useState(false);
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
+  const [campaignModel, setCampaignModel] = useState<string>('manual');
+  const [campaignImageUrl, setCampaignImageUrl] = useState<string>('');
 
   const reservationData = location.state?.reservationData as ReservationData;
 
@@ -58,7 +61,8 @@ const PaymentConfirmationPage = () => {
           cardBg: 'bg-white',
           border: 'border-gray-200',
           inputBg: 'bg-gray-50',
-          hover: 'hover:bg-gray-100'
+          stepBg: 'bg-green-500',
+          stepText: 'text-white'
         };
       case 'escuro':
         return {
@@ -68,7 +72,8 @@ const PaymentConfirmationPage = () => {
           cardBg: 'bg-slate-800',
           border: 'border-slate-700',
           inputBg: 'bg-slate-700',
-          hover: 'hover:bg-slate-700'
+          stepBg: 'bg-green-500',
+          stepText: 'text-white'
         };
       case 'escuro-preto':
         return {
@@ -78,7 +83,8 @@ const PaymentConfirmationPage = () => {
           cardBg: 'bg-gray-900',
           border: 'border-gray-800',
           inputBg: 'bg-gray-800',
-          hover: 'hover:bg-gray-800'
+          stepBg: 'bg-green-500',
+          stepText: 'text-white'
         };
       default:
         return {
@@ -88,7 +94,8 @@ const PaymentConfirmationPage = () => {
           cardBg: 'bg-white',
           border: 'border-gray-200',
           inputBg: 'bg-gray-50',
-          hover: 'hover:bg-gray-100'
+          stepBg: 'bg-green-500',
+          stepText: 'text-white'
         };
     }
   };
@@ -111,19 +118,28 @@ const PaymentConfirmationPage = () => {
       if (reservationData?.campaignId) {
         const { data: campaign } = await supabase
           .from('campaigns')
-          .select('user_id')
+          .select('user_id, campaign_model, prize_image_urls')
           .eq('id', reservationData.campaignId)
           .maybeSingle();
 
-        if (campaign?.user_id) {
-          const { data: profile } = await supabase
-            .from('public_profiles_view')
-            .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
-            .eq('id', campaign.user_id)
-            .maybeSingle();
+        if (campaign) {
+          setCampaignModel(campaign.campaign_model || 'manual');
+          
+          // Define a imagem da campanha
+          if (campaign.prize_image_urls && campaign.prize_image_urls.length > 0) {
+            setCampaignImageUrl(campaign.prize_image_urls[0]);
+          }
 
-          if (profile) {
-            setOrganizerProfile(profile);
+          if (campaign.user_id) {
+            const { data: profile } = await supabase
+              .from('public_profiles_view')
+              .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
+              .eq('id', campaign.user_id)
+              .maybeSingle();
+
+            if (profile) {
+              setOrganizerProfile(profile);
+            }
           }
         }
       }
@@ -146,15 +162,9 @@ const PaymentConfirmationPage = () => {
         return;
       }
 
-      const hours = Math.floor(difference / (1000 * 60 * 60));
-      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const minutes = Math.floor(difference / (1000 * 60));
       const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-      if (hours > 0) {
-        setTimeRemaining(`${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-      } else {
-        setTimeRemaining(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-      }
+      setTimeRemaining(`${minutes}:${seconds.toString().padStart(2, '0')}`);
     };
 
     updateTimer();
@@ -162,18 +172,6 @@ const PaymentConfirmationPage = () => {
 
     return () => clearInterval(interval);
   }, [reservationData?.expiresAt]);
-
-  const handleCopyReservationId = async () => {
-    if (reservationData?.reservationId) {
-      try {
-        await navigator.clipboard.writeText(reservationData.reservationId);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (error) {
-        console.error('Failed to copy:', error);
-      }
-    }
-  };
 
   const handleCopyPixKey = async () => {
     const pixKey = `00020126580014br.gov.bcb.pix0136${reservationData?.reservationId || 'mock-key'}5204000053039865802BR5925RIFAQUI PAGAMENTOS LTDA6009SAO PAULO62070503***6304ABCD`;
@@ -214,6 +212,7 @@ const PaymentConfirmationPage = () => {
           customGradientColors={organizerProfile?.custom_gradient_colors}
           campaignTheme={campaignTheme}
           hideMyTicketsButton={false}
+          campaignId={reservationData?.campaignId}
         />
 
         <div className="flex-1 flex items-center justify-center px-4 py-12">
@@ -238,12 +237,6 @@ const PaymentConfirmationPage = () => {
               >
                 Voltar para Campanha
               </button>
-              <button
-                onClick={() => navigate('/')}
-                className={`w-full ${themeClasses.inputBg} ${themeClasses.hover} ${themeClasses.text} py-3 rounded-xl font-bold transition-all duration-200`}
-              >
-                Ir para Home
-              </button>
             </div>
           </motion.div>
         </div>
@@ -265,277 +258,250 @@ const PaymentConfirmationPage = () => {
         customGradientColors={organizerProfile?.custom_gradient_colors}
         campaignTheme={campaignTheme}
         hideMyTicketsButton={false}
+        campaignId={reservationData?.campaignId}
       />
 
-      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        {/* Header com Timer */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mb-6"
+          className="mb-8"
         >
-          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} shadow-lg`}>
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                <Hourglass className="h-8 w-8 text-white" />
-              </div>
-              <div className="flex-1">
-                <h2 className={`text-2xl font-bold ${themeClasses.text} mb-1`}>
-                  Aguardando Pagamento!
-                </h2>
-                <p className={themeClasses.textSecondary}>
-                  Realize o pagamento
-                </p>
-              </div>
-              <div className="text-right">
-                <div className={`text-sm ${themeClasses.textSecondary} mb-1`}>
-                  Você tem
+          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border-2 border-yellow-500 shadow-lg`}>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <CheckCircle className="h-7 w-7 text-white" />
                 </div>
-                <div className={`text-3xl font-bold ${timeRemaining.startsWith('0:') && parseInt(timeRemaining.split(':')[1]) < 5 ? 'text-red-600 dark:text-red-400 animate-pulse' : 'text-orange-600 dark:text-orange-400'}`}>
+                <div>
+                  <h2 className={`text-xl sm:text-2xl font-bold ${themeClasses.text}`}>
+                    Aguardando Confirmação!
+                  </h2>
+                  <p className={`text-sm ${themeClasses.textSecondary}`}>
+                    Complete o pagamento para garantir seus números
+                  </p>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className={`text-sm ${themeClasses.textSecondary} mb-1`}>
+                  Tempo restante
+                </div>
+                <div className={`text-3xl sm:text-4xl font-bold ${parseInt(timeRemaining.split(':')[0]) < 5 ? 'text-red-600 dark:text-red-400 animate-pulse' : 'text-orange-600 dark:text-orange-400'}`}>
                   {timeRemaining}
                 </div>
                 <div className={`text-xs ${themeClasses.textSecondary}`}>
-                  para pagar
+                  minutos
                 </div>
               </div>
             </div>
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="space-y-6"
-          >
-            <div className={`${themeClasses.cardBg} rounded-2xl shadow-xl p-6 border ${themeClasses.border}`}>
-              <h3 className={`text-xl font-bold ${themeClasses.text} mb-4 flex items-center space-x-2`}>
-                <Package className="h-6 w-6 text-purple-600" />
-                <span>{reservationData.campaignTitle}</span>
-              </h3>
+        {/* Steps */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-8"
+        >
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
+                1
+              </div>
+              <p className={`${themeClasses.text} pt-1 font-medium`}>
+                Copie o código de pagamento PIX apresentado abaixo.
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
+                2
+              </div>
+              <p className={`${themeClasses.text} pt-1 font-medium`}>
+                Acesse seu aplicativo bancário e escolha pagar via PIX.
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
+                3
+              </div>
+              <p className={`${themeClasses.text} pt-1 font-medium`}>
+                Cole o código copiado na opção "PIX Copia e Cola" e finalize o pagamento.
+              </p>
+            </div>
+          </div>
+        </motion.div>
 
-              <div className={`${themeClasses.inputBg} rounded-xl p-4 mb-6 border ${themeClasses.border}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`text-sm ${themeClasses.textSecondary}`}>Pacote Promocional</span>
-                  <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                    R$0,05
+        {/* PIX Code */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mb-8"
+        >
+          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} shadow-lg`}>
+            <div className="flex items-center justify-between mb-4">
+              <input
+                type="text"
+                readOnly
+                value={`00020126580014br.gov.bcb.pix0136${reservationData.reservationId}5204000053039865802BR5925RIFAQUI...`}
+                className={`flex-1 ${themeClasses.inputBg} ${themeClasses.text} px-4 py-3 rounded-lg border ${themeClasses.border} font-mono text-sm`}
+              />
+              <button
+                onClick={handleCopyPixKey}
+                className="ml-3 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition-all duration-200 shadow-md flex items-center gap-2"
+              >
+                {copiedPix ? (
+                  <>
+                    <CheckCircle className="h-5 w-5" />
+                    <span className="hidden sm:inline">Copiado</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-5 w-5" />
+                    <span className="hidden sm:inline">Copiar</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Warning */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mb-8"
+        >
+          <div className={`${themeClasses.inputBg} rounded-xl p-4 border-l-4 border-yellow-500`}>
+            <p className={`text-sm ${themeClasses.text}`}>
+              <strong>Atenção:</strong> Este pagamento possui prazo limitado. Caso não seja confirmado dentro do tempo estabelecido, a reserva será cancelada e os números ficarão disponíveis novamente.
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Detalhes da Compra */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} shadow-lg`}>
+            <div className="flex items-start gap-4 mb-6">
+              <img
+                src={campaignImageUrl || reservationData.prizeImageUrl || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400'}
+                alt="Campanha"
+                className="w-24 h-24 rounded-xl object-cover flex-shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <h3 className={`text-lg font-bold ${themeClasses.text} mb-1`}>
+                  {reservationData.campaignTitle}
+                </h3>
+                <p className={`text-sm ${themeClasses.textSecondary} mb-2`}>
+                  Concorra a prêmios incríveis!
+                </p>
+                <span className="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
+                  Reservado
+                </span>
+              </div>
+            </div>
+
+            <div className="border-t border-b py-4 mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className={`text-sm font-medium ${themeClasses.text}`}>
+                  <Package className="inline h-4 w-4 mr-1" />
+                  Informações do Pedido
+                </span>
+              </div>
+              <div className={`text-xs ${themeClasses.textSecondary} font-mono mb-4 bg-gray-100 dark:bg-gray-800 p-2 rounded`}>
+                ID: {reservationData.reservationId}
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                    <User className="h-4 w-4" />
+                    Nome
+                  </span>
+                  <span className={`text-sm font-medium ${themeClasses.text}`}>
+                    {reservationData.customerName}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className={themeClasses.textSecondary}>Títulos: {String(reservationData.quotaCount).padStart(3, '0')}</span>
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                    <Phone className="h-4 w-4" />
+                    Telefone
+                  </span>
+                  <span className={`text-sm font-medium ${themeClasses.text}`}>
+                    {reservationData.customerPhone}
+                  </span>
                 </div>
-              </div>
-
-              <div className={`${themeClasses.inputBg} rounded-xl p-4 mb-4`}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`text-sm ${themeClasses.textSecondary}`}>Código de Identificação</span>
-                  <button
-                    onClick={handleCopyReservationId}
-                    className={`p-1.5 ${themeClasses.hover} rounded-lg transition-colors`}
-                    title="Copiar código"
-                  >
-                    {copied ? (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <Copy className={`h-4 w-4 ${themeClasses.textSecondary}`} />
-                    )}
-                  </button>
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                    <Clock className="h-4 w-4" />
+                    Realizado em
+                  </span>
+                  <span className={`text-sm font-medium ${themeClasses.text}`}>
+                    {new Date().toLocaleString('pt-BR', { 
+                      day: '2-digit', 
+                      month: '2-digit', 
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
                 </div>
-                <div className={`font-mono text-xs ${themeClasses.text} break-all`}>
-                  {reservationData.reservationId}
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                    <Hash className="h-4 w-4" />
+                    Quantidade
+                  </span>
+                  <span className={`text-sm font-medium ${themeClasses.text}`}>
+                    {reservationData.quotaCount} {reservationData.quotaCount === 1 ? 'Número' : 'Números'}
+                  </span>
                 </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className={`flex items-center space-x-3 p-3 ${themeClasses.inputBg} rounded-lg`}>
-                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                    <User className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div>
-                    <div className={`text-xs ${themeClasses.textSecondary}`}>Comprador</div>
-                    <div className={`font-medium ${themeClasses.text}`}>{reservationData.customerName}</div>
-                  </div>
-                </div>
-
-                <div className={`flex items-center space-x-3 p-3 ${themeClasses.inputBg} rounded-lg`}>
-                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                    <Phone className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <div className={`text-xs ${themeClasses.textSecondary}`}>Telefone</div>
-                    <div className={`font-medium ${themeClasses.text}`}>{reservationData.customerPhone}</div>
-                  </div>
-                </div>
-
-                <div className={`flex items-center space-x-3 p-3 ${themeClasses.inputBg} rounded-lg`}>
-                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                    <Mail className="h-5 w-5 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <div className={`text-xs ${themeClasses.textSecondary}`}>Email</div>
-                    <div className={`font-medium ${themeClasses.text} truncate`}>{reservationData.customerEmail}</div>
-                  </div>
-                </div>
-
-                <div className={`flex items-center space-x-3 p-3 ${themeClasses.inputBg} rounded-lg`}>
-                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-                    <Hash className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                  </div>
-                  <div>
-                    <div className={`text-xs ${themeClasses.textSecondary}`}>Quantidade</div>
-                    <div className={`font-medium ${themeClasses.text}`}>{reservationData.quotaCount}</div>
-                  </div>
-                </div>
-
-                <div className={`flex items-center space-x-3 p-3 ${themeClasses.inputBg} rounded-lg`}>
-                  <div className="w-10 h-10 bg-pink-100 dark:bg-pink-900/30 rounded-lg flex items-center justify-center">
-                    <Clock className="h-5 w-5 text-pink-600 dark:text-pink-400" />
-                  </div>
-                  <div>
-                    <div className={`text-xs ${themeClasses.textSecondary}`}>Data/horário</div>
-                    <div className={`font-medium ${themeClasses.text} text-sm`}>
-                      {new Date().toLocaleString('pt-BR')}
-                    </div>
-                  </div>
-                </div>
-
-                <div className={`flex items-center space-x-3 p-3 ${themeClasses.inputBg} rounded-lg`}>
-                  <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
-                    <Timer className="h-5 w-5 text-red-600 dark:text-red-400" />
-                  </div>
-                  <div>
-                    <div className={`text-xs ${themeClasses.textSecondary}`}>Expira em</div>
-                    <div className={`font-medium ${themeClasses.text} text-sm`}>
-                      {new Date(reservationData.expiresAt).toLocaleString('pt-BR')}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {reservationData.selectedQuotas && reservationData.selectedQuotas.length > 0 && (
-                <div className={`mt-4 ${themeClasses.inputBg} rounded-xl p-4 border ${themeClasses.border}`}>
-                  <div className={`text-sm font-medium ${themeClasses.text} mb-2`}>
-                    Títulos:
-                  </div>
-                  <div 
-                    className={`font-mono text-sm ${themeClasses.text} font-semibold max-h-48 overflow-y-auto pr-2`}
-                    style={{
-                      scrollbarWidth: 'thin',
-                      scrollbarColor: campaignTheme === 'claro' 
-                        ? '#9333ea #e5e7eb' 
-                        : campaignTheme === 'escuro'
-                        ? '#a855f7 #334155'
-                        : '#a855f7 #1f2937'
-                    }}
-                  >
-                    {reservationData.selectedQuotas.sort((a, b) => a - b).join(', ')}
-                  </div>
-                </div>
-              )}
-
-              <div className={`mt-6 ${themeClasses.inputBg} rounded-xl p-4`}>
-                <div className="flex items-center justify-between text-lg font-bold">
-                  <span className={themeClasses.text}>Total</span>
-                  <span className="text-green-600 dark:text-green-400">
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                    <DollarSign className="h-4 w-4" />
+                    Valor Total
+                  </span>
+                  <span className={`text-lg font-bold text-green-600 dark:text-green-400`}>
                     {formatCurrency(reservationData.totalValue)}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} shadow-lg`}>
-              <div className="flex items-start space-x-3">
-                <AlertTriangle className="h-6 w-6 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-1" />
-                <div className={`text-sm ${themeClasses.textSecondary}`}>
-                  <p className="font-semibold mb-2">Este pagamento só pode ser realizado dentro do tempo. Após este período, caso o pagamento não seja confirmado, os títulos voltam a ficar disponíveis.</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="space-y-6"
-          >
-            <div className={`${themeClasses.cardBg} rounded-2xl shadow-xl p-6 border ${themeClasses.border}`}>
-              <h3 className={`text-xl font-bold ${themeClasses.text} mb-6`}>
-                Como Pagar
-              </h3>
-
-              <div className="space-y-4 mb-6">
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-purple-600 dark:text-purple-400 font-bold">1</span>
-                  </div>
-                  <p className={`${themeClasses.textSecondary} pt-1`}>
-                    Copie o código PIX abaixo
-                  </p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-purple-600 dark:text-purple-400 font-bold">2</span>
-                  </div>
-                  <p className={`${themeClasses.textSecondary} pt-1`}>
-                    Abra o app do seu banco e escolha a opção PIX, como se fosse fazer uma transferência.
-                  </p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-purple-600 dark:text-purple-400 font-bold">3</span>
-                  </div>
-                  <p className={`${themeClasses.textSecondary} pt-1`}>
-                    Selecione a opção PIX copia e cola, cole a chave copiada e confirme o pagamento.
-                  </p>
-                </div>
-              </div>
-
-              <div className={`${themeClasses.inputBg} rounded-xl p-4 mb-4`}>
-                <div className={`w-full aspect-square ${themeClasses.cardBg} border-4 ${themeClasses.border} rounded-xl flex items-center justify-center mb-4`}>
-                  <QrCode className={`h-32 w-32 ${themeClasses.textSecondary}`} />
-                </div>
-                <p className={`text-center text-sm ${themeClasses.textSecondary} mb-1`}>
-                  Mostrar QR Code
+            {campaignModel === 'manual' && reservationData.selectedQuotas && reservationData.selectedQuotas.length > 0 && (
+              <div className={`${themeClasses.inputBg} rounded-xl p-4`}>
+                <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>
+                  ✓ Números reservados com sucesso
+                </p>
+                <p className={`text-xs ${themeClasses.textSecondary}`}>
+                  Seus números serão liberados assim que o pagamento for confirmado.
                 </p>
               </div>
+            )}
+          </div>
+        </motion.div>
 
-              <div className={`${themeClasses.inputBg} rounded-xl p-4 mb-6`}>
-                <div className="flex items-start justify-between space-x-3">
-                  <div className="flex-1 min-w-0">
-                    <div className={`text-sm font-medium ${themeClasses.textSecondary} mb-2`}>
-                      Chave PIX (Copia e Cola)
-                    </div>
-                    <div className={`font-mono text-xs ${themeClasses.text} ${themeClasses.cardBg} p-3 rounded-lg border ${themeClasses.border} break-all`}>
-                      00020126580014br.gov.bcb.pix0136{reservationData.reservationId}5204000053039865802BR5925RIFAQUI PAGAMENTOS LTDA6009SAO PAULO62070503***6304ABCD
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleCopyPixKey}
-                    className="p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex-shrink-0 shadow-md"
-                    title="Copiar"
-                  >
-                    {copiedPix ? (
-                      <CheckCircle className="h-5 w-5" />
-                    ) : (
-                      <Copy className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className={`${themeClasses.inputBg} rounded-xl p-4 text-center`}>
-              <p className={`text-sm ${themeClasses.textSecondary}`}>
-                Problemas com sua compra?{' '}
-                <button className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
-                  Clique aqui
-                </button>
-              </p>
-            </div>
-          </motion.div>
-        </div>
+        {/* Suporte */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="mt-6 text-center"
+        >
+          <p className={`text-sm ${themeClasses.textSecondary}`}>
+            Problemas com sua compra?{' '}
+            <button className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              Clique aqui
+            </button>
+          </p>
+        </motion.div>
       </main>
 
       <CampaignFooter campaignTheme={campaignTheme} />
