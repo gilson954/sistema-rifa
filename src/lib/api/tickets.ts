@@ -65,14 +65,26 @@ export class TicketsAPI {
    * Busca o status de todos os tickets de uma campanha (otimizado para frontend)
    */
   static async getCampaignTicketsStatus(
-    campaignId: string, 
+    campaignId: string,
     userId?: string
   ): Promise<{ data: TicketStatusInfo[] | null; error: any }> {
     try {
-      const { data, error } = await supabase.rpc('get_campaign_tickets_status', {
-        p_campaign_id: campaignId,
-        p_user_id: userId || null
-      });
+      // Get campaign to check total_tickets first
+      const { data: campaign } = await supabase
+        .from('campaigns')
+        .select('total_tickets')
+        .eq('id', campaignId)
+        .maybeSingle();
+
+      const limit = campaign?.total_tickets || 100000;
+
+      // Use .limit() to override default 1000 limit
+      const { data, error } = await supabase
+        .rpc('get_campaign_tickets_status', {
+          p_campaign_id: campaignId,
+          p_user_id: userId || null
+        })
+        .limit(limit);
 
       return { data, error };
     } catch (error) {
