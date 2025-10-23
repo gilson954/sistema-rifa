@@ -411,7 +411,7 @@ const MyTicketsPage = () => {
             </button>
           </motion.div>
         ) : (
-          <div className="space-y-4">
+          <div className="max-h-[calc(100vh-320px)] overflow-y-auto pr-2 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-gray-600">
             <AnimatePresence>
               {orders.map((order, index) => {
                 const statusInfo = getStatusInfo(order.status);
