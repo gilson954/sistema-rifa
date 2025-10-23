@@ -237,9 +237,12 @@ const MyTicketsPage = () => {
     }
   }, [isPhoneAuthenticated, authLoading, navigate]);
 
+  const campaignTheme = organizerProfile?.theme || 'claro';
+
   if (authLoading || loading) {
+    const loadingThemeClasses = getThemeClasses(campaignTheme);
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300 flex items-center justify-center">
+      <div className={`min-h-screen ${loadingThemeClasses.background} transition-colors duration-300 flex items-center justify-center`}>
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -248,8 +251,6 @@ const MyTicketsPage = () => {
   if (!isPhoneAuthenticated) {
     return null;
   }
-
-  const campaignTheme = organizerProfile?.theme || 'claro';
 
   const getThemeClasses = (theme: string) => {
     switch (theme) {
@@ -355,9 +356,8 @@ const MyTicketsPage = () => {
 
       <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-8 w-full">
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 1 }}
           className="mb-4 sm:mb-8"
         >
           <h1 className={`text-2xl sm:text-3xl md:text-4xl font-bold ${themeClasses.text} mb-1 sm:mb-2`}>
@@ -374,8 +374,8 @@ const MyTicketsPage = () => {
           </div>
         ) : error ? (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
             className={`${themeClasses.cardBg} rounded-2xl shadow-xl p-8 border border-red-200 dark:border-red-800`}
           >
             <div className="flex items-center space-x-3 text-red-600 dark:text-red-400">
@@ -385,8 +385,8 @@ const MyTicketsPage = () => {
           </motion.div>
         ) : orders.length === 0 ? (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
             className={`${themeClasses.cardBg} rounded-2xl shadow-xl p-8 sm:p-12 text-center border ${themeClasses.border}`}
           >
             <div className={`w-16 h-16 sm:w-20 sm:h-20 ${campaignTheme === 'claro' ? 'bg-gray-100' : 'bg-gray-800'} rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6`}>
@@ -417,10 +417,10 @@ const MyTicketsPage = () => {
                   return (
                     <motion.div
                       key={order.order_id}
-                      initial={{ opacity: 0, x: -50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 50 }}
-                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
                       className={`${themeClasses.cardBg} rounded-lg sm:rounded-xl shadow-md border-l-4 ${statusInfo.borderColor} overflow-hidden hover:shadow-lg transition-shadow duration-200`}
                     >
                       <div className="p-3 sm:p-4">
@@ -538,7 +538,7 @@ const MyTicketsPage = () => {
                                 onClick={() => handlePayment(order)}
                                 className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 shadow-md`}
                               >
-                                Tentar Novamente
+                                Compra Cancelada
                               </button>
                             )}
                           </div>
@@ -552,9 +552,8 @@ const MyTicketsPage = () => {
 
             {totalPages > 1 && (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
+                initial={{ opacity: 1 }}
+                animate={{ opacity: 1 }}
                 className={`flex flex-col items-center justify-between mt-6 sm:mt-8 gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg sm:rounded-xl border shadow-md ${
                   campaignTheme === 'claro'
                     ? 'bg-white border-gray-200'
