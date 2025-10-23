@@ -21,6 +21,7 @@ interface ReservationData {
   expiresAt: string;
   reservationTimeoutMinutes?: number;
   campaignModel?: string;
+  prizeImageUrl?: string;
 }
 
 interface OrganizerProfile {
@@ -42,7 +43,6 @@ const PaymentConfirmationPage = () => {
   const [timeRemaining, setTimeRemaining] = useState<string>('');
   const [isExpired, setIsExpired] = useState(false);
   const [copiedPix, setCopiedPix] = useState(false);
-  const [showQrCode, setShowQrCode] = useState(false);
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [campaignModel, setCampaignModel] = useState<string>('manual');
 
@@ -271,22 +271,22 @@ const PaymentConfirmationPage = () => {
                 </div>
                 <div>
                   <h2 className={`text-xl sm:text-2xl font-bold ${themeClasses.text}`}>
-                    Aguardando Pagamento!
+                    Aguardando Confirmação!
                   </h2>
                   <p className={`text-sm ${themeClasses.textSecondary}`}>
-                    Finalize o pagamento
+                    Complete o pagamento para garantir seus números
                   </p>
                 </div>
               </div>
               <div className="text-center">
                 <div className={`text-sm ${themeClasses.textSecondary} mb-1`}>
-                  Você tem
+                  Tempo restante
                 </div>
                 <div className={`text-3xl sm:text-4xl font-bold ${parseInt(timeRemaining.split(':')[0]) < 5 ? 'text-red-600 dark:text-red-400 animate-pulse' : 'text-orange-600 dark:text-orange-400'}`}>
                   {timeRemaining}
                 </div>
                 <div className={`text-xs ${themeClasses.textSecondary}`}>
-                  para pagar
+                  minutos
                 </div>
               </div>
             </div>
@@ -306,7 +306,7 @@ const PaymentConfirmationPage = () => {
                 1
               </div>
               <p className={`${themeClasses.text} pt-1 font-medium`}>
-                Copie o código PIX abaixo.
+                Copie o código de pagamento PIX apresentado abaixo.
               </p>
             </div>
             <div className="flex items-start gap-3">
@@ -314,7 +314,7 @@ const PaymentConfirmationPage = () => {
                 2
               </div>
               <p className={`${themeClasses.text} pt-1 font-medium`}>
-                Abra o app do seu banco e escolha a opção PIX, como se fosse fazer uma transferência.
+                Acesse seu aplicativo bancário e escolha pagar via PIX.
               </p>
             </div>
             <div className="flex items-start gap-3">
@@ -322,7 +322,7 @@ const PaymentConfirmationPage = () => {
                 3
               </div>
               <p className={`${themeClasses.text} pt-1 font-medium`}>
-                Selecione a opção PIX cópia e cola, cole a chave copiada e confirme o pagamento.
+                Cole o código copiado na opção "PIX Copia e Cola" e finalize o pagamento.
               </p>
             </div>
           </div>
@@ -372,26 +372,8 @@ const PaymentConfirmationPage = () => {
         >
           <div className={`${themeClasses.inputBg} rounded-xl p-4 border-l-4 border-yellow-500`}>
             <p className={`text-sm ${themeClasses.text}`}>
-              Este pagamento só pode ser realizado dentro do tempo, após este período, caso o pagamento não for confirmado os números voltam a ficar disponíveis.
+              <strong>Atenção:</strong> Este pagamento possui prazo limitado. Caso não seja confirmado dentro do tempo estabelecido, a reserva será cancelada e os números ficarão disponíveis novamente.
             </p>
-          </div>
-        </motion.div>
-
-        {/* QR Code */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mb-8"
-        >
-          <div className="text-center">
-            <button
-              onClick={() => setShowQrCode(!showQrCode)}
-              className={`${themeClasses.cardBg} hover:opacity-80 ${themeClasses.text} px-6 py-3 rounded-lg border ${themeClasses.border} font-medium transition-all duration-200 inline-flex items-center gap-2`}
-            >
-              <QrCode className="h-5 w-5" />
-              Mostrar QR Code
-            </button>
           </div>
         </motion.div>
 
@@ -399,58 +381,64 @@ const PaymentConfirmationPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
         >
           <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} shadow-lg`}>
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-start gap-4 mb-6">
               <img
-                src={organizerProfile?.logo_url || '/logo-chatgpt.png'}
+                src={reservationData.prizeImageUrl || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400'}
                 alt="Campanha"
-                className="w-20 h-20 rounded-xl object-cover"
+                className="w-24 h-24 rounded-xl object-cover flex-shrink-0"
               />
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <h3 className={`text-lg font-bold ${themeClasses.text} mb-1`}>
                   {reservationData.campaignTitle}
                 </h3>
-                <p className={`text-sm ${themeClasses.textSecondary}`}>
-                  Sorteio pela Loteria Federal!
+                <p className={`text-sm ${themeClasses.textSecondary} mb-2`}>
+                  Concorra a prêmios incríveis!
                 </p>
-                <span className="inline-block mt-2 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
-                  Adquira já!
+                <span className="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
+                  Reservado
                 </span>
               </div>
             </div>
 
             <div className="border-t border-b py-4 mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className={`text-sm ${themeClasses.textSecondary}`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className={`text-sm font-medium ${themeClasses.text}`}>
                   <Package className="inline h-4 w-4 mr-1" />
-                  Detalhes da sua compra
+                  Informações do Pedido
                 </span>
               </div>
-              <div className={`text-xs ${themeClasses.textSecondary} font-mono mb-3`}>
-                {reservationData.reservationId}
+              <div className={`text-xs ${themeClasses.textSecondary} font-mono mb-4 bg-gray-100 dark:bg-gray-800 p-2 rounded`}>
+                ID: {reservationData.reservationId}
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
                     <User className="h-4 w-4" />
+                    Nome
+                  </span>
+                  <span className={`text-sm font-medium ${themeClasses.text}`}>
                     {reservationData.customerName}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
                     <Phone className="h-4 w-4" />
+                    Telefone
+                  </span>
+                  <span className={`text-sm font-medium ${themeClasses.text}`}>
                     {reservationData.customerPhone}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
                     <Clock className="h-4 w-4" />
-                    Data/Hora
+                    Realizado em
                   </span>
-                  <span className={`text-sm ${themeClasses.text}`}>
+                  <span className={`text-sm font-medium ${themeClasses.text}`}>
                     {new Date().toLocaleString('pt-BR', { 
                       day: '2-digit', 
                       month: '2-digit', 
@@ -463,15 +451,18 @@ const PaymentConfirmationPage = () => {
                 <div className="flex items-center justify-between">
                   <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
                     <Hash className="h-4 w-4" />
-                    {reservationData.quotaCount} Cota(s)
+                    Quantidade
+                  </span>
+                  <span className={`text-sm font-medium ${themeClasses.text}`}>
+                    {reservationData.quotaCount} {reservationData.quotaCount === 1 ? 'Número' : 'Números'}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pt-2 border-t">
                   <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
                     <DollarSign className="h-4 w-4" />
-                    Valor
+                    Valor Total
                   </span>
-                  <span className={`text-sm font-bold ${themeClasses.text}`}>
+                  <span className={`text-lg font-bold text-green-600 dark:text-green-400`}>
                     {formatCurrency(reservationData.totalValue)}
                   </span>
                 </div>
@@ -479,22 +470,13 @@ const PaymentConfirmationPage = () => {
             </div>
 
             {campaignModel === 'manual' && reservationData.selectedQuotas && reservationData.selectedQuotas.length > 0 && (
-              <div>
+              <div className={`${themeClasses.inputBg} rounded-xl p-4`}>
                 <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>
-                  As cotas serão geradas após o pagamento.
+                  ✓ Números reservados com sucesso
                 </p>
-              </div>
-            )}
-
-            {campaignModel === 'automatic' && (
-              <div className={`${themeClasses.inputBg} rounded-xl p-4 border ${themeClasses.border}`}>
-                <div className={`text-sm font-medium ${themeClasses.text} mb-2 flex items-center gap-2`}>
-                  <Package className="w-4 h-4" />
-                  Títulos Secretos
-                </div>
-                <div className={`text-sm ${themeClasses.textSecondary}`}>
-                  Seus números serão revelados após a confirmação do pagamento. Esta campanha possui cotas premiadas surpresa!
-                </div>
+                <p className={`text-xs ${themeClasses.textSecondary}`}>
+                  Seus números serão liberados assim que o pagamento for confirmado.
+                </p>
               </div>
             )}
           </div>
@@ -504,7 +486,7 @@ const PaymentConfirmationPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
           className="mt-6 text-center"
         >
           <p className={`text-sm ${themeClasses.textSecondary}`}>
