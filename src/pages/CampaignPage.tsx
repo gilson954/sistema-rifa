@@ -399,7 +399,7 @@ const CampaignPage = () => {
 
     const availableTickets = getAvailableTickets();
     const isAvailable = availableTickets.some(ticket => ticket.quota_number === quotaNumber);
-    
+
     if (!isAvailable) return;
 
     setSelectedQuotas(prev => {
@@ -407,13 +407,16 @@ const CampaignPage = () => {
         return prev.filter(q => q !== quotaNumber);
       } else {
         const newSelection = [...prev, quotaNumber];
-        if (newSelection.length <= (campaign.max_tickets_per_purchase || 1000)) {
+        const maxLimit = campaign.max_tickets_per_purchase || 1000;
+        if (newSelection.length <= maxLimit) {
           return newSelection;
         }
+        // Show error when limit is exceeded
+        showWarning(`Máximo de ${maxLimit.toLocaleString('pt-BR')} ${maxLimit === 1 ? 'cota' : 'cotas'} por compra`);
         return prev;
       }
     });
-  }, [campaign, getAvailableTickets]);
+  }, [campaign, getAvailableTickets, showWarning]);
 
   const handleQuantityChange = useCallback((newQuantity: number) => {
     setQuantity(newQuantity);
