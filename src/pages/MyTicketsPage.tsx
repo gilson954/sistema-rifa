@@ -543,7 +543,11 @@ const MyTicketsPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="flex flex-col items-center justify-between mt-6 sm:mt-8 gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-gray-800/50 dark:to-gray-900/50 border border-blue-200/30 dark:border-gray-700/30 backdrop-blur-sm"
+                className={`flex flex-col items-center justify-between mt-6 sm:mt-8 gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg sm:rounded-xl border shadow-md ${
+                  campaignTheme === 'claro'
+                    ? 'bg-white border-gray-200'
+                    : 'bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-gray-700/30'
+                } backdrop-blur-sm`}
               >
                 <div className={`text-xs sm:text-sm font-medium ${themeClasses.textSecondary} text-center`}>
                   Mostrando{' '}
