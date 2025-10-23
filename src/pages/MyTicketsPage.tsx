@@ -57,7 +57,9 @@ const MyTicketsPage = () => {
 
         if (difference <= 0) {
           newTimeMap[order.order_id] = 'EXPIRADO';
-          // Não modifica o estado, apenas atualiza o mapa de tempo
+          setOrders(prev => prev.map(o =>
+            o.order_id === order.order_id ? { ...o, status: 'expired' as const } : o
+          ));
         } else {
           // Calcular dias, horas, minutos e segundos
           const days = Math.floor(difference / (1000 * 60 * 60 * 24));
