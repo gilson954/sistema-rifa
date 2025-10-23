@@ -615,24 +615,4 @@ const MyTicketsPage = () => {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-semibold text-xs sm:text-sm transition-all duration-300 ${
-                      currentPage === totalPages
-                        ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white shadow-md hover:shadow-lg'
-                    }`}
-                  >
-                    Próx.
-                  </motion.button>
-                </div>
-              </motion.div>
-            )}
-          </>
-        )}
-      </main>
-
-      <CampaignFooter campaignTheme={campaignTheme} />
-    </div>
-  );
-};
-
-export default MyTicketsPage;
+                    className={`px-3 sm:px-4 py-1.
