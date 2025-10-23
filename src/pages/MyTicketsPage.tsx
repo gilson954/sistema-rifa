@@ -29,8 +29,9 @@ const MyTicketsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [timeRemainingMap, setTimeRemainingMap] = useState<Record<string, string>>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const ordersPerPage = 5;
 
-  // Campaign context from navigation state
   const campaignContext = location.state as { campaignId?: string; organizerId?: string } | null;
 
   useEffect(() => {
@@ -39,7 +40,6 @@ const MyTicketsPage = () => {
     }
   }, [isPhoneAuthenticated, phoneUser, campaignContext?.organizerId]);
 
-  // Timer effect for pending orders
   useEffect(() => {
     const pendingOrders = orders.filter(order => order.status === 'reserved' && order.reservation_expires_at);
 
@@ -57,7 +57,6 @@ const MyTicketsPage = () => {
 
         if (difference <= 0) {
           newTimeMap[order.order_id] = 'EXPIRADO';
-          // Update order status to expired
           setOrders(prev => prev.map(o =>
             o.order_id === order.order_id ? { ...o, status: 'expired' as const } : o
           ));
@@ -79,19 +78,16 @@ const MyTicketsPage = () => {
 
   const handleLogout = async () => {
     await signOut();
-    // Redirecionar para a página inicial do organizador se tivermos o organizerId
     if (orders.length > 0 && organizerProfile?.id) {
       navigate(`/org/${organizerProfile.id}`);
       return;
     }
-    // Fallback para home
     navigate('/');
   };
 
   useEffect(() => {
     const loadOrganizerFromOrders = async () => {
       if (orders.length > 0) {
-        // Get organizer from first order's campaign
         const firstOrder = orders[0];
         const { data: campaign } = await supabase
           .from('campaigns')
@@ -129,17 +125,13 @@ const MyTicketsPage = () => {
       } else {
         let filteredOrders = data || [];
 
-        // Filter orders by organizer if campaign context is available
         if (campaignContext?.organizerId) {
-          // Get all campaigns from this organizer
           const { data: organizerCampaigns } = await supabase
             .from('campaigns')
             .select('id')
             .eq('user_id', campaignContext.organizerId);
 
           const organizerCampaignIds = organizerCampaigns?.map(c => c.id) || [];
-
-          // Filter orders to only show those from campaigns owned by this organizer
           filteredOrders = filteredOrders.filter(order =>
             organizerCampaignIds.includes(order.campaign_id)
           );
@@ -208,7 +200,6 @@ const MyTicketsPage = () => {
   };
 
   const handlePayment = (order: CustomerOrder) => {
-    // Navigate to payment confirmation page with order data
     navigate('/payment-confirmation', {
       state: {
         reservationData: {
@@ -229,14 +220,12 @@ const MyTicketsPage = () => {
     });
   };
 
-  // Redirecionar usuários não autenticados para home
   useEffect(() => {
     if (!authLoading && !isPhoneAuthenticated) {
       navigate('/', { replace: true });
     }
   }, [isPhoneAuthenticated, authLoading, navigate]);
 
-  // Mostrar loading enquanto verifica autenticação
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300 flex items-center justify-center">
@@ -245,15 +234,12 @@ const MyTicketsPage = () => {
     );
   }
 
-  // Se não estiver autenticado, não renderiza nada (será redirecionado)
   if (!isPhoneAuthenticated) {
     return null;
   }
 
-  // Pegar o tema do organizador (padrão: claro)
   const campaignTheme = organizerProfile?.theme || 'claro';
 
-  // Função para obter as classes de tema
   const getThemeClasses = (theme: string) => {
     switch (theme) {
       case 'claro':
@@ -296,14 +282,14 @@ const MyTicketsPage = () => {
   };
 
   const themeClasses = getThemeClasses(campaignTheme);
+  const totalPages = Math.ceil(orders.length / ordersPerPage);
+  const paginatedOrders = orders.slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage);
 
   return (
     <div className={`min-h-screen transition-colors duration-300 flex flex-col ${themeClasses.background}`}>
-      {/* Header customizado com botão de logout */}
       <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.headerBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            {/* Logo clicável à esquerda */}
             <button
               onClick={() => {
                 if (organizerProfile?.id) {
@@ -328,7 +314,6 @@ const MyTicketsPage = () => {
               )}
             </button>
 
-            {/* Botão de logout à direita */}
             <div className="flex items-center gap-3">
               {phoneUser && (
                 <div className={`hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg border ${
@@ -372,7 +357,6 @@ const MyTicketsPage = () => {
           </p>
         </motion.div>
 
-        {/* Orders Content */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
@@ -411,124 +395,217 @@ const MyTicketsPage = () => {
             </button>
           </motion.div>
         ) : (
-          <div className="max-h-[calc(100vh-320px)] overflow-y-auto pr-2 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-gray-600">
-            <AnimatePresence>
-              {orders.map((order, index) => {
-                const statusInfo = getStatusInfo(order.status);
-                const StatusIcon = statusInfo.icon;
-                const timeRemaining = timeRemainingMap[order.order_id];
+          <>
+            <div className="space-y-3">
+              <AnimatePresence mode="wait">
+                {paginatedOrders.map((order, index) => {
+                  const statusInfo = getStatusInfo(order.status);
+                  const StatusIcon = statusInfo.icon;
+                  const timeRemaining = timeRemainingMap[order.order_id];
 
-                return (
-                  <motion.div
-                    key={order.order_id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className={`${themeClasses.cardBg} rounded-2xl shadow-lg border-l-4 ${statusInfo.borderColor} overflow-hidden`}
-                  >
-                    <div className="p-6">
-                      <div className="flex flex-col md:flex-row gap-6">
-                        {/* Image */}
-                        <div className="flex-shrink-0">
-                          <img
-                            src={order.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400'}
-                            alt={order.campaign_title}
-                            className="w-full md:w-32 h-32 object-cover rounded-xl"
-                          />
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <h3 className={`text-xl font-bold ${themeClasses.text} mb-2 truncate`}>
-                            {order.campaign_title}
-                          </h3>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                            <div className="flex items-center text-sm">
-                              <Calendar className={`h-4 w-4 mr-2 ${themeClasses.textSecondary}`} />
-                              <span className={themeClasses.textSecondary}>
-                                {formatDate(order.reserved_at || order.created_at)}
-                              </span>
-                            </div>
-                            <div className="flex items-center text-sm">
-                              <Ticket className={`h-4 w-4 mr-2 ${themeClasses.textSecondary}`} />
-                              <span className={themeClasses.textSecondary}>
-                                {order.ticket_count} {order.ticket_count === 1 ? 'cota' : 'cotas'}
-                              </span>
-                            </div>
+                  return (
+                    <motion.div
+                      key={order.order_id}
+                      initial={{ opacity: 0, x: -50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 50 }}
+                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                      className={`${themeClasses.cardBg} rounded-xl shadow-md border-l-4 ${statusInfo.borderColor} overflow-hidden hover:shadow-lg transition-shadow duration-200`}
+                    >
+                      <div className="p-4">
+                        <div className="flex flex-col md:flex-row gap-4">
+                          <div className="flex-shrink-0">
+                            <img
+                              src={order.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400'}
+                              alt={order.campaign_title}
+                              className="w-full md:w-24 h-24 object-cover rounded-lg"
+                            />
                           </div>
 
-                          {/* Status Badge */}
-                          <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg ${statusInfo.bgColor} mb-4`}>
-                            <StatusIcon className={`h-5 w-5 ${statusInfo.color}`} />
-                            <span className={`font-semibold ${statusInfo.color}`}>
-                              {statusInfo.label}
-                            </span>
-                            {order.status === 'reserved' && timeRemaining && timeRemaining !== 'EXPIRADO' && (
-                              <>
-                                <span className={statusInfo.color}>•</span>
-                                <Timer className={`h-4 w-4 ${statusInfo.color}`} />
-                                <span className={`font-mono font-bold ${statusInfo.color}`}>
-                                  {timeRemaining}
+                          <div className="flex-1 min-w-0">
+                            <h3 className={`text-lg font-bold ${themeClasses.text} mb-2 truncate`}>
+                              {order.campaign_title}
+                            </h3>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                              <div className="flex items-center text-xs">
+                                <Calendar className={`h-3 w-3 mr-1.5 ${themeClasses.textSecondary}`} />
+                                <span className={themeClasses.textSecondary}>
+                                  {formatDate(order.reserved_at || order.created_at)}
                                 </span>
-                              </>
+                              </div>
+                              <div className="flex items-center text-xs">
+                                <motion.div
+                                  animate={{
+                                    scale: [1, 1.2, 1],
+                                    rotate: [0, 5, -5, 0],
+                                  }}
+                                  transition={{
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    repeatDelay: 1
+                                  }}
+                                  className="mr-1.5"
+                                >
+                                  <Ticket className={`h-3 w-3 ${
+                                    order.status === 'purchased' 
+                                      ? 'text-green-500' 
+                                      : order.status === 'reserved'
+                                      ? 'text-yellow-500'
+                                      : 'text-red-500'
+                                  }`} />
+                                </motion.div>
+                                <span className={`font-bold ${
+                                  order.status === 'purchased' 
+                                    ? 'text-green-600 dark:text-green-400' 
+                                    : order.status === 'reserved'
+                                    ? 'text-yellow-600 dark:text-yellow-400'
+                                    : 'text-red-600 dark:text-red-400'
+                                }`}>
+                                  {order.ticket_count} {order.ticket_count === 1 ? 'cota' : 'cotas'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg ${statusInfo.bgColor} mb-3`}>
+                              <StatusIcon className={`h-4 w-4 ${statusInfo.color}`} />
+                              <span className={`text-xs font-semibold ${statusInfo.color}`}>
+                                {statusInfo.label}
+                              </span>
+                              {order.status === 'reserved' && timeRemaining && timeRemaining !== 'EXPIRADO' && (
+                                <>
+                                  <span className={statusInfo.color}>•</span>
+                                  <Timer className={`h-3 w-3 ${statusInfo.color}`} />
+                                  <span className={`font-mono text-xs font-bold ${statusInfo.color}`}>
+                                    {timeRemaining}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+
+                            {order.status === 'purchased' && order.ticket_numbers.length > 0 && (
+                              <div className="mb-3">
+                                <div className={`text-xs ${themeClasses.textSecondary} font-semibold mb-1.5`}>
+                                  Números das Cotas:
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {order.ticket_numbers.map((num) => (
+                                    <span
+                                      key={num}
+                                      className="px-2 py-0.5 text-xs font-bold rounded-md bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                    >
+                                      {num.toString().padStart(4, '0')}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="flex items-baseline gap-2 mb-3">
+                              <span className={`text-xs ${themeClasses.textSecondary}`}>Valor Total:</span>
+                              <span className={`text-xl font-bold ${themeClasses.text}`}>
+                                {formatCurrency(order.total_value)}
+                              </span>
+                            </div>
+
+                            {order.status === 'reserved' && (
+                              <button
+                                onClick={() => handlePayment(order)}
+                                className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2.5 rounded-lg font-bold text-sm transition-all duration-200 shadow-md`}
+                              >
+                                Efetuar Pagamento
+                              </button>
+                            )}
+
+                            {order.status === 'expired' && (
+                              <div className={`text-center py-2 px-3 rounded-lg ${statusInfo.bgColor}`}>
+                                <span className={`text-xs font-medium ${statusInfo.color}`}>
+                                  As cotas foram liberadas. Faça uma nova reserva se desejar.
+                                </span>
+                              </div>
                             )}
                           </div>
-
-                          {/* Ticket Numbers for Paid Orders */}
-                          {order.status === 'purchased' && order.ticket_numbers.length > 0 && (
-                            <div className="mb-4">
-                              <div className={`text-xs ${themeClasses.textSecondary} font-semibold mb-2`}>
-                                Números das Cotas:
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {order.ticket_numbers.map((num) => (
-                                  <span
-                                    key={num}
-                                    className="px-3 py-1 text-sm font-bold rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                  >
-                                    {num.toString().padStart(4, '0')}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Total Value */}
-                          <div className="flex items-baseline gap-2 mb-4">
-                            <span className={`text-sm ${themeClasses.textSecondary}`}>Valor Total:</span>
-                            <span className={`text-2xl font-bold ${themeClasses.text}`}>
-                              {formatCurrency(order.total_value)}
-                            </span>
-                          </div>
-
-                          {/* Payment Button for Reserved Orders */}
-                          {order.status === 'reserved' && (
-                            <button
-                              onClick={() => handlePayment(order)}
-                              className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg`}
-                            >
-                              Efetuar Pagamento
-                            </button>
-                          )}
-
-                          {/* Expired Message */}
-                          {order.status === 'expired' && (
-                            <div className={`text-center py-2 px-4 rounded-lg ${statusInfo.bgColor}`}>
-                              <span className={`text-sm font-medium ${statusInfo.color}`}>
-                                As cotas foram liberadas. Faça uma nova reserva se desejar.
-                              </span>
-                            </div>
-                          )}
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+
+            {totalPages > 1 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="flex flex-col sm:flex-row items-center justify-between mt-8 gap-4 p-4 rounded-xl bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-gray-800/50 dark:to-gray-900/50 border border-blue-200/30 dark:border-gray-700/30 backdrop-blur-sm"
+              >
+                <div className={`text-sm font-medium ${themeClasses.textSecondary}`}>
+                  Mostrando{' '}
+                  <span className="font-bold text-blue-600 dark:text-blue-400">
+                    {((currentPage - 1) * ordersPerPage) + 1}
+                  </span>
+                  {' '}a{' '}
+                  <span className="font-bold text-blue-600 dark:text-blue-400">
+                    {Math.min(currentPage * ordersPerPage, orders.length)}
+                  </span>
+                  {' '}de{' '}
+                  <span className="font-bold text-blue-600 dark:text-blue-400">
+                    {orders.length}
+                  </span>
+                  {' '}pedidos
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 ${
+                      currentPage === 1
+                        ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white shadow-md hover:shadow-lg'
+                    }`}
+                  >
+                    Anterior
+                  </motion.button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <motion.button
+                        key={page}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-10 h-10 rounded-lg font-bold text-sm transition-all duration-300 ${
+                          currentPage === page
+                            ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg scale-110'
+                            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        {page}
+                      </motion.button>
+                    ))}
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 ${
+                      currentPage === totalPages
+                        ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white shadow-md hover:shadow-lg'
+                    }`}
+                  >
+                    Próximo
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+          </>
         )}
       </main>
 
