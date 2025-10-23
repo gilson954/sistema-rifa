@@ -61,20 +61,9 @@ const MyTicketsPage = () => {
             o.order_id === order.order_id ? { ...o, status: 'expired' as const } : o
           ));
         } else {
-          // Calcular dias, horas, minutos e segundos
-          const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+          const minutes = Math.floor(difference / (1000 * 60));
           const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-          
-          // Formatar conforme o tempo restante
-          if (days > 0) {
-            newTimeMap[order.order_id] = `${days}d ${hours}h ${minutes}min`;
-          } else if (hours > 0) {
-            newTimeMap[order.order_id] = `${hours}h ${minutes}min`;
-          } else {
-            newTimeMap[order.order_id] = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-          }
+          newTimeMap[order.order_id] = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
       });
 
@@ -354,28 +343,41 @@ const MyTicketsPage = () => {
       </header>
 
       <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-8 w-full">
-        <div className="mb-4 sm:mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-4 sm:mb-8"
+        >
           <h1 className={`text-2xl sm:text-3xl md:text-4xl font-bold ${themeClasses.text} mb-1 sm:mb-2`}>
             Meus Pedidos
           </h1>
           <p className={`text-sm sm:text-base ${themeClasses.textSecondary}`}>
             Bem-vindo, {phoneUser?.name || 'Cliente'}
           </p>
-        </div>
+        </motion.div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
           </div>
         ) : error ? (
-          <div className={`${themeClasses.cardBg} rounded-2xl shadow-xl p-8 border border-red-200 dark:border-red-800`}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`${themeClasses.cardBg} rounded-2xl shadow-xl p-8 border border-red-200 dark:border-red-800`}
+          >
             <div className="flex items-center space-x-3 text-red-600 dark:text-red-400">
               <AlertCircle className="h-6 w-6" />
               <span className="font-medium">{error}</span>
             </div>
-          </div>
+          </motion.div>
         ) : orders.length === 0 ? (
-          <div className={`${themeClasses.cardBg} rounded-2xl shadow-xl p-8 sm:p-12 text-center border ${themeClasses.border}`}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`${themeClasses.cardBg} rounded-2xl shadow-xl p-8 sm:p-12 text-center border ${themeClasses.border}`}
+          >
             <div className={`w-16 h-16 sm:w-20 sm:h-20 ${campaignTheme === 'claro' ? 'bg-gray-100' : 'bg-gray-800'} rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6`}>
               <Ticket className="h-8 sm:h-10 w-8 sm:w-10 text-gray-400" />
             </div>
@@ -391,19 +393,23 @@ const MyTicketsPage = () => {
             >
               Explorar Campanhas
             </button>
-          </div>
+          </motion.div>
         ) : (
           <>
             <div className="space-y-2 sm:space-y-3">
               <AnimatePresence mode="wait">
-                {paginatedOrders.map((order) => {
+                {paginatedOrders.map((order, index) => {
                   const statusInfo = getStatusInfo(order.status);
                   const StatusIcon = statusInfo.icon;
                   const timeRemaining = timeRemainingMap[order.order_id];
 
                   return (
-                    <div
+                    <motion.div
                       key={order.order_id}
+                      initial={{ opacity: 0, x: -50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 50 }}
+                      transition={{ duration: 0.4, delay: index * 0.1 }}
                       className={`${themeClasses.cardBg} rounded-lg sm:rounded-xl shadow-md border-l-4 ${statusInfo.borderColor} overflow-hidden hover:shadow-lg transition-shadow duration-200`}
                     >
                       <div className="p-3 sm:p-4">
@@ -517,28 +523,32 @@ const MyTicketsPage = () => {
                             )}
 
                             {order.status === 'expired' && (
-                              <button
-                                onClick={() => handlePayment(order)}
-                                className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 shadow-md`}
-                              >
-                                Compra Cancelada
-                              </button>
+                              <div className={`text-center py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg ${statusInfo.bgColor}`}>
+                                <span className={`text-xs font-medium ${statusInfo.color}`}>
+                                  As cotas foram liberadas.
+                                </span>
+                              </div>
                             )}
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </AnimatePresence>
             </div>
 
             {totalPages > 1 && (
-              <div className={`flex flex-col items-center justify-between mt-6 sm:mt-8 gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg sm:rounded-xl border shadow-md ${
-                campaignTheme === 'claro'
-                  ? 'bg-white border-gray-200'
-                  : 'bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-gray-700/30'
-              } backdrop-blur-sm`}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className={`flex flex-col items-center justify-between mt-6 sm:mt-8 gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg sm:rounded-xl border shadow-md ${
+                  campaignTheme === 'claro'
+                    ? 'bg-white border-gray-200'
+                    : 'bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-gray-700/30'
+                } backdrop-blur-sm`}
+              >
                 <div className={`text-xs sm:text-sm font-medium ${themeClasses.textSecondary} text-center`}>
                   Mostrando{' '}
                   <span className="font-bold text-blue-600 dark:text-blue-400">
@@ -602,7 +612,7 @@ const MyTicketsPage = () => {
                     Próx.
                   </motion.button>
                 </div>
-              </div>
+              </motion.div>
             )}
           </>
         )}
