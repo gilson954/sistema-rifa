@@ -1,3 +1,4 @@
+```typescript
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, Plus, Trash2, AlertTriangle, ChevronDown, Calendar, Gift, Trophy, Settings, Image as ImageIcon, FileText, Check } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -11,7 +12,7 @@ import PrizesModal from '../components/PrizesModal';
 import DateTimePickerModal from '../components/DateTimePickerModal';
 import { Promotion, Prize } from '../types/promotion';
 import 'react-datepicker/dist/react-datepicker.css';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'; // Explicitly imported
 
 const CreateCampaignStep2Page = () => {
   const navigate = useNavigate();
@@ -47,11 +48,29 @@ const CreateCampaignStep2Page = () => {
   const [showDateTimeModal, setShowDateTimeModal] = useState(false);
   const [showPromotionModal, setShowPromotionModal] = useState(false);
   const [showPrizesModal, setShowPrizesModal] = useState(false);
+  const [showReservationDropdown, setShowReservationDropdown] = useState(false);
+  const [showCampaignModelDropdown, setShowCampaignModelDropdown] = useState(false);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [campaignModelError, setCampaignModelError] = useState<string>('');
+
+  const campaignModelOptions = [
+    { value: 'automatic', label: 'Automático' },
+    { value: 'manual', label: 'Manual' },
+  ];
+
+  const reservationTimeoutOptions = [
+    { value: 10, label: '10 minutos' },
+    { value: 30, label: '30 minutos' },
+    { value: 60, label: '1 hora' },
+    { value: 180, label: '3 horas' },
+    { value: 720, label: '12 horas' },
+    { value: 1440, label: '1 dia' },
+    { value: 2880, label: '2 dias' },
+    { value: 5760, label: '4 dias' }
+  ];
 
   useEffect(() => {
     if (campaign) {
@@ -103,9 +122,6 @@ const CreateCampaignStep2Page = () => {
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else if (type === 'number') {
       const numValue = parseInt(value) || 0;
-      setFormData(prev => ({ ...prev, [name]: numValue }));
-    } else if (name === 'reservationTimeoutMinutes') {
-      const numValue = parseInt(value) || 15;
       setFormData(prev => ({ ...prev, [name]: numValue }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
@@ -276,17 +292,6 @@ const CreateCampaignStep2Page = () => {
   const formatCurrency = (value: number) => {
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
-
-  const reservationTimeoutOptions = [
-    { value: 10, label: '10 minutos' },
-    { value: 30, label: '30 minutos' },
-    { value: 60, label: '1 hora' },
-    { value: 180, label: '3 horas' },
-    { value: 720, label: '12 horas' },
-    { value: 1440, label: '1 dia' },
-    { value: 2880, label: '2 dias' },
-    { value: 5760, label: '4 dias' }
-  ];
 
   if (campaignLoading) {
     return (
@@ -645,19 +650,43 @@ const CreateCampaignStep2Page = () => {
                   Tempo de reserva das cotas
                 </label>
                 <div className="relative">
-                  <select
-                    name="reservationTimeoutMinutes"
-                    value={formData.reservationTimeoutMinutes}
-                    onChange={handleInputChange}
-                    className="w-full appearance-none px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 border-gray-300 dark:border-gray-600"
+                  <motion.button
+                    type="button"
+                    onClick={() => setShowReservationDropdown(!showReservationDropdown)}
+                    className="w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 border-gray-300 dark:border-gray-600 text-left flex justify-between items-center"
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
                   >
-                    {reservationTimeoutOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                    <span>{reservationTimeoutOptions.find(opt => opt.value === formData.reservationTimeoutMinutes)?.label || 'Selecione o tempo'}</span>
+                    <motion.span animate={{ rotate: showReservationDropdown ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                      <ChevronDown className="h-5 w-5 text-gray-400" />
+                    </motion.span>
+                  </motion.button>
+                  <AnimatePresence>
+                    {showReservationDropdown && (
+                      <motion.ul
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl shadow-lg max-h-60 overflow-auto"
+                      >
+                        {reservationTimeoutOptions.map((option) => (
+                          <motion.li
+                            key={option.value}
+                            onClick={() => {
+                              handleInputChange({ target: { name: 'reservationTimeoutMinutes', value: option.value.toString(), type: 'select-one' } } as any);
+                              setShowReservationDropdown(false);
+                            }}
+                            className="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/30 cursor-pointer transition-colors text-gray-900 dark:text-white"
+                            whileHover={{ scale: 1.02, backgroundColor: 'rgba(168, 85, 247, 0.1)' }}
+                          >
+                            {option.label}
+                          </motion.li>
+                        ))}
+                      </motion.ul>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
 
@@ -716,18 +745,45 @@ const CreateCampaignStep2Page = () => {
                   Modelo da campanha
                 </label>
                 <div className="relative">
-                  <select
-                    name="campaignModel"
-                    value={formData.campaignModel}
-                    onChange={handleInputChange}
-                    className={`w-full appearance-none px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                  <motion.button
+                    type="button"
+                    onClick={() => setShowCampaignModelDropdown(!showCampaignModelDropdown)}
+                    className={`w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-left flex justify-between items-center ${
                       campaignModelError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
                   >
-                    <option value="automatic">Automático</option>
-                    <option value="manual">Manual</option>
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                    <span>{campaignModelOptions.find(opt => opt.value === formData.campaignModel)?.label || 'Selecione o modelo'}</span>
+                    <motion.span animate={{ rotate: showCampaignModelDropdown ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                      <ChevronDown className="h-5 w-5 text-gray-400" />
+                    </motion.span>
+                  </motion.button>
+                  <AnimatePresence>
+                    {showCampaignModelDropdown && (
+                      <motion.ul
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl shadow-lg overflow-auto"
+                      >
+                        {campaignModelOptions.map((option) => (
+                          <motion.li
+                            key={option.value}
+                            onClick={() => {
+                              handleInputChange({ target: { name: 'campaignModel', value: option.value, type: 'select-one' } } as any);
+                              setShowCampaignModelDropdown(false);
+                            }}
+                            className="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/30 cursor-pointer transition-colors text-gray-900 dark:text-white"
+                            whileHover={{ scale: 1.02, backgroundColor: 'rgba(168, 85, 247, 0.1)' }}
+                          >
+                            {option.label}
+                          </motion.li>
+                        ))}
+                      </motion.ul>
+                    )}
+                  </AnimatePresence>
                 </div>
                 
                 {/* Preview Image */}
@@ -859,3 +915,4 @@ const CreateCampaignStep2Page = () => {
 };
 
 export default CreateCampaignStep2Page;
+```
