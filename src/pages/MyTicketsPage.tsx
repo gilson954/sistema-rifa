@@ -61,9 +61,20 @@ const MyTicketsPage = () => {
             o.order_id === order.order_id ? { ...o, status: 'expired' as const } : o
           ));
         } else {
-          const minutes = Math.floor(difference / (1000 * 60));
+          // Calcular dias, horas, minutos e segundos
+          const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-          newTimeMap[order.order_id] = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+          
+          // Formatar conforme o tempo restante
+          if (days > 0) {
+            newTimeMap[order.order_id] = `${days}d ${hours}h ${minutes}min`;
+          } else if (hours > 0) {
+            newTimeMap[order.order_id] = `${hours}h ${minutes}min`;
+          } else {
+            newTimeMap[order.order_id] = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+          }
         }
       });
 
@@ -523,11 +534,12 @@ const MyTicketsPage = () => {
                             )}
 
                             {order.status === 'expired' && (
-                              <div className={`text-center py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg ${statusInfo.bgColor}`}>
-                                <span className={`text-xs font-medium ${statusInfo.color}`}>
-                                  As cotas foram liberadas.
-                                </span>
-                              </div>
+                              <button
+                                onClick={() => handlePayment(order)}
+                                className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 shadow-md`}
+                              >
+                                Tentar Novamente
+                              </button>
                             )}
                           </div>
                         </div>
