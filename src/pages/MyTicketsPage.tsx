@@ -538,7 +538,7 @@ const MyTicketsPage = () => {
                                 onClick={() => handlePayment(order)}
                                 className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 shadow-md`}
                               >
-                                Compra Cancelada
+                                Tentar Novamente
                               </button>
                             )}
                           </div>
