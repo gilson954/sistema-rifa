@@ -42,8 +42,11 @@ import { supabase } from '../lib/supabase';
 import { CotasPremiadasAPI } from '../lib/api/cotasPremiadas';
 import { useFavoriteCampaigns } from '../hooks/useFavoriteCampaigns';
 
-// ✅ NOVO VALOR PADRÃO PARA O LIMITE MÁXIMO DE COTAS POR COMPRA
+// ✅ VALOR PADRÃO PARA O LIMITE MÁXIMO DE COTAS POR COMPRA
 const DEFAULT_MAX_TICKETS_PER_PURCHASE = 20000;
+
+// ✅ NOVO VALOR PADRÃO PARA O NÚMERO TOTAL DE TICKETS DA CAMPANHA (COMO FALLBACK)
+const DEFAULT_TOTAL_TICKETS = 20000;
 
 interface PromotionInfo {
   promotion: Promotion;
@@ -406,7 +409,7 @@ const CampaignPage = () => {
     if (!isAvailable) return;
 
     setSelectedQuotas(prev => {
-      // ✅ ATUALIZAÇÃO: Usando DEFAULT_MAX_TICKETS_PER_PURCHASE como limite padrão
+      // ✅ LIMITE DE COMPRA POR TRANSAÇÃO
       const maxLimit = campaign.max_tickets_per_purchase || DEFAULT_MAX_TICKETS_PER_PURCHASE;
       
       if (prev.includes(quotaNumber)) {
@@ -816,7 +819,8 @@ const CampaignPage = () => {
 
   const getProgressPercentage = () => {
     if (!campaign) return 0;
-    return Math.round((campaign.sold_tickets / campaign.total_tickets) * 100);
+    // ✅ ATUALIZAÇÃO: Uso de DEFAULT_TOTAL_TICKETS como fallback para o total da campanha
+    return Math.round((campaign.sold_tickets / (campaign.total_tickets || DEFAULT_TOTAL_TICKETS)) * 100);
   };
 
   const currentPromotionInfo = campaign?.campaign_model === 'manual' 
@@ -1406,7 +1410,8 @@ const CampaignPage = () => {
               )}
 
               <QuotaGrid
-                totalQuotas={campaign.total_tickets}
+                // ✅ ATUALIZAÇÃO: Uso de DEFAULT_TOTAL_TICKETS como fallback para o total da campanha
+                totalQuotas={campaign.total_tickets || DEFAULT_TOTAL_TICKETS}
                 selectedQuotas={selectedQuotas}
                 onQuotaSelect={isCampaignAvailable ? handleQuotaSelect : undefined}
                 activeFilter={activeFilter}
@@ -1508,7 +1513,7 @@ const CampaignPage = () => {
             <QuotaSelector
               ticketPrice={campaign.ticket_price}
               minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
-              // ✅ ATUALIZAÇÃO: Usando DEFAULT_MAX_TICKETS_PER_PURCHASE (20000)
+              // ✅ LIMITE DE COMPRA POR TRANSAÇÃO: 20.000
               maxTicketsPerPurchase={campaign.max_tickets_per_purchase || DEFAULT_MAX_TICKETS_PER_PURCHASE}
               onQuantityChange={handleQuantityChange}
               initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
@@ -1730,7 +1735,7 @@ const CampaignPage = () => {
           cotasPremiadas={cotasPremiadas}
           campaignTitle={campaign.title}
           campaignTheme={campaignTheme}
-          totalTickets={campaign.total_tickets}
+          totalTickets={campaign.total_tickets || DEFAULT_TOTAL_TICKETS}
           colorMode={organizerProfile?.color_mode}
           primaryColor={primaryColor}
           gradientClasses={organizerProfile?.gradient_classes}
