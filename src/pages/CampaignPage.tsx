@@ -444,7 +444,27 @@ const CampaignPage = () => {
         }
 
         // Modo automático: buscar cotas disponíveis diretamente do banco
-        // Usar RPC para buscar apenas a quantidade necessária
+        console.log('🔍 [handleReservationSubmit] Searching for available tickets...');
+        console.log('Campaign ID:', campaign.id);
+        console.log('Requested quantity:', quantity);
+
+        // First, check total ticket count for this campaign
+        const { count: totalTicketCount } = await supabase
+          .from('tickets')
+          .select('*', { count: 'exact', head: true })
+          .eq('campaign_id', campaign.id);
+
+        console.log('Total tickets in database:', totalTicketCount);
+
+        // Check available tickets count
+        const { count: availableCount } = await supabase
+          .from('tickets')
+          .select('*', { count: 'exact', head: true })
+          .eq('campaign_id', campaign.id)
+          .eq('status', 'disponível');
+
+        console.log('Available tickets:', availableCount);
+
         const { data: availableQuotas, error: quotasError } = await supabase
           .from('tickets')
           .select('quota_number')
@@ -452,8 +472,20 @@ const CampaignPage = () => {
           .eq('status', 'disponível')
           .limit(quantity);
 
-        if (quotasError || !availableQuotas || availableQuotas.length === 0) {
-          showError('Nenhuma cota disponível no momento. Tente novamente.');
+        console.log('Query result:', availableQuotas?.length || 0, 'tickets found');
+
+        if (quotasError) {
+          console.error('Database error:', quotasError);
+          showError(`Erro ao buscar cotas: ${quotasError.message}`);
+          return;
+        }
+
+        if (!availableQuotas || availableQuotas.length === 0) {
+          if (totalTicketCount === 0) {
+            showError('Esta campanha não tem cotas criadas. Contate o organizador.');
+          } else {
+            showError(`Nenhuma cota disponível. Total na campanha: ${totalTicketCount || 0}, Disponíveis: ${availableCount || 0}`);
+          }
           return;
         }
 
@@ -583,6 +615,36 @@ const CampaignPage = () => {
         quotaNumbersToReserve = selectedQuotas;
       } else {
         // Modo automático: buscar cotas disponíveis diretamente do banco
+        console.log('🔍 [AUTOMATIC MODE] Searching for available tickets...');
+        console.log('Campaign ID:', campaign.id);
+        console.log('Requested quantity:', quantity);
+
+        // First, check total ticket count for this campaign
+        const { count: totalTicketCount, error: countError } = await supabase
+          .from('tickets')
+          .select('*', { count: 'exact', head: true })
+          .eq('campaign_id', campaign.id);
+
+        console.log('Total tickets in database:', totalTicketCount);
+        console.log('Campaign total_tickets:', campaign.total_tickets);
+
+        if (countError) {
+          console.error('Error counting tickets:', countError);
+        }
+
+        // Check available tickets count
+        const { count: availableCount, error: availableCountError } = await supabase
+          .from('tickets')
+          .select('*', { count: 'exact', head: true })
+          .eq('campaign_id', campaign.id)
+          .eq('status', 'disponível');
+
+        console.log('Available tickets (status=disponível):', availableCount);
+
+        if (availableCountError) {
+          console.error('Error counting available tickets:', availableCountError);
+        }
+
         const { data: availableQuotas, error: quotasError } = await supabase
           .from('tickets')
           .select('quota_number')
@@ -590,8 +652,26 @@ const CampaignPage = () => {
           .eq('status', 'disponível')
           .limit(quantity);
 
-        if (quotasError || !availableQuotas || availableQuotas.length === 0) {
-          showError('Nenhuma cota disponível no momento. Tente novamente.');
+        console.log('Query result - available quotas:', availableQuotas);
+        console.log('Query error:', quotasError);
+
+        if (quotasError) {
+          console.error('Database error fetching tickets:', quotasError);
+          showError(`Erro ao buscar cotas: ${quotasError.message}`);
+          setShowStep2Modal(false);
+          return;
+        }
+
+        if (!availableQuotas || availableQuotas.length === 0) {
+          if (totalTicketCount === 0) {
+            showError('Esta campanha não tem cotas criadas. Contate o organizador.');
+            console.error('❌ No tickets found in database for this campaign');
+          } else if (availableCount === 0) {
+            showError('Todas as cotas desta campanha já foram reservadas ou compradas.');
+            console.log('ℹ️ All tickets are reserved or purchased');
+          } else {
+            showError(`Nenhuma cota disponível no momento. Disponíveis: ${availableCount || 0}`);
+          }
           setShowStep2Modal(false);
           return;
         }
@@ -601,6 +681,7 @@ const CampaignPage = () => {
         }
 
         quotaNumbersToReserve = availableQuotas.map(t => t.quota_number);
+        console.log('✅ Quotas to reserve:', quotaNumbersToReserve.length);
       }
 
       console.log('Quotas to reserve:', quotaNumbersToReserve);
