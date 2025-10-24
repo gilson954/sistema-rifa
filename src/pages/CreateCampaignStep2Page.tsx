@@ -35,7 +35,7 @@ const CreateCampaignStep2Page = () => {
     description: '',
     requireEmail: true,
     minTicketsPerPurchase: 1,
-    maxTicketsPerPurchase: 1000,
+    maxTicketsPerPurchase: 20000,
     campaignModel: 'automatic' as 'manual' | 'automatic',
     showPercentage: false,
     reservationTimeoutMinutes: 30,
@@ -59,7 +59,7 @@ const CreateCampaignStep2Page = () => {
         description: campaign.description || '',
         requireEmail: campaign.require_email ?? true,
         minTicketsPerPurchase: campaign.min_tickets_per_purchase || 1,
-        maxTicketsPerPurchase: campaign.max_tickets_per_purchase || 1000,
+        maxTicketsPerPurchase: campaign.max_tickets_per_purchase || 20000,
         campaignModel: campaign.campaign_model || 'automatic',
         showPercentage: campaign.show_percentage ?? false,
         reservationTimeoutMinutes: campaign.reservation_timeout_minutes || 30,
@@ -575,20 +575,6 @@ const CreateCampaignStep2Page = () => {
                       : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-500'
                   }`}
                 >
-                  <div className="flex items-center justify-center space-x-2">
-                    <Calendar className="w-4 h-4" />
-                    <span>Mostrar data</span>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDrawDateOptionChange('no-date')}
-                  className={`py-4 px-6 rounded-xl font-bold transition-all duration-300 border-2 ${
-                    formData.showDrawDateOption === 'no-date'
-                      ? 'animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white border-transparent shadow-lg'
-                      : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-500'
-                  }`}
-                >
                   Não mostrar data
                 </button>
               </div>
@@ -697,6 +683,7 @@ const CreateCampaignStep2Page = () => {
                     value={formData.maxTicketsPerPurchase}
                     onChange={handleInputChange}
                     min="1"
+                    max="20000"
                     className={`w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
                       errors.maxTicketsPerPurchase ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
@@ -858,4 +845,18 @@ const CreateCampaignStep2Page = () => {
   );
 };
 
-export default CreateCampaignStep2Page;
+export default CreateCampaignStep2Page;border-gray-600 hover:border-blue-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-center space-x-2">
+                    <Calendar className="w-4 h-4" />
+                    <span>Mostrar data</span>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDrawDateOptionChange('no-date')}
+                  className={`py-4 px-6 rounded-xl font-bold transition-all duration-300 border-2 ${
+                    formData.showDrawDateOption === 'no-date'
+                      ? 'animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 text-white border-transparent shadow-lg'
+                      : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-300 dark
