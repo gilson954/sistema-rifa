@@ -35,7 +35,7 @@ const CreateCampaignStep2Page = () => {
     description: '',
     requireEmail: true,
     minTicketsPerPurchase: 1,
-    maxTicketsPerPurchase: 20000,
+    maxTicketsPerPurchase: 1000,
     campaignModel: 'automatic' as 'manual' | 'automatic',
     showPercentage: false,
     reservationTimeoutMinutes: 30,
@@ -59,7 +59,7 @@ const CreateCampaignStep2Page = () => {
         description: campaign.description || '',
         requireEmail: campaign.require_email ?? true,
         minTicketsPerPurchase: campaign.min_tickets_per_purchase || 1,
-        maxTicketsPerPurchase: campaign.max_tickets_per_purchase || 20000,
+        maxTicketsPerPurchase: campaign.max_tickets_per_purchase || 1000,
         campaignModel: campaign.campaign_model || 'automatic',
         showPercentage: campaign.show_percentage ?? false,
         reservationTimeoutMinutes: campaign.reservation_timeout_minutes || 30,
@@ -309,6 +309,7 @@ const CreateCampaignStep2Page = () => {
   return (
     <div className="dashboard-page min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header com Progress */}
         <div className="mb-8">
           <div className="flex items-center space-x-4 mb-6">
             <button
@@ -327,6 +328,7 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
+          {/* Progress Steps - Estilo Dashboard */}
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
@@ -352,6 +354,7 @@ const CreateCampaignStep2Page = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Error Message */}
           {errors.submit && (
             <div className="rounded-2xl p-5 border border-red-200/20 dark:border-red-800/30 bg-red-50/60 dark:bg-red-900/20 backdrop-blur-sm">
               <div className="flex items-center space-x-3">
@@ -363,6 +366,7 @@ const CreateCampaignStep2Page = () => {
             </div>
           )}
 
+          {/* Campaign Images Section */}
           <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
             <div className="flex items-center space-x-3 p-5 border-b border-gray-200/20 dark:border-gray-700/30">
               <div className="w-10 h-10 rounded-xl animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 flex items-center justify-center shadow-md">
@@ -384,6 +388,7 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
+          {/* Campaign Description Section */}
           <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
             <div className="flex items-center space-x-3 p-5 border-b border-gray-200/20 dark:border-gray-700/30">
               <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
@@ -402,6 +407,7 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
+          {/* Promotions Section */}
           <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-gray-200/20 dark:border-gray-700/30">
               <div className="flex items-center space-x-3">
@@ -484,6 +490,7 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
+          {/* Prizes Section */}
           <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-gray-200/20 dark:border-gray-700/30">
               <div className="flex items-center space-x-3">
@@ -547,6 +554,7 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
+          {/* Draw Date Section */}
           <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
             <div className="flex items-center space-x-3 p-5 border-b border-gray-200/20 dark:border-gray-700/30">
               <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
@@ -620,6 +628,7 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
+          {/* Campaign Settings Section */}
           <div className="rounded-2xl border border-gray-200/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm overflow-hidden">
             <div className="flex items-center space-x-3 p-5 border-b border-gray-200/20 dark:border-gray-700/30">
               <div className="w-10 h-10 rounded-xl bg-gray-700 flex items-center justify-center shadow-md">
@@ -630,6 +639,7 @@ const CreateCampaignStep2Page = () => {
               </h2>
             </div>
             <div className="p-6 space-y-6">
+              {/* Reservation Timeout */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Tempo de reserva das cotas
@@ -651,7 +661,9 @@ const CreateCampaignStep2Page = () => {
                 </div>
               </div>
 
+              {/* Min and Max Tickets Grid */}
               <div className="grid md:grid-cols-2 gap-6">
+                {/* Min Tickets Per Purchase */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Mínimo de bilhetes por compra
@@ -674,6 +686,7 @@ const CreateCampaignStep2Page = () => {
                   )}
                 </div>
 
+                {/* Max Tickets Per Purchase */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Máximo de bilhetes por compra
@@ -684,7 +697,6 @@ const CreateCampaignStep2Page = () => {
                     value={formData.maxTicketsPerPurchase}
                     onChange={handleInputChange}
                     min="1"
-                    max="20000"
                     className={`w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
                       errors.maxTicketsPerPurchase ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
@@ -698,6 +710,7 @@ const CreateCampaignStep2Page = () => {
                 </div>
               </div>
 
+              {/* Campaign Model with Preview */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Modelo da campanha
@@ -717,6 +730,7 @@ const CreateCampaignStep2Page = () => {
                   <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
                 </div>
                 
+                {/* Preview Image */}
                 <div className="mt-4 rounded-xl overflow-hidden border-2 border-gray-200/30 dark:border-gray-700/30 bg-gradient-to-br from-gray-50/50 to-gray-100/50 dark:from-gray-800/50 dark:to-gray-900/50 p-3">
                   <div className="flex items-center space-x-2 mb-2">
                     <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
@@ -751,6 +765,7 @@ const CreateCampaignStep2Page = () => {
                 )}
               </div>
 
+              {/* Checkboxes Section */}
               <div className="space-y-3 pt-4 border-t-2 border-gray-200/20 dark:border-gray-700/30">
                 <motion.div 
                   className="flex items-center p-4 rounded-xl border border-green-100/20 dark:border-green-900/30 bg-green-50/30 dark:bg-green-900/10 backdrop-blur-sm hover:border-green-300/50 dark:hover:border-green-700/50 transition-all duration-200"
@@ -790,6 +805,7 @@ const CreateCampaignStep2Page = () => {
             </div>
           </div>
 
+          {/* Submit Button */}
           <div className="flex justify-end pt-4">
             <button
               type="submit"
@@ -811,6 +827,7 @@ const CreateCampaignStep2Page = () => {
           </div>
         </form>
 
+        {/* Promotion Modal */}
         <PromotionModal
           isOpen={showPromotionModal}
           onClose={() => setShowPromotionModal(false)}
@@ -820,6 +837,7 @@ const CreateCampaignStep2Page = () => {
           campaignTotalTickets={campaign?.total_tickets || 0}
         />
 
+        {/* Prizes Modal */}
         <PrizesModal
           isOpen={showPrizesModal}
           onClose={() => setShowPrizesModal(false)}
@@ -827,6 +845,7 @@ const CreateCampaignStep2Page = () => {
           onSavePrizes={handleSavePrizes}
         />
 
+        {/* DateTime Picker Modal */}
         <DateTimePickerModal
           isOpen={showDateTimeModal}
           onClose={() => setShowDateTimeModal(false)}
