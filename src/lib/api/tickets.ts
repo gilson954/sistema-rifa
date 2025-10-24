@@ -63,6 +63,7 @@ export interface CustomerOrder {
 export class TicketsAPI {
   /**
    * Busca o status de todos os tickets de uma campanha (otimizado para frontend)
+   * Implementa paginação automática para campanhas com mais de 10000 tickets
    */
   static async getCampaignTicketsStatus(
     campaignId: string,
@@ -76,17 +77,60 @@ export class TicketsAPI {
         .eq('id', campaignId)
         .maybeSingle();
 
-      const limit = campaign?.total_tickets || 100000;
+      if (!campaign) {
+        return { data: null, error: new Error('Campaign not found') };
+      }
 
-      // Use .limit() to override default 1000 limit
-      const { data, error } = await supabase
-        .rpc('get_campaign_tickets_status', {
-          p_campaign_id: campaignId,
-          p_user_id: userId || null
-        })
-        .limit(limit);
+      const totalTickets = campaign.total_tickets;
+      const pageSize = 10000; // Tamanho de cada página
+      const allTickets: TicketStatusInfo[] = [];
 
-      return { data, error };
+      // Se a campanha tem menos de 10000 tickets, faz uma única requisição
+      if (totalTickets <= pageSize) {
+        const { data, error } = await supabase
+          .rpc('get_campaign_tickets_status', {
+            p_campaign_id: campaignId,
+            p_user_id: userId || null,
+            p_offset: 0,
+            p_limit: pageSize
+          });
+
+        return { data, error };
+      }
+
+      // Para campanhas grandes, implementa paginação automática
+      const totalPages = Math.ceil(totalTickets / pageSize);
+      console.log(`Loading ${totalTickets} tickets in ${totalPages} pages...`);
+
+      for (let page = 0; page < totalPages; page++) {
+        const offset = page * pageSize;
+        console.log(`Loading page ${page + 1}/${totalPages} (offset: ${offset})...`);
+
+        const { data, error } = await supabase
+          .rpc('get_campaign_tickets_status', {
+            p_campaign_id: campaignId,
+            p_user_id: userId || null,
+            p_offset: offset,
+            p_limit: pageSize
+          });
+
+        if (error) {
+          console.error(`Error loading page ${page + 1}:`, error);
+          return { data: null, error };
+        }
+
+        if (data && data.length > 0) {
+          allTickets.push(...data);
+        }
+
+        // Se a página retornou menos tickets que o esperado, não há mais páginas
+        if (!data || data.length < pageSize) {
+          break;
+        }
+      }
+
+      console.log(`Successfully loaded ${allTickets.length} tickets`);
+      return { data: allTickets, error: null };
     } catch (error) {
       console.error('Error fetching campaign tickets status:', error);
       return { data: null, error };
