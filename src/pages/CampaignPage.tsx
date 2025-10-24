@@ -42,6 +42,9 @@ import { supabase } from '../lib/supabase';
 import { CotasPremiadasAPI } from '../lib/api/cotasPremiadas';
 import { useFavoriteCampaigns } from '../hooks/useFavoriteCampaigns';
 
+// ✅ NOVO VALOR PADRÃO PARA O LIMITE MÁXIMO DE COTAS POR COMPRA
+const DEFAULT_MAX_TICKETS_PER_PURCHASE = 20000;
+
 interface PromotionInfo {
   promotion: Promotion;
   originalTotal: number;
@@ -403,11 +406,14 @@ const CampaignPage = () => {
     if (!isAvailable) return;
 
     setSelectedQuotas(prev => {
+      // ✅ ATUALIZAÇÃO: Usando DEFAULT_MAX_TICKETS_PER_PURCHASE como limite padrão
+      const maxLimit = campaign.max_tickets_per_purchase || DEFAULT_MAX_TICKETS_PER_PURCHASE;
+      
       if (prev.includes(quotaNumber)) {
         return prev.filter(q => q !== quotaNumber);
       } else {
         const newSelection = [...prev, quotaNumber];
-        const maxLimit = campaign.max_tickets_per_purchase || 20000;
+        
         if (newSelection.length <= maxLimit) {
           return newSelection;
         }
@@ -1502,7 +1508,8 @@ const CampaignPage = () => {
             <QuotaSelector
               ticketPrice={campaign.ticket_price}
               minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
-              maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 20000}
+              // ✅ ATUALIZAÇÃO: Usando DEFAULT_MAX_TICKETS_PER_PURCHASE (20000)
+              maxTicketsPerPurchase={campaign.max_tickets_per_purchase || DEFAULT_MAX_TICKETS_PER_PURCHASE}
               onQuantityChange={handleQuantityChange}
               initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
               mode="automatic"
