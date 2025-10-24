@@ -443,16 +443,25 @@ const CampaignPage = () => {
           return;
         }
 
-        const availableTickets = getAvailableTickets();
-        const availableQuotaNumbers = availableTickets.map(ticket => ticket.quota_number);
+        // Modo automático: buscar cotas disponíveis diretamente do banco
+        // Usar RPC para buscar apenas a quantidade necessária
+        const { data: availableQuotas, error: quotasError } = await supabase
+          .from('tickets')
+          .select('quota_number')
+          .eq('campaign_id', campaign.id)
+          .eq('status', 'disponível')
+          .limit(quantity);
 
-        if (availableQuotaNumbers.length < quantity) {
-          showError(`Apenas ${availableQuotaNumbers.length} cotas disponíveis`);
+        if (quotasError || !availableQuotas || availableQuotas.length === 0) {
+          showError('Nenhuma cota disponível no momento. Tente novamente.');
           return;
         }
 
-        const shuffled = [...availableQuotaNumbers].sort(() => 0.5 - Math.random());
-        quotasToReserve = shuffled.slice(0, quantity);
+        if (availableQuotas.length < quantity) {
+          showWarning(`Apenas ${availableQuotas.length} cotas disponíveis. Ajustando quantidade.`);
+        }
+
+        quotasToReserve = availableQuotas.map(t => t.quota_number);
       }
 
       showInfo('Processando sua reserva...');
@@ -573,20 +582,25 @@ const CampaignPage = () => {
         // Modo manual: usar cotas selecionadas
         quotaNumbersToReserve = selectedQuotas;
       } else {
-        // Modo automático: pegar cotas disponíveis aleatoriamente
-        const availableTickets = getAvailableTickets();
-        const availableQuotaNumbers = availableTickets.map(ticket => ticket.quota_number);
+        // Modo automático: buscar cotas disponíveis diretamente do banco
+        const { data: availableQuotas, error: quotasError } = await supabase
+          .from('tickets')
+          .select('quota_number')
+          .eq('campaign_id', campaign.id)
+          .eq('status', 'disponível')
+          .limit(quantity);
 
-        console.log('Available quota numbers:', availableQuotaNumbers.length);
-
-        if (availableQuotaNumbers.length < quantity) {
-          showError(`Apenas ${availableQuotaNumbers.length} cotas disponíveis`);
+        if (quotasError || !availableQuotas || availableQuotas.length === 0) {
+          showError('Nenhuma cota disponível no momento. Tente novamente.');
           setShowStep2Modal(false);
           return;
         }
 
-        const shuffled = [...availableQuotaNumbers].sort(() => 0.5 - Math.random());
-        quotaNumbersToReserve = shuffled.slice(0, quantity);
+        if (availableQuotas.length < quantity) {
+          showWarning(`Apenas ${availableQuotas.length} cotas disponíveis. Ajustando quantidade.`);
+        }
+
+        quotaNumbersToReserve = availableQuotas.map(t => t.quota_number);
       }
 
       console.log('Quotas to reserve:', quotaNumbersToReserve);

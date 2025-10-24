@@ -201,6 +201,10 @@ const CreateCampaignStep2Page = () => {
       newErrors.maxTicketsPerPurchase = 'Máximo não pode ser maior que o total de cotas';
     }
 
+    if (formData.maxTicketsPerPurchase > 20000) {
+      newErrors.maxTicketsPerPurchase = 'Máximo não pode ser maior que 20.000';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -697,6 +701,7 @@ const CreateCampaignStep2Page = () => {
                     value={formData.maxTicketsPerPurchase}
                     onChange={handleInputChange}
                     min="1"
+                    max="20000"
                     className={`w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
                       errors.maxTicketsPerPurchase ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
