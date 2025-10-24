@@ -42,12 +42,6 @@ import { supabase } from '../lib/supabase';
 import { CotasPremiadasAPI } from '../lib/api/cotasPremiadas';
 import { useFavoriteCampaigns } from '../hooks/useFavoriteCampaigns';
 
-// ✅ VALOR PADRÃO PARA O LIMITE MÁXIMO DE COTAS POR COMPRA
-const DEFAULT_MAX_TICKETS_PER_PURCHASE = 20000;
-
-// ✅ NOVO VALOR PADRÃO PARA O NÚMERO TOTAL DE TICKETS DA CAMPANHA (COMO FALLBACK)
-const DEFAULT_TOTAL_TICKETS = 20000;
-
 interface PromotionInfo {
   promotion: Promotion;
   originalTotal: number;
@@ -409,14 +403,11 @@ const CampaignPage = () => {
     if (!isAvailable) return;
 
     setSelectedQuotas(prev => {
-      // ✅ LIMITE DE COMPRA POR TRANSAÇÃO
-      const maxLimit = campaign.max_tickets_per_purchase || DEFAULT_MAX_TICKETS_PER_PURCHASE;
-      
       if (prev.includes(quotaNumber)) {
         return prev.filter(q => q !== quotaNumber);
       } else {
         const newSelection = [...prev, quotaNumber];
-        
+        const maxLimit = campaign.max_tickets_per_purchase || 1000;
         if (newSelection.length <= maxLimit) {
           return newSelection;
         }
@@ -819,8 +810,7 @@ const CampaignPage = () => {
 
   const getProgressPercentage = () => {
     if (!campaign) return 0;
-    // ✅ ATUALIZAÇÃO: Uso de DEFAULT_TOTAL_TICKETS como fallback para o total da campanha
-    return Math.round((campaign.sold_tickets / (campaign.total_tickets || DEFAULT_TOTAL_TICKETS)) * 100);
+    return Math.round((campaign.sold_tickets / campaign.total_tickets) * 100);
   };
 
   const currentPromotionInfo = campaign?.campaign_model === 'manual' 
@@ -1410,8 +1400,7 @@ const CampaignPage = () => {
               )}
 
               <QuotaGrid
-                // ✅ ATUALIZAÇÃO: Uso de DEFAULT_TOTAL_TICKETS como fallback para o total da campanha
-                totalQuotas={campaign.total_tickets || DEFAULT_TOTAL_TICKETS}
+                totalQuotas={campaign.total_tickets}
                 selectedQuotas={selectedQuotas}
                 onQuotaSelect={isCampaignAvailable ? handleQuotaSelect : undefined}
                 activeFilter={activeFilter}
@@ -1513,8 +1502,7 @@ const CampaignPage = () => {
             <QuotaSelector
               ticketPrice={campaign.ticket_price}
               minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
-              // ✅ LIMITE DE COMPRA POR TRANSAÇÃO: 20.000
-              maxTicketsPerPurchase={campaign.max_tickets_per_purchase || DEFAULT_MAX_TICKETS_PER_PURCHASE}
+              maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 1000}
               onQuantityChange={handleQuantityChange}
               initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
               mode="automatic"
@@ -1735,7 +1723,7 @@ const CampaignPage = () => {
           cotasPremiadas={cotasPremiadas}
           campaignTitle={campaign.title}
           campaignTheme={campaignTheme}
-          totalTickets={campaign.total_tickets || DEFAULT_TOTAL_TICKETS}
+          totalTickets={campaign.total_tickets}
           colorMode={organizerProfile?.color_mode}
           primaryColor={primaryColor}
           gradientClasses={organizerProfile?.gradient_classes}
