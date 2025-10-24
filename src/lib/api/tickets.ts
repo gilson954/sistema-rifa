@@ -82,7 +82,7 @@ export class TicketsAPI {
       }
 
       const totalTickets = campaign.total_tickets;
-      const pageSize = 10000; // Tamanho de cada página
+      const pageSize = 20000; // Tamanho de cada página
       const allTickets: TicketStatusInfo[] = [];
 
       // Se a campanha tem menos de 10000 tickets, faz uma única requisição
