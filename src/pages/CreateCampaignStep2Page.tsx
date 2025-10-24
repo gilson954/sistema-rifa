@@ -59,7 +59,7 @@ const CreateCampaignStep2Page = () => {
         description: campaign.description || '',
         requireEmail: campaign.require_email ?? true,
         minTicketsPerPurchase: campaign.min_tickets_per_purchase || 1,
-        maxTicketsPerPurchase: campaign.max_tickets_per_purchase || 1000,
+        maxTicketsPerPurchase: campaign.max_tickets_per_purchase || 20000,
         campaignModel: campaign.campaign_model || 'automatic',
         showPercentage: campaign.show_percentage ?? false,
         reservationTimeoutMinutes: campaign.reservation_timeout_minutes || 30,

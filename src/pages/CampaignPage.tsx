@@ -407,7 +407,7 @@ const CampaignPage = () => {
         return prev.filter(q => q !== quotaNumber);
       } else {
         const newSelection = [...prev, quotaNumber];
-        const maxLimit = campaign.max_tickets_per_purchase || 1000;
+        const maxLimit = campaign.max_tickets_per_purchase || 20000;
         if (newSelection.length <= maxLimit) {
           return newSelection;
         }
@@ -1502,7 +1502,7 @@ const CampaignPage = () => {
             <QuotaSelector
               ticketPrice={campaign.ticket_price}
               minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
-              maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 1000}
+              maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 20000}
               onQuantityChange={handleQuantityChange}
               initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
               mode="automatic"
