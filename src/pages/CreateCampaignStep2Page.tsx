@@ -35,7 +35,7 @@ const CreateCampaignStep2Page = () => {
     description: '',
     requireEmail: true,
     minTicketsPerPurchase: 1,
-    maxTicketsPerPurchase: 1000,
+    maxTicketsPerPurchase: 20000,
     campaignModel: 'automatic' as 'manual' | 'automatic',
     showPercentage: false,
     reservationTimeoutMinutes: 30,
