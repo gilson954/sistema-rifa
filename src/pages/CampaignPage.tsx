@@ -465,13 +465,12 @@ const CampaignPage = () => {
 
         console.log('Available tickets:', availableCount);
 
-        // Use range() to bypass the 1000 row limit (Supabase default limit)
+        // Use RPC function to bypass PostgREST 1000 row limit
         const { data: availableQuotas, error: quotasError } = await supabase
-          .from('tickets')
-          .select('quota_number')
-          .eq('campaign_id', campaign.id)
-          .eq('status', 'disponível')
-          .range(0, quantity - 1);
+          .rpc('get_available_quotas', {
+            p_campaign_id: campaign.id,
+            p_limit: quantity
+          });
 
         console.log('Query result:', availableQuotas?.length || 0, 'tickets found');
 
@@ -494,7 +493,8 @@ const CampaignPage = () => {
           showWarning(`Apenas ${availableQuotas.length} cotas disponíveis. Ajustando quantidade.`);
         }
 
-        quotasToReserve = availableQuotas.map(t => t.quota_number);
+        // RPC function returns quota_numbers directly (not objects)
+        quotasToReserve = availableQuotas;
       }
 
       showInfo('Processando sua reserva...');
@@ -646,13 +646,12 @@ const CampaignPage = () => {
           console.error('Error counting available tickets:', availableCountError);
         }
 
-        // Use range() to bypass the 1000 row limit (Supabase default limit)
+        // Use RPC function to bypass PostgREST 1000 row limit
         const { data: availableQuotas, error: quotasError } = await supabase
-          .from('tickets')
-          .select('quota_number')
-          .eq('campaign_id', campaign.id)
-          .eq('status', 'disponível')
-          .range(0, quantity - 1);
+          .rpc('get_available_quotas', {
+            p_campaign_id: campaign.id,
+            p_limit: quantity
+          });
 
         console.log('Query result - available quotas:', availableQuotas);
         console.log('Query error:', quotasError);
@@ -682,7 +681,8 @@ const CampaignPage = () => {
           showWarning(`Apenas ${availableQuotas.length} cotas disponíveis. Ajustando quantidade.`);
         }
 
-        quotaNumbersToReserve = availableQuotas.map(t => t.quota_number);
+        // RPC function returns quota_numbers directly (not objects)
+        quotaNumbersToReserve = availableQuotas;
         console.log('✅ Quotas to reserve:', quotaNumbersToReserve.length);
       }
 
