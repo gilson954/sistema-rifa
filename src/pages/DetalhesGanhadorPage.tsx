@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Trophy, User, Phone, Mail, CreditCard, Calendar, DollarSign, Ticket, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Trophy, User, Phone, Mail, CreditCard, Calendar, DollarSign, Ticket, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { SorteioAPI, Winner } from '../lib/api/sorteio';
 
 const formatCurrency = (value: number) => {
@@ -41,7 +41,9 @@ const DetalhesGanhadorPage: React.FC = () => {
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isExpanded, setIsExpanded] = useState(false);
   const ticketsPerPage = 50;
+  const maxVisibleTicketsCollapsed = 50;
 
   useEffect(() => {
     loadData();
@@ -96,10 +98,22 @@ const DetalhesGanhadorPage: React.FC = () => {
     window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
   };
 
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+    if (!isExpanded) {
+      setCurrentPage(1);
+    }
+  };
+
+  // Determinar quantos tickets mostrar
+  const hasMoreTickets = tickets.length > maxVisibleTicketsCollapsed;
+  const displayTickets = isExpanded 
+    ? tickets.slice((currentPage - 1) * ticketsPerPage, currentPage * ticketsPerPage)
+    : tickets.slice(0, maxVisibleTicketsCollapsed);
+  
   const totalPages = Math.ceil(tickets.length / ticketsPerPage);
-  const startIndex = (currentPage - 1) * ticketsPerPage;
-  const endIndex = startIndex + ticketsPerPage;
-  const paginatedTickets = tickets.slice(startIndex, endIndex);
+  const startIndex = isExpanded ? (currentPage - 1) * ticketsPerPage : 0;
+  const endIndex = isExpanded ? Math.min(currentPage * ticketsPerPage, tickets.length) : Math.min(maxVisibleTicketsCollapsed, tickets.length);
 
   if (loading) {
     return (
@@ -261,30 +275,60 @@ const DetalhesGanhadorPage: React.FC = () => {
               </div>
 
               <div className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/20 dark:border-gray-700/30 p-6">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                  <Ticket className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  Todos os Títulos Adquiridos ({tickets.length})
-                </h2>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <Ticket className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                    Todos os Títulos Adquiridos ({tickets.length})
+                  </h2>
+                  
+                  {hasMoreTickets && (
+                    <button
+                      onClick={toggleExpand}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-all font-semibold text-sm"
+                    >
+                      {isExpanded ? (
+                        <>
+                          <span>Ver menos</span>
+                          <ChevronUp className="h-4 w-4" />
+                        </>
+                      ) : (
+                        <>
+                          <span>Ver todos</span>
+                          <ChevronDown className="h-4 w-4" />
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
 
                 <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 mb-6">
-                  {paginatedTickets.map((ticket) => (
+                  {displayTickets.map((ticket) => (
                     <div
                       key={ticket.id}
                       className={`p-3 rounded-lg text-center font-bold transition-all ${
                         ticket.quota_number === winner.ticket_number
-                          ? 'bg-gradient-to-br from-green-500 to-emerald-500 text-white shadow-lg scale-110'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:shadow-md'
+                          ? 'bg-gradient-to-br from-green-500 to-emerald-500 text-white shadow-lg scale-110 ring-2 ring-green-400'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:shadow-md hover:scale-105'
                       }`}
                     >
                       {ticket.quota_number}
                     </div>
                   ))}
+                  
+                  {!isExpanded && hasMoreTickets && (
+                    <button
+                      onClick={toggleExpand}
+                      className="p-3 rounded-lg text-center font-bold bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-600 dark:text-purple-400 hover:from-purple-200 hover:to-blue-200 dark:hover:from-purple-900/50 dark:hover:to-blue-900/50 transition-all border-2 border-dashed border-purple-300 dark:border-purple-700 flex items-center justify-center"
+                    >
+                      <span className="text-xs">+{tickets.length - maxVisibleTicketsCollapsed}</span>
+                    </button>
+                  )}
                 </div>
 
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200/20 dark:border-gray-700/30">
+                {isExpanded && totalPages > 1 && (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-200/20 dark:border-gray-700/30">
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Mostrando {startIndex + 1} a {Math.min(endIndex, tickets.length)} de {tickets.length}
+                      Mostrando {startIndex + 1} a {endIndex} de {tickets.length}
                     </p>
                     <div className="flex items-center gap-2">
                       <button
@@ -305,6 +349,21 @@ const DetalhesGanhadorPage: React.FC = () => {
                         Próximo
                       </button>
                     </div>
+                  </div>
+                )}
+
+                {!isExpanded && hasMoreTickets && (
+                  <div className="text-center pt-4 border-t border-gray-200/20 dark:border-gray-700/30">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      Mostrando {maxVisibleTicketsCollapsed} de {tickets.length} títulos
+                    </p>
+                    <button
+                      onClick={toggleExpand}
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold transition-all shadow-lg hover:shadow-xl"
+                    >
+                      <span>Ver todos os {tickets.length} títulos</span>
+                      <ChevronDown className="h-5 w-5" />
+                    </button>
                   </div>
                 )}
               </div>
