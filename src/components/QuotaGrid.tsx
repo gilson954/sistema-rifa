@@ -168,9 +168,16 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     return 'grid-cols-10 sm:grid-cols-15 md:grid-cols-20';
   };
 
-  // Calculate padding length for quota numbers (e.g., 100 quotas = 2 digits, 1000 quotas = 3 digits)
+  // Calculate padding length for quota numbers based on total quotas
+  // Examples: 
+  // - 100 cotas (0-99): máximo é 99 → 2 dígitos
+  // - 1000 cotas (0-999): máximo é 999 → 3 dígitos
+  // - 10000 cotas (0-9999): máximo é 9999 → 4 dígitos
+  // - 100000 cotas (0-99999): máximo é 99999 → 5 dígitos
+  // - 1000000 cotas (0-999999): máximo é 999999 → 6 dígitos
+  // - 10000000 cotas (0-9999999): máximo é 9999999 → 7 dígitos
   const getPadLength = () => {
-    return (totalQuotas - 1).toString().length;
+    return totalQuotas.toString().length;
   };
 
   // Filtrar cotas com base no filtro ativo
