@@ -60,6 +60,9 @@ export interface CustomerOrder {
   ticket_numbers: number[];
 }
 
+// Constante para tamanho do lote de reservas
+const RESERVATION_BATCH_SIZE = 500;
+
 export class TicketsAPI {
   /**
    * Busca o status de todos os tickets de uma campanha (otimizado para frontend)
@@ -157,6 +160,7 @@ export class TicketsAPI {
 
   /**
    * Reserva um conjunto de tickets para um usuário
+   * Implementa processamento em lote para grandes quantidades
    */
   static async reserveTickets(
     campaignId: string,
@@ -167,16 +171,53 @@ export class TicketsAPI {
     customerPhone: string
   ): Promise<{ data: ReservationResult[] | null; error: any }> {
     try {
-      const { data, error } = await supabase.rpc('reserve_tickets', {
-        p_campaign_id: campaignId,
-        p_quota_numbers: quotaNumbers,
-        p_user_id: userId,
-        p_customer_name: customerName,
-        p_customer_email: customerEmail,
-        p_customer_phone: customerPhone,
-      });
+      // Se a quantidade de tickets é menor ou igual ao tamanho do lote, faz uma única requisição
+      if (quotaNumbers.length <= RESERVATION_BATCH_SIZE) {
+        const { data, error } = await supabase.rpc('reserve_tickets', {
+          p_campaign_id: campaignId,
+          p_quota_numbers: quotaNumbers,
+          p_user_id: userId,
+          p_customer_name: customerName,
+          p_customer_email: customerEmail,
+          p_customer_phone: customerPhone,
+        });
 
-      return { data, error };
+        return { data, error };
+      }
+
+      // Para grandes quantidades, processa em lotes
+      const allResults: ReservationResult[] = [];
+      const totalBatches = Math.ceil(quotaNumbers.length / RESERVATION_BATCH_SIZE);
+      console.log(`Reserving ${quotaNumbers.length} tickets in ${totalBatches} batches...`);
+
+      for (let i = 0; i < totalBatches; i++) {
+        const start = i * RESERVATION_BATCH_SIZE;
+        const end = Math.min(start + RESERVATION_BATCH_SIZE, quotaNumbers.length);
+        const batch = quotaNumbers.slice(start, end);
+
+        console.log(`Processing batch ${i + 1}/${totalBatches} (${batch.length} tickets)...`);
+
+        const { data, error } = await supabase.rpc('reserve_tickets', {
+          p_campaign_id: campaignId,
+          p_quota_numbers: batch,
+          p_user_id: userId,
+          p_customer_name: customerName,
+          p_customer_email: customerEmail,
+          p_customer_phone: customerPhone,
+        });
+
+        if (error) {
+          console.error(`Error processing batch ${i + 1}:`, error);
+          return { data: null, error };
+        }
+
+        if (data && data.length > 0) {
+          allResults.push(...data);
+        }
+      }
+
+      console.log(`Successfully reserved ${allResults.length} tickets`);
+      return { data: allResults, error: null };
     } catch (error) {
       console.error('Error reserving tickets:', error);
       return { data: null, error };
