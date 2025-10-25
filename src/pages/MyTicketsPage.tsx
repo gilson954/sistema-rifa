@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Ticket, Calendar, CheckCircle, Clock, XCircle, AlertCircle, LogOut, Timer } from 'lucide-react';
+import { Ticket, Calendar, CheckCircle, Clock, XCircle, AlertCircle, LogOut, Timer, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import CampaignFooter from '../components/CampaignFooter';
 import { TicketsAPI, CustomerOrder } from '../lib/api/tickets';
@@ -30,6 +30,7 @@ const MyTicketsPage = () => {
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [timeRemainingMap, setTimeRemainingMap] = useState<Record<string, string>>({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const ordersPerPage = 5;
 
   const campaignContext = location.state as { campaignId?: string; organizerId?: string } | null;
@@ -57,7 +58,6 @@ const MyTicketsPage = () => {
 
         if (difference <= 0) {
           newTimeMap[order.order_id] = 'EXPIRADO';
-          // Não modifica o estado, apenas atualiza o mapa de tempo
         } else {
           // Calcular dias, horas, minutos e segundos
           const days = Math.floor(difference / (1000 * 60 * 60 * 24));
@@ -229,15 +229,30 @@ const MyTicketsPage = () => {
     });
   };
 
+  const toggleExpandOrder = (orderId: string) => {
+    setExpandedOrders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
+  };
+
   useEffect(() => {
     if (!authLoading && !isPhoneAuthenticated) {
       navigate('/', { replace: true });
     }
   }, [isPhoneAuthenticated, authLoading, navigate]);
 
+  const campaignTheme = organizerProfile?.theme || 'claro';
+
   if (authLoading || loading) {
+    const loadingThemeClasses = getThemeClasses(campaignTheme);
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors duration-300 flex items-center justify-center">
+      <div className={`min-h-screen ${loadingThemeClasses.background} transition-colors duration-300 flex items-center justify-center`}>
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -247,9 +262,7 @@ const MyTicketsPage = () => {
     return null;
   }
 
-  const campaignTheme = organizerProfile?.theme || 'claro';
-
-  const getThemeClasses = (theme: string) => {
+  function getThemeClasses(theme: string) {
     switch (theme) {
       case 'claro':
         return {
@@ -288,7 +301,7 @@ const MyTicketsPage = () => {
           headerBg: 'bg-white'
         };
     }
-  };
+  }
 
   const themeClasses = getThemeClasses(campaignTheme);
   const totalPages = Math.ceil(orders.length / ordersPerPage);
@@ -398,6 +411,9 @@ const MyTicketsPage = () => {
                   const statusInfo = getStatusInfo(order.status);
                   const StatusIcon = statusInfo.icon;
                   const timeRemaining = timeRemainingMap[order.order_id];
+                  const isExpanded = expandedOrders.has(order.order_id);
+                  const maxVisibleTickets = 6;
+                  const hasMoreTickets = order.ticket_numbers.length > maxVisibleTickets;
 
                   return (
                     <div
@@ -477,11 +493,29 @@ const MyTicketsPage = () => {
 
                             {order.status === 'purchased' && order.ticket_numbers.length > 0 && (
                               <div className="mb-2 sm:mb-3">
-                                <div className={`text-xs ${themeClasses.textSecondary} font-semibold mb-1 sm:mb-1.5`}>
-                                  Números:
+                                <div className={`text-xs ${themeClasses.textSecondary} font-semibold mb-1 sm:mb-1.5 flex items-center justify-between`}>
+                                  <span>Números da sorte:</span>
+                                  {hasMoreTickets && (
+                                    <button
+                                      onClick={() => toggleExpandOrder(order.order_id)}
+                                      className={`flex items-center gap-1 ${themeClasses.textSecondary} hover:${themeClasses.text} transition-colors text-xs`}
+                                    >
+                                      {isExpanded ? (
+                                        <>
+                                          <span>Ver menos</span>
+                                          <ChevronUp className="h-3 w-3" />
+                                        </>
+                                      ) : (
+                                        <>
+                                          <span>Ver todos</span>
+                                          <ChevronDown className="h-3 w-3" />
+                                        </>
+                                      )}
+                                    </button>
+                                  )}
                                 </div>
                                 <div className="flex flex-wrap gap-1 sm:gap-1.5">
-                                  {order.ticket_numbers.slice(0, 6).map((num) => (
+                                  {(isExpanded ? order.ticket_numbers : order.ticket_numbers.slice(0, maxVisibleTickets)).map((num) => (
                                     <span
                                       key={num}
                                       className="px-1.5 sm:px-2 py-0.5 text-xs font-bold rounded-md bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
@@ -489,10 +523,13 @@ const MyTicketsPage = () => {
                                       {num.toString().padStart(4, '0')}
                                     </span>
                                   ))}
-                                  {order.ticket_numbers.length > 6 && (
-                                    <span className="px-1.5 sm:px-2 py-0.5 text-xs font-bold rounded-md bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                                      +{order.ticket_numbers.length - 6}
-                                    </span>
+                                  {!isExpanded && hasMoreTickets && (
+                                    <button
+                                      onClick={() => toggleExpandOrder(order.order_id)}
+                                      className="px-1.5 sm:px-2 py-0.5 text-xs font-bold rounded-md bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                                    >
+                                      +{order.ticket_numbers.length - maxVisibleTickets} mais
+                                    </button>
                                   )}
                                 </div>
                               </div>
