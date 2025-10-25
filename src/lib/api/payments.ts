@@ -146,7 +146,7 @@ export class PaymentsAPI {
         .from('profiles')
         .select('payment_integrations_config')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         return { data: null, error };
