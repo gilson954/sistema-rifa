@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle, ShoppingCart } from 'lucide-react';
+import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle, ShoppingCart, ChevronDown, ChevronUp } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { formatReservationTime } from '../utils/timeFormatters';
 import { useNotification } from '../context/NotificationContext';
@@ -74,6 +74,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 
   const [confirmPhoneNumber, setConfirmPhoneNumber] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showAllQuotas, setShowAllQuotas] = useState(false);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -86,6 +87,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       });
       setConfirmPhoneNumber('');
       setErrors({});
+      setShowAllQuotas(false);
     }
   }, [isOpen]);
 
@@ -276,6 +278,27 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 
   const formatCurrency = (value: number) => {
     return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  // Função para formatar a exibição de cotas selecionadas
+  const formatSelectedQuotas = () => {
+    if (!selectedQuotas || selectedQuotas.length === 0) return null;
+
+    const sortedQuotas = [...selectedQuotas].sort((a, b) => a - b);
+    const MAX_DISPLAY = 12; // Máximo de números a exibir antes de truncar
+
+    if (sortedQuotas.length <= MAX_DISPLAY) {
+      return sortedQuotas.join(', ');
+    }
+
+    if (showAllQuotas) {
+      return sortedQuotas.join(', ');
+    }
+
+    const displayedQuotas = sortedQuotas.slice(0, MAX_DISPLAY);
+    const remainingCount = sortedQuotas.length - MAX_DISPLAY;
+    
+    return `${displayedQuotas.join(', ')}... (+${remainingCount})`;
   };
 
   const theme = getThemeClasses(campaignTheme);
@@ -470,12 +493,32 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                     </div>
                     {selectedQuotas && selectedQuotas.length > 0 && (
                       <motion.div 
-                        className={`text-xs ${theme.textSecondary} mt-3 p-2 rounded-lg bg-white/30 dark:bg-gray-800/30`}
+                        className={`text-xs ${theme.textSecondary} mt-3 p-3 rounded-lg bg-white/30 dark:bg-gray-800/30`}
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         transition={{ delay: 0.4, duration: 0.3 }}
                       >
-                        <span className="font-semibold">Números selecionados:</span> {selectedQuotas.sort((a, b) => a - b).join(', ')}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <span className="font-semibold block mb-1">Números selecionados:</span>
+                            <span className="break-words">{formatSelectedQuotas()}</span>
+                          </div>
+                          {selectedQuotas.length > 12 && (
+                            <motion.button
+                              type="button"
+                              onClick={() => setShowAllQuotas(!showAllQuotas)}
+                              className={`flex-shrink-0 p-1.5 rounded-lg ${theme.hoverBg} transition-colors duration-200`}
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                            >
+                              {showAllQuotas ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </motion.button>
+                          )}
+                        </div>
                       </motion.div>
                     )}
                   </div>
@@ -692,7 +735,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                         }`}
                         animate={formData.acceptTerms ? { scale: [1, 1.2, 1] } : {}}
                         transition={{ duration: 0.3 }}
-                        style={formData.acceptTerms ? { borderColor: 'transparent', backgroundColor: 'transparent' } : {} as React.CSSProperties} // Garante transparência
+                        style={formData.acceptTerms ? { borderColor: 'transparent', backgroundColor: 'transparent' } : {} as React.CSSProperties}
                       >
                         <AnimatePresence>
                           {formData.acceptTerms && (
