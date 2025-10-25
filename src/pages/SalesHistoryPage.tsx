@@ -33,7 +33,6 @@ interface Transaction {
 interface SalesMetrics {
   unique_paid_participants: number;
   unique_reserved_unpaid_participants: number;
-  unique_reserved_unpaid_participants: number;
   total_sales_quantity: number;
   total_sales_value: number;
   total_reservations_quantity: number;
@@ -96,6 +95,17 @@ const SalesHistoryPage = () => {
     { value: 'compra_cancelada', label: 'Compra cancelada' },
     { value: 'pendente_aprovacao', label: 'Pendente aprovação' }
   ];
+
+  // Helper function to format quota number with proper padding
+  const formatQuotaNumber = (quotaNumber: number): string => {
+    if (!campaign?.total_tickets) {
+      return quotaNumber.toString().padStart(4, '0'); // Default to 4 digits
+    }
+    
+    // Calculate the number of digits needed based on total tickets
+    const digits = campaign.total_tickets.toString().length;
+    return quotaNumber.toString().padStart(digits, '0');
+  };
 
   // Fetch sales history data
   const fetchSalesHistory = useCallback(async () => {
@@ -215,7 +225,7 @@ const SalesHistoryPage = () => {
     const csvContent = [
       headers.join(','),
       ...data.map(transaction => [
-        transaction.quota_number,
+        formatQuotaNumber(transaction.quota_number),
         `"${transaction.customer_name || ''}"`,
         `"${transaction.customer_phone || ''}"`,
         `"${transaction.customer_email || ''}"`,
@@ -550,7 +560,7 @@ const SalesHistoryPage = () => {
                   {transactions.map((transaction, index) => (
                     <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                        {transaction.quota_number.toString().padStart(3, '0')}
+                        {formatQuotaNumber(transaction.quota_number)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                         {transaction.customer_name || '-'}
