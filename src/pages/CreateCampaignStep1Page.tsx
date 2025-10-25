@@ -142,7 +142,7 @@ const CreateCampaignStep1Page = () => {
     setLoading(true);
 
     try {
-      const maxTicketsPerPurchase = Math.min(1000, totalTickets);
+      const maxTicketsPerPurchase = Math.min(20000, totalTickets);
 
       const campaignData = {
         title: formData.title,
