@@ -63,7 +63,7 @@ export interface CustomerOrder {
 export class TicketsAPI {
   /**
    * Busca o status de todos os tickets de uma campanha (otimizado para frontend)
-   * Implementa paginação automática para campanhas com mais de 20000 tickets
+   * Implementa paginação automática para campanhas com mais de 1000 tickets
    */
   static async getCampaignTicketsStatus(
     campaignId: string,
@@ -82,10 +82,10 @@ export class TicketsAPI {
       }
 
       const totalTickets = campaign.total_tickets;
-      const pageSize = 20000; // Tamanho de cada página
+      const pageSize = 1000; // Tamanho de cada página (limitado pelo Supabase RPC)
       const allTickets: TicketStatusInfo[] = [];
 
-      // Se a campanha tem menos de 20000 tickets, faz uma única requisição
+      // Se a campanha tem menos de 1000 tickets, faz uma única requisição
       if (totalTickets <= pageSize) {
         const { data, error } = await supabase
           .rpc('get_campaign_tickets_status', {
