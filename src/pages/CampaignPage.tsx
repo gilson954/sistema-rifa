@@ -465,12 +465,13 @@ const CampaignPage = () => {
 
         console.log('Available tickets:', availableCount);
 
+        // Use range() to bypass the 1000 row limit (Supabase default limit)
         const { data: availableQuotas, error: quotasError } = await supabase
           .from('tickets')
           .select('quota_number')
           .eq('campaign_id', campaign.id)
           .eq('status', 'disponível')
-          .limit(quantity);
+          .range(0, quantity - 1);
 
         console.log('Query result:', availableQuotas?.length || 0, 'tickets found');
 
@@ -645,12 +646,13 @@ const CampaignPage = () => {
           console.error('Error counting available tickets:', availableCountError);
         }
 
+        // Use range() to bypass the 1000 row limit (Supabase default limit)
         const { data: availableQuotas, error: quotasError } = await supabase
           .from('tickets')
           .select('quota_number')
           .eq('campaign_id', campaign.id)
           .eq('status', 'disponível')
-          .limit(quantity);
+          .range(0, quantity - 1);
 
         console.log('Query result - available quotas:', availableQuotas);
         console.log('Query error:', quotasError);
