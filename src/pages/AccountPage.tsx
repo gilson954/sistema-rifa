@@ -54,7 +54,6 @@ const AccountPage: React.FC = () => {
     cpf: '',
     phoneNumber: ''
   });
-  const [originalEmail, setOriginalEmail] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<Country>({
     code: 'BR',
     name: 'Brasil',
@@ -83,15 +82,13 @@ const AccountPage: React.FC = () => {
         if (error) {
           console.error('Error fetching profile:', error);
           // fallback to auth email
-          const authEmail = user.email || '';
           setUserData(prev => ({
             ...prev,
             name: prev.name || '',
-            email: authEmail,
+            email: user.email || '',
             cpf: '',
             phoneNumber: ''
           }));
-          setOriginalEmail(authEmail);
         } else if (profile) {
           // Parse phone number to extract country and number
           let countryCode = '+55';
@@ -111,26 +108,22 @@ const AccountPage: React.FC = () => {
           const matchingCountry = countries.find(c => c.dialCode === countryCode) || selectedCountry;
           setSelectedCountry(matchingCountry);
           
-          const profileEmail = profile.email || user.email || '';
           setUserData(prev => ({
             ...prev,
             name: profile.name || '',
-            email: profileEmail,
+            email: profile.email || '',
             cpf: profile.cpf || '',
             phoneNumber: phoneOnly
           }));
-          setOriginalEmail(profileEmail);
           setProfileImageUrl(profile.avatar_url || null);
         } else {
-          const authEmail = user.email || '';
           setUserData(prev => ({
             ...prev,
             name: prev.name || '',
-            email: authEmail,
+            email: user.email || '',
             cpf: '',
             phoneNumber: ''
           }));
-          setOriginalEmail(authEmail);
         }
       } catch (err) {
         console.error('Error fetching user profile:', err);
@@ -258,11 +251,7 @@ const AccountPage: React.FC = () => {
         ? userData.cpf.replace(/\D/g, '')
         : null;
 
-      // Check if email was changed
-      const emailChanged = userData.email.trim() !== originalEmail;
-
-      // Update profile in database
-      const { error: profileError } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .update({
           name: userData.name,
@@ -272,31 +261,13 @@ const AccountPage: React.FC = () => {
         })
         .eq('id', user.id);
 
-      if (profileError) {
-        console.error('Error updating profile:', profileError);
-        showError(translateAuthError(profileError.message || 'Erro ao salvar dados. Tente novamente.'));
-        return;
+      if (error) {
+        console.error('Error updating profile:', error);
+        showError(translateAuthError(error.message || 'Erro ao salvar dados. Tente novamente.'));
+      } else {
+        setShowEditModal(false);
+        showSuccess('Dados salvos com sucesso!');
       }
-
-      // If email changed, update auth.users as well
-      if (emailChanged) {
-        const { error: authError } = await supabase.auth.updateUser({
-          email: userData.email.trim()
-        });
-
-        if (authError) {
-          console.error('Error updating auth email:', authError);
-          showError(translateAuthError(authError.message || 'Erro ao atualizar email. Tente novamente.'));
-          return;
-        }
-
-        // Update original email to new value
-        setOriginalEmail(userData.email.trim());
-        showInfo('Um e-mail de confirmação foi enviado para o novo endereço. Verifique sua caixa de entrada.');
-      }
-
-      setShowEditModal(false);
-      showSuccess('Dados salvos com sucesso!');
     } catch (err: any) {
       console.error('Error saving user data:', err);
       showError(translateAuthError(err.message || 'Erro ao salvar dados. Tente novamente.'));
@@ -643,7 +614,7 @@ const AccountPage: React.FC = () => {
                 className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-3 rounded-lg font-medium transition"
               >
                 {deleting ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mx-auto" />
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                 ) : (
                   <span>Confirmar</span>
                 )}
