@@ -147,14 +147,13 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
     e.preventDefault();
     setError('');
 
-    const cleanPhone = phoneNumber.replace(/\D/g, '');
-
-    if (!cleanPhone) {
+    // phoneNumber agora contém apenas dígitos (já vem bruto do CountryPhoneSelect)
+    if (!phoneNumber) {
       setError('Por favor, insira seu número de telefone');
       return;
     }
 
-    if (cleanPhone.length < 10) {
+    if (phoneNumber.length < 10) {
       setError('Número de telefone inválido');
       return;
     }
@@ -162,11 +161,19 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
     setLoading(true);
 
     try {
-      // Constrói o número completo com código do país
-      const fullPhoneNumber = `${selectedCountry.dialCode} ${cleanPhone}`;
+      // ✅ CRÍTICO: Combina dialCode + phoneNumber (bruto) antes de normalizar
+      // Exemplo: "+55" + "11987654321" = "+5511987654321"
+      const fullPhoneNumber = `${selectedCountry.dialCode}${phoneNumber}`;
 
-      // Busca tickets usando o número completo (a API já lida com a normalização)
-      const { data: tickets } = await TicketsAPI.getTicketsByPhoneNumber(fullPhoneNumber);
+      // ✅ Normaliza o número completo usando formatPhoneNumber de src/lib/api/tickets.ts
+      // Resultado: "+5511987654321" (formato E.164 canônico)
+      const normalizedPhoneNumber = formatPhoneNumber(fullPhoneNumber);
+      
+      console.log('Original phone (dialCode + raw):', fullPhoneNumber);
+      console.log('Normalized phone for API:', normalizedPhoneNumber);
+
+      // Busca tickets usando o número normalizado
+      const { data: tickets } = await TicketsAPI.getTicketsByPhoneNumber(normalizedPhoneNumber);
 
       if (!tickets || tickets.length === 0) {
         setError('Nenhuma cota encontrada para este número de telefone');
@@ -177,13 +184,7 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
       const customerName = tickets[0]?.customer_name || 'Cliente';
       const customerEmail = tickets[0]?.customer_email || '';
 
-      // ✅ UTILIZA formatPhoneNumber centralizada para padronizar o número antes de fazer login
-      // Formato final: +5511999999999 (apenas dígitos com código do país)
-      const normalizedPhoneNumber = formatPhoneNumber(fullPhoneNumber);
-      
-      console.log('Original phone:', fullPhoneNumber);
-      console.log('Normalized phone for login:', normalizedPhoneNumber);
-
+      // Faz login com o número já normalizado
       await signInWithPhone(normalizedPhoneNumber, {
         name: customerName,
         email: customerEmail
