@@ -162,7 +162,9 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
     setLoading(true);
 
     try {
-      const fullPhoneNumber = `${selectedCountry.dialCode}${cleanPhone}`;
+      // Formata o número com espaço entre código do país e número
+      // Formato esperado: +XX YYYYY-YYYY
+      const fullPhoneNumber = `${selectedCountry.dialCode} ${cleanPhone}`;
 
       const { data: tickets } = await TicketsAPI.getTicketsByPhoneNumber(fullPhoneNumber);
 
