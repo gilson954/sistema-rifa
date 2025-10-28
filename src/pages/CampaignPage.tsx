@@ -40,7 +40,6 @@ import { calculateTotalWithPromotions } from '../utils/currency';
 import { socialMediaConfig, shareSectionConfig } from '../components/SocialMediaIcons';
 import { supabase } from '../lib/supabase';
 import { CotasPremiadasAPI } from '../lib/api/cotasPremiadas';
-import { useFavoriteCampaigns } from '../hooks/useFavoriteCampaigns';
 
 interface PromotionInfo {
   promotion: Promotion;
