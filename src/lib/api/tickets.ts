@@ -372,14 +372,58 @@ export class TicketsAPI {
 
   /**
    * Busca tickets por número de telefone (para clientes não logados)
+   * Implementa busca dupla para compatibilidade com números antigos:
+   * 1. Busca com o número normalizado completo (incluindo código do país)
+   * 2. Se não encontrar e o número começar com 55 (Brasil), busca sem o código do país
    */
   static async getTicketsByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerTicket[] | null; error: any }> {
     try {
-      const { data, error } = await supabase.rpc('get_tickets_by_phone', {
-        p_phone_number: phoneNumber
+      // Normaliza o número de telefone para conter apenas dígitos
+      const normalizedPhone = phoneNumber.replace(/\D/g, '');
+      
+      console.log(`Original phone:`, phoneNumber);
+      console.log(`Normalized phone:`, normalizedPhone);
+
+      // Primeira tentativa: busca com o número normalizado completo
+      const { data: firstAttemptData, error: firstAttemptError } = await supabase.rpc('get_tickets_by_phone', {
+        p_phone_number: normalizedPhone
       });
 
-      return { data, error };
+      if (firstAttemptError) {
+        console.error('Error on first attempt:', firstAttemptError);
+        return { data: null, error: firstAttemptError };
+      }
+
+      // Se encontrou resultados na primeira tentativa, retorna
+      if (firstAttemptData && firstAttemptData.length > 0) {
+        console.log(`Found ${firstAttemptData.length} tickets with full number`);
+        return { data: firstAttemptData, error: null };
+      }
+
+      // Se não encontrou resultados e o número começa com 55 (Brasil), faz segunda tentativa
+      if (normalizedPhone.startsWith('55')) {
+        const phoneWithoutCountryCode = normalizedPhone.substring(2);
+        console.log(`No results found. Trying without country code: ${phoneWithoutCountryCode}`);
+
+        const { data: secondAttemptData, error: secondAttemptError } = await supabase.rpc('get_tickets_by_phone', {
+          p_phone_number: phoneWithoutCountryCode
+        });
+
+        if (secondAttemptError) {
+          console.error('Error on second attempt:', secondAttemptError);
+          return { data: null, error: secondAttemptError };
+        }
+
+        if (secondAttemptData && secondAttemptData.length > 0) {
+          console.log(`Found ${secondAttemptData.length} tickets without country code`);
+        }
+
+        return { data: secondAttemptData, error: null };
+      }
+
+      // Se não encontrou resultados em nenhuma tentativa
+      console.log('No tickets found for this phone number');
+      return { data: [], error: null };
     } catch (error) {
       console.error('Error fetching tickets by phone:', error);
       return { data: null, error };
