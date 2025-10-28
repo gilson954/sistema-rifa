@@ -6,6 +6,30 @@ import CountryPhoneSelect from './CountryPhoneSelect';
 import { useAuth } from '../context/AuthContext';
 import { TicketsAPI } from '../lib/api/tickets';
 
+// Importa a função formatPhoneNumber para padronizar o número
+// Esta função está definida em src/lib/api/tickets.ts
+const formatPhoneNumber = (phoneNumber: string): string => {
+  if (!phoneNumber) return phoneNumber;
+  
+  // Remove todos os caracteres não numéricos
+  const numbersOnly = phoneNumber.replace(/\D/g, '');
+  
+  // Se o número original começava com '+', preserva isso
+  const hasPlus = phoneNumber.trim().startsWith('+');
+  
+  // Se já tem '+' no original e tem dígitos, retorna com '+'
+  if (hasPlus && numbersOnly.length > 0) {
+    return `+${numbersOnly}`;
+  }
+  
+  // Se não tem '+', adiciona +55 (código do Brasil) por padrão
+  if (numbersOnly.length > 0) {
+    return `+55${numbersOnly}`;
+  }
+  
+  return phoneNumber;
+};
+
 interface Country {
   code: string;
   name: string;
@@ -162,10 +186,10 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
     setLoading(true);
 
     try {
-      // Formata o número com espaço entre código do país e número
-      // Formato esperado: +XX YYYYY-YYYY
+      // Constrói o número completo com código do país
       const fullPhoneNumber = `${selectedCountry.dialCode} ${cleanPhone}`;
 
+      // Busca tickets usando o número completo (a API já lida com a normalização)
       const { data: tickets } = await TicketsAPI.getTicketsByPhoneNumber(fullPhoneNumber);
 
       if (!tickets || tickets.length === 0) {
@@ -177,7 +201,14 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
       const customerName = tickets[0]?.customer_name || 'Cliente';
       const customerEmail = tickets[0]?.customer_email || '';
 
-      await signInWithPhone(fullPhoneNumber, {
+      // ✅ UTILIZA formatPhoneNumber para padronizar o número antes de fazer login
+      // Formato final: +5511999999999 (apenas dígitos com código do país)
+      const normalizedPhoneNumber = formatPhoneNumber(fullPhoneNumber);
+      
+      console.log('Original phone:', fullPhoneNumber);
+      console.log('Normalized phone for login:', normalizedPhoneNumber);
+
+      await signInWithPhone(normalizedPhoneNumber, {
         name: customerName,
         email: customerEmail
       });
