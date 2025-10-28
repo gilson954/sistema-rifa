@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { TicketsAPI } from '../lib/api/tickets'
 
 interface PhoneUser {
   id: string
@@ -211,28 +212,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { success: true, user: phoneUserData }
       }
 
-      // Busca dados do cliente no banco (qualquer status de cota)
-      const { data, error } = await supabase
-        .from('tickets')
-        .select('customer_name, customer_email, customer_phone')
-        .eq('customer_phone', phone)
-        .limit(1)
-        .maybeSingle()
+      // Busca tickets do cliente usando TicketsAPI (já lida com normalização do telefone)
+      const { data: tickets, error } = await TicketsAPI.getTicketsByPhoneNumber(phone)
 
       if (error) {
-        console.error('Error fetching customer by phone:', error)
+        console.error('Error fetching tickets by phone:', error)
         return { success: false, error: 'Erro ao buscar dados do cliente' }
       }
 
-      if (!data) {
+      if (!tickets || tickets.length === 0) {
         return { success: false, error: 'Nenhuma cota encontrada com este número de telefone' }
       }
 
+      // Extrai dados do primeiro ticket encontrado
+      const firstTicket = tickets[0]
+
       const phoneUserData: PhoneUser = {
         id: `phone_${phone.replace(/\D/g, '')}`,
-        phone: data.customer_phone,
-        name: data.customer_name,
-        email: data.customer_email,
+        phone: firstTicket.customer_phone,
+        name: firstTicket.customer_name,
+        email: firstTicket.customer_email,
         isPhoneAuth: true
       }
 
