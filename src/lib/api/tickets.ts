@@ -79,6 +79,39 @@ const cleanQuotaNumbers = (quotaNumbers: any[]): number[] => {
     .filter(num => !isNaN(num)); // Filtra valores inválidos (NaN)
 };
 
+/**
+ * Função helper para garantir que o número de telefone esteja no formato correto (+XX YYYYY-YYYY)
+ * Se o número já estiver no formato correto, retorna como está
+ * Se não estiver, tenta formatar adicionando o código do país padrão (+55 para Brasil)
+ */
+const formatPhoneNumber = (phoneNumber: string): string => {
+  if (!phoneNumber) return phoneNumber;
+  
+  // Remove espaços extras no início e fim
+  const trimmedPhone = phoneNumber.trim();
+  
+  // Se já começa com '+' e contém espaço, assume que já está formatado corretamente
+  if (trimmedPhone.startsWith('+') && trimmedPhone.includes(' ')) {
+    return trimmedPhone;
+  }
+  
+  // Se não tem '+', adiciona +55 (código do Brasil) por padrão
+  if (!trimmedPhone.startsWith('+')) {
+    // Remove caracteres não numéricos
+    const numbersOnly = trimmedPhone.replace(/\D/g, '');
+    
+    // Se tem 11 dígitos (padrão brasileiro com DDD), formata como +55 XX XXXXX-XXXX
+    if (numbersOnly.length === 11) {
+      return `+55 ${numbersOnly}`;
+    }
+    
+    // Para outros casos, adiciona +55 e espaço
+    return `+55 ${numbersOnly}`;
+  }
+  
+  return trimmedPhone;
+};
+
 export class TicketsAPI {
   /**
    * Busca o status de todos os tickets de uma campanha (otimizado para frontend)
@@ -209,8 +242,13 @@ export class TicketsAPI {
         };
       }
 
+      // ✅ FORMATA O NÚMERO DE TELEFONE PARA GARANTIR O FORMATO CORRETO (+XX YYYYY-YYYY)
+      const formattedPhone = formatPhoneNumber(customerPhone);
+
       console.log(`Original quota numbers:`, quotaNumbers);
       console.log(`Cleaned quota numbers:`, cleanedQuotaNumbers);
+      console.log(`Original phone:`, customerPhone);
+      console.log(`Formatted phone:`, formattedPhone);
 
       // Se a quantidade de tickets é menor ou igual ao tamanho do lote, faz uma única requisição
       if (cleanedQuotaNumbers.length <= RESERVATION_BATCH_SIZE) {
@@ -220,7 +258,7 @@ export class TicketsAPI {
           p_user_id: userId,
           p_customer_name: customerName,
           p_customer_email: customerEmail,
-          p_customer_phone: customerPhone,
+          p_customer_phone: formattedPhone,
         });
 
         return { data, error };
@@ -244,7 +282,7 @@ export class TicketsAPI {
           p_user_id: userId,
           p_customer_name: customerName,
           p_customer_email: customerEmail,
-          p_customer_phone: customerPhone,
+          p_customer_phone: formattedPhone,
         });
 
         if (error) {
