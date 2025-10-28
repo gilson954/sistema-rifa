@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle, ShoppingCart, ChevronDown, ChevronUp } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { formatReservationTime } from '../utils/timeFormatters';
+import { formatPhoneNumber } from '../lib/api/tickets';
 import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -201,13 +202,15 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       return;
     }
 
-    // Formatar o número de telefone com o código do país incluído
-    const fullPhoneNumber = `${selectedCountry.dialCode} ${formData.phoneNumber}`;
+    // Formatar o número de telefone usando a função formatPhoneNumber
+    // Combinar código do país com o número (apenas dígitos)
+    const phoneDigitsOnly = formData.phoneNumber.replace(/\D/g, '');
+    const fullPhoneNumber = formatPhoneNumber(`${selectedCountry.dialCode}${phoneDigitsOnly}`);
 
     const customerData: CustomerData = {
       ...formData,
       countryCode: selectedCountry.dialCode,
-      phoneNumber: fullPhoneNumber // Enviar com código do país incluído
+      phoneNumber: fullPhoneNumber // Enviar com formato padronizado
     };
 
     // Fazer login automático com dados do cliente
