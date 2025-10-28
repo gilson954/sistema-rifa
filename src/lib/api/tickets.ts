@@ -331,7 +331,7 @@ export class TicketsAPI {
       return { data, error };
     } catch (error) {
       console.error('Error finalizing purchase:', error);
-      return { data: null, error };
+      return { data, null, error };
     }
   }
 
