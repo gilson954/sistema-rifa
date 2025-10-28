@@ -6,6 +6,30 @@ import CountryPhoneSelect from './CountryPhoneSelect';
 import { checkCustomerByPhone, CustomerData as ExistingCustomer } from '../utils/customerCheck';
 import { useAuth } from '../context/AuthContext';
 
+// Importa a função formatPhoneNumber para padronizar o número
+// Esta função está definida em src/lib/api/tickets.ts
+const formatPhoneNumber = (phoneNumber: string): string => {
+  if (!phoneNumber) return phoneNumber;
+  
+  // Remove todos os caracteres não numéricos
+  const numbersOnly = phoneNumber.replace(/\D/g, '');
+  
+  // Se o número original começava com '+', preserva isso
+  const hasPlus = phoneNumber.trim().startsWith('+');
+  
+  // Se já tem '+' no original e tem dígitos, retorna com '+'
+  if (hasPlus && numbersOnly.length > 0) {
+    return `+${numbersOnly}`;
+  }
+  
+  // Se não tem '+', adiciona +55 (código do Brasil) por padrão
+  if (numbersOnly.length > 0) {
+    return `+55${numbersOnly}`;
+  }
+  
+  return phoneNumber;
+};
+
 interface Country {
   code: string;
   name: string;
@@ -185,12 +209,18 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
     setError('');
 
     try {
+      // Constrói o número completo com código do país
       const fullPhoneNumber = `${selectedCountry.dialCode}${phoneNumber}`;
 
-      console.log('Checking customer with phone:', fullPhoneNumber);
+      // ✅ UTILIZA formatPhoneNumber para padronizar o número
+      // Formato final: +5511999999999 (apenas dígitos com código do país)
+      const normalizedPhoneNumber = formatPhoneNumber(fullPhoneNumber);
 
-      // Verifica se o cliente existe no banco
-      const { data: customerData, error: checkError } = await checkCustomerByPhone(fullPhoneNumber);
+      console.log('Original phone:', fullPhoneNumber);
+      console.log('Normalized phone:', normalizedPhoneNumber);
+
+      // Verifica se o cliente existe no banco usando o número normalizado
+      const { data: customerData, error: checkError } = await checkCustomerByPhone(normalizedPhoneNumber);
 
       if (checkError) {
         console.error('Error checking customer:', checkError);
@@ -201,7 +231,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
       if (customerData) {
         console.log('Customer found:', customerData);
         // Cliente existente - fazer login e chamar callback
-        await signInWithPhone(fullPhoneNumber, {
+        await signInWithPhone(normalizedPhoneNumber, {
           name: customerData.customer_name,
           email: customerData.customer_email
         });
