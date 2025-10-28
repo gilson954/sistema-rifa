@@ -81,29 +81,75 @@ const cleanQuotaNumbers = (quotaNumbers: any[]): number[] => {
 
 /**
  * Função helper para normalizar o número de telefone para o formato padronizado
- * Retorna apenas dígitos incluindo o código do país (+XX seguido dos dígitos)
- * Se o número não tiver código do país, adiciona +55 (Brasil) como padrão
+ * Esta é a ÚNICA fonte de verdade para normalização de números de telefone
+ * 
+ * Comportamento:
+ * - Remove TODOS os caracteres não numéricos (espaços, parênteses, hífens, etc.)
+ * - Garante que o número tenha APENAS UM '+' no início
+ * - Se o número já tiver código de país (detectado por comprimento ou prefixo), preserva
+ * - Se não tiver código de país, adiciona +55 (Brasil) como padrão
+ * - Retorna sempre no formato: +[código do país][número] (apenas dígitos após o +)
+ * 
+ * Exemplos:
+ * - "(62) 99999-9999" → "+5562999999999"
+ * - "+55 62 99999-9999" → "+5562999999999"
+ * - "62999999999" → "+5562999999999"
+ * - "+5562999999999" → "+5562999999999"
+ * - "++5562999999999" → "+5562999999999" (remove + duplicados)
+ * - "+1234567890" → "+1234567890" (preserva código de país diferente)
+ * 
+ * @param phoneNumber - Número de telefone em qualquer formato
+ * @returns Número normalizado no formato +[código][número] ou string vazia se inválido
  */
 export const formatPhoneNumber = (phoneNumber: string): string => {
-  if (!phoneNumber) return phoneNumber;
+  // Se não houver input, retorna string vazia
+  if (!phoneNumber || typeof phoneNumber !== 'string') {
+    return '';
+  }
+
+  // Remove espaços no início e fim
+  const trimmed = phoneNumber.trim();
   
-  // Remove todos os caracteres não numéricos
-  const numbersOnly = phoneNumber.replace(/\D/g, '');
+  // Se a string estiver vazia após trim, retorna vazio
+  if (!trimmed) {
+    return '';
+  }
+
+  // Remove TODOS os caracteres não numéricos
+  const numbersOnly = trimmed.replace(/\D/g, '');
   
-  // Se o número original começava com '+', preserva isso
-  const hasPlus = phoneNumber.trim().startsWith('+');
-  
-  // Se já tem '+' no original e tem dígitos, retorna com '+'
-  if (hasPlus && numbersOnly.length > 0) {
+  // Se não houver nenhum dígito, retorna vazio
+  if (!numbersOnly || numbersOnly.length === 0) {
+    return '';
+  }
+
+  // Detecta se o número original tinha '+' no início (antes de remover caracteres)
+  const hadPlus = trimmed.startsWith('+');
+
+  // Se o número original tinha '+' no início, assume que já tem código de país
+  if (hadPlus) {
+    // Retorna com '+' e apenas os dígitos
     return `+${numbersOnly}`;
   }
+
+  // Se não tinha '+', precisa determinar se já tem código de país ou não
+  // Números brasileiros sem código de país geralmente têm 10 ou 11 dígitos (DDD + número)
+  // Com código de país (55), teriam 12 ou 13 dígitos
   
-  // Se não tem '+', adiciona +55 (código do Brasil) por padrão
-  if (numbersOnly.length > 0) {
-    return `+55${numbersOnly}`;
+  // Se o número começa com '55' e tem comprimento compatível com número brasileiro
+  // completo (12-13 dígitos), assume que já tem código de país
+  if (numbersOnly.startsWith('55') && numbersOnly.length >= 12 && numbersOnly.length <= 13) {
+    return `+${numbersOnly}`;
   }
-  
-  return phoneNumber;
+
+  // Se o número tem comprimento muito grande (14+ dígitos), provavelmente já tem código de país
+  // mesmo que não seja brasileiro
+  if (numbersOnly.length >= 14) {
+    return `+${numbersOnly}`;
+  }
+
+  // Caso contrário, assume que não tem código de país e adiciona +55 (Brasil)
+  return `+55${numbersOnly}`;
 };
 
 export class TicketsAPI {
