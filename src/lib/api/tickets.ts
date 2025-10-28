@@ -412,21 +412,24 @@ export class TicketsAPI {
 
   /**
    * Busca tickets por número de telefone (para clientes não logados)
+   * ✅ ATUALIZADO: Agora usa formatPhoneNumber para normalização consistente
+   * 
    * Implementa busca dupla para compatibilidade com números antigos:
-   * 1. Busca com o número normalizado completo (incluindo código do país)
-   * 2. Se não encontrar e o número começar com 55 (Brasil), busca sem o código do país
+   * 1. Busca com o número normalizado completo (formato padronizado com código do país)
+   * 2. Se não encontrar e o número tiver código do país +55, busca sem o código do país
+   *    (para encontrar registros antigos que foram salvos sem código do país)
    */
   static async getTicketsByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerTicket[] | null; error: any }> {
     try {
-      // Normaliza o número de telefone para conter apenas dígitos
-      const normalizedPhone = phoneNumber.replace(/\D/g, '');
+      // ✅ USA A FUNÇÃO PADRONIZADA DE NORMALIZAÇÃO
+      const formattedPhone = formatPhoneNumber(phoneNumber);
       
       console.log(`Original phone:`, phoneNumber);
-      console.log(`Normalized phone:`, normalizedPhone);
+      console.log(`Formatted phone:`, formattedPhone);
 
-      // Primeira tentativa: busca com o número normalizado completo
+      // Primeira tentativa: busca com o número formatado completo (com código do país)
       const { data: firstAttemptData, error: firstAttemptError } = await supabase.rpc('get_tickets_by_phone', {
-        p_phone_number: normalizedPhone
+        p_phone_number: formattedPhone
       });
 
       if (firstAttemptError) {
@@ -436,13 +439,15 @@ export class TicketsAPI {
 
       // Se encontrou resultados na primeira tentativa, retorna
       if (firstAttemptData && firstAttemptData.length > 0) {
-        console.log(`Found ${firstAttemptData.length} tickets with full number`);
+        console.log(`Found ${firstAttemptData.length} tickets with formatted number`);
         return { data: firstAttemptData, error: null };
       }
 
-      // Se não encontrou resultados e o número começa com 55 (Brasil), faz segunda tentativa
-      if (normalizedPhone.startsWith('55')) {
-        const phoneWithoutCountryCode = normalizedPhone.substring(2);
+      // Se não encontrou resultados e o número formatado começa com +55 (Brasil),
+      // faz segunda tentativa sem o código do país (para compatibilidade com registros antigos)
+      if (formattedPhone.startsWith('+55')) {
+        // Remove o '+55' do início para buscar registros antigos
+        const phoneWithoutCountryCode = formattedPhone.substring(3);
         console.log(`No results found. Trying without country code: ${phoneWithoutCountryCode}`);
 
         const { data: secondAttemptData, error: secondAttemptError } = await supabase.rpc('get_tickets_by_phone', {
@@ -473,11 +478,18 @@ export class TicketsAPI {
   /**
    * Busca pedidos (orders) por número de telefone
    * Retorna pedidos agrupados em vez de tickets individuais
+   * ✅ ATUALIZADO: Agora usa formatPhoneNumber para normalização consistente
    */
   static async getOrdersByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerOrder[] | null; error: any }> {
     try {
+      // ✅ USA A FUNÇÃO PADRONIZADA DE NORMALIZAÇÃO
+      const formattedPhone = formatPhoneNumber(phoneNumber);
+      
+      console.log(`Original phone:`, phoneNumber);
+      console.log(`Formatted phone for orders:`, formattedPhone);
+
       const { data, error } = await supabase.rpc('get_orders_by_phone', {
-        p_phone_number: phoneNumber
+        p_phone_number: formattedPhone
       });
 
       return { data, error };
