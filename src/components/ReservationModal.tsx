@@ -201,13 +201,14 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       return;
     }
 
+    // Formatar o número de telefone com o código do país incluído
+    const fullPhoneNumber = `${selectedCountry.dialCode} ${formData.phoneNumber}`;
+
     const customerData: CustomerData = {
       ...formData,
       countryCode: selectedCountry.dialCode,
-      phoneNumber: formData.phoneNumber
+      phoneNumber: fullPhoneNumber // Enviar com código do país incluído
     };
-
-    const fullPhoneNumber = `${selectedCountry.dialCode} ${formData.phoneNumber}`;
 
     // Fazer login automático com dados do cliente
     const loginResult = await signInWithPhone(fullPhoneNumber, {
