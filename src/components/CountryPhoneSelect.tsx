@@ -12,7 +12,7 @@ interface CountryPhoneSelectProps {
   selectedCountry: Country;
   onCountryChange: (country: Country) => void;
   phoneNumber: string;
-  onPhoneChange: (phone: string) => void;
+  onPhoneChange: (phone: string) => void; // Agora sempre retorna número bruto (somente dígitos)
   placeholder?: string;
   error?: string;
   theme?: 'claro' | 'escuro' | 'escuro-preto';
@@ -170,7 +170,8 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
     setSearchTerm('');
   };
 
-  const formatPhoneNumber = (value: string, countryCode: string) => {
+  // Função para formatar o número apenas para visualização no input
+  const formatPhoneNumberForDisplay = (value: string, countryCode: string) => {
     const numbers = value.replace(/\D/g, '');
     
     if (countryCode === 'BR') {
@@ -199,9 +200,26 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedValue = formatPhoneNumber(e.target.value, selectedCountry.code);
-    onPhoneChange(formattedValue);
+    // Extrai apenas os dígitos do input
+    const rawNumbers = e.target.value.replace(/\D/g, '');
+    
+    // Aplica os limites de caracteres de acordo com o país
+    let limitedNumbers = rawNumbers;
+    if (selectedCountry.code === 'BR') {
+      limitedNumbers = rawNumbers.slice(0, 11);
+    } else if (selectedCountry.code === 'US' || selectedCountry.code === 'CA') {
+      limitedNumbers = rawNumbers.slice(0, 10);
+    } else {
+      limitedNumbers = rawNumbers.slice(0, 15);
+    }
+    
+    // CRÍTICO: onPhoneChange agora sempre recebe o número BRUTO (somente dígitos)
+    // O componente pai deve combinar com selectedCountry.dialCode antes de normalizar
+    onPhoneChange(limitedNumbers);
   };
+
+  // Valor exibido no input é formatado para melhor UX
+  const displayValue = formatPhoneNumberForDisplay(phoneNumber, selectedCountry.code);
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -300,7 +318,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
         <div className="flex-1 relative">
           <input
             type="tel"
-            value={phoneNumber}
+            value={displayValue}
             onChange={handlePhoneChange}
             placeholder={placeholder}
             className={`w-full h-[48px] px-4 border ${themeClasses.buttonBg} ${themeClasses.inputText} ${themeClasses.inputPlaceholder} focus:outline-none transition-all duration-200 rounded-lg ${
