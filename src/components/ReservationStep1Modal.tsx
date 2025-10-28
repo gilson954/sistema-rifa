@@ -157,19 +157,20 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
   };
 
   const validatePhoneNumber = (): boolean => {
+    // phoneNumber agora contém apenas dígitos (já vem bruto do CountryPhoneSelect)
     if (!phoneNumber.trim()) {
       setError('Número de celular é obrigatório');
       return false;
     }
 
-    const phoneNumbers = phoneNumber.replace(/\D/g, '');
-    if (selectedCountry.code === 'BR' && phoneNumbers.length !== 11) {
+    // Valida o comprimento de acordo com o país
+    if (selectedCountry.code === 'BR' && phoneNumber.length !== 11) {
       setError('Número de celular deve ter 11 dígitos');
       return false;
-    } else if ((selectedCountry.code === 'US' || selectedCountry.code === 'CA') && phoneNumbers.length !== 10) {
+    } else if ((selectedCountry.code === 'US' || selectedCountry.code === 'CA') && phoneNumber.length !== 10) {
       setError('Número de telefone deve ter 10 dígitos');
       return false;
-    } else if (phoneNumbers.length < 7) {
+    } else if (phoneNumber.length < 7) {
       setError('Número de telefone inválido');
       return false;
     }
@@ -186,15 +187,16 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
     setError('');
 
     try {
-      // Constrói o número completo com código do país
+      // ✅ CRÍTICO: Combina dialCode + phoneNumber (bruto) antes de normalizar
+      // Exemplo: "+55" + "11987654321" = "+5511987654321"
       const fullPhoneNumber = `${selectedCountry.dialCode}${phoneNumber}`;
 
-      // ✅ UTILIZA formatPhoneNumber centralizada para padronizar o número
-      // Formato final: +5511999999999 (apenas dígitos com código do país)
+      // ✅ Normaliza o número completo usando formatPhoneNumber de src/lib/api/tickets.ts
+      // Resultado: "+5511987654321" (formato E.164 canônico)
       const normalizedPhoneNumber = formatPhoneNumber(fullPhoneNumber);
 
-      console.log('Original phone:', fullPhoneNumber);
-      console.log('Normalized phone:', normalizedPhoneNumber);
+      console.log('Original phone (dialCode + raw):', fullPhoneNumber);
+      console.log('Normalized phone for API:', normalizedPhoneNumber);
 
       // Verifica se o cliente existe no banco usando o número normalizado
       const { data: customerData, error: checkError } = await checkCustomerByPhone(normalizedPhoneNumber);
