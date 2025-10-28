@@ -80,36 +80,30 @@ const cleanQuotaNumbers = (quotaNumbers: any[]): number[] => {
 };
 
 /**
- * Função helper para garantir que o número de telefone esteja no formato correto (+XX YYYYY-YYYY)
- * Se o número já estiver no formato correto, retorna como está
- * Se não estiver, tenta formatar adicionando o código do país padrão (+55 para Brasil)
+ * Função helper para normalizar o número de telefone para o formato padronizado
+ * Retorna apenas dígitos incluindo o código do país (+XX seguido dos dígitos)
+ * Se o número não tiver código do país, adiciona +55 (Brasil) como padrão
  */
 const formatPhoneNumber = (phoneNumber: string): string => {
   if (!phoneNumber) return phoneNumber;
   
-  // Remove espaços extras no início e fim
-  const trimmedPhone = phoneNumber.trim();
+  // Remove todos os caracteres não numéricos
+  const numbersOnly = phoneNumber.replace(/\D/g, '');
   
-  // Se já começa com '+' e contém espaço, assume que já está formatado corretamente
-  if (trimmedPhone.startsWith('+') && trimmedPhone.includes(' ')) {
-    return trimmedPhone;
+  // Se o número original começava com '+', preserva isso
+  const hasPlus = phoneNumber.trim().startsWith('+');
+  
+  // Se já tem '+' no original e tem dígitos, retorna com '+'
+  if (hasPlus && numbersOnly.length > 0) {
+    return `+${numbersOnly}`;
   }
   
   // Se não tem '+', adiciona +55 (código do Brasil) por padrão
-  if (!trimmedPhone.startsWith('+')) {
-    // Remove caracteres não numéricos
-    const numbersOnly = trimmedPhone.replace(/\D/g, '');
-    
-    // Se tem 11 dígitos (padrão brasileiro com DDD), formata como +55 XX XXXXX-XXXX
-    if (numbersOnly.length === 11) {
-      return `+55 ${numbersOnly}`;
-    }
-    
-    // Para outros casos, adiciona +55 e espaço
-    return `+55 ${numbersOnly}`;
+  if (numbersOnly.length > 0) {
+    return `+55${numbersOnly}`;
   }
   
-  return trimmedPhone;
+  return phoneNumber;
 };
 
 export class TicketsAPI {
@@ -242,7 +236,7 @@ export class TicketsAPI {
         };
       }
 
-      // ✅ FORMATA O NÚMERO DE TELEFONE PARA GARANTIR O FORMATO CORRETO (+XX YYYYY-YYYY)
+      // ✅ NORMALIZA O NÚMERO DE TELEFONE PARA O FORMATO PADRONIZADO (apenas dígitos com código do país)
       const formattedPhone = formatPhoneNumber(customerPhone);
 
       console.log(`Original quota numbers:`, quotaNumbers);
