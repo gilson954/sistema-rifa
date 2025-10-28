@@ -12,8 +12,7 @@ import {
   AlertTriangle,
   FileText,
   Ticket,
-  Award,
-  Heart
+  Award
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -121,7 +120,6 @@ const CampaignPage = () => {
   const { user, isPhoneAuthenticated, phoneUser, signInWithPhone } = useAuth();
   const { theme } = useTheme();
   const { showSuccess, showError, showWarning, showInfo } = useNotification();
-  const { isFavorite, toggleFavorite } = useFavoriteCampaigns();
 
   const isValidDescription = (description: string): boolean => {
     if (!description || typeof description !== 'string') return false;
