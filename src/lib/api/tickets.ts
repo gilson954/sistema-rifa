@@ -84,7 +84,7 @@ const cleanQuotaNumbers = (quotaNumbers: any[]): number[] => {
  * Retorna apenas dígitos incluindo o código do país (+XX seguido dos dígitos)
  * Se o número não tiver código do país, adiciona +55 (Brasil) como padrão
  */
-const formatPhoneNumber = (phoneNumber: string): string => {
+export const formatPhoneNumber = (phoneNumber: string): string => {
   if (!phoneNumber) return phoneNumber;
   
   // Remove todos os caracteres não numéricos
