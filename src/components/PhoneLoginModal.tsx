@@ -4,31 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, ArrowRight } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { useAuth } from '../context/AuthContext';
-import { TicketsAPI } from '../lib/api/tickets';
-
-// Importa a função formatPhoneNumber para padronizar o número
-// Esta função está definida em src/lib/api/tickets.ts
-const formatPhoneNumber = (phoneNumber: string): string => {
-  if (!phoneNumber) return phoneNumber;
-  
-  // Remove todos os caracteres não numéricos
-  const numbersOnly = phoneNumber.replace(/\D/g, '');
-  
-  // Se o número original começava com '+', preserva isso
-  const hasPlus = phoneNumber.trim().startsWith('+');
-  
-  // Se já tem '+' no original e tem dígitos, retorna com '+'
-  if (hasPlus && numbersOnly.length > 0) {
-    return `+${numbersOnly}`;
-  }
-  
-  // Se não tem '+', adiciona +55 (código do Brasil) por padrão
-  if (numbersOnly.length > 0) {
-    return `+55${numbersOnly}`;
-  }
-  
-  return phoneNumber;
-};
+import { TicketsAPI, formatPhoneNumber } from '../lib/api/tickets';
 
 interface Country {
   code: string;
@@ -201,7 +177,7 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
       const customerName = tickets[0]?.customer_name || 'Cliente';
       const customerEmail = tickets[0]?.customer_email || '';
 
-      // ✅ UTILIZA formatPhoneNumber para padronizar o número antes de fazer login
+      // ✅ UTILIZA formatPhoneNumber centralizada para padronizar o número antes de fazer login
       // Formato final: +5511999999999 (apenas dígitos com código do país)
       const normalizedPhoneNumber = formatPhoneNumber(fullPhoneNumber);
       
