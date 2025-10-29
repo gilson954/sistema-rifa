@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
-import { TicketsAPI } from '../lib/api/tickets'
+import { TicketsAPI, formatPhoneNumber } from '../lib/api/tickets' // ✅ Importar formatPhoneNumber
 
 interface PhoneUser {
   id: string
@@ -183,13 +183,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return { error }
   }
 
+  /**
+   * Faz login com número de telefone
+   * 
+   * ✅ CORREÇÃO APLICADA: Normaliza o número de telefone uma única vez no início
+   * e usa o número normalizado em todas as operações subsequentes
+   * 
+   * @param phone - Número de telefone em qualquer formato (será normalizado internamente)
+   * @param userData - Dados opcionais do usuário (nome e email) se já conhecidos
+   */
   const signInWithPhone = async (phone: string, userData?: { name: string; email: string }) => {
     try {
+      // ✅ CORREÇÃO: Normalizar o número de telefone uma única vez aqui
+      const normalizedPhone = formatPhoneNumber(phone);
+      console.log('signInWithPhone - Original phone:', phone);
+      console.log('signInWithPhone - Normalized phone:', normalizedPhone);
+
       // Se os dados do usuário foram fornecidos (após reserva), usa eles diretamente
       if (userData) {
         const phoneUserData: PhoneUser = {
-          id: `phone_${phone.replace(/\D/g, '')}`,
-          phone: phone,
+          id: `phone_${normalizedPhone.replace(/\D/g, '')}`,
+          phone: normalizedPhone, // ✅ Usar o número normalizado
           name: userData.name,
           email: userData.email,
           isPhoneAuth: true
@@ -212,8 +226,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { success: true, user: phoneUserData }
       }
 
-      // Busca tickets do cliente usando TicketsAPI (já lida com normalização do telefone)
-      const { data: tickets, error } = await TicketsAPI.getTicketsByPhoneNumber(phone)
+      // Busca tickets do cliente usando TicketsAPI
+      // ✅ Passar o número normalizado para a API
+      const { data: tickets, error } = await TicketsAPI.getTicketsByPhoneNumber(normalizedPhone)
 
       if (error) {
         console.error('Error fetching tickets by phone:', error)
@@ -228,8 +243,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const firstTicket = tickets[0]
 
       const phoneUserData: PhoneUser = {
-        id: `phone_${phone.replace(/\D/g, '')}`,
-        phone: firstTicket.customer_phone,
+        id: `phone_${normalizedPhone.replace(/\D/g, '')}`,
+        phone: normalizedPhone, // ✅ Usar o número normalizado (consistente)
         name: firstTicket.customer_name,
         email: firstTicket.customer_email,
         isPhoneAuth: true
