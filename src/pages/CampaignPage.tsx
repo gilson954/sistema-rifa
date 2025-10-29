@@ -84,11 +84,6 @@ const maskPhoneNumber = (phone: string | null): string => {
   return phone.substring(0, 4) + '****' + phone.substring(phone.length - 2);
 };
 
-// ✅ FUNÇÃO HELPER PARA LIMPAR NÚMERO DE TELEFONE
-const cleanPhoneNumber = (phone: string): string => {
-  // Remove tudo que não é número
-  return phone.replace(/\D/g, '');
-};
 
 const slideVariants = {
   enter: (direction: number) => ({
