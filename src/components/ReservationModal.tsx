@@ -202,10 +202,34 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       return;
     }
 
-    // Formatar o número de telefone usando a função formatPhoneNumber
-    // Combinar código do país com o número (apenas dígitos)
-    const phoneDigitsOnly = formData.phoneNumber.replace(/\D/g, '');
-    const fullPhoneNumber = formatPhoneNumber(`${selectedCountry.dialCode}${phoneDigitsOnly}`);
+    // ✅ CORREÇÃO CRÍTICA: Remove TODOS os caracteres não numéricos
+    let phoneDigitsOnly = formData.phoneNumber.replace(/\D/g, '');
+    
+    // ✅ CRÍTICO: Detecta e remove código do país duplicado
+    // Remove o código do país sem o '+' do início do número (se presente)
+    const countryCodeDigits = selectedCountry.dialCode.replace(/\D/g, '');
+    
+    console.log('=== DEBUG RESERVATION MODAL ===');
+    console.log('formData.phoneNumber (original):', formData.phoneNumber);
+    console.log('phoneDigitsOnly (após limpar):', phoneDigitsOnly);
+    console.log('selectedCountry.dialCode:', selectedCountry.dialCode);
+    console.log('countryCodeDigits:', countryCodeDigits);
+    
+    // Se o número já começa com o código do país, remove ele
+    if (phoneDigitsOnly.startsWith(countryCodeDigits)) {
+      phoneDigitsOnly = phoneDigitsOnly.substring(countryCodeDigits.length);
+      console.log('⚠️ Código do país detectado e removido!');
+      console.log('phoneDigitsOnly (após remover código):', phoneDigitsOnly);
+    }
+    
+    // Agora combina dialCode + número limpo
+    const phoneWithDialCode = `${selectedCountry.dialCode}${phoneDigitsOnly}`;
+    console.log('phoneWithDialCode (antes do format):', phoneWithDialCode);
+    
+    // Normaliza usando formatPhoneNumber (que adiciona +55 no formato E.164)
+    const fullPhoneNumber = formatPhoneNumber(phoneWithDialCode);
+    console.log('fullPhoneNumber (após format):', fullPhoneNumber);
+    console.log('=== FIM DEBUG ===');
 
     const customerData: CustomerData = {
       ...formData,
@@ -727,7 +751,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                         id="acceptTerms"
                         checked={formData.acceptTerms}
                         onChange={(e) => setFormData({ ...formData, acceptTerms: e.target.checked })}
-                        className="peer sr-only" // Input real, invisível mas acessível
+                        className="peer sr-only"
                         disabled={reserving}
                         required
                       />
