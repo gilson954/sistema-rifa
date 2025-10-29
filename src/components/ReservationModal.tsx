@@ -202,18 +202,26 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       return;
     }
 
-    // Formatar o número de telefone usando a função formatPhoneNumber
-    // Combinar código do país com o número (apenas dígitos)
+    // CORREÇÃO APLICADA: Normalizar o número de telefone corretamente
+    // 1. Extrair apenas os dígitos do número digitado
     const phoneDigitsOnly = formData.phoneNumber.replace(/\D/g, '');
-    const fullPhoneNumber = formatPhoneNumber(`${selectedCountry.dialCode}${phoneDigitsOnly}`);
+    
+    // 2. Combinar código do país com os dígitos (formato: +55XXXXXXXXXXX)
+    const rawPhoneWithCountry = `${selectedCountry.dialCode}${phoneDigitsOnly}`;
+    
+    // 3. Aplicar a função de formatação padronizada
+    const fullPhoneNumber = formatPhoneNumber(rawPhoneWithCountry);
 
+    // 4. Criar o objeto customerData com o número NORMALIZADO
     const customerData: CustomerData = {
-      ...formData,
+      name: formData.name,
+      email: formData.email,
+      phoneNumber: fullPhoneNumber, // ✅ Agora envia o número normalizado
       countryCode: selectedCountry.dialCode,
-      phoneNumber: fullPhoneNumber // Enviar com formato padronizado
+      acceptTerms: formData.acceptTerms
     };
 
-    // Fazer login automático com dados do cliente
+    // 5. Fazer login automático com o número NORMALIZADO
     const loginResult = await signInWithPhone(fullPhoneNumber, {
       name: formData.name,
       email: formData.email
@@ -225,6 +233,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       console.log('Erro ao fazer auto-login:', loginResult.error);
     }
 
+    // 6. Passar os dados com o número normalizado para a função de reserva
     onReserve(customerData);
   };
 
