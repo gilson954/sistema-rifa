@@ -44,6 +44,46 @@ export interface CustomerRecord {
   created_at?: string | null;
 }
 
+// ✅ NOVO: Interface para CustomerTicket
+export interface CustomerTicket {
+  id: string;
+  campaign_id: string;
+  quota_number: number;
+  status: string;
+  reserved_at: string | null;
+  bought_at: string | null;
+  campaign?: {
+    id: string;
+    title: string;
+    prize_image_urls: string[] | null;
+    ticket_price: number;
+    status: string;
+  };
+}
+
+// ✅ NOVO: Interface para Order (pedido)
+export interface Order {
+  id: string;
+  campaign_id: string;
+  customer_name: string | null;
+  customer_email: string | null;
+  customer_phone: string | null;
+  total_amount: number;
+  status: string;
+  payment_method: string | null;
+  payment_status: string;
+  created_at: string;
+  updated_at: string | null;
+  campaign?: {
+    id: string;
+    title: string;
+    prize_image_urls: string[] | null;
+    ticket_price: number;
+    status: string;
+  };
+  tickets?: CustomerTicket[];
+}
+
 /**
  * Constantes
  */
@@ -60,9 +100,9 @@ export function formatPhoneNumber(input: string): string {
   // remove tudo que não for dígito
   let cleaned = input.replace(/\D/g, '');
 
-  // se houver duplicação do country code "55" (ex: "5555..."), tenta corrigir
-  // regra simple: se começar com '5555' provavelmente duplicou -> "55" + rest
-  if (cleaned.startsWith('5555')) {
+  // ✅ CORREÇÃO APRIMORADA: detecção mais robusta de duplicação
+  // Se começar com "5555" e tiver mais de 12 dígitos, provavelmente duplicou
+  if (cleaned.startsWith('5555') && cleaned.length > 12) {
     cleaned = cleaned.slice(2); // remove os dois "55" iniciais redundantes
   }
 
@@ -200,7 +240,16 @@ export class TicketsAPI {
   ): Promise<{ data: ReservationResult[] | null; error: any }> {
     try {
       const cleaned = cleanQuotaNumbers(quotaNumbers);
+      
+      console.log('=== DEBUG reserveTickets ===');
+      console.log('campaignId:', campaignId);
+      console.log('userId:', userId);
+      console.log('quotaNumbers (original):', quotaNumbers);
+      console.log('cleaned:', cleaned);
+      console.log('customerPhone (raw):', customerPhone);
+      
       if (cleaned.length === 0) {
+        console.error('❌ Nenhuma cota válida após limpeza');
         return { data: null, error: new Error('Nenhuma cota válida para reservar') };
       }
 
@@ -209,8 +258,11 @@ export class TicketsAPI {
       for (let i = 0; i < cleaned.length; i += RESERVATION_BATCH_SIZE) {
         const batch = cleaned.slice(i, i + RESERVATION_BATCH_SIZE);
 
-        // opcionalmente, normalizar telefone antes de enviar pro RPC
+        // normalizar telefone antes de enviar pro RPC
         const normalizedPhone = customerPhone ? formatPhoneNumber(customerPhone) : null;
+        
+        console.log('Batch:', batch);
+        console.log('normalizedPhone:', normalizedPhone);
 
         const { data, error } = await supabase.rpc('reserve_tickets', {
           p_campaign_id: campaignId,
@@ -222,15 +274,18 @@ export class TicketsAPI {
         });
 
         if (error) {
-          console.error('reserve_tickets RPC error:', error);
+          console.error('❌ reserve_tickets RPC error:', error);
           throw error;
         }
+
+        console.log('✅ RPC response:', data);
 
         if (Array.isArray(data) && data.length > 0) {
           allResults.push(...data);
         }
       }
 
+      console.log('=== FIM DEBUG reserveTickets ===');
       return { data: allResults, error: null };
     } catch (error: any) {
       console.error('TicketsAPI.reserveTickets error:', error);
@@ -269,15 +324,90 @@ export class TicketsAPI {
     try {
       const normalized = formatPhoneNumber(phoneRaw);
 
-      // A RPC get_tickets_by_phone deve aceitar o phone normalizado (com +55... ou apenas dígitos dependendo da implementação)
+      console.log('🔍 getTicketsByPhone - normalized:', normalized);
+
+      // A RPC get_tickets_by_phone deve aceitar o phone normalizado
       const { data, error } = await supabase.rpc('get_tickets_by_phone', {
         p_phone_number: normalized
       });
 
       if (error) throw error;
+      
+      console.log('✅ getTicketsByPhone - tickets found:', data?.length || 0);
       return { data: data || [], error: null };
     } catch (error: any) {
       console.error('TicketsAPI.getTicketsByPhone error:', error);
+      return { data: null, error };
+    }
+  }
+
+  /**
+   * ✅ NOVO: getOrdersByPhoneNumber
+   * - busca pedidos (orders) pelo número de telefone do cliente
+   * - normaliza o telefone e consulta a tabela 'orders'
+   */
+  static async getOrdersByPhoneNumber(phoneRaw: string): Promise<{ data: Order[] | null; error: any }> {
+    try {
+      const normalized = formatPhoneNumber(phoneRaw);
+
+      console.log('🔍 getOrdersByPhoneNumber - phone:', phoneRaw);
+      console.log('🔍 getOrdersByPhoneNumber - normalized:', normalized);
+
+      // Busca na tabela 'orders' filtrando por customer_phone
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          campaign:campaigns(
+            id,
+            title,
+            prize_image_urls,
+            ticket_price,
+            status
+          )
+        `)
+        .eq('customer_phone', normalized)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('❌ Erro ao buscar pedidos:', error);
+        throw error;
+      }
+
+      console.log('✅ Pedidos encontrados:', data?.length || 0);
+      
+      // Para cada pedido, buscar os tickets associados
+      if (data && data.length > 0) {
+        const ordersWithTickets = await Promise.all(
+          data.map(async (order) => {
+            // Buscar tickets deste pedido
+            const { data: tickets, error: ticketsError } = await supabase
+              .from('tickets')
+              .select('*')
+              .eq('campaign_id', order.campaign_id)
+              .eq('user_id', order.id) // ou outro campo de relacionamento
+              .in('status', ['reservado', 'comprado']);
+
+            if (ticketsError) {
+              console.warn('Erro ao buscar tickets do pedido:', order.id, ticketsError);
+            }
+
+            return {
+              ...order,
+              tickets: tickets || []
+            };
+          })
+        );
+
+        return {
+          data: ordersWithTickets as Order[],
+          error: null
+        };
+      }
+
+      return { data: data as Order[] || [], error: null };
+    } catch (error: any) {
+      console.error('❌ TicketsAPI.getOrdersByPhoneNumber error:', error);
       return { data: null, error };
     }
   }
@@ -290,6 +420,8 @@ export class TicketsAPI {
   static async checkCustomerByPhone(phoneRaw: string): Promise<{ data: CustomerRecord | null; error: any }> {
     try {
       const normalized = formatPhoneNumber(phoneRaw);
+
+      console.log('🔍 checkCustomerByPhone - normalized:', normalized);
 
       // se tiver uma view/custom RPC para buscar cliente por telefone, usar aqui
       const { data, error } = await supabase
@@ -306,6 +438,7 @@ export class TicketsAPI {
         return { data: rpc.data || null, error: null };
       }
 
+      console.log('✅ checkCustomerByPhone - customer found:', !!data);
       return { data: data || null, error: null };
     } catch (error: any) {
       console.error('TicketsAPI.checkCustomerByPhone error:', error);
@@ -322,9 +455,10 @@ export class TicketsAPI {
  *    - get_available_quotas
  *    - reserve_tickets
  *    - release_tickets
- *    - get_tickets_by_phone (opcional)
+ *    - get_tickets_by_phone
  *    - get_customer_by_phone (opcional)
  * - Se alguma RPC retornar objetos em vez de números puros, as funções aqui tentam normalizar.
+ * - ✅ NOVO: Adicionado método getOrdersByPhoneNumber para buscar pedidos por telefone
  */
 
 export default TicketsAPI;
