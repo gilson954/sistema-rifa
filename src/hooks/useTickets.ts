@@ -39,9 +39,7 @@ export const useTickets = (campaignId: string) => {
   }, [campaignId, user?.id]);
 
   /**
-   * ✅ CORREÇÃO: Reserva cotas para o usuário atual
-   * Ordem correta dos parâmetros conforme TicketsAPI.reserveTickets:
-   * (campaignId, userId, quotaNumbers, customerName, customerEmail, customerPhone)
+   * Reserva cotas para o usuário atual
    */
   const reserveTickets = async (
     quotaNumbers: number[],
@@ -54,36 +52,23 @@ export const useTickets = (campaignId: string) => {
       throw new Error('Dados inválidos para reserva');
     }
 
-    console.log('=== DEBUG useTickets.reserveTickets ===');
-    console.log('campaignId:', campaignId);
-    console.log('quotaNumbers:', quotaNumbers);
-    console.log('userId:', userId);
-    console.log('customerName:', customerName);
-    console.log('customerEmail:', customerEmail);
-    console.log('customerPhone:', customerPhone);
-
     setReserving(true);
     setError(null);
 
     try {
-      // ✅ CRÍTICO: Ordem correta dos parâmetros!
-      // TicketsAPI.reserveTickets(campaignId, userId, quotaNumbers, customerName, customerEmail, customerPhone)
       const { data, error: apiError } = await TicketsAPI.reserveTickets(
         campaignId,
-        userId || user?.id || null,  // userId vem ANTES de quotaNumbers
-        quotaNumbers,                 // quotaNumbers vem DEPOIS de userId
+        quotaNumbers,
+        userId || user?.id || null,
         customerName,
         customerEmail,
         customerPhone
       );
 
       if (apiError) {
-        console.error('❌ Erro ao reservar cotas:', apiError);
         setError('Erro ao reservar cotas');
         throw apiError;
       }
-
-      console.log('✅ Reserva bem-sucedida:', data);
 
       // Atualiza o status local após reserva bem-sucedida
       await fetchTicketsStatus();
@@ -109,9 +94,7 @@ export const useTickets = (campaignId: string) => {
     setError(null);
 
     try {
-      // Verificar se o método finalizePurchase existe na API
-      // Se não existir, você pode precisar criar ou usar outro método
-      const { data, error: apiError } = await (TicketsAPI as any).finalizePurchase?.(
+      const { data, error: apiError } = await TicketsAPI.finalizePurchase(
         campaignId,
         quotaNumbers,
         user.id
