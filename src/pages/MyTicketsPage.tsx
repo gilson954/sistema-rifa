@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Ticket, Calendar, CheckCircle, Clock, XCircle, AlertCircle, LogOut, Timer, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import CampaignFooter from '../components/CampaignFooter';
-import { TicketsAPI, CustomerOrder } from '../lib/api/tickets';
+import { TicketsAPI, Order } from '../lib/api/tickets';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/currency';
 
@@ -24,7 +24,7 @@ const MyTicketsPage = () => {
   const location = useLocation();
   const { isPhoneAuthenticated, phoneUser, signOut, loading: authLoading } = useAuth();
 
-  const [orders, setOrders] = useState<CustomerOrder[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
@@ -42,7 +42,10 @@ const MyTicketsPage = () => {
   }, [isPhoneAuthenticated, phoneUser, campaignContext?.organizerId]);
 
   useEffect(() => {
-    const pendingOrders = orders.filter(order => order.status === 'reserved' && order.reservation_expires_at);
+    // Filtrar pedidos com status 'reserved' e que tenham reservation_expires_at
+    const pendingOrders = orders.filter(order => 
+      order.payment_status === 'pending' && order.created_at
+    );
 
     if (pendingOrders.length === 0) return;
 
@@ -51,13 +54,13 @@ const MyTicketsPage = () => {
       const newTimeMap: Record<string, string> = {};
 
       pendingOrders.forEach(order => {
-        if (!order.reservation_expires_at) return;
-
-        const expiration = new Date(order.reservation_expires_at).getTime();
-        const difference = expiration - now;
+        // Calcular expiração: created_at + 30 minutos (padrão)
+        const createdAt = new Date(order.created_at).getTime();
+        const expirationTime = createdAt + (30 * 60 * 1000); // 30 minutos em ms
+        const difference = expirationTime - now;
 
         if (difference <= 0) {
-          newTimeMap[order.order_id] = 'EXPIRADO';
+          newTimeMap[order.id] = 'EXPIRADO';
         } else {
           // Calcular dias, horas, minutos e segundos
           const days = Math.floor(difference / (1000 * 60 * 60 * 24));
@@ -67,11 +70,11 @@ const MyTicketsPage = () => {
           
           // Formatar conforme o tempo restante
           if (days > 0) {
-            newTimeMap[order.order_id] = `${days}d ${hours}h ${minutes}min`;
+            newTimeMap[order.id] = `${days}d ${hours}h ${minutes}min`;
           } else if (hours > 0) {
-            newTimeMap[order.order_id] = `${hours}h ${minutes}min`;
+            newTimeMap[order.id] = `${hours}h ${minutes}min`;
           } else {
-            newTimeMap[order.order_id] = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            newTimeMap[order.id] = `${minutes}:${seconds.toString().padStart(2, '0')}`;
           }
         }
       });
@@ -126,14 +129,20 @@ const MyTicketsPage = () => {
     setError(null);
 
     try {
+      console.log('🔍 Buscando pedidos para:', phone);
+      
+      // ✅ CORREÇÃO: Usar o método correto
       const { data, error: apiError } = await TicketsAPI.getOrdersByPhoneNumber(phone);
 
       if (apiError) {
         setError('Erro ao buscar seus pedidos. Tente novamente.');
-        console.error('Error fetching orders:', apiError);
+        console.error('Error loading orders:', apiError);
       } else {
+        console.log('✅ Pedidos carregados:', data?.length || 0);
+        
         let filteredOrders = data || [];
 
+        // Filtrar por organizador se especificado
         if (campaignContext?.organizerId) {
           const { data: organizerCampaigns } = await supabase
             .from('campaigns')
@@ -167,9 +176,10 @@ const MyTicketsPage = () => {
     });
   };
 
-  const getStatusInfo = (status: string) => {
-    switch (status) {
-      case 'purchased':
+  const getStatusInfo = (paymentStatus: string) => {
+    switch (paymentStatus) {
+      case 'paid':
+      case 'confirmed':
         return {
           label: 'Pago',
           icon: CheckCircle,
@@ -178,7 +188,7 @@ const MyTicketsPage = () => {
           borderColor: 'border-green-500',
           buttonColor: 'bg-green-600'
         };
-      case 'reserved':
+      case 'pending':
         return {
           label: 'Aguardando Pagamento',
           icon: Clock,
@@ -188,6 +198,7 @@ const MyTicketsPage = () => {
           buttonColor: 'bg-yellow-600'
         };
       case 'expired':
+      case 'cancelled':
         return {
           label: 'Compra Cancelada',
           icon: XCircle,
@@ -208,21 +219,24 @@ const MyTicketsPage = () => {
     }
   };
 
-  const handlePayment = (order: CustomerOrder) => {
+  const handlePayment = (order: Order) => {
+    // Extrair números dos tickets se disponíveis
+    const ticketNumbers = order.tickets?.map(t => t.quota_number) || [];
+    
     navigate('/payment-confirmation', {
       state: {
         reservationData: {
-          reservationId: order.order_id,
+          reservationId: order.id,
           customerName: order.customer_name || '',
           customerEmail: order.customer_email || '',
           customerPhone: order.customer_phone || '',
-          quotaCount: order.ticket_count,
-          totalValue: order.total_value,
-          selectedQuotas: order.ticket_numbers,
-          campaignTitle: order.campaign_title,
+          quotaCount: ticketNumbers.length,
+          totalValue: order.total_amount,
+          selectedQuotas: ticketNumbers,
+          campaignTitle: order.campaign?.title || 'Campanha',
           campaignId: order.campaign_id,
-          campaignPublicId: order.campaign_public_id,
-          expiresAt: order.reservation_expires_at,
+          campaignPublicId: order.campaign?.id || '',
+          expiresAt: order.created_at, // Usar created_at para calcular expiração
           reservationTimeoutMinutes: 30
         }
       }
@@ -408,38 +422,39 @@ const MyTicketsPage = () => {
             <div className="space-y-2 sm:space-y-3">
               <AnimatePresence mode="wait">
                 {paginatedOrders.map((order) => {
-                  const statusInfo = getStatusInfo(order.status);
+                  const statusInfo = getStatusInfo(order.payment_status);
                   const StatusIcon = statusInfo.icon;
-                  const timeRemaining = timeRemainingMap[order.order_id];
-                  const isExpanded = expandedOrders.has(order.order_id);
+                  const timeRemaining = timeRemainingMap[order.id];
+                  const isExpanded = expandedOrders.has(order.id);
+                  const ticketNumbers = order.tickets?.map(t => t.quota_number) || [];
                   const maxVisibleTickets = 6;
-                  const hasMoreTickets = order.ticket_numbers.length > maxVisibleTickets;
+                  const hasMoreTickets = ticketNumbers.length > maxVisibleTickets;
 
                   return (
                     <div
-                      key={order.order_id}
+                      key={order.id}
                       className={`${themeClasses.cardBg} rounded-lg sm:rounded-xl shadow-md border-l-4 ${statusInfo.borderColor} overflow-hidden hover:shadow-lg transition-shadow duration-200`}
                     >
                       <div className="p-3 sm:p-4">
                         <div className="flex gap-3 sm:gap-4">
                           <div className="flex-shrink-0">
                             <img
-                              src={order.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400'}
-                              alt={order.campaign_title}
+                              src={order.campaign?.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400'}
+                              alt={order.campaign?.title || 'Campanha'}
                               className="w-16 h-16 sm:w-24 sm:h-24 object-cover rounded-md sm:rounded-lg"
                             />
                           </div>
 
                           <div className="flex-1 min-w-0">
                             <h3 className={`text-sm sm:text-lg font-bold ${themeClasses.text} mb-1.5 sm:mb-2 truncate`}>
-                              {order.campaign_title}
+                              {order.campaign?.title || 'Campanha'}
                             </h3>
 
                             <div className="flex flex-col gap-1 sm:gap-2 mb-2 sm:mb-3">
                               <div className="flex items-center text-xs">
                                 <Calendar className={`h-2.5 sm:h-3 w-2.5 sm:w-3 mr-1 sm:mr-1.5 ${themeClasses.textSecondary}`} />
                                 <span className={themeClasses.textSecondary}>
-                                  {formatDate(order.reserved_at || order.created_at)}
+                                  {formatDate(order.created_at)}
                                 </span>
                               </div>
                               <div className="flex items-center text-xs">
@@ -456,21 +471,21 @@ const MyTicketsPage = () => {
                                   className="mr-1 sm:mr-1.5"
                                 >
                                   <Ticket className={`h-2.5 sm:h-3 w-2.5 sm:w-3 ${
-                                    order.status === 'purchased' 
+                                    order.payment_status === 'paid' || order.payment_status === 'confirmed'
                                       ? 'text-green-500' 
-                                      : order.status === 'reserved'
+                                      : order.payment_status === 'pending'
                                       ? 'text-yellow-500'
                                       : 'text-red-500'
                                   }`} />
                                 </motion.div>
                                 <span className={`font-bold ${
-                                  order.status === 'purchased' 
+                                  order.payment_status === 'paid' || order.payment_status === 'confirmed'
                                     ? 'text-green-600 dark:text-green-400' 
-                                    : order.status === 'reserved'
+                                    : order.payment_status === 'pending'
                                     ? 'text-yellow-600 dark:text-yellow-400'
                                     : 'text-red-600 dark:text-red-400'
                                 }`}>
-                                  {order.ticket_count} {order.ticket_count === 1 ? 'cota' : 'cotas'}
+                                  {ticketNumbers.length} {ticketNumbers.length === 1 ? 'cota' : 'cotas'}
                                 </span>
                               </div>
                             </div>
@@ -480,7 +495,7 @@ const MyTicketsPage = () => {
                               <span className={`text-xs font-semibold ${statusInfo.color}`}>
                                 {statusInfo.label}
                               </span>
-                              {order.status === 'reserved' && timeRemaining && timeRemaining !== 'EXPIRADO' && (
+                              {order.payment_status === 'pending' && timeRemaining && timeRemaining !== 'EXPIRADO' && (
                                 <>
                                   <span className={statusInfo.color}>•</span>
                                   <Timer className={`h-2.5 sm:h-3 w-2.5 sm:w-3 ${statusInfo.color}`} />
@@ -491,13 +506,13 @@ const MyTicketsPage = () => {
                               )}
                             </div>
 
-                            {order.status === 'purchased' && order.ticket_numbers.length > 0 && (
+                            {(order.payment_status === 'paid' || order.payment_status === 'confirmed') && ticketNumbers.length > 0 && (
                               <div className="mb-2 sm:mb-3">
                                 <div className={`text-xs ${themeClasses.textSecondary} font-semibold mb-1 sm:mb-1.5 flex items-center justify-between`}>
                                   <span>Números da sorte:</span>
                                   {hasMoreTickets && (
                                     <button
-                                      onClick={() => toggleExpandOrder(order.order_id)}
+                                      onClick={() => toggleExpandOrder(order.id)}
                                       className={`flex items-center gap-1 ${themeClasses.textSecondary} hover:${themeClasses.text} transition-colors text-xs`}
                                     >
                                       {isExpanded ? (
@@ -515,7 +530,7 @@ const MyTicketsPage = () => {
                                   )}
                                 </div>
                                 <div className="flex flex-wrap gap-1 sm:gap-1.5">
-                                  {(isExpanded ? order.ticket_numbers : order.ticket_numbers.slice(0, maxVisibleTickets)).map((num) => (
+                                  {(isExpanded ? ticketNumbers : ticketNumbers.slice(0, maxVisibleTickets)).map((num) => (
                                     <span
                                       key={num}
                                       className="px-1.5 sm:px-2 py-0.5 text-xs font-bold rounded-md bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
@@ -525,10 +540,10 @@ const MyTicketsPage = () => {
                                   ))}
                                   {!isExpanded && hasMoreTickets && (
                                     <button
-                                      onClick={() => toggleExpandOrder(order.order_id)}
+                                      onClick={() => toggleExpandOrder(order.id)}
                                       className="px-1.5 sm:px-2 py-0.5 text-xs font-bold rounded-md bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                                     >
-                                      +{order.ticket_numbers.length - maxVisibleTickets} mais
+                                      +{ticketNumbers.length - maxVisibleTickets} mais
                                     </button>
                                   )}
                                 </div>
@@ -538,11 +553,11 @@ const MyTicketsPage = () => {
                             <div className="flex items-baseline gap-1.5 sm:gap-2 mb-2 sm:mb-3">
                               <span className={`text-xs ${themeClasses.textSecondary}`}>Total:</span>
                               <span className={`text-lg sm:text-xl font-bold ${themeClasses.text}`}>
-                                {formatCurrency(order.total_value)}
+                                {formatCurrency(order.total_amount)}
                               </span>
                             </div>
 
-                            {order.status === 'reserved' && (
+                            {order.payment_status === 'pending' && (
                               <button
                                 onClick={() => handlePayment(order)}
                                 className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 shadow-md`}
@@ -551,10 +566,11 @@ const MyTicketsPage = () => {
                               </button>
                             )}
 
-                            {order.status === 'expired' && (
+                            {(order.payment_status === 'expired' || order.payment_status === 'cancelled') && (
                               <button
                                 onClick={() => handlePayment(order)}
-                                className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 shadow-md`}
+                                disabled
+                                className={`w-full ${statusInfo.buttonColor} opacity-50 cursor-not-allowed text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm`}
                               >
                                 Compra Cancelada
                               </button>
