@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Minus, Plus, TrendingUp } from 'lucide-react';
 import { calculateTotalWithPromotions } from '../utils/currency';
 
@@ -53,16 +53,44 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // ✅ CORREÇÃO: useRef para controlar se já foi inicializado
+  const isInitializedRef = useRef(false);
+  const lastNotifiedQuantityRef = useRef<number>(quantity);
 
-  React.useEffect(() => {
+  // ✅ CORREÇÃO: useEffect melhorado para evitar loops e avisos
+  useEffect(() => {
     const validQuantity = Math.max(initialQuantity, minTicketsPerPurchase);
-    setQuantity(validQuantity);
+    
+    // Só atualiza se a quantidade for diferente da atual
+    if (validQuantity !== quantity) {
+      setQuantity(validQuantity);
+    }
 
-    // Use setTimeout to avoid calling parent state setter during render
-    setTimeout(() => {
-      onQuantityChange(validQuantity);
-    }, 0);
-  }, [initialQuantity, minTicketsPerPurchase, onQuantityChange]);
+    // Notifica o parent apenas se:
+    // 1. Ainda não foi inicializado (primeira montagem)
+    // 2. OU a quantidade mudou em relação à última notificação
+    if (!isInitializedRef.current || lastNotifiedQuantityRef.current !== validQuantity) {
+      // Marca como inicializado
+      isInitializedRef.current = true;
+      lastNotifiedQuantityRef.current = validQuantity;
+      
+      // Chama onQuantityChange de forma segura
+      // Usamos queueMicrotask em vez de setTimeout para ser mais eficiente
+      queueMicrotask(() => {
+        onQuantityChange(validQuantity);
+      });
+    }
+  }, [initialQuantity, minTicketsPerPurchase]); // ✅ Removido onQuantityChange das dependências
+
+  // ✅ Novo useEffect para sincronizar quantity com parent quando mudar internamente
+  useEffect(() => {
+    // Só notifica se a quantidade mudou e já está inicializado
+    if (isInitializedRef.current && lastNotifiedQuantityRef.current !== quantity) {
+      lastNotifiedQuantityRef.current = quantity;
+      onQuantityChange(quantity);
+    }
+  }, [quantity, onQuantityChange]);
 
   const getThemeClasses = (theme: string) => {
     switch (theme) {
@@ -146,11 +174,11 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     if (adjustedQuantity > maxTicketsPerPurchase) {
       setErrorMessage(`Máximo ${maxTicketsPerPurchase.toLocaleString('pt-BR')} bilhetes por compra`);
       setQuantity(maxTicketsPerPurchase);
-      onQuantityChange(maxTicketsPerPurchase);
+      // onQuantityChange será chamado pelo useEffect que observa quantity
     } else {
       setErrorMessage('');
       setQuantity(adjustedQuantity);
-      onQuantityChange(adjustedQuantity);
+      // onQuantityChange será chamado pelo useEffect que observa quantity
     }
   };
 
@@ -168,14 +196,13 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       
       if (adjustedQuantity > maxTicketsPerPurchase) {
         setErrorMessage(`Máximo ${maxTicketsPerPurchase.toLocaleString('pt-BR')} bilhetes por compra`);
-        onQuantityChange(maxTicketsPerPurchase);
         return maxTicketsPerPurchase;
       } else {
         setErrorMessage('');
-        onQuantityChange(adjustedQuantity);
         return adjustedQuantity;
       }
     });
+    // onQuantityChange será chamado pelo useEffect que observa quantity
   };
 
   const startIncrement = (value: number) => {
@@ -198,7 +225,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       stopIncrement();
     };
