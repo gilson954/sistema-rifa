@@ -80,82 +80,28 @@ const cleanQuotaNumbers = (quotaNumbers: any[]): number[] => {
 };
 
 /**
- * Função helper para normalizar o número de telefone para o formato padronizado
- * Esta é a ÚNICA fonte de verdade para normalização de números de telefone
+ * ⚠️ FUNÇÃO DESATIVADA - NÃO USAR MAIS!
  * 
- * ⚠️ IMPORTANTE: Esta função deve ser chamada APENAS UMA VEZ, nos componentes de UI
- * (ReservationModal, PhoneLoginModal) ANTES de chamar as funções da API.
+ * Esta função causava o bug de duplicação +5555 porque era chamada múltiplas vezes.
+ * A normalização agora deve ser feita APENAS UMA VEZ nos componentes de UI:
+ * - ReservationStep1Modal.tsx
+ * - ReservationModal.tsx
  * 
- * As funções da API (reserveTickets, getTicketsByPhoneNumber, etc.) NÃO devem
- * chamar esta função novamente, pois o número já deve chegar normalizado.
+ * Formato esperado em TODOS os lugares: +5562999999999
  * 
- * Comportamento:
- * - Remove TODOS os caracteres não numéricos (espaços, parênteses, hífens, etc.)
- * - Garante que o número tenha APENAS UM '+' no início
- * - Se o número já tiver código de país (detectado por comprimento ou prefixo), preserva
- * - Se não tiver código de país, adiciona +55 (Brasil) como padrão
- * - Retorna sempre no formato: +[código do país][número] (apenas dígitos após o +)
+ * IMPORTANTE: Esta função foi mantida apenas para referência e compatibilidade
+ * com imports existentes, mas NÃO deve ser usada. Todos os números de telefone
+ * já devem chegar normalizados no formato correto.
  * 
- * Exemplos:
- * - "(62) 99999-9999" → "+5562999999999"
- * - "+55 62 99999-9999" → "+5562999999999"
- * - "62999999999" → "+5562999999999"
- * - "+5562999999999" → "+5562999999999"
- * - "++5562999999999" → "+5562999999999" (remove + duplicados)
- * - "+1234567890" → "+1234567890" (preserva código de país diferente)
- * 
- * @param phoneNumber - Número de telefone em qualquer formato
- * @returns Número normalizado no formato +[código][número] ou string vazia se inválido
+ * @deprecated Use a normalização direta nos componentes de UI
  */
 export const formatPhoneNumber = (phoneNumber: string): string => {
-  // Se não houver input, retorna string vazia
-  if (!phoneNumber || typeof phoneNumber !== 'string') {
-    return '';
-  }
-
-  // Remove espaços no início e fim
-  const trimmed = phoneNumber.trim();
+  console.warn('⚠️ formatPhoneNumber() foi chamada - ISTO NÃO DEVERIA ACONTECER!');
+  console.warn('⚠️ Números de telefone devem ser normalizados APENAS nos componentes de UI');
+  console.trace('Stack trace da chamada indevida:');
   
-  // Se a string estiver vazia após trim, retorna vazio
-  if (!trimmed) {
-    return '';
-  }
-
-  // Remove TODOS os caracteres não numéricos
-  const numbersOnly = trimmed.replace(/\D/g, '');
-  
-  // Se não houver nenhum dígito, retorna vazio
-  if (!numbersOnly || numbersOnly.length === 0) {
-    return '';
-  }
-
-  // Detecta se o número original tinha '+' no início (antes de remover caracteres)
-  const hadPlus = trimmed.startsWith('+');
-
-  // Se o número original tinha '+' no início, assume que já tem código de país
-  if (hadPlus) {
-    // Retorna com '+' e apenas os dígitos
-    return `+${numbersOnly}`;
-  }
-
-  // Se não tinha '+', precisa determinar se já tem código de país ou não
-  // Números brasileiros sem código de país geralmente têm 10 ou 11 dígitos (DDD + número)
-  // Com código de país (55), teriam 12 ou 13 dígitos
-  
-  // Se o número começa com '55' e tem comprimento compatível com número brasileiro
-  // completo (12-13 dígitos), assume que já tem código de país
-  if (numbersOnly.startsWith('55') && numbersOnly.length >= 12 && numbersOnly.length <= 13) {
-    return `+${numbersOnly}`;
-  }
-
-  // Se o número tem comprimento muito grande (14+ dígitos), provavelmente já tem código de país
-  // mesmo que não seja brasileiro
-  if (numbersOnly.length >= 14) {
-    return `+${numbersOnly}`;
-  }
-
-  // Caso contrário, assume que não tem código de país e adiciona +55 (Brasil)
-  return `+55${numbersOnly}`;
+  // Retorna o número exatamente como recebido, sem processar
+  return phoneNumber;
 };
 
 export class TicketsAPI {
@@ -269,10 +215,11 @@ export class TicketsAPI {
    * Reserva um conjunto de tickets para um usuário
    * Implementa processamento em lote para grandes quantidades
    * 
-   * ✅ CORREÇÃO APLICADA: Remove normalização duplicada de customerPhone
-   * O número já deve chegar normalizado dos componentes de UI (ReservationModal)
+   * ✅ CORREÇÃO APLICADA: NÃO normaliza customerPhone
+   * O número JÁ CHEGA NORMALIZADO dos componentes de UI (ReservationModal)
+   * Formato esperado: +5562999999999
    * 
-   * @param customerPhone - Número de telefone JÁ NORMALIZADO (formato: +[código][número])
+   * @param customerPhone - Número de telefone JÁ NORMALIZADO (formato: +5562999999999)
    */
   static async reserveTickets(
     campaignId: string,
@@ -293,10 +240,9 @@ export class TicketsAPI {
         };
       }
 
-      // ✅ CORREÇÃO: NÃO normaliza novamente - assume que o número já vem normalizado
-      // O componente ReservationModal já chama formatPhoneNumber antes de chamar esta função
-      console.log(`Cleaned quota numbers:`, cleanedQuotaNumbers);
-      console.log(`Customer phone (already normalized):`, customerPhone);
+      // ✅ CORREÇÃO: NÃO normaliza - usa exatamente como recebido
+      console.log(`🔵 TicketsAPI.reserveTickets - Cleaned quota numbers:`, cleanedQuotaNumbers);
+      console.log(`🟢 TicketsAPI.reserveTickets - Customer phone (NO normalization):`, customerPhone);
 
       // Se a quantidade de tickets é menor ou igual ao tamanho do lote, faz uma única requisição
       if (cleanedQuotaNumbers.length <= RESERVATION_BATCH_SIZE) {
@@ -306,8 +252,14 @@ export class TicketsAPI {
           p_user_id: userId,
           p_customer_name: customerName,
           p_customer_email: customerEmail,
-          p_customer_phone: customerPhone, // ✅ Usa diretamente, já normalizado
+          p_customer_phone: customerPhone, // ✅ Usa diretamente, SEM normalizar
         });
+
+        if (error) {
+          console.error('❌ Error in reserve_tickets RPC:', error);
+        } else {
+          console.log(`✅ Successfully reserved ${data?.length || 0} tickets`);
+        }
 
         return { data, error };
       }
@@ -330,11 +282,11 @@ export class TicketsAPI {
           p_user_id: userId,
           p_customer_name: customerName,
           p_customer_email: customerEmail,
-          p_customer_phone: customerPhone, // ✅ Usa diretamente, já normalizado
+          p_customer_phone: customerPhone, // ✅ Usa diretamente, SEM normalizar
         });
 
         if (error) {
-          console.error(`Error processing batch ${i + 1}:`, error);
+          console.error(`❌ Error processing batch ${i + 1}:`, error);
           return { data: null, error };
         }
 
@@ -343,10 +295,10 @@ export class TicketsAPI {
         }
       }
 
-      console.log(`Successfully reserved ${allResults.length} tickets`);
+      console.log(`✅ Successfully reserved ${allResults.length} tickets in ${totalBatches} batches`);
       return { data: allResults, error: null };
     } catch (error) {
-      console.error('Error reserving tickets:', error);
+      console.error('❌ Error reserving tickets:', error);
       return { data: null, error };
     }
   }
@@ -421,66 +373,63 @@ export class TicketsAPI {
   /**
    * Busca tickets por número de telefone (para clientes não logados)
    * 
-   * ✅ CORREÇÃO APLICADA: Remove normalização duplicada de phoneNumber
-   * O número já deve chegar normalizado dos componentes de UI (PhoneLoginModal)
+   * ✅ CORREÇÃO APLICADA: NÃO normaliza phoneNumber
+   * O número JÁ CHEGA NORMALIZADO dos componentes de UI
+   * Formato esperado: +5562999999999
    * 
-   * Implementa busca dupla para compatibilidade com números antigos:
-   * 1. Busca com o número normalizado completo (formato padronizado com código do país)
-   * 2. Se não encontrar e o número tiver código do país +55, busca sem o código do país
-   *    (para encontrar registros antigos que foram salvos sem código do país)
-   * 
-   * @param phoneNumber - Número de telefone JÁ NORMALIZADO (formato: +[código][número])
+   * @param phoneNumber - Número de telefone JÁ NORMALIZADO (formato: +5562999999999)
    */
   static async getTicketsByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerTicket[] | null; error: any }> {
     try {
-      // ✅ CORREÇÃO: NÃO normaliza novamente - assume que o número já vem normalizado
-      // O componente PhoneLoginModal já chama formatPhoneNumber antes de chamar esta função
-      console.log(`Searching tickets with phone (already normalized):`, phoneNumber);
+      // ✅ CORREÇÃO: NÃO normaliza - usa exatamente como recebido
+      console.log(`🔵 TicketsAPI.getTicketsByPhoneNumber - Searching with phone (NO normalization):`, phoneNumber);
 
-      // Primeira tentativa: busca com o número formatado completo (com código do país)
+      // Primeira tentativa: busca com o número completo (com código do país)
       const { data: firstAttemptData, error: firstAttemptError } = await supabase.rpc('get_tickets_by_phone', {
-        p_phone_number: phoneNumber // ✅ Usa diretamente, já normalizado
+        p_phone_number: phoneNumber // ✅ Usa diretamente, SEM normalizar
       });
 
       if (firstAttemptError) {
-        console.error('Error on first attempt:', firstAttemptError);
+        console.error('❌ Error on first attempt:', firstAttemptError);
         return { data: null, error: firstAttemptError };
       }
 
       // Se encontrou resultados na primeira tentativa, retorna
       if (firstAttemptData && firstAttemptData.length > 0) {
-        console.log(`Found ${firstAttemptData.length} tickets with formatted number`);
+        console.log(`✅ Found ${firstAttemptData.length} tickets with full number`);
         return { data: firstAttemptData, error: null };
       }
 
-      // Se não encontrou resultados e o número formatado começa com +55 (Brasil),
-      // faz segunda tentativa sem o código do país (para compatibilidade com registros antigos)
+      // Se não encontrou resultados e o número começa com +55 (Brasil),
+      // faz segunda tentativa sem o código do país (compatibilidade com registros antigos)
       if (phoneNumber.startsWith('+55')) {
         // Remove o '+55' do início para buscar registros antigos
         const phoneWithoutCountryCode = phoneNumber.substring(3);
-        console.log(`No results found. Trying without country code: ${phoneWithoutCountryCode}`);
+        console.log(`🟡 No results found. Trying without country code: ${phoneWithoutCountryCode}`);
 
         const { data: secondAttemptData, error: secondAttemptError } = await supabase.rpc('get_tickets_by_phone', {
           p_phone_number: phoneWithoutCountryCode
         });
 
         if (secondAttemptError) {
-          console.error('Error on second attempt:', secondAttemptError);
+          console.error('❌ Error on second attempt:', secondAttemptError);
           return { data: null, error: secondAttemptError };
         }
 
         if (secondAttemptData && secondAttemptData.length > 0) {
-          console.log(`Found ${secondAttemptData.length} tickets without country code`);
+          console.log(`✅ Found ${secondAttemptData.length} tickets without country code (legacy format)`);
+        } else {
+          console.log('ℹ️ No tickets found for this phone number');
         }
 
         return { data: secondAttemptData, error: null };
       }
 
       // Se não encontrou resultados em nenhuma tentativa
-      console.log('No tickets found for this phone number');
+      console.log('ℹ️ No tickets found for this phone number');
       return { data: [], error: null };
     } catch (error) {
-      console.error('Error fetching tickets by phone:', error);
+      console.error('❌ Error fetching tickets by phone:', error);
       return { data: null, error };
     }
   }
@@ -489,23 +438,30 @@ export class TicketsAPI {
    * Busca pedidos (orders) por número de telefone
    * Retorna pedidos agrupados em vez de tickets individuais
    * 
-   * ✅ CORREÇÃO APLICADA: Remove normalização duplicada de phoneNumber
-   * O número já deve chegar normalizado dos componentes de UI
+   * ✅ CORREÇÃO APLICADA: NÃO normaliza phoneNumber
+   * O número JÁ CHEGA NORMALIZADO dos componentes de UI
+   * Formato esperado: +5562999999999
    * 
-   * @param phoneNumber - Número de telefone JÁ NORMALIZADO (formato: +[código][número])
+   * @param phoneNumber - Número de telefone JÁ NORMALIZADO (formato: +5562999999999)
    */
   static async getOrdersByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerOrder[] | null; error: any }> {
     try {
-      // ✅ CORREÇÃO: NÃO normaliza novamente - assume que o número já vem normalizado
-      console.log(`Searching orders with phone (already normalized):`, phoneNumber);
+      // ✅ CORREÇÃO: NÃO normaliza - usa exatamente como recebido
+      console.log(`🔵 TicketsAPI.getOrdersByPhoneNumber - Searching with phone (NO normalization):`, phoneNumber);
 
       const { data, error } = await supabase.rpc('get_orders_by_phone', {
-        p_phone_number: phoneNumber // ✅ Usa diretamente, já normalizado
+        p_phone_number: phoneNumber // ✅ Usa diretamente, SEM normalizar
       });
+
+      if (error) {
+        console.error('❌ Error fetching orders:', error);
+      } else {
+        console.log(`✅ Found ${data?.length || 0} orders`);
+      }
 
       return { data, error };
     } catch (error) {
-      console.error('Error fetching orders by phone:', error);
+      console.error('❌ Error fetching orders by phone:', error);
       return { data: null, error };
     }
   }
