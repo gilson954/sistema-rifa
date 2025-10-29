@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle, ShoppingCart, ChevronDown, ChevronUp } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { formatReservationTime } from '../utils/timeFormatters';
-import { formatPhoneNumber } from '../lib/api/tickets';
 import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -202,38 +201,36 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       return;
     }
 
-    // CORREÇÃO APLICADA: Normalizar o número de telefone corretamente
-    // 1. Extrair apenas os dígitos do número digitado
+    // ✅ CORREÇÃO: Apenas combina dialCode + phoneNumber SEM normalizar
     const phoneDigitsOnly = formData.phoneNumber.replace(/\D/g, '');
-    
-    // 2. Combinar código do país com os dígitos (formato: +55XXXXXXXXXXX)
-    const rawPhoneWithCountry = `${selectedCountry.dialCode}${phoneDigitsOnly}`;
-    
-    // 3. Aplicar a função de formatação padronizada
-    const fullPhoneNumber = formatPhoneNumber(rawPhoneWithCountry);
+    const fullPhoneNumber = `${selectedCountry.dialCode}${phoneDigitsOnly}`;
 
-    // 4. Criar o objeto customerData com o número NORMALIZADO
+    console.log('🔵 ReservationModal - Phone digits only:', phoneDigitsOnly);
+    console.log('🟢 ReservationModal - Full phone (dialCode + digits):', fullPhoneNumber);
+    console.log('🟡 ReservationModal - Sending to API (NO normalization):', fullPhoneNumber);
+
+    // ✅ Criar o objeto customerData com o número SEM normalizar
     const customerData: CustomerData = {
       name: formData.name,
       email: formData.email,
-      phoneNumber: fullPhoneNumber, // ✅ Agora envia o número normalizado
+      phoneNumber: fullPhoneNumber, // ✅ Envia direto sem normalizar
       countryCode: selectedCountry.dialCode,
       acceptTerms: formData.acceptTerms
     };
 
-    // 5. Fazer login automático com o número NORMALIZADO
+    // ✅ Fazer login automático com o número SEM normalizar
     const loginResult = await signInWithPhone(fullPhoneNumber, {
       name: formData.name,
       email: formData.email
     });
 
     if (loginResult.success) {
-      console.log('Auto-login realizado com sucesso:', loginResult.user);
+      console.log('✅ Auto-login realizado com sucesso:', loginResult.user);
     } else {
-      console.log('Erro ao fazer auto-login:', loginResult.error);
+      console.log('❌ Erro ao fazer auto-login:', loginResult.error);
     }
 
-    // 6. Passar os dados com o número normalizado para a função de reserva
+    // ✅ Passar os dados sem normalização para a função de reserva
     onReserve(customerData);
   };
 
@@ -736,7 +733,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                         id="acceptTerms"
                         checked={formData.acceptTerms}
                         onChange={(e) => setFormData({ ...formData, acceptTerms: e.target.checked })}
-                        className="peer sr-only" // Input real, invisível mas acessível
+                        className="peer sr-only"
                         disabled={reserving}
                         required
                       />
