@@ -267,7 +267,7 @@ export class TicketsAPI {
         const { data, error } = await supabase.rpc('reserve_tickets', {
           p_campaign_id: campaignId,
           p_user_id: userId,
-          p_ticket_numbers: batch,
+          p_quota_numbers: batch,
           p_customer_name: customerName || null,
           p_customer_email: customerEmail || null,
           p_customer_phone: normalizedPhone
