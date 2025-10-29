@@ -1,5 +1,10 @@
+// src/lib/api/tickets.ts
 import { supabase } from '../supabase';
+import pLimit from 'p-limit';
 
+/**
+ * Tipos exportados
+ */
 export interface Ticket {
   id: string;
   campaign_id: string;
@@ -27,475 +32,299 @@ export interface ReservationResult {
   message: string;
 }
 
-export interface CustomerTicket {
-  ticket_id: string;
-  campaign_id: string;
-  campaign_title: string;
-  campaign_public_id: string | null;
-  prize_image_urls: string[] | null;
+export interface AvailableQuota {
   quota_number: number;
-  status: string;
-  bought_at: string | null;
-  customer_name: string | null;
-  customer_email: string | null;
-  customer_phone: string | null;
 }
 
-export interface CustomerOrder {
-  order_id: string;
-  campaign_id: string;
-  campaign_title: string;
-  campaign_public_id: string | null;
-  prize_image_urls: string[] | null;
-  ticket_count: number;
-  total_value: number;
-  status: 'reserved' | 'purchased' | 'expired';
-  created_at: string;
-  reserved_at: string | null;
-  bought_at: string | null;
-  reservation_expires_at: string | null;
-  customer_name: string | null;
-  customer_email: string | null;
-  customer_phone: string | null;
-  ticket_numbers: number[];
+export interface CustomerRecord {
+  id: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  created_at?: string | null;
 }
 
-// Constante para tamanho do lote de reservas
+/**
+ * Constantes
+ */
 const RESERVATION_BATCH_SIZE = 500;
+const PAGE_SIZE = 1000;
 
 /**
- * Função helper para limpar e garantir que o array contenha apenas números inteiros
+ * formatPhoneNumber
+ * - a função canônica para normalizar números de telefone no app
+ * - remove caracteres não-numéricos, garante prefixo do país (55) quando apropriado
  */
-const cleanQuotaNumbers = (quotaNumbers: any[]): number[] => {
+export function formatPhoneNumber(input: string): string {
+  if (!input) return '';
+  // remove tudo que não for dígito
+  let cleaned = input.replace(/\D/g, '');
+
+  // se houver duplicação do country code "55" (ex: "5555..."), tenta corrigir
+  // regra simple: se começar com '5555' provavelmente duplicou -> "55" + rest
+  if (cleaned.startsWith('5555')) {
+    cleaned = cleaned.slice(2); // remove os dois "55" iniciais redundantes
+  }
+
+  // se não começar com 55, presume Brasil e prefixa 55
+  if (!cleaned.startsWith('55')) {
+    cleaned = '55' + cleaned;
+  }
+
+  return '+' + cleaned;
+}
+
+/**
+ * cleanQuotaNumbers
+ * - transforma elementos variados em um array de inteiros válidos
+ */
+export const cleanQuotaNumbers = (quotaNumbers: any[]): number[] => {
+  if (!Array.isArray(quotaNumbers)) return [];
   return quotaNumbers
-    .map(item => {
-      // Se o item é um objeto com propriedade quota_number, extraia o valor
-      if (typeof item === 'object' && item !== null && 'quota_number' in item) {
-        return parseInt(item.quota_number, 10);
+    .map((item) => {
+      if (item === null || item === undefined) return NaN;
+      if (typeof item === 'object') {
+        // aceitamos { quota_number: number } ou { quotaNumber: number }
+        if ('quota_number' in item) return parseInt(String((item as any).quota_number), 10);
+        if ('quotaNumber' in item) return parseInt(String((item as any).quotaNumber), 10);
+        // se o objeto for apenas um número serializado: try JSON value
+        return parseInt(String(Object.values(item)[0] ?? NaN), 10);
       }
-      // Caso contrário, tente converter diretamente para número inteiro
-      return parseInt(item, 10);
+      return parseInt(String(item), 10);
     })
-    .filter(num => !isNaN(num)); // Filtra valores inválidos (NaN)
+    .filter((n) => !isNaN(n));
 };
 
 /**
- * Função helper para normalizar o número de telefone para o formato padronizado
- * Esta é a ÚNICA fonte de verdade para normalização de números de telefone
- * 
- * Comportamento:
- * - Remove TODOS os caracteres não numéricos (espaços, parênteses, hífens, etc.)
- * - Garante que o número tenha APENAS UM '+' no início
- * - Se o número já tiver código de país (detectado por comprimento ou prefixo), preserva
- * - Se não tiver código de país, adiciona +55 (Brasil) como padrão
- * - Retorna sempre no formato: +[código do país][número] (apenas dígitos após o +)
- * 
- * Exemplos:
- * - "(62) 99999-9999" → "+5562999999999"
- * - "+55 62 99999-9999" → "+5562999999999"
- * - "62999999999" → "+5562999999999"
- * - "+5562999999999" → "+5562999999999"
- * - "++5562999999999" → "+5562999999999" (remove + duplicados)
- * - "+1234567890" → "+1234567890" (preserva código de país diferente)
- * 
- * @param phoneNumber - Número de telefone em qualquer formato
- * @returns Número normalizado no formato +[código][número] ou string vazia se inválido
+ * TicketsAPI - conjunto de wrappers para interagir com tickets/cotas via Supabase
  */
-export const formatPhoneNumber = (phoneNumber: string): string => {
-  // Se não houver input, retorna string vazia
-  if (!phoneNumber || typeof phoneNumber !== 'string') {
-    return '';
-  }
-
-  // Remove espaços no início e fim
-  const trimmed = phoneNumber.trim();
-  
-  // Se a string estiver vazia após trim, retorna vazio
-  if (!trimmed) {
-    return '';
-  }
-
-  // Remove TODOS os caracteres não numéricos
-  const numbersOnly = trimmed.replace(/\D/g, '');
-  
-  // Se não houver nenhum dígito, retorna vazio
-  if (!numbersOnly || numbersOnly.length === 0) {
-    return '';
-  }
-
-  // Detecta se o número original tinha '+' no início (antes de remover caracteres)
-  const hadPlus = trimmed.startsWith('+');
-
-  // Se o número original tinha '+' no início, assume que já tem código de país
-  if (hadPlus) {
-    // Retorna com '+' e apenas os dígitos
-    return `+${numbersOnly}`;
-  }
-
-  // Se não tinha '+', precisa determinar se já tem código de país ou não
-  // Números brasileiros sem código de país geralmente têm 10 ou 11 dígitos (DDD + número)
-  // Com código de país (55), teriam 12 ou 13 dígitos
-  
-  // Se o número começa com '55' e tem comprimento compatível com número brasileiro
-  // completo (12-13 dígitos), assume que já tem código de país
-  if (numbersOnly.startsWith('55') && numbersOnly.length >= 12 && numbersOnly.length <= 13) {
-    return `+${numbersOnly}`;
-  }
-
-  // Se o número tem comprimento muito grande (14+ dígitos), provavelmente já tem código de país
-  // mesmo que não seja brasileiro
-  if (numbersOnly.length >= 14) {
-    return `+${numbersOnly}`;
-  }
-
-  // Caso contrário, assume que não tem código de país e adiciona +55 (Brasil)
-  return `+55${numbersOnly}`;
-};
-
 export class TicketsAPI {
   /**
-   * Busca o status de todos os tickets de uma campanha (otimizado para frontend)
-   * Implementa paginação PARALELA para campanhas com mais de 1000 tickets
+   * getCampaignTicketsStatus
+   * - coleta o status de todas as cotas de uma campanha usando RPC paginado
+   * - faz chamadas concorrentes com limite (p-limit)
    */
   static async getCampaignTicketsStatus(
     campaignId: string,
     userId?: string
   ): Promise<{ data: TicketStatusInfo[] | null; error: any }> {
     try {
-      // Get campaign to check total_tickets first
-      const { data: campaign } = await supabase
+      const { data: campaign, error: campaignError } = await supabase
         .from('campaigns')
         .select('total_tickets')
         .eq('id', campaignId)
-        .maybeSingle();
+        .single();
 
-      if (!campaign) {
-        return { data: null, error: new Error('Campaign not found') };
+      if (campaignError) throw campaignError;
+      if (!campaign?.total_tickets) {
+        throw new Error('Campanha não encontrada ou sem total_tickets definido.');
       }
 
-      const totalTickets = campaign.total_tickets;
-      const pageSize = 1000; // Tamanho de cada página (limitado pelo Supabase RPC)
+      const totalTickets = campaign.total_tickets as number;
+      const totalPages = Math.ceil(totalTickets / PAGE_SIZE);
 
-      // Se a campanha tem menos de 1000 tickets, faz uma única requisição
-      if (totalTickets <= pageSize) {
-        const { data, error } = await supabase
-          .rpc('get_campaign_tickets_status', {
-            p_campaign_id: campaignId,
-            p_user_id: userId || null,
-            p_offset: 0,
-            p_limit: pageSize
-          });
+      const limit = pLimit(5);
+      const tasks: Promise<any>[] = [];
 
-        return { data, error };
+      for (let i = 0; i < totalPages; i++) {
+        const offset = i * PAGE_SIZE;
+        tasks.push(
+          limit(() =>
+            supabase.rpc('get_campaign_tickets_status', {
+              p_campaign_id: campaignId,
+              p_offset: offset,
+              p_limit: PAGE_SIZE,
+              p_user_id: userId || null
+            })
+          )
+        );
       }
 
-      // Para campanhas grandes, implementa paginação PARALELA
-      const totalPages = Math.ceil(totalTickets / pageSize);
-      console.log(`Loading ${totalTickets} tickets in ${totalPages} pages (parallel)...`);
+      const results = await Promise.all(tasks);
 
-      // Cria um array de promessas para buscar todas as páginas em paralelo
-      const pagePromises: Promise<{ data: TicketStatusInfo[] | null; error: any }>[] = [];
+      // checar erros nas respostas
+      const errRes = results.find((r) => r?.error);
+      if (errRes?.error) throw errRes.error;
 
-      for (let page = 0; page < totalPages; page++) {
-        const offset = page * pageSize;
-        
-        // Adiciona a promessa ao array (não aguarda aqui)
-        const promise = supabase
-          .rpc('get_campaign_tickets_status', {
-            p_campaign_id: campaignId,
-            p_user_id: userId || null,
-            p_offset: offset,
-            p_limit: pageSize
-          })
-          .then(result => {
-            console.log(`Page ${page + 1}/${totalPages} loaded (offset: ${offset})`);
-            return result;
-          });
-
-        pagePromises.push(promise);
-      }
-
-      // Executa todas as requisições em paralelo
-      const results = await Promise.all(pagePromises);
-
-      // Verifica se houve algum erro
-      const errorResult = results.find(result => result.error);
-      if (errorResult) {
-        console.error('Error loading tickets:', errorResult.error);
-        return { data: null, error: errorResult.error };
-      }
-
-      // Combina todos os resultados em um único array
-      const allTickets: TicketStatusInfo[] = [];
-      for (const result of results) {
-        if (result.data && result.data.length > 0) {
-          allTickets.push(...result.data);
-        }
-      }
-
-      console.log(`Successfully loaded ${allTickets.length} tickets in parallel`);
-      return { data: allTickets, error: null };
-    } catch (error) {
-      console.error('Error fetching campaign tickets status:', error);
+      const all = results.flatMap((r) => r?.data || []);
+      return { data: all as TicketStatusInfo[], error: null };
+    } catch (error: any) {
+      console.error('TicketsAPI.getCampaignTicketsStatus error:', error);
       return { data: null, error };
     }
   }
 
   /**
-   * Busca todos os tickets de uma campanha específica (dados completos)
+   * getAvailableQuotas
+   * - RPC helper para buscar cotas disponíveis (retorna array de números ou objetos)
+   * - recebe p_limit opcional
    */
-  static async getCampaignTickets(campaignId: string): Promise<{ data: Ticket[] | null; error: any }> {
+  static async getAvailableQuotas(campaignId: string, limitCount: number = 50): Promise<{ data: number[] | null; error: any }> {
     try {
-      const { data, error } = await supabase
-        .from('tickets')
-        .select('*')
-        .eq('campaign_id', campaignId)
-        .order('quota_number', { ascending: true });
+      const { data, error } = await supabase.rpc('get_available_quotas', {
+        p_campaign_id: campaignId,
+        p_limit: limitCount
+      });
 
-      return { data, error };
-    } catch (error) {
-      console.error('Error fetching campaign tickets:', error);
+      if (error) throw error;
+
+      // a RPC pode retornar array de números ou array de { quota_number: number }
+      const cleaned = (data || []).map((item: any) => {
+        if (typeof item === 'object' && item !== null) {
+          if ('quota_number' in item) return parseInt(String(item.quota_number), 10);
+          // fallback
+          return parseInt(String(Object.values(item)[0]), 10);
+        }
+        return parseInt(String(item), 10);
+      }).filter((n: number) => !isNaN(n));
+
+      return { data: cleaned, error: null };
+    } catch (error: any) {
+      console.error('TicketsAPI.getAvailableQuotas error:', error);
       return { data: null, error };
     }
   }
 
   /**
-   * Reserva um conjunto de tickets para um usuário
-   * Implementa processamento em lote para grandes quantidades
+   * reserveTickets
+   * - recebe quotaNumbers em formatos variados, limpa, faz em batches e chama RPC reserve_tickets
+   * - retorna array de ReservationResult
    */
   static async reserveTickets(
     campaignId: string,
-    quotaNumbers: number[],
     userId: string | null,
-    customerName: string,
-    customerEmail: string,
-    customerPhone: string
+    quotaNumbers: any[],
+    customerName?: string | null,
+    customerEmail?: string | null,
+    customerPhone?: string | null
   ): Promise<{ data: ReservationResult[] | null; error: any }> {
     try {
-      // ✅ LIMPA E GARANTE QUE TODOS OS ELEMENTOS SEJAM NÚMEROS INTEIROS
-      const cleanedQuotaNumbers = cleanQuotaNumbers(quotaNumbers);
-
-      if (cleanedQuotaNumbers.length === 0) {
-        return { 
-          data: null, 
-          error: new Error('Nenhum número de cota válido foi fornecido') 
-        };
+      const cleaned = cleanQuotaNumbers(quotaNumbers);
+      if (cleaned.length === 0) {
+        return { data: null, error: new Error('Nenhuma cota válida para reservar') };
       }
 
-      // ✅ NORMALIZA O NÚMERO DE TELEFONE PARA O FORMATO PADRONIZADO (apenas dígitos com código do país)
-      const formattedPhone = formatPhoneNumber(customerPhone);
-
-      console.log(`Original quota numbers:`, quotaNumbers);
-      console.log(`Cleaned quota numbers:`, cleanedQuotaNumbers);
-      console.log(`Original phone:`, customerPhone);
-      console.log(`Formatted phone:`, formattedPhone);
-
-      // Se a quantidade de tickets é menor ou igual ao tamanho do lote, faz uma única requisição
-      if (cleanedQuotaNumbers.length <= RESERVATION_BATCH_SIZE) {
-        const { data, error } = await supabase.rpc('reserve_tickets', {
-          p_campaign_id: campaignId,
-          p_quota_numbers: cleanedQuotaNumbers,
-          p_user_id: userId,
-          p_customer_name: customerName,
-          p_customer_email: customerEmail,
-          p_customer_phone: formattedPhone,
-        });
-
-        return { data, error };
-      }
-
-      // Para grandes quantidades, processa em lotes
       const allResults: ReservationResult[] = [];
-      const totalBatches = Math.ceil(cleanedQuotaNumbers.length / RESERVATION_BATCH_SIZE);
-      console.log(`Reserving ${cleanedQuotaNumbers.length} tickets in ${totalBatches} batches...`);
 
-      for (let i = 0; i < totalBatches; i++) {
-        const start = i * RESERVATION_BATCH_SIZE;
-        const end = Math.min(start + RESERVATION_BATCH_SIZE, cleanedQuotaNumbers.length);
-        const batch = cleanedQuotaNumbers.slice(start, end);
+      for (let i = 0; i < cleaned.length; i += RESERVATION_BATCH_SIZE) {
+        const batch = cleaned.slice(i, i + RESERVATION_BATCH_SIZE);
 
-        console.log(`Processing batch ${i + 1}/${totalBatches} (${batch.length} tickets)...`);
+        // opcionalmente, normalizar telefone antes de enviar pro RPC
+        const normalizedPhone = customerPhone ? formatPhoneNumber(customerPhone) : null;
 
         const { data, error } = await supabase.rpc('reserve_tickets', {
           p_campaign_id: campaignId,
-          p_quota_numbers: batch,
           p_user_id: userId,
-          p_customer_name: customerName,
-          p_customer_email: customerEmail,
-          p_customer_phone: formattedPhone,
+          p_ticket_numbers: batch,
+          p_customer_name: customerName || null,
+          p_customer_email: customerEmail || null,
+          p_customer_phone: normalizedPhone
         });
 
         if (error) {
-          console.error(`Error processing batch ${i + 1}:`, error);
-          return { data: null, error };
+          console.error('reserve_tickets RPC error:', error);
+          throw error;
         }
 
-        if (data && data.length > 0) {
+        if (Array.isArray(data) && data.length > 0) {
           allResults.push(...data);
         }
       }
 
-      console.log(`Successfully reserved ${allResults.length} tickets`);
       return { data: allResults, error: null };
-    } catch (error) {
-      console.error('Error reserving tickets:', error);
+    } catch (error: any) {
+      console.error('TicketsAPI.reserveTickets error:', error);
       return { data: null, error };
     }
   }
 
   /**
-   * Finaliza a compra de um conjunto de tickets
+   * releaseTickets
+   * - libera lotes de tickets pelo RPC release_tickets
    */
-  static async finalizePurchase(
-    campaignId: string,
-    quotaNumbers: number[],
-    userId: string
-  ): Promise<{ data: ReservationResult[] | null; error: any }> {
+  static async releaseTickets(campaignId: string, ticketNumbers: number[]): Promise<{ data: any; error: any }> {
     try {
-      // ✅ LIMPA E GARANTE QUE TODOS OS ELEMENTOS SEJAM NÚMEROS INTEIROS
-      const cleanedQuotaNumbers = cleanQuotaNumbers(quotaNumbers);
+      const cleaned = ticketNumbers.map((n) => parseInt(String(n), 10)).filter((n) => !isNaN(n));
+      if (cleaned.length === 0) return { data: null, error: new Error('Nenhuma cota válida para liberar') };
 
-      if (cleanedQuotaNumbers.length === 0) {
-        return { 
-          data: null, 
-          error: new Error('Nenhum número de cota válido foi fornecido') 
-        };
-      }
-
-      const { data, error } = await supabase.rpc('finalize_purchase', {
+      const { data, error } = await supabase.rpc('release_tickets', {
         p_campaign_id: campaignId,
-        p_quota_numbers: cleanedQuotaNumbers,
-        p_user_id: userId,
+        p_ticket_numbers: cleaned
       });
 
-      return { data, error };
-    } catch (error) {
-      console.error('Error finalizing purchase:', error);
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error: any) {
+      console.error('TicketsAPI.releaseTickets error:', error);
       return { data: null, error };
     }
   }
 
   /**
-   * Libera reservas expiradas (função administrativa)
+   * getTicketsByPhone
+   * - busca tickets / pedidos relacionados a um telefone
+   * - normaliza o telefone antes de chamar a RPC get_tickets_by_phone
    */
-  static async releaseExpiredReservations(): Promise<{ data: any[] | null; error: any }> {
+  static async getTicketsByPhone(phoneRaw: string): Promise<{ data: CustomerTicket[] | null; error: any }> {
     try {
-      const { data, error } = await supabase.rpc('release_expired_reservations');
-      return { data, error };
-    } catch (error) {
-      console.error('Error releasing expired reservations:', error);
+      const normalized = formatPhoneNumber(phoneRaw);
+
+      // A RPC get_tickets_by_phone deve aceitar o phone normalizado (com +55... ou apenas dígitos dependendo da implementação)
+      const { data, error } = await supabase.rpc('get_tickets_by_phone', {
+        p_phone_number: normalized
+      });
+
+      if (error) throw error;
+      return { data: data || [], error: null };
+    } catch (error: any) {
+      console.error('TicketsAPI.getTicketsByPhone error:', error);
       return { data: null, error };
     }
   }
 
   /**
-   * Busca tickets de um usuário específico em uma campanha
+   * checkCustomerByPhone
+   * - busca cliente existente pelo telefone
+   * - normaliza antes de consultar
    */
-  static async getUserTicketsInCampaign(
-    campaignId: string,
-    userId: string
-  ): Promise<{ data: Ticket[] | null; error: any }> {
+  static async checkCustomerByPhone(phoneRaw: string): Promise<{ data: CustomerRecord | null; error: any }> {
     try {
+      const normalized = formatPhoneNumber(phoneRaw);
+
+      // se tiver uma view/custom RPC para buscar cliente por telefone, usar aqui
       const { data, error } = await supabase
-        .from('tickets')
-        .select('*')
-        .eq('campaign_id', campaignId)
-        .eq('user_id', userId)
-        .order('quota_number', { ascending: true });
+        .from('customers')
+        .select('id, name, email, phone, created_at')
+        .eq('phone', normalized)
+        .maybeSingle();
 
-      return { data, error };
-    } catch (error) {
-      console.error('Error fetching user tickets:', error);
-      return { data: null, error };
-    }
-  }
-
-  /**
-   * Busca tickets por número de telefone (para clientes não logados)
-   * ✅ ATUALIZADO: Agora usa formatPhoneNumber para normalização consistente
-   * 
-   * Implementa busca dupla para compatibilidade com números antigos:
-   * 1. Busca com o número normalizado completo (formato padronizado com código do país)
-   * 2. Se não encontrar e o número tiver código do país +55, busca sem o código do país
-   *    (para encontrar registros antigos que foram salvos sem código do país)
-   */
-  static async getTicketsByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerTicket[] | null; error: any }> {
-    try {
-      // ✅ USA A FUNÇÃO PADRONIZADA DE NORMALIZAÇÃO
-      const formattedPhone = formatPhoneNumber(phoneNumber);
-      
-      console.log(`Original phone:`, phoneNumber);
-      console.log(`Formatted phone:`, formattedPhone);
-
-      // Primeira tentativa: busca com o número formatado completo (com código do país)
-      const { data: firstAttemptData, error: firstAttemptError } = await supabase.rpc('get_tickets_by_phone', {
-        p_phone_number: formattedPhone
-      });
-
-      if (firstAttemptError) {
-        console.error('Error on first attempt:', firstAttemptError);
-        return { data: null, error: firstAttemptError };
+      if (error) {
+        // fallback para RPC se necessário
+        console.warn('Direct customers lookup error, trying RPC fallback:', error);
+        const rpc = await supabase.rpc('get_customer_by_phone', { p_phone_number: normalized });
+        if (rpc.error) throw rpc.error;
+        return { data: rpc.data || null, error: null };
       }
 
-      // Se encontrou resultados na primeira tentativa, retorna
-      if (firstAttemptData && firstAttemptData.length > 0) {
-        console.log(`Found ${firstAttemptData.length} tickets with formatted number`);
-        return { data: firstAttemptData, error: null };
-      }
-
-      // Se não encontrou resultados e o número formatado começa com +55 (Brasil),
-      // faz segunda tentativa sem o código do país (para compatibilidade com registros antigos)
-      if (formattedPhone.startsWith('+55')) {
-        // Remove o '+55' do início para buscar registros antigos
-        const phoneWithoutCountryCode = formattedPhone.substring(3);
-        console.log(`No results found. Trying without country code: ${phoneWithoutCountryCode}`);
-
-        const { data: secondAttemptData, error: secondAttemptError } = await supabase.rpc('get_tickets_by_phone', {
-          p_phone_number: phoneWithoutCountryCode
-        });
-
-        if (secondAttemptError) {
-          console.error('Error on second attempt:', secondAttemptError);
-          return { data: null, error: secondAttemptError };
-        }
-
-        if (secondAttemptData && secondAttemptData.length > 0) {
-          console.log(`Found ${secondAttemptData.length} tickets without country code`);
-        }
-
-        return { data: secondAttemptData, error: null };
-      }
-
-      // Se não encontrou resultados em nenhuma tentativa
-      console.log('No tickets found for this phone number');
-      return { data: [], error: null };
-    } catch (error) {
-      console.error('Error fetching tickets by phone:', error);
-      return { data: null, error };
-    }
-  }
-
-  /**
-   * Busca pedidos (orders) por número de telefone
-   * Retorna pedidos agrupados em vez de tickets individuais
-   * ✅ ATUALIZADO: Agora usa formatPhoneNumber para normalização consistente
-   */
-  static async getOrdersByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerOrder[] | null; error: any }> {
-    try {
-      // ✅ USA A FUNÇÃO PADRONIZADA DE NORMALIZAÇÃO
-      const formattedPhone = formatPhoneNumber(phoneNumber);
-      
-      console.log(`Original phone:`, phoneNumber);
-      console.log(`Formatted phone for orders:`, formattedPhone);
-
-      const { data, error } = await supabase.rpc('get_orders_by_phone', {
-        p_phone_number: formattedPhone
-      });
-
-      return { data, error };
-    } catch (error) {
-      console.error('Error fetching orders by phone:', error);
+      return { data: data || null, error: null };
+    } catch (error: any) {
+      console.error('TicketsAPI.checkCustomerByPhone error:', error);
       return { data: null, error };
     }
   }
 }
+
+/**
+ * Observações importantes:
+ * - Importe e utilize sempre a função formatPhoneNumber deste arquivo em todo o app.
+ * - Verifique se as RPCs existam no seu schema do Supabase com os nomes usados aqui:
+ *    - get_campaign_tickets_status
+ *    - get_available_quotas
+ *    - reserve_tickets
+ *    - release_tickets
+ *    - get_tickets_by_phone (opcional)
+ *    - get_customer_by_phone (opcional)
+ * - Se alguma RPC retornar objetos em vez de números puros, as funções aqui tentam normalizar.
+ */
+
+export default TicketsAPI;
