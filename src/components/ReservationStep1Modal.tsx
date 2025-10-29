@@ -5,7 +5,6 @@ import { X, Phone, CheckCircle, ShoppingCart, ArrowRight } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { checkCustomerByPhone, CustomerData as ExistingCustomer } from '../utils/customerCheck';
 import { useAuth } from '../context/AuthContext';
-import { formatPhoneNumber } from '../lib/api/tickets';
 
 interface Country {
   code: string;
@@ -187,41 +186,38 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
     setError('');
 
     try {
-      // ✅ CRÍTICO: Combina dialCode + phoneNumber (bruto) antes de normalizar
-      // Exemplo: "+55" + "11987654321" = "+5511987654321"
+      // ✅ CORREÇÃO: Apenas combina dialCode + phoneNumber SEM normalizar
+      // Exemplo: "+55" + "62981127960" = "+5562981127960"
       const fullPhoneNumber = `${selectedCountry.dialCode}${phoneNumber}`;
 
-      // ✅ Normaliza o número completo usando formatPhoneNumber de src/lib/api/tickets.ts
-      // Resultado: "+5511987654321" (formato E.164 canônico)
-      const normalizedPhoneNumber = formatPhoneNumber(fullPhoneNumber);
+      console.log('🔵 ReservationStep1Modal - Phone number:', phoneNumber);
+      console.log('🟢 ReservationStep1Modal - Full phone (dialCode + raw):', fullPhoneNumber);
+      console.log('🟡 ReservationStep1Modal - Sending to API (NO normalization):', fullPhoneNumber);
 
-      console.log('Original phone (dialCode + raw):', fullPhoneNumber);
-      console.log('Normalized phone for API:', normalizedPhoneNumber);
-
-      // Verifica se o cliente existe no banco usando o número normalizado
-      const { data: customerData, error: checkError } = await checkCustomerByPhone(normalizedPhoneNumber);
+      // ✅ Usa o número completo DIRETO, sem normalizar
+      const { data: customerData, error: checkError } = await checkCustomerByPhone(fullPhoneNumber);
 
       if (checkError) {
-        console.error('Error checking customer:', checkError);
+        console.error('❌ Error checking customer:', checkError);
         setError('Erro ao verificar número. Tente novamente.');
         return;
       }
 
       if (customerData) {
-        console.log('Customer found:', customerData);
+        console.log('✅ Customer found:', customerData);
         // Cliente existente - fazer login e chamar callback
-        await signInWithPhone(normalizedPhoneNumber, {
+        await signInWithPhone(fullPhoneNumber, {
           name: customerData.customer_name,
           email: customerData.customer_email
         });
         onExistingCustomer(customerData);
       } else {
-        console.log('New customer - opening registration modal');
+        console.log('🆕 New customer - opening registration modal');
         // Cliente novo - abrir modal de cadastro
         onNewCustomer();
       }
     } catch (err) {
-      console.error('Error checking customer:', err);
+      console.error('❌ Error checking customer:', err);
       setError('Erro inesperado. Tente novamente.');
     } finally {
       setChecking(false);
