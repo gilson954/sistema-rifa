@@ -83,6 +83,12 @@ const cleanQuotaNumbers = (quotaNumbers: any[]): number[] => {
  * Função helper para normalizar o número de telefone para o formato padronizado
  * Esta é a ÚNICA fonte de verdade para normalização de números de telefone
  * 
+ * ⚠️ IMPORTANTE: Esta função deve ser chamada APENAS UMA VEZ, nos componentes de UI
+ * (ReservationModal, PhoneLoginModal) ANTES de chamar as funções da API.
+ * 
+ * As funções da API (reserveTickets, getTicketsByPhoneNumber, etc.) NÃO devem
+ * chamar esta função novamente, pois o número já deve chegar normalizado.
+ * 
  * Comportamento:
  * - Remove TODOS os caracteres não numéricos (espaços, parênteses, hífens, etc.)
  * - Garante que o número tenha APENAS UM '+' no início
@@ -262,6 +268,11 @@ export class TicketsAPI {
   /**
    * Reserva um conjunto de tickets para um usuário
    * Implementa processamento em lote para grandes quantidades
+   * 
+   * ✅ CORREÇÃO APLICADA: Remove normalização duplicada de customerPhone
+   * O número já deve chegar normalizado dos componentes de UI (ReservationModal)
+   * 
+   * @param customerPhone - Número de telefone JÁ NORMALIZADO (formato: +[código][número])
    */
   static async reserveTickets(
     campaignId: string,
@@ -282,13 +293,10 @@ export class TicketsAPI {
         };
       }
 
-      // ✅ NORMALIZA O NÚMERO DE TELEFONE PARA O FORMATO PADRONIZADO (apenas dígitos com código do país)
-      const formattedPhone = formatPhoneNumber(customerPhone);
-
-      console.log(`Original quota numbers:`, quotaNumbers);
+      // ✅ CORREÇÃO: NÃO normaliza novamente - assume que o número já vem normalizado
+      // O componente ReservationModal já chama formatPhoneNumber antes de chamar esta função
       console.log(`Cleaned quota numbers:`, cleanedQuotaNumbers);
-      console.log(`Original phone:`, customerPhone);
-      console.log(`Formatted phone:`, formattedPhone);
+      console.log(`Customer phone (already normalized):`, customerPhone);
 
       // Se a quantidade de tickets é menor ou igual ao tamanho do lote, faz uma única requisição
       if (cleanedQuotaNumbers.length <= RESERVATION_BATCH_SIZE) {
@@ -298,7 +306,7 @@ export class TicketsAPI {
           p_user_id: userId,
           p_customer_name: customerName,
           p_customer_email: customerEmail,
-          p_customer_phone: formattedPhone,
+          p_customer_phone: customerPhone, // ✅ Usa diretamente, já normalizado
         });
 
         return { data, error };
@@ -322,7 +330,7 @@ export class TicketsAPI {
           p_user_id: userId,
           p_customer_name: customerName,
           p_customer_email: customerEmail,
-          p_customer_phone: formattedPhone,
+          p_customer_phone: customerPhone, // ✅ Usa diretamente, já normalizado
         });
 
         if (error) {
@@ -412,24 +420,26 @@ export class TicketsAPI {
 
   /**
    * Busca tickets por número de telefone (para clientes não logados)
-   * ✅ ATUALIZADO: Agora usa formatPhoneNumber para normalização consistente
+   * 
+   * ✅ CORREÇÃO APLICADA: Remove normalização duplicada de phoneNumber
+   * O número já deve chegar normalizado dos componentes de UI (PhoneLoginModal)
    * 
    * Implementa busca dupla para compatibilidade com números antigos:
    * 1. Busca com o número normalizado completo (formato padronizado com código do país)
    * 2. Se não encontrar e o número tiver código do país +55, busca sem o código do país
    *    (para encontrar registros antigos que foram salvos sem código do país)
+   * 
+   * @param phoneNumber - Número de telefone JÁ NORMALIZADO (formato: +[código][número])
    */
   static async getTicketsByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerTicket[] | null; error: any }> {
     try {
-      // ✅ USA A FUNÇÃO PADRONIZADA DE NORMALIZAÇÃO
-      const formattedPhone = formatPhoneNumber(phoneNumber);
-      
-      console.log(`Original phone:`, phoneNumber);
-      console.log(`Formatted phone:`, formattedPhone);
+      // ✅ CORREÇÃO: NÃO normaliza novamente - assume que o número já vem normalizado
+      // O componente PhoneLoginModal já chama formatPhoneNumber antes de chamar esta função
+      console.log(`Searching tickets with phone (already normalized):`, phoneNumber);
 
       // Primeira tentativa: busca com o número formatado completo (com código do país)
       const { data: firstAttemptData, error: firstAttemptError } = await supabase.rpc('get_tickets_by_phone', {
-        p_phone_number: formattedPhone
+        p_phone_number: phoneNumber // ✅ Usa diretamente, já normalizado
       });
 
       if (firstAttemptError) {
@@ -445,9 +455,9 @@ export class TicketsAPI {
 
       // Se não encontrou resultados e o número formatado começa com +55 (Brasil),
       // faz segunda tentativa sem o código do país (para compatibilidade com registros antigos)
-      if (formattedPhone.startsWith('+55')) {
+      if (phoneNumber.startsWith('+55')) {
         // Remove o '+55' do início para buscar registros antigos
-        const phoneWithoutCountryCode = formattedPhone.substring(3);
+        const phoneWithoutCountryCode = phoneNumber.substring(3);
         console.log(`No results found. Trying without country code: ${phoneWithoutCountryCode}`);
 
         const { data: secondAttemptData, error: secondAttemptError } = await supabase.rpc('get_tickets_by_phone', {
@@ -478,18 +488,19 @@ export class TicketsAPI {
   /**
    * Busca pedidos (orders) por número de telefone
    * Retorna pedidos agrupados em vez de tickets individuais
-   * ✅ ATUALIZADO: Agora usa formatPhoneNumber para normalização consistente
+   * 
+   * ✅ CORREÇÃO APLICADA: Remove normalização duplicada de phoneNumber
+   * O número já deve chegar normalizado dos componentes de UI
+   * 
+   * @param phoneNumber - Número de telefone JÁ NORMALIZADO (formato: +[código][número])
    */
   static async getOrdersByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerOrder[] | null; error: any }> {
     try {
-      // ✅ USA A FUNÇÃO PADRONIZADA DE NORMALIZAÇÃO
-      const formattedPhone = formatPhoneNumber(phoneNumber);
-      
-      console.log(`Original phone:`, phoneNumber);
-      console.log(`Formatted phone for orders:`, formattedPhone);
+      // ✅ CORREÇÃO: NÃO normaliza novamente - assume que o número já vem normalizado
+      console.log(`Searching orders with phone (already normalized):`, phoneNumber);
 
       const { data, error } = await supabase.rpc('get_orders_by_phone', {
-        p_phone_number: formattedPhone
+        p_phone_number: phoneNumber // ✅ Usa diretamente, já normalizado
       });
 
       return { data, error };
