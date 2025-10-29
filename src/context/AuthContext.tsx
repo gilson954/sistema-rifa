@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
-import { TicketsAPI, formatPhoneNumber } from '../lib/api/tickets' // ✅ Importar formatPhoneNumber
+import { TicketsAPI, formatPhoneNumber } from '../lib/api/tickets'
 
 interface PhoneUser {
   id: string
@@ -186,24 +186,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   /**
    * Faz login com número de telefone
    * 
-   * ✅ CORREÇÃO APLICADA: Normaliza o número de telefone uma única vez no início
-   * e usa o número normalizado em todas as operações subsequentes
+   * ✅ CORREÇÃO CRÍTICA APLICADA:
+   * - Se userData for fornecido (vindo de ReservationStep1Modal ou ReservationModal),
+   *   o phone JÁ VEM NORMALIZADO e NÃO deve ser normalizado novamente
+   * - Só normaliza se userData NÃO for fornecido (login direto sem reserva prévia)
    * 
-   * @param phone - Número de telefone em qualquer formato (será normalizado internamente)
+   * Isso evita o bug de normalização duplicada que causava "+5555"
+   * 
+   * @param phone - Número de telefone (normalizado se userData presente, bruto caso contrário)
    * @param userData - Dados opcionais do usuário (nome e email) se já conhecidos
    */
   const signInWithPhone = async (phone: string, userData?: { name: string; email: string }) => {
     try {
-      // ✅ CORREÇÃO: Normalizar o número de telefone uma única vez aqui
-      const normalizedPhone = formatPhoneNumber(phone);
-      console.log('signInWithPhone - Original phone:', phone);
-      console.log('signInWithPhone - Normalized phone:', normalizedPhone);
+      // ✅ CORREÇÃO CRÍTICA: Só normaliza se userData NÃO for fornecido
+      // Se userData existe, significa que o número já foi normalizado no componente anterior
+      const normalizedPhone = userData ? phone : formatPhoneNumber(phone);
+      
+      console.log('signInWithPhone - Input phone:', phone);
+      console.log('signInWithPhone - Has userData:', !!userData);
+      console.log('signInWithPhone - Final normalized phone:', normalizedPhone);
 
       // Se os dados do usuário foram fornecidos (após reserva), usa eles diretamente
       if (userData) {
         const phoneUserData: PhoneUser = {
           id: `phone_${normalizedPhone.replace(/\D/g, '')}`,
-          phone: normalizedPhone, // ✅ Usar o número normalizado
+          phone: normalizedPhone, // ✅ Já vem normalizado
           name: userData.name,
           email: userData.email,
           isPhoneAuth: true
@@ -226,8 +233,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { success: true, user: phoneUserData }
       }
 
-      // Busca tickets do cliente usando TicketsAPI
-      // ✅ Passar o número normalizado para a API
+      // Busca tickets do cliente usando TicketsAPI (caso de login direto)
+      // ✅ normalizedPhone aqui já foi normalizado na linha acima
       const { data: tickets, error } = await TicketsAPI.getTicketsByPhoneNumber(normalizedPhone)
 
       if (error) {
@@ -244,7 +251,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const phoneUserData: PhoneUser = {
         id: `phone_${normalizedPhone.replace(/\D/g, '')}`,
-        phone: normalizedPhone, // ✅ Usar o número normalizado (consistente)
+        phone: normalizedPhone, // ✅ Número normalizado consistente
         name: firstTicket.customer_name,
         email: firstTicket.customer_email,
         isPhoneAuth: true
