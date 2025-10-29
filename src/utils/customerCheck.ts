@@ -8,22 +8,30 @@ export interface CustomerData {
 
 /**
  * Verifica se um cliente já existe na tabela tickets pelo número de telefone
- * @param phoneNumber - Número de telefone completo (com código do país)
+ * 
+ * ✅ CORREÇÃO APLICADA: Remove normalização duplicada de phoneNumber
+ * O número já deve chegar normalizado dos componentes de UI (ReservationModal)
+ * A função RPC 'get_tickets_by_phone' do banco de dados já faz a normalização
+ * interna para comparação, então não é necessário normalizar aqui.
+ * 
+ * @param phoneNumber - Número de telefone JÁ NORMALIZADO (formato: +[código][número])
  * @returns Dados do cliente se encontrado, null caso contrário
  */
 export async function checkCustomerByPhone(
   phoneNumber: string
 ): Promise<{ data: CustomerData | null; error: any }> {
   try {
-    console.log('checkCustomerByPhone - Input phone:', phoneNumber);
+    console.log('checkCustomerByPhone - Input phone (already normalized):', phoneNumber);
 
-    // Normaliza o número removendo caracteres não numéricos
-    const normalizedPhone = phoneNumber.replace(/[^0-9]/g, '');
-    console.log('checkCustomerByPhone - Normalized phone:', normalizedPhone);
-
-    // Usa a função do banco que normaliza números de telefone
+    // ✅ CORREÇÃO: NÃO normaliza novamente - assume que o número já vem normalizado
+    // O componente ReservationModal já chama formatPhoneNumber antes de chamar esta função
+    // A função RPC do banco de dados faz a normalização interna para comparação
+    
+    // Usa a função do banco que normaliza números de telefone internamente
     const { data, error } = await supabase
-      .rpc('get_tickets_by_phone', { p_phone_number: phoneNumber });
+      .rpc('get_tickets_by_phone', { 
+        p_phone_number: phoneNumber // ✅ Usa diretamente, já normalizado
+      });
 
     if (error) {
       console.error('Error checking customer by phone:', error);
