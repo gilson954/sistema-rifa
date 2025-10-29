@@ -147,7 +147,7 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
     e.preventDefault();
     setError('');
 
-    // phoneNumber agora contém apenas dígitos (já vem bruto do CountryPhoneSelect)
+    // Validação básica
     if (!phoneNumber) {
       setError('Por favor, insira seu número de telefone');
       return;
@@ -161,19 +161,22 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
     setLoading(true);
 
     try {
-      // ✅ CRÍTICO: Combina dialCode + phoneNumber (bruto) antes de normalizar
-      // Exemplo: "+55" + "11987654321" = "+5511987654321"
-      const fullPhoneNumber = `${selectedCountry.dialCode}${phoneNumber}`;
-
-      // ✅ Normaliza o número completo usando formatPhoneNumber de src/lib/api/tickets.ts
-      // Resultado: "+5511987654321" (formato E.164 canônico)
-      const normalizedPhoneNumber = formatPhoneNumber(fullPhoneNumber);
+      // CORREÇÃO APLICADA: Normalizar o número de telefone corretamente
+      // 1. Extrair apenas os dígitos do número digitado (phoneNumber já vem bruto)
+      const phoneDigitsOnly = phoneNumber.replace(/\D/g, '');
       
-      console.log('Original phone (dialCode + raw):', fullPhoneNumber);
-      console.log('Normalized phone for API:', normalizedPhoneNumber);
+      // 2. Combinar código do país com os dígitos (formato: +55XXXXXXXXXXX)
+      const rawPhoneWithCountry = `${selectedCountry.dialCode}${phoneDigitsOnly}`;
+      
+      // 3. Aplicar a função de formatação padronizada
+      const fullPhoneNumber = formatPhoneNumber(rawPhoneWithCountry);
+      
+      console.log('Phone digits only:', phoneDigitsOnly);
+      console.log('Raw phone with country:', rawPhoneWithCountry);
+      console.log('Normalized phone (fullPhoneNumber):', fullPhoneNumber);
 
-      // Busca tickets usando o número normalizado
-      const { data: tickets } = await TicketsAPI.getTicketsByPhoneNumber(normalizedPhoneNumber);
+      // 4. Buscar tickets usando o número NORMALIZADO
+      const { data: tickets } = await TicketsAPI.getTicketsByPhoneNumber(fullPhoneNumber);
 
       if (!tickets || tickets.length === 0) {
         setError('Nenhuma cota encontrada para este número de telefone');
@@ -181,15 +184,17 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
         return;
       }
 
+      // 5. Extrair dados do cliente do primeiro ticket
       const customerName = tickets[0]?.customer_name || 'Cliente';
       const customerEmail = tickets[0]?.customer_email || '';
 
-      // Faz login com o número já normalizado
-      await signInWithPhone(normalizedPhoneNumber, {
+      // 6. Fazer login com o número NORMALIZADO
+      await signInWithPhone(fullPhoneNumber, {
         name: customerName,
         email: customerEmail
       });
 
+      // 7. Fechar modal e navegar para página de tickets
       onClose();
       navigate('/my-tickets', {
         state: {
