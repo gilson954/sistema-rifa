@@ -342,9 +342,9 @@ export class TicketsAPI {
   }
 
   /**
-   * ✅ NOVO: getOrdersByPhoneNumber
+   * ✅ CORREÇÃO: getOrdersByPhoneNumber
    * - busca pedidos (orders) pelo número de telefone do cliente
-   * - normaliza o telefone e consulta a tabela 'orders'
+   * - SEM usar relacionamento com campaigns (apenas busca os IDs)
    */
   static async getOrdersByPhoneNumber(phoneRaw: string): Promise<{ data: Order[] | null; error: any }> {
     try {
@@ -353,63 +353,66 @@ export class TicketsAPI {
       console.log('🔍 getOrdersByPhoneNumber - phone:', phoneRaw);
       console.log('🔍 getOrdersByPhoneNumber - normalized:', normalized);
 
-      // Busca na tabela 'orders' filtrando por customer_phone
-      const { data, error } = await supabase
+      // ✅ Busca APENAS na tabela orders (sem join com campaigns)
+      const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
-        .select(`
-          *,
-          campaign:campaigns(
-            id,
-            title,
-            prize_image_urls,
-            ticket_price,
-            status
-          )
-        `)
+        .select('*')
         .eq('customer_phone', normalized)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('❌ Erro ao buscar pedidos:', error);
-        throw error;
+      if (ordersError) {
+        console.error('❌ Erro ao buscar pedidos:', ordersError);
+        throw ordersError;
       }
 
-      console.log('✅ Pedidos encontrados:', data?.length || 0);
+      console.log('✅ Pedidos encontrados:', ordersData?.length || 0);
       
-      // Para cada pedido, buscar os tickets associados
-      if (data && data.length > 0) {
-        const ordersWithTickets = await Promise.all(
-          data.map(async (order) => {
-            // Buscar tickets deste pedido
-            const { data: tickets, error: ticketsError } = await supabase
-              .from('tickets')
-              .select('*')
-              .eq('campaign_id', order.campaign_id)
-              .eq('user_id', order.id) // ou outro campo de relacionamento
-              .in('status', ['reservado', 'comprado']);
-
-            if (ticketsError) {
-              console.warn('Erro ao buscar tickets do pedido:', order.id, ticketsError);
-            }
-
-            return {
-              ...order,
-              tickets: tickets || []
-            };
-          })
-        );
-
-        return {
-          data: ordersWithTickets as Order[],
-          error: null
-        };
+      if (!ordersData || ordersData.length === 0) {
+        return { data: [], error: null };
       }
 
-      return { data: data as Order[] || [], error: null };
+      // ✅ Para cada pedido, buscar campanha e tickets separadamente
+      const ordersWithDetails = await Promise.all(
+        ordersData.map(async (order) => {
+          // Buscar detalhes da campanha
+          const { data: campaign } = await supabase
+            .from('campaigns')
+            .select('id, title, prize_image_urls, ticket_price, status')
+            .eq('id', order.campaign_id)
+            .maybeSingle();
+
+          // Buscar tickets deste pedido através do customer_phone
+          const { data: tickets } = await supabase
+            .from('tickets')
+            .select('*')
+            .eq('campaign_id', order.campaign_id)
+            .eq('user_id', order.customer_phone) // Tickets vinculados ao telefone
+            .in('status', ['reservado', 'comprado']);
+
+          return {
+            ...order,
+            campaign: campaign || undefined,
+            tickets: tickets || []
+          };
+        })
+      );
+
+      return {
+        data: ordersWithDetails as Order[],
+        error: null
+      };
     } catch (error: any) {
       console.error('❌ TicketsAPI.getOrdersByPhoneNumber error:', error);
       return { data: null, error };
     }
+  }
+
+  /**
+   * ✅ NOVO: Alias para compatibilidade
+   */
+  static async getTicketsByPhoneNumber(phoneRaw: string): Promise<{ data: CustomerTicket[] | null; error: any }> {
+    // Redireciona para getTicketsByPhone
+    return TicketsAPI.getTicketsByPhone(phoneRaw);
   }
 
   /**
