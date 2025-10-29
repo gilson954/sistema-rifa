@@ -492,8 +492,10 @@ const CampaignPage = () => {
       showInfo('Processando sua reserva...');
 
       // ✅ CORREÇÃO: Limpar formatação do número antes de usar
-      const cleanPhone = cleanPhoneNumber(customerData.phoneNumber);
-      const fullPhoneNumber = `${customerData.countryCode}${cleanPhone}`;
+      const fullPhoneNumber = customerData.phoneNumber;
+
+      console.log('🔵 CampaignPage - Customer phone (already normalized):', fullPhoneNumber);
+      console.log('🟢 CampaignPage - Calling reserveTickets with phone:', fullPhoneNumber);
 
       const result = await reserveTickets(
         quotasToReserve,
