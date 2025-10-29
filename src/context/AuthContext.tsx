@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
-import { TicketsAPI, formatPhoneNumber } from '../lib/api/tickets'
+import { TicketsAPI } from '../lib/api/tickets'
 
 interface PhoneUser {
   id: string
@@ -187,30 +187,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * Faz login com número de telefone
    * 
    * ✅ CORREÇÃO CRÍTICA APLICADA:
-   * - Se userData for fornecido (vindo de ReservationStep1Modal ou ReservationModal),
-   *   o phone JÁ VEM NORMALIZADO e NÃO deve ser normalizado novamente
-   * - Só normaliza se userData NÃO for fornecido (login direto sem reserva prévia)
+   * - O phone SEMPRE chega JÁ NORMALIZADO dos componentes (ReservationStep1Modal/ReservationModal)
+   * - NÃO normaliza novamente para evitar duplicação (+5555)
+   * - Apenas usa o número exatamente como recebido
    * 
-   * Isso evita o bug de normalização duplicada que causava "+5555"
-   * 
-   * @param phone - Número de telefone (normalizado se userData presente, bruto caso contrário)
+   * @param phone - Número de telefone JÁ NORMALIZADO (formato: +5562999999999)
    * @param userData - Dados opcionais do usuário (nome e email) se já conhecidos
    */
   const signInWithPhone = async (phone: string, userData?: { name: string; email: string }) => {
     try {
-      // ✅ CORREÇÃO CRÍTICA: Só normaliza se userData NÃO for fornecido
-      // Se userData existe, significa que o número já foi normalizado no componente anterior
-      const normalizedPhone = userData ? phone : formatPhoneNumber(phone);
-      
-      console.log('signInWithPhone - Input phone:', phone);
-      console.log('signInWithPhone - Has userData:', !!userData);
-      console.log('signInWithPhone - Final normalized phone:', normalizedPhone);
+      // ✅ CORREÇÃO: NÃO normaliza - usa o phone exatamente como recebido
+      console.log('🔵 AuthContext.signInWithPhone - Input phone:', phone);
+      console.log('🟢 AuthContext.signInWithPhone - Has userData:', !!userData);
+      console.log('🟡 AuthContext.signInWithPhone - Using phone AS-IS (no normalization):', phone);
 
       // Se os dados do usuário foram fornecidos (após reserva), usa eles diretamente
       if (userData) {
         const phoneUserData: PhoneUser = {
-          id: `phone_${normalizedPhone.replace(/\D/g, '')}`,
-          phone: normalizedPhone, // ✅ Já vem normalizado
+          id: `phone_${phone.replace(/\D/g, '')}`,
+          phone: phone, // ✅ Usa exatamente como recebido
           name: userData.name,
           email: userData.email,
           isPhoneAuth: true
@@ -230,15 +225,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setPhoneUser(phoneUserData)
         setIsPhoneAuthenticated(true)
 
+        console.log('✅ AuthContext - Phone user created:', phoneUserData);
+
         return { success: true, user: phoneUserData }
       }
 
       // Busca tickets do cliente usando TicketsAPI (caso de login direto)
-      // ✅ normalizedPhone aqui já foi normalizado na linha acima
-      const { data: tickets, error } = await TicketsAPI.getTicketsByPhoneNumber(normalizedPhone)
+      // ✅ phone já vem normalizado, não precisa normalizar novamente
+      const { data: tickets, error } = await TicketsAPI.getTicketsByPhoneNumber(phone)
 
       if (error) {
-        console.error('Error fetching tickets by phone:', error)
+        console.error('❌ Error fetching tickets by phone:', error)
         return { success: false, error: 'Erro ao buscar dados do cliente' }
       }
 
@@ -250,8 +247,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const firstTicket = tickets[0]
 
       const phoneUserData: PhoneUser = {
-        id: `phone_${normalizedPhone.replace(/\D/g, '')}`,
-        phone: normalizedPhone, // ✅ Número normalizado consistente
+        id: `phone_${phone.replace(/\D/g, '')}`,
+        phone: phone, // ✅ Usa exatamente como recebido
         name: firstTicket.customer_name,
         email: firstTicket.customer_email,
         isPhoneAuth: true
@@ -271,9 +268,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setPhoneUser(phoneUserData)
       setIsPhoneAuthenticated(true)
 
+      console.log('✅ AuthContext - Phone user created from tickets:', phoneUserData);
+
       return { success: true, user: phoneUserData }
     } catch (error) {
-      console.error('Error in signInWithPhone:', error)
+      console.error('❌ Error in signInWithPhone:', error)
       return { success: false, error: 'Erro inesperado ao fazer login' }
     }
   }
