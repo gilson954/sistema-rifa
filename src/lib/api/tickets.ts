@@ -262,17 +262,54 @@ export class TicketsAPI {
 
           // DEBUG: Verificar se os tickets foram realmente salvos
           console.log('🔍 DEBUG: Verifying tickets were saved in database...');
-          const { data: verifyData, error: verifyError } = await supabase
+          console.log('🔍 DEBUG: Phone being saved (EXACT FORMAT):', JSON.stringify(customerPhone));
+          console.log('🔍 DEBUG: Phone length:', customerPhone.length);
+          console.log('🔍 DEBUG: Phone normalized:', customerPhone.replace(/[^0-9]/g, ''));
+
+          // Primeira tentativa: busca exata
+          const { data: exactMatch, error: exactError } = await supabase
             .from('tickets')
             .select('customer_phone, customer_name, status, quota_number')
             .eq('customer_phone', customerPhone)
+            .limit(5);
+
+          console.log('🔍 DEBUG: Exact match result:', {
+            phone_searched: customerPhone,
+            tickets_found: exactMatch?.length || 0,
+            error: exactError
+          });
+
+          // Segunda tentativa: busca com LIKE para ver variações
+          const { data: likeMatch, error: likeError } = await supabase
+            .from('tickets')
+            .select('customer_phone, customer_name, status, quota_number')
+            .ilike('customer_phone', `%${customerPhone.replace(/[^0-9]/g, '').slice(-10)}%`)
+            .limit(5);
+
+          console.log('🔍 DEBUG: LIKE match result (last 10 digits):', {
+            digits_searched: customerPhone.replace(/[^0-9]/g, '').slice(-10),
+            tickets_found: likeMatch?.length || 0,
+            tickets: likeMatch?.map(t => ({
+              stored_phone: t.customer_phone,
+              normalized: t.customer_phone?.replace(/[^0-9]/g, '')
+            }))
+          });
+
+          // Terceira tentativa: buscar TODOS os tickets recentes para comparar
+          const { data: recentTickets } = await supabase
+            .from('tickets')
+            .select('customer_phone, customer_name, quota_number, created_at')
+            .gte('created_at', new Date(Date.now() - 10000).toISOString()) // últimos 10 segundos
+            .order('created_at', { ascending: false })
             .limit(10);
 
-          console.log('🔍 DEBUG: Verification result:', {
-            phone_searched: customerPhone,
-            tickets_found: verifyData?.length || 0,
-            tickets_detail: verifyData,
-            error: verifyError
+          console.log('🔍 DEBUG: Recent tickets (last 10s):', {
+            count: recentTickets?.length || 0,
+            tickets: recentTickets?.map(t => ({
+              phone: t.customer_phone,
+              name: t.customer_name,
+              quota: t.quota_number
+            }))
           });
         }
 
