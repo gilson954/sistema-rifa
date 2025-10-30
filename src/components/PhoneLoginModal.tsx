@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, ArrowRight } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { useAuth } from '../context/AuthContext';
-import { TicketsAPI, formatPhoneNumber } from '../lib/api/tickets';
+import { TicketsAPI } from '../lib/api/tickets';
 
 interface Country {
   code: string;
@@ -161,22 +161,17 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
     setLoading(true);
 
     try {
-      // CORREÇÃO APLICADA: Normalizar o número de telefone corretamente
-      // 1. Extrair apenas os dígitos do número digitado (phoneNumber já vem bruto)
+      // ✅ CORREÇÃO: Apenas combina dialCode + digits, SEM normalizar
       const phoneDigitsOnly = phoneNumber.replace(/\D/g, '');
+      const fullPhoneNumber = `${selectedCountry.dialCode}${phoneDigitsOnly}`;
       
-      // 2. Combinar código do país com os dígitos (formato: +55XXXXXXXXXXX)
-      const rawPhoneWithCountry = `${selectedCountry.dialCode}${phoneDigitsOnly}`;
-      
-      // 3. Aplicar a função de formatação padronizada
-      const fullPhoneNumber = formatPhoneNumber(rawPhoneWithCountry);
-      
-      console.log('Phone digits only:', phoneDigitsOnly);
-      console.log('Raw phone with country:', rawPhoneWithCountry);
-      console.log('Normalized phone (fullPhoneNumber):', fullPhoneNumber);
+      console.log('🔵 PhoneLoginModal - Phone digits only:', phoneDigitsOnly);
+      console.log('🟢 PhoneLoginModal - Full phone (NO normalization):', fullPhoneNumber);
 
-      // 4. Buscar tickets usando o número NORMALIZADO
+      // ✅ Buscar tickets usando o número SEM normalizar
       const { data: tickets } = await TicketsAPI.getTicketsByPhoneNumber(fullPhoneNumber);
+
+      console.log('🟡 PhoneLoginModal - Tickets found:', tickets?.length || 0);
 
       if (!tickets || tickets.length === 0) {
         setError('Nenhuma cota encontrada para este número de telefone');
@@ -184,17 +179,19 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
         return;
       }
 
-      // 5. Extrair dados do cliente do primeiro ticket
+      // Extrair dados do cliente do primeiro ticket
       const customerName = tickets[0]?.customer_name || 'Cliente';
       const customerEmail = tickets[0]?.customer_email || '';
 
-      // 6. Fazer login com o número NORMALIZADO
+      console.log('✅ PhoneLoginModal - Customer found:', customerName);
+
+      // ✅ Fazer login com o número SEM normalizar
       await signInWithPhone(fullPhoneNumber, {
         name: customerName,
         email: customerEmail
       });
 
-      // 7. Fechar modal e navegar para página de tickets
+      // Fechar modal e navegar para página de tickets
       onClose();
       navigate('/my-tickets', {
         state: {
@@ -203,7 +200,7 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
         }
       });
     } catch (error) {
-      console.error('Error during phone login:', error);
+      console.error('❌ PhoneLoginModal - Error during login:', error);
       setError('Erro ao fazer login. Tente novamente.');
       setLoading(false);
     }
