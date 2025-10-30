@@ -372,64 +372,32 @@ export class TicketsAPI {
 
   /**
    * Busca tickets por número de telefone (para clientes não logados)
-   * 
-   * ✅ CORREÇÃO APLICADA: NÃO normaliza phoneNumber
-   * O número JÁ CHEGA NORMALIZADO dos componentes de UI
-   * Formato esperado: +5562999999999
-   * 
-   * @param phoneNumber - Número de telefone JÁ NORMALIZADO (formato: +5562999999999)
+   *
+   * O banco de dados agora faz matching flexível automaticamente, suportando:
+   * - Números com código do país: +5562999999999
+   * - Números sem código do país: 62999999999
+   * - Números com formatação: +55 (62) 99999-9999
+   *
+   * @param phoneNumber - Número de telefone (qualquer formato)
    */
   static async getTicketsByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerTicket[] | null; error: any }> {
     try {
-      // ✅ CORREÇÃO: NÃO normaliza - usa exatamente como recebido
-      console.log(`🔵 TicketsAPI.getTicketsByPhoneNumber - Searching with phone (NO normalization):`, phoneNumber);
+      console.log(`🔵 TicketsAPI.getTicketsByPhoneNumber - Searching with phone:`, phoneNumber);
 
-      // Primeira tentativa: busca com o número completo (com código do país)
-      const { data: firstAttemptData, error: firstAttemptError } = await supabase.rpc('get_tickets_by_phone', {
-        p_phone_number: phoneNumber // ✅ Usa diretamente, SEM normalizar
+      // Uma única chamada - o banco de dados faz o matching flexível
+      const { data, error } = await supabase.rpc('get_tickets_by_phone', {
+        p_phone_number: phoneNumber
       });
 
-      if (firstAttemptError) {
-        console.error('❌ Error on first attempt:', firstAttemptError);
-        return { data: null, error: firstAttemptError };
+      if (error) {
+        console.error('❌ TicketsAPI - Error fetching tickets by phone:', error);
+        return { data: null, error };
       }
 
-      // Se encontrou resultados na primeira tentativa, retorna
-      if (firstAttemptData && firstAttemptData.length > 0) {
-        console.log(`✅ Found ${firstAttemptData.length} tickets with full number`);
-        return { data: firstAttemptData, error: null };
-      }
-
-      // Se não encontrou resultados e o número começa com +55 (Brasil),
-      // faz segunda tentativa sem o código do país (compatibilidade com registros antigos)
-      if (phoneNumber.startsWith('+55')) {
-        // Remove o '+55' do início para buscar registros antigos
-        const phoneWithoutCountryCode = phoneNumber.substring(3);
-        console.log(`🟡 No results found. Trying without country code: ${phoneWithoutCountryCode}`);
-
-        const { data: secondAttemptData, error: secondAttemptError } = await supabase.rpc('get_tickets_by_phone', {
-          p_phone_number: phoneWithoutCountryCode
-        });
-
-        if (secondAttemptError) {
-          console.error('❌ Error on second attempt:', secondAttemptError);
-          return { data: null, error: secondAttemptError };
-        }
-
-        if (secondAttemptData && secondAttemptData.length > 0) {
-          console.log(`✅ Found ${secondAttemptData.length} tickets without country code (legacy format)`);
-        } else {
-          console.log('ℹ️ No tickets found for this phone number');
-        }
-
-        return { data: secondAttemptData, error: null };
-      }
-
-      // Se não encontrou resultados em nenhuma tentativa
-      console.log('ℹ️ No tickets found for this phone number');
-      return { data: [], error: null };
+      console.log(`✅ TicketsAPI - Found ${data?.length || 0} tickets for phone`);
+      return { data: data || [], error: null };
     } catch (error) {
-      console.error('❌ Error fetching tickets by phone:', error);
+      console.error('❌ TicketsAPI - Unexpected error:', error);
       return { data: null, error };
     }
   }
@@ -437,31 +405,28 @@ export class TicketsAPI {
   /**
    * Busca pedidos (orders) por número de telefone
    * Retorna pedidos agrupados em vez de tickets individuais
-   * 
-   * ✅ CORREÇÃO APLICADA: NÃO normaliza phoneNumber
-   * O número JÁ CHEGA NORMALIZADO dos componentes de UI
-   * Formato esperado: +5562999999999
-   * 
-   * @param phoneNumber - Número de telefone JÁ NORMALIZADO (formato: +5562999999999)
+   *
+   * O banco de dados faz matching flexível automaticamente.
+   *
+   * @param phoneNumber - Número de telefone (qualquer formato)
    */
   static async getOrdersByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerOrder[] | null; error: any }> {
     try {
-      // ✅ CORREÇÃO: NÃO normaliza - usa exatamente como recebido
-      console.log(`🔵 TicketsAPI.getOrdersByPhoneNumber - Searching with phone (NO normalization):`, phoneNumber);
+      console.log(`🔵 TicketsAPI.getOrdersByPhoneNumber - Searching with phone:`, phoneNumber);
 
       const { data, error } = await supabase.rpc('get_orders_by_phone', {
-        p_phone_number: phoneNumber // ✅ Usa diretamente, SEM normalizar
+        p_phone_number: phoneNumber
       });
 
       if (error) {
-        console.error('❌ Error fetching orders:', error);
-      } else {
-        console.log(`✅ Found ${data?.length || 0} orders`);
+        console.error('❌ TicketsAPI - Error fetching orders:', error);
+        return { data: null, error };
       }
 
+      console.log(`✅ TicketsAPI - Found ${data?.length || 0} orders`);
       return { data, error };
     } catch (error) {
-      console.error('❌ Error fetching orders by phone:', error);
+      console.error('❌ TicketsAPI - Unexpected error:', error);
       return { data: null, error };
     }
   }

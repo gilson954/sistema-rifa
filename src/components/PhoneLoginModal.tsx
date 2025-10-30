@@ -161,15 +161,23 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
     setLoading(true);
 
     try {
-      // ✅ CORREÇÃO: Apenas combina dialCode + digits, SEM normalizar
+      // Combina dialCode + digits para formar o número completo
       const phoneDigitsOnly = phoneNumber.replace(/\D/g, '');
       const fullPhoneNumber = `${selectedCountry.dialCode}${phoneDigitsOnly}`;
-      
-      console.log('🔵 PhoneLoginModal - Phone digits only:', phoneDigitsOnly);
-      console.log('🟢 PhoneLoginModal - Full phone (NO normalization):', fullPhoneNumber);
 
-      // ✅ Buscar tickets usando o número SEM normalizar
-      const { data: tickets } = await TicketsAPI.getTicketsByPhoneNumber(fullPhoneNumber);
+      console.log('🔵 PhoneLoginModal - Phone digits only:', phoneDigitsOnly);
+      console.log('🟢 PhoneLoginModal - Full phone number:', fullPhoneNumber);
+
+      // Buscar tickets usando o número de telefone completo
+      // O banco de dados agora faz matching flexível automaticamente
+      const { data: tickets, error: ticketsError } = await TicketsAPI.getTicketsByPhoneNumber(fullPhoneNumber);
+
+      if (ticketsError) {
+        console.error('❌ PhoneLoginModal - Error fetching tickets:', ticketsError);
+        setError('Erro ao buscar suas cotas. Tente novamente.');
+        setLoading(false);
+        return;
+      }
 
       console.log('🟡 PhoneLoginModal - Tickets found:', tickets?.length || 0);
 
@@ -185,11 +193,20 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
 
       console.log('✅ PhoneLoginModal - Customer found:', customerName);
 
-      // ✅ Fazer login com o número SEM normalizar
-      await signInWithPhone(fullPhoneNumber, {
+      // Fazer login com o número de telefone
+      const loginResult = await signInWithPhone(fullPhoneNumber, {
         name: customerName,
         email: customerEmail
       });
+
+      if (!loginResult.success) {
+        console.error('❌ PhoneLoginModal - Login failed:', loginResult.error);
+        setError('Erro ao fazer login. Tente novamente.');
+        setLoading(false);
+        return;
+      }
+
+      console.log('✅ PhoneLoginModal - Login successful, navigating to my-tickets');
 
       // Fechar modal e navegar para página de tickets
       onClose();
@@ -200,8 +217,8 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
         }
       });
     } catch (error) {
-      console.error('❌ PhoneLoginModal - Error during login:', error);
-      setError('Erro ao fazer login. Tente novamente.');
+      console.error('❌ PhoneLoginModal - Unexpected error:', error);
+      setError('Erro inesperado. Tente novamente.');
       setLoading(false);
     }
   };
