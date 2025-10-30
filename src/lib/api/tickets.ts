@@ -259,6 +259,21 @@ export class TicketsAPI {
           console.error('❌ Error in reserve_tickets RPC:', error);
         } else {
           console.log(`✅ Successfully reserved ${data?.length || 0} tickets`);
+
+          // DEBUG: Verificar se os tickets foram realmente salvos
+          console.log('🔍 DEBUG: Verifying tickets were saved in database...');
+          const { data: verifyData, error: verifyError } = await supabase
+            .from('tickets')
+            .select('customer_phone, customer_name, status, quota_number')
+            .eq('customer_phone', customerPhone)
+            .limit(10);
+
+          console.log('🔍 DEBUG: Verification result:', {
+            phone_searched: customerPhone,
+            tickets_found: verifyData?.length || 0,
+            tickets_detail: verifyData,
+            error: verifyError
+          });
         }
 
         return { data, error };
@@ -379,12 +394,16 @@ export class TicketsAPI {
    * - Números com formatação: +55 (62) 99999-9999
    *
    * @param phoneNumber - Número de telefone (qualquer formato)
+   * @param retryOnEmpty - Se true, tenta novamente após 1s se não encontrar tickets (útil para timing issues)
    */
-  static async getTicketsByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerTicket[] | null; error: any }> {
+  static async getTicketsByPhoneNumber(
+    phoneNumber: string,
+    retryOnEmpty: boolean = true
+  ): Promise<{ data: CustomerTicket[] | null; error: any }> {
     try {
       console.log(`🔵 TicketsAPI.getTicketsByPhoneNumber - Searching with phone:`, phoneNumber);
 
-      // Uma única chamada - o banco de dados faz o matching flexível
+      // Primeira tentativa via RPC
       const { data, error } = await supabase.rpc('get_tickets_by_phone', {
         p_phone_number: phoneNumber
       });
@@ -394,8 +413,89 @@ export class TicketsAPI {
         return { data: null, error };
       }
 
-      console.log(`✅ TicketsAPI - Found ${data?.length || 0} tickets for phone`);
-      return { data: data || [], error: null };
+      // Se encontrou tickets, retorna imediatamente
+      if (data && data.length > 0) {
+        console.log(`✅ TicketsAPI - Found ${data.length} tickets for phone`);
+        return { data, error: null };
+      }
+
+      // Se não encontrou e retry está habilitado, tenta query direta para debug
+      if (retryOnEmpty) {
+        console.log('⚠️ TicketsAPI - No tickets found via RPC. Trying direct query for debug...');
+
+        // Query direta para verificar se os dados existem
+        const { data: directData, error: directError } = await supabase
+          .from('tickets')
+          .select(`
+            id,
+            campaign_id,
+            quota_number,
+            status,
+            bought_at,
+            reserved_at,
+            customer_name,
+            customer_email,
+            customer_phone,
+            campaigns (
+              title,
+              public_id,
+              prize_image_urls
+            )
+          `)
+          .eq('customer_phone', phoneNumber);
+
+        console.log('🔍 Direct query result:', {
+          found: directData?.length || 0,
+          error: directError
+        });
+
+        // Se a query direta encontrou dados, há um problema na função RPC
+        if (directData && directData.length > 0) {
+          console.log('⚠️ WARNING: Direct query found tickets but RPC did not!');
+          console.log('This indicates an issue with the get_tickets_by_phone function.');
+
+          // Transformar os dados da query direta para o formato esperado
+          const transformedData: CustomerTicket[] = directData.map((ticket: any) => ({
+            ticket_id: ticket.id,
+            campaign_id: ticket.campaign_id,
+            campaign_title: ticket.campaigns?.title || '',
+            campaign_public_id: ticket.campaigns?.public_id || null,
+            prize_image_urls: ticket.campaigns?.prize_image_urls || null,
+            quota_number: ticket.quota_number,
+            status: ticket.status,
+            bought_at: ticket.bought_at,
+            customer_name: ticket.customer_name,
+            customer_email: ticket.customer_email,
+            customer_phone: ticket.customer_phone
+          }));
+
+          return { data: transformedData, error: null };
+        }
+
+        // Se nem a query direta encontrou, espera 1 segundo e tenta RPC novamente
+        console.log('⏳ No tickets found even with direct query. Waiting 1s and retrying RPC...');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        const { data: retryData, error: retryError } = await supabase.rpc('get_tickets_by_phone', {
+          p_phone_number: phoneNumber
+        });
+
+        if (retryError) {
+          console.error('❌ Retry also failed:', retryError);
+          return { data: null, error: retryError };
+        }
+
+        if (retryData && retryData.length > 0) {
+          console.log(`✅ Retry successful! Found ${retryData.length} tickets after delay`);
+          return { data: retryData, error: null };
+        }
+
+        console.log('ℹ️ No tickets found after all attempts');
+        return { data: [], error: null };
+      }
+
+      console.log('ℹ️ No tickets found for phone');
+      return { data: [], error: null };
     } catch (error) {
       console.error('❌ TicketsAPI - Unexpected error:', error);
       return { data: null, error };
