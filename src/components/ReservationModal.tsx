@@ -201,36 +201,74 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       return;
     }
 
-    // ✅ CORREÇÃO: Apenas combina dialCode + phoneNumber SEM normalizar
+    // ✅ CORREÇÃO: Normalizar o telefone para E.164 (+55XXXXXXXXXXX)
     const phoneDigitsOnly = formData.phoneNumber.replace(/\D/g, '');
-    const fullPhoneNumber = `${selectedCountry.dialCode}${phoneDigitsOnly}`;
+    const dialCode = selectedCountry.dialCode.replace(/\D/g, ''); // Remove + do dialCode
+    
+    // Garantir que não há duplicação do código do país
+    let finalPhoneDigits = phoneDigitsOnly;
+    
+    // Se o usuário digitou o código do país, remover
+    if (phoneDigitsOnly.startsWith(dialCode)) {
+      finalPhoneDigits = phoneDigitsOnly.substring(dialCode.length);
+    }
+    
+    // Formato final E.164: +[código do país][número]
+    const fullPhoneNumber = `+${dialCode}${finalPhoneDigits}`;
 
-    console.log('🔵 ReservationModal - Phone digits only:', phoneDigitsOnly);
-    console.log('🟢 ReservationModal - Full phone (dialCode + digits):', fullPhoneNumber);
-    console.log('🟡 ReservationModal - Sending to API (NO normalization):', fullPhoneNumber);
+    // ✅ LOGS para debug
+    console.log('═══════════════════════════════════════════');
+    console.log('🔵 ReservationModal - Debug de Telefone');
+    console.log('═══════════════════════════════════════════');
+    console.log('📱 Input original:', formData.phoneNumber);
+    console.log('🔢 Apenas dígitos:', phoneDigitsOnly);
+    console.log('🌍 Código do país:', selectedCountry.dialCode, '(país:', selectedCountry.code + ')');
+    console.log('🔢 Dial code limpo:', dialCode);
+    console.log('📞 Dígitos finais:', finalPhoneDigits);
+    console.log('✅ Formato E.164 final:', fullPhoneNumber);
+    console.log('📏 Tamanho total:', fullPhoneNumber.length, 'caracteres');
+    console.log('═══════════════════════════════════════════');
 
-    // ✅ Criar o objeto customerData com o número SEM normalizar
+    // ✅ Validação adicional
+    if (selectedCountry.code === 'BR' && finalPhoneDigits.length !== 11) {
+      showError(`Número brasileiro deve ter 11 dígitos. Você digitou ${finalPhoneDigits.length} dígitos.`);
+      return;
+    }
+
+    // ✅ Criar o objeto customerData com o formato correto
     const customerData: CustomerData = {
       name: formData.name,
       email: formData.email,
-      phoneNumber: fullPhoneNumber, // ✅ Envia direto sem normalizar
-      countryCode: selectedCountry.dialCode,
+      phoneNumber: fullPhoneNumber, // ✅ Formato E.164: +5562981127960
+      countryCode: selectedCountry.dialCode, // +55
       acceptTerms: formData.acceptTerms
     };
 
-    // ✅ Fazer login automático com o número SEM normalizar
-    const loginResult = await signInWithPhone(fullPhoneNumber, {
-      name: formData.name,
-      email: formData.email
-    });
+    console.log('📦 Dados do cliente:', customerData);
 
-    if (loginResult.success) {
-      console.log('✅ Auto-login realizado com sucesso:', loginResult.user);
-    } else {
-      console.log('❌ Erro ao fazer auto-login:', loginResult.error);
+    try {
+      // ✅ Fazer login automático com o número no formato correto
+      console.log('🔐 Tentando auto-login com:', fullPhoneNumber);
+      const loginResult = await signInWithPhone(fullPhoneNumber, {
+        name: formData.name,
+        email: formData.email
+      });
+
+      if (loginResult.success) {
+        console.log('✅ Auto-login realizado com sucesso!');
+        console.log('👤 Usuário:', loginResult.user);
+        showSuccess('Conta criada com sucesso!');
+      } else {
+        console.warn('⚠️ Erro ao fazer auto-login:', loginResult.error);
+        // Continua mesmo se o login falhar
+      }
+    } catch (error) {
+      console.error('❌ Exceção no auto-login:', error);
+      // Continua mesmo se houver erro
     }
 
-    // ✅ Passar os dados sem normalização para a função de reserva
+    // ✅ Passar os dados para a função de reserva
+    console.log('🎫 Iniciando reserva de tickets...');
     onReserve(customerData);
   };
 
