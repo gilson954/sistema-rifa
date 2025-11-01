@@ -40,6 +40,11 @@ export const useTickets = (campaignId: string) => {
 
   /**
    * Reserva cotas para o usuário atual
+   * 
+   * ✅ CORREÇÃO APLICADA: Agora lança erros corretamente para serem capturados pelo ReservationModal
+   * 
+   * @throws {Error} Lança erro com mensagem apropriada se a reserva falhar
+   * @returns {Promise<ReservationResult[] | null>} Resultado da reserva ou null
    */
   const reserveTickets = async (
     quotaNumbers: number[],
@@ -49,11 +54,21 @@ export const useTickets = (campaignId: string) => {
     customerPhone: string = ''
   ): Promise<ReservationResult[] | null> => {
     if (!campaignId || quotaNumbers.length === 0) {
-      throw new Error('Dados inválidos para reserva');
+      const error = new Error('Dados inválidos para reserva');
+      console.error('❌ useTickets.reserveTickets - Invalid data:', { campaignId, quotaNumbers });
+      throw error; // ✅ CRITICAL FIX: Lançar erro
     }
 
     setReserving(true);
     setError(null);
+
+    console.log('🔵 useTickets.reserveTickets - Starting reservation...');
+    console.log('🔵 Campaign ID:', campaignId);
+    console.log('🔵 Quota Numbers:', quotaNumbers);
+    console.log('🔵 User ID:', userId || user?.id || null);
+    console.log('🔵 Customer Name:', customerName);
+    console.log('🔵 Customer Email:', customerEmail);
+    console.log('🔵 Customer Phone:', customerPhone);
 
     try {
       const { data, error: apiError } = await TicketsAPI.reserveTickets(
@@ -66,17 +81,56 @@ export const useTickets = (campaignId: string) => {
       );
 
       if (apiError) {
-        setError('Erro ao reservar cotas');
-        throw apiError;
+        console.error('❌ useTickets.reserveTickets - API Error:', apiError);
+        
+        // ✅ CRITICAL FIX: Criar mensagem de erro mais informativa
+        let errorMessage = 'Erro ao reservar cotas';
+        
+        // Verificar se há uma mensagem de erro específica da API
+        if (typeof apiError === 'object' && apiError !== null) {
+          if ('message' in apiError && apiError.message) {
+            errorMessage = apiError.message as string;
+          } else if ('error' in apiError && apiError.error) {
+            errorMessage = apiError.error as string;
+          } else if ('hint' in apiError && apiError.hint) {
+            errorMessage = apiError.hint as string;
+          }
+        } else if (typeof apiError === 'string') {
+          errorMessage = apiError;
+        }
+        
+        setError(errorMessage);
+        
+        // ✅ CRITICAL FIX: Lançar o erro com a mensagem apropriada
+        const error = new Error(errorMessage);
+        throw error;
       }
+
+      if (!data || data.length === 0) {
+        console.warn('⚠️ useTickets.reserveTickets - No data returned from API');
+        const error = new Error('Nenhuma cota foi reservada. Tente novamente.');
+        setError(error.message);
+        throw error;
+      }
+
+      console.log(`✅ useTickets.reserveTickets - Successfully reserved ${data.length} tickets`);
 
       // Atualiza o status local após reserva bem-sucedida
       await fetchTicketsStatus();
 
       return data;
     } catch (error) {
-      console.error('Error reserving tickets:', error);
-      throw error;
+      console.error('❌ useTickets.reserveTickets - Exception caught:', error);
+      
+      // ✅ CRITICAL FIX: Se o erro já foi tratado acima, apenas relançar
+      // Se for um erro inesperado, criar uma mensagem genérica
+      if (error instanceof Error) {
+        throw error; // Relançar o erro que já tem mensagem
+      } else {
+        const genericError = new Error('Erro inesperado ao reservar cotas. Tente novamente.');
+        setError(genericError.message);
+        throw genericError;
+      }
     } finally {
       setReserving(false);
     }
@@ -84,14 +138,20 @@ export const useTickets = (campaignId: string) => {
 
   /**
    * Finaliza a compra das cotas reservadas
+   * 
+   * ✅ CORREÇÃO APLICADA: Lança erros apropriadamente
    */
   const finalizePurchase = async (quotaNumbers: number[]): Promise<ReservationResult[] | null> => {
     if (!user || !campaignId || quotaNumbers.length === 0) {
-      throw new Error('Usuário não autenticado ou dados inválidos');
+      const error = new Error('Usuário não autenticado ou dados inválidos');
+      console.error('❌ useTickets.finalizePurchase - Invalid data');
+      throw error;
     }
 
     setPurchasing(true);
     setError(null);
+
+    console.log('🔵 useTickets.finalizePurchase - Starting purchase finalization...');
 
     try {
       const { data, error: apiError } = await TicketsAPI.finalizePurchase(
@@ -101,17 +161,39 @@ export const useTickets = (campaignId: string) => {
       );
 
       if (apiError) {
-        setError('Erro ao finalizar compra');
-        throw apiError;
+        console.error('❌ useTickets.finalizePurchase - API Error:', apiError);
+        
+        let errorMessage = 'Erro ao finalizar compra';
+        
+        if (typeof apiError === 'object' && apiError !== null) {
+          if ('message' in apiError && apiError.message) {
+            errorMessage = apiError.message as string;
+          }
+        } else if (typeof apiError === 'string') {
+          errorMessage = apiError;
+        }
+        
+        setError(errorMessage);
+        const error = new Error(errorMessage);
+        throw error;
       }
+
+      console.log('✅ useTickets.finalizePurchase - Purchase finalized successfully');
 
       // Atualiza o status local após compra bem-sucedida
       await fetchTicketsStatus();
 
       return data;
     } catch (error) {
-      console.error('Error finalizing purchase:', error);
-      throw error;
+      console.error('❌ useTickets.finalizePurchase - Exception caught:', error);
+      
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        const genericError = new Error('Erro inesperado ao finalizar compra. Tente novamente.');
+        setError(genericError.message);
+        throw genericError;
+      }
     } finally {
       setPurchasing(false);
     }
