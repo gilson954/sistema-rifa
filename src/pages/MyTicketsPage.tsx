@@ -564,10 +564,14 @@ const MyTicketsPage = () => {
                               </button>
                             )}
 
+                            {/* ✅ CORREÇÃO: Botão "Compra Cancelada" clicável para pedidos expirados */}
                             {order.status === 'expired' && (
-                              <div className="w-full bg-gray-400 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm text-center cursor-not-allowed opacity-75">
-                                Reserva Expirada
-                              </div>
+                              <button
+                                onClick={() => handlePayment(order)}
+                                className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 shadow-md`}
+                              >
+                                Compra Cancelada
+                              </button>
                             )}
                           </div>
                         </div>
