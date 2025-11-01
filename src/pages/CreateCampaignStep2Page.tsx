@@ -282,7 +282,7 @@ const CreateCampaignStep2Page = () => {
   };
 
   const reservationTimeoutOptions = [
-    { value: 10, label: '10 minutos' },
+    { value: 10, label: '15 minutos' },
     { value: 30, label: '30 minutos' },
     { value: 60, label: '1 hora' },
     { value: 180, label: '3 horas' },
