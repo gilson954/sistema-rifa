@@ -256,7 +256,10 @@ const PaymentConfirmationPage = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} shadow-lg`}>
-              <div className="flex items-start gap-4 mb-6">
+              <div 
+                className="flex items-start gap-4 mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => navigate(`/c/${reservationData.campaignPublicId || reservationData.campaignId}`)}
+              >
                 <img
                   src={campaignImageUrl || reservationData.prizeImageUrl || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400'}
                   alt="Campanha"
@@ -506,7 +509,10 @@ const PaymentConfirmationPage = () => {
           transition={{ duration: 0.5, delay: 0.4 }}
         >
           <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} shadow-lg`}>
-            <div className="flex items-start gap-4 mb-6">
+            <div 
+              className="flex items-start gap-4 mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => navigate(`/c/${reservationData.campaignPublicId || reservationData.campaignId}`)}
+            >
               <img
                 src={campaignImageUrl || reservationData.prizeImageUrl || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400'}
                 alt="Campanha"
@@ -602,21 +608,6 @@ const PaymentConfirmationPage = () => {
               </div>
             )}
           </div>
-        </motion.div>
-
-        {/* Suporte */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="mt-6 text-center"
-        >
-          <p className={`text-sm ${themeClasses.textSecondary}`}>
-            Problemas com sua compra?{' '}
-            <button className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
-              Clique aqui
-            </button>
-          </p>
         </motion.div>
       </main>
 
