@@ -16,7 +16,7 @@ interface Country {
 interface ReservationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onReserve: (customerData: CustomerData) => void;
+  onReserve: (customerData: CustomerData) => Promise<void>; // ✅ MUDANÇA: Agora é Promise<void>
   quotaCount: number;
   totalValue: number;
   selectedQuotas?: number[];
@@ -185,7 +185,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 
     setErrors(newErrors);
 
-    // Show toast notification for validation errors
     if (Object.keys(newErrors).length > 0) {
       const firstError = Object.values(newErrors)[0];
       showWarning(firstError);
@@ -203,20 +202,17 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 
     // ✅ CORREÇÃO: Normalizar o telefone para E.164 (+55XXXXXXXXXXX)
     const phoneDigitsOnly = formData.phoneNumber.replace(/\D/g, '');
-    const dialCode = selectedCountry.dialCode.replace(/\D/g, ''); // Remove + do dialCode
+    const dialCode = selectedCountry.dialCode.replace(/\D/g, '');
     
-    // Garantir que não há duplicação do código do país
     let finalPhoneDigits = phoneDigitsOnly;
     
-    // Se o usuário digitou o código do país, remover
     if (phoneDigitsOnly.startsWith(dialCode)) {
       finalPhoneDigits = phoneDigitsOnly.substring(dialCode.length);
     }
     
-    // Formato final E.164: +[código do país][número]
     const fullPhoneNumber = `+${dialCode}${finalPhoneDigits}`;
 
-    // ✅ LOGS para debug
+    // ✅ LOGS para debug conforme o plano
     console.log('═══════════════════════════════════════════');
     console.log('🔵 ReservationModal - Debug de Telefone');
     console.log('═══════════════════════════════════════════');
@@ -229,47 +225,51 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     console.log('📏 Tamanho total:', fullPhoneNumber.length, 'caracteres');
     console.log('═══════════════════════════════════════════');
 
-    // ✅ Validação adicional
     if (selectedCountry.code === 'BR' && finalPhoneDigits.length !== 11) {
       showError(`Número brasileiro deve ter 11 dígitos. Você digitou ${finalPhoneDigits.length} dígitos.`);
       return;
     }
 
-    // ✅ Criar o objeto customerData com o formato correto
     const customerData: CustomerData = {
       name: formData.name,
       email: formData.email,
-      phoneNumber: fullPhoneNumber, // ✅ Formato E.164: +5562981127960
-      countryCode: selectedCountry.dialCode, // +55
+      phoneNumber: fullPhoneNumber,
+      countryCode: selectedCountry.dialCode,
       acceptTerms: formData.acceptTerms
     };
 
-    console.log('📦 Dados do cliente:', customerData);
+    console.log('📦 ReservationModal - Customer Data to be sent:', customerData);
 
     try {
-      // ✅ Fazer login automático com o número no formato correto
-      console.log('🔐 Tentando auto-login com:', fullPhoneNumber);
+      console.log('🔐 ReservationModal - Attempting auto-login with:', fullPhoneNumber);
       const loginResult = await signInWithPhone(fullPhoneNumber, {
         name: formData.name,
         email: formData.email
       });
 
       if (loginResult.success) {
-        console.log('✅ Auto-login realizado com sucesso!');
-        console.log('👤 Usuário:', loginResult.user);
-        showSuccess('Conta criada com sucesso!');
+        console.log('✅ ReservationModal - Auto-login successful!');
+        showSuccess('Conta criada/logada com sucesso!');
       } else {
-        console.warn('⚠️ Erro ao fazer auto-login:', loginResult.error);
-        // Continua mesmo se o login falhar
+        console.warn('⚠️ ReservationModal - Auto-login failed:', loginResult.error);
       }
     } catch (error) {
-      console.error('❌ Exceção no auto-login:', error);
-      // Continua mesmo se houver erro
+      console.error('❌ ReservationModal - Exception during auto-login:', error);
     }
 
-    // ✅ Passar os dados para a função de reserva
-    console.log('🎫 Iniciando reserva de tickets...');
-    onReserve(customerData);
+    // ✅ CRITICAL FIX: Chamar onReserve e verificar o resultado
+    console.log('🎫 ReservationModal - Initiating ticket reservation...');
+    try {
+      await onReserve(customerData);
+      console.log('✅ ReservationModal - Ticket reservation successful!');
+    } catch (apiError: any) {
+      console.error('❌ ReservationModal - Error during ticket reservation:', apiError);
+      
+      const errorMessage = apiError?.message || 'Erro ao reservar cotas. Tente novamente.';
+      showError(errorMessage);
+      
+      return;
+    }
   };
 
   const handleClose = () => {
@@ -328,12 +328,11 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  // Função para formatar a exibição de cotas selecionadas
   const formatSelectedQuotas = () => {
     if (!selectedQuotas || selectedQuotas.length === 0) return null;
 
     const sortedQuotas = [...selectedQuotas].sort((a, b) => a - b);
-    const MAX_DISPLAY = 12; // Máximo de números a exibir antes de truncar
+    const MAX_DISPLAY = 12;
 
     if (sortedQuotas.length <= MAX_DISPLAY) {
       return sortedQuotas.join(', ');
@@ -351,7 +350,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 
   const theme = getThemeClasses(campaignTheme);
 
-  // Variantes de animação
   const overlayVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -443,7 +441,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             exit="exit"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header com gradiente e efeito moderno */}
             <motion.div 
               className="relative overflow-hidden"
               variants={headerVariants}
@@ -499,7 +496,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               </div>
             </motion.div>
 
-            {/* Card de resumo da campanha */}
             <motion.div 
               className="px-6 pt-6"
               variants={contentVariants}
@@ -574,7 +570,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               </motion.div>
             </motion.div>
 
-            {/* Aviso de tempo de reserva */}
             <motion.div 
               className="px-6 pt-4"
               variants={contentVariants}
@@ -612,10 +607,8 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               </motion.div>
             </motion.div>
 
-            {/* Formulário */}
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               
-              {/* Campo Nome */}
               <motion.div
                 custom={0}
                 variants={formItemVariants}
@@ -658,7 +651,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 </AnimatePresence>
               </motion.div>
 
-              {/* Campo Email */}
               <motion.div
                 custom={1}
                 variants={formItemVariants}
@@ -701,7 +693,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 </AnimatePresence>
               </motion.div>
 
-              {/* Campo Telefone */}
               <motion.div
                 custom={2}
                 variants={formItemVariants}
@@ -725,7 +716,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 />
               </motion.div>
 
-              {/* Campo Confirmar Telefone */}
               <motion.div
                 custom={3}
                 variants={formItemVariants}
@@ -746,7 +736,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 />
               </motion.div>
 
-              {/* Termos e Avisos */}
               <motion.div 
                 className="space-y-4"
                 custom={4}
@@ -754,7 +743,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 initial="hidden"
                 animate="visible"
               >
-                {/* Checkbox de Termos - ATUALIZADO com animação */}
                 <motion.div 
                   className={`p-4 rounded-xl border-2 ${theme.border} ${theme.cardBg}`}
                   whileHover={{ scale: 1.01 }}
@@ -827,7 +815,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                   )}
                 </AnimatePresence>
 
-                {/* Aviso Importante */}
                 <motion.div 
                   className={`relative overflow-hidden border-2 rounded-2xl p-4 ${
                     campaignTheme === 'claro'
@@ -865,7 +852,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 </motion.div>
               </motion.div>
 
-              {/* Card Total a Pagar */}
               <motion.div 
                 className={`${theme.cardBg} rounded-2xl p-5 border-2 ${theme.border} shadow-sm`}
                 custom={5}
@@ -900,7 +886,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 </div>
               </motion.div>
 
-              {/* Botões de Ação */}
               <motion.div 
                 className="space-y-3 pt-2"
                 custom={6}
