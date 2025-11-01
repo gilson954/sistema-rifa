@@ -215,10 +215,6 @@ export class TicketsAPI {
    * Reserva um conjunto de tickets para um usuário
    * Implementa processamento em lote para grandes quantidades
    * 
-   * ✅ CORREÇÃO APLICADA: NÃO normaliza customerPhone
-   * O número JÁ CHEGA NORMALIZADO dos componentes de UI (ReservationModal)
-   * Formato esperado: +5562999999999
-   * 
    * @param customerPhone - Número de telefone JÁ NORMALIZADO (formato: +5562999999999)
    */
   static async reserveTickets(
@@ -230,7 +226,6 @@ export class TicketsAPI {
     customerPhone: string
   ): Promise<{ data: ReservationResult[] | null; error: any }> {
     try {
-      // ✅ LIMPA E GARANTE QUE TODOS OS ELEMENTOS SEJAM NÚMEROS INTEIROS
       const cleanedQuotaNumbers = cleanQuotaNumbers(quotaNumbers);
 
       if (cleanedQuotaNumbers.length === 0) {
@@ -240,9 +235,13 @@ export class TicketsAPI {
         };
       }
 
-      // ✅ CORREÇÃO: NÃO normaliza - usa exatamente como recebido
-      console.log(`🔵 TicketsAPI.reserveTickets - Cleaned quota numbers:`, cleanedQuotaNumbers);
-      console.log(`🟢 TicketsAPI.reserveTickets - Customer phone (NO normalization):`, customerPhone);
+      // ✅ LOGS DE DEBUG CONFORME O PLANO
+      console.log(`🔵 TicketsAPI.reserveTickets - Campaign ID: ${campaignId}`);
+      console.log(`🔵 TicketsAPI.reserveTickets - Quota Numbers:`, cleanedQuotaNumbers);
+      console.log(`🔵 TicketsAPI.reserveTickets - User ID: ${userId}`);
+      console.log(`🔵 TicketsAPI.reserveTickets - Customer Name: ${customerName}`);
+      console.log(`🔵 TicketsAPI.reserveTickets - Customer Email: ${customerEmail}`);
+      console.log(`🔵 TicketsAPI.reserveTickets - Customer Phone (sent to RPC): ${customerPhone}`);
 
       // Se a quantidade de tickets é menor ou igual ao tamanho do lote, faz uma única requisição
       if (cleanedQuotaNumbers.length <= RESERVATION_BATCH_SIZE) {
@@ -252,65 +251,13 @@ export class TicketsAPI {
           p_user_id: userId,
           p_customer_name: customerName,
           p_customer_email: customerEmail,
-          p_customer_phone: customerPhone, // ✅ Usa diretamente, SEM normalizar
+          p_customer_phone: customerPhone,
         });
 
         if (error) {
-          console.error('❌ Error in reserve_tickets RPC:', error);
+          console.error('❌ TicketsAPI.reserveTickets - Error in reserve_tickets RPC:', error);
         } else {
-          console.log(`✅ Successfully reserved ${data?.length || 0} tickets`);
-
-          // DEBUG: Verificar se os tickets foram realmente salvos
-          console.log('🔍 DEBUG: Verifying tickets were saved in database...');
-          console.log('🔍 DEBUG: Phone being saved (EXACT FORMAT):', JSON.stringify(customerPhone));
-          console.log('🔍 DEBUG: Phone length:', customerPhone.length);
-          console.log('🔍 DEBUG: Phone normalized:', customerPhone.replace(/[^0-9]/g, ''));
-
-          // Primeira tentativa: busca exata
-          const { data: exactMatch, error: exactError } = await supabase
-            .from('tickets')
-            .select('customer_phone, customer_name, status, quota_number')
-            .eq('customer_phone', customerPhone)
-            .limit(5);
-
-          console.log('🔍 DEBUG: Exact match result:', {
-            phone_searched: customerPhone,
-            tickets_found: exactMatch?.length || 0,
-            error: exactError
-          });
-
-          // Segunda tentativa: busca com LIKE para ver variações
-          const { data: likeMatch, error: likeError } = await supabase
-            .from('tickets')
-            .select('customer_phone, customer_name, status, quota_number')
-            .ilike('customer_phone', `%${customerPhone.replace(/[^0-9]/g, '').slice(-10)}%`)
-            .limit(5);
-
-          console.log('🔍 DEBUG: LIKE match result (last 10 digits):', {
-            digits_searched: customerPhone.replace(/[^0-9]/g, '').slice(-10),
-            tickets_found: likeMatch?.length || 0,
-            tickets: likeMatch?.map(t => ({
-              stored_phone: t.customer_phone,
-              normalized: t.customer_phone?.replace(/[^0-9]/g, '')
-            }))
-          });
-
-          // Terceira tentativa: buscar TODOS os tickets recentes para comparar
-          const { data: recentTickets } = await supabase
-            .from('tickets')
-            .select('customer_phone, customer_name, quota_number, created_at')
-            .gte('created_at', new Date(Date.now() - 10000).toISOString()) // últimos 10 segundos
-            .order('created_at', { ascending: false })
-            .limit(10);
-
-          console.log('🔍 DEBUG: Recent tickets (last 10s):', {
-            count: recentTickets?.length || 0,
-            tickets: recentTickets?.map(t => ({
-              phone: t.customer_phone,
-              name: t.customer_name,
-              quota: t.quota_number
-            }))
-          });
+          console.log(`✅ TicketsAPI.reserveTickets - Successfully reserved ${data?.length || 0} tickets`);
         }
 
         return { data, error };
@@ -319,14 +266,14 @@ export class TicketsAPI {
       // Para grandes quantidades, processa em lotes
       const allResults: ReservationResult[] = [];
       const totalBatches = Math.ceil(cleanedQuotaNumbers.length / RESERVATION_BATCH_SIZE);
-      console.log(`Reserving ${cleanedQuotaNumbers.length} tickets in ${totalBatches} batches...`);
+      console.log(`🔵 TicketsAPI.reserveTickets - Reserving ${cleanedQuotaNumbers.length} tickets in ${totalBatches} batches...`);
 
       for (let i = 0; i < totalBatches; i++) {
         const start = i * RESERVATION_BATCH_SIZE;
         const end = Math.min(start + RESERVATION_BATCH_SIZE, cleanedQuotaNumbers.length);
         const batch = cleanedQuotaNumbers.slice(start, end);
 
-        console.log(`Processing batch ${i + 1}/${totalBatches} (${batch.length} tickets)...`);
+        console.log(`🔵 TicketsAPI.reserveTickets - Processing batch ${i + 1}/${totalBatches} (${batch.length} tickets)...`);
 
         const { data, error } = await supabase.rpc('reserve_tickets', {
           p_campaign_id: campaignId,
@@ -334,11 +281,11 @@ export class TicketsAPI {
           p_user_id: userId,
           p_customer_name: customerName,
           p_customer_email: customerEmail,
-          p_customer_phone: customerPhone, // ✅ Usa diretamente, SEM normalizar
+          p_customer_phone: customerPhone,
         });
 
         if (error) {
-          console.error(`❌ Error processing batch ${i + 1}:`, error);
+          console.error(`❌ TicketsAPI.reserveTickets - Error processing batch ${i + 1}:`, error);
           return { data: null, error };
         }
 
@@ -347,10 +294,10 @@ export class TicketsAPI {
         }
       }
 
-      console.log(`✅ Successfully reserved ${allResults.length} tickets in ${totalBatches} batches`);
+      console.log(`✅ TicketsAPI.reserveTickets - Successfully reserved ${allResults.length} tickets in ${totalBatches} batches`);
       return { data: allResults, error: null };
     } catch (error) {
-      console.error('❌ Error reserving tickets:', error);
+      console.error('❌ TicketsAPI.reserveTickets - Unexpected error:', error);
       return { data: null, error };
     }
   }
@@ -364,7 +311,6 @@ export class TicketsAPI {
     userId: string
   ): Promise<{ data: ReservationResult[] | null; error: any }> {
     try {
-      // ✅ LIMPA E GARANTE QUE TODOS OS ELEMENTOS SEJAM NÚMEROS INTEIROS
       const cleanedQuotaNumbers = cleanQuotaNumbers(quotaNumbers);
 
       if (cleanedQuotaNumbers.length === 0) {
