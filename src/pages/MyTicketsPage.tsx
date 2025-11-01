@@ -431,7 +431,8 @@ const MyTicketsPage = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ duration: 0.3 }}
-                      className={`${themeClasses.cardBg} rounded-lg sm:rounded-xl shadow-md border-l-4 ${statusInfo.borderColor} overflow-hidden hover:shadow-lg transition-shadow duration-200`}
+                      className={`${themeClasses.cardBg} rounded-lg sm:rounded-xl shadow-md border-l-4 ${statusInfo.borderColor} overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer`}
+                      onClick={() => navigate(`/c/${order.campaign_public_id || order.campaign_id}`)}
                     >
                       <div className="p-3 sm:p-4">
                         <div className="flex gap-3 sm:gap-4">
@@ -538,7 +539,10 @@ const MyTicketsPage = () => {
                                   ))}
                                   {!isExpanded && hasMoreTickets && (
                                     <button
-                                      onClick={() => toggleExpandOrder(order.order_id)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleExpandOrder(order.order_id);
+                                      }}
                                       className="px-1.5 sm:px-2 py-0.5 text-xs font-bold rounded-md bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                                     >
                                       +{order.ticket_numbers.length - maxVisibleTickets} mais
@@ -557,7 +561,10 @@ const MyTicketsPage = () => {
 
                             {order.status === 'reserved' && (
                               <button
-                                onClick={() => handlePayment(order)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePayment(order);
+                                }}
                                 className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 shadow-md`}
                               >
                                 Efetuar Pagamento
@@ -567,7 +574,10 @@ const MyTicketsPage = () => {
                             {/* ✅ CORREÇÃO: Botão "Compra Cancelada" clicável para pedidos expirados */}
                             {order.status === 'expired' && (
                               <button
-                                onClick={() => handlePayment(order)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePayment(order);
+                                }}
                                 className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 shadow-md`}
                               >
                                 Compra Cancelada
