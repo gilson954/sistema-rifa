@@ -35,13 +35,16 @@ const MyTicketsPage = () => {
 
   const campaignContext = location.state as { campaignId?: string; organizerId?: string } | null;
 
+  // ✅ CORREÇÃO: Carregar pedidos do usuário
   useEffect(() => {
     if (isPhoneAuthenticated && phoneUser) {
       loadUserOrders(phoneUser.phone);
     }
   }, [isPhoneAuthenticated, phoneUser, campaignContext?.organizerId]);
 
+  // ✅ CORREÇÃO DO TIMER: Usar reservation_expires_at da resposta da API
   useEffect(() => {
+    // Filtra apenas pedidos reservados com tempo de expiração
     const pendingOrders = orders.filter(order => order.status === 'reserved' && order.reservation_expires_at);
 
     if (pendingOrders.length === 0) return;
@@ -83,7 +86,7 @@ const MyTicketsPage = () => {
     const interval = setInterval(updateTimers, 1000);
 
     return () => clearInterval(interval);
-  }, [orders]);
+  }, [orders]); // Dependência 'orders' garante que o timer é reavaliado quando os pedidos mudam
 
   const handleLogout = async () => {
     await signOut();
@@ -126,12 +129,16 @@ const MyTicketsPage = () => {
     setError(null);
 
     try {
+      console.log('🔵 MyTicketsPage - Loading orders for phone:', phone);
+      
       const { data, error: apiError } = await TicketsAPI.getOrdersByPhoneNumber(phone);
 
       if (apiError) {
         setError('Erro ao buscar seus pedidos. Tente novamente.');
-        console.error('Error fetching orders:', apiError);
+        console.error('❌ MyTicketsPage - Error fetching orders:', apiError);
       } else {
+        console.log(`✅ MyTicketsPage - Loaded ${data?.length || 0} orders`);
+        
         let filteredOrders = data || [];
 
         if (campaignContext?.organizerId) {
@@ -144,12 +151,14 @@ const MyTicketsPage = () => {
           filteredOrders = filteredOrders.filter(order =>
             organizerCampaignIds.includes(order.campaign_id)
           );
+          
+          console.log(`🔵 MyTicketsPage - Filtered to ${filteredOrders.length} orders for organizer`);
         }
 
         setOrders(filteredOrders);
       }
     } catch (error) {
-      console.error('Error loading orders:', error);
+      console.error('❌ MyTicketsPage - Error loading orders:', error);
       setError('Erro inesperado. Tente novamente.');
     } finally {
       setLoading(false);
@@ -416,8 +425,12 @@ const MyTicketsPage = () => {
                   const hasMoreTickets = order.ticket_numbers.length > maxVisibleTickets;
 
                   return (
-                    <div
+                    <motion.div
                       key={order.order_id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
                       className={`${themeClasses.cardBg} rounded-lg sm:rounded-xl shadow-md border-l-4 ${statusInfo.borderColor} overflow-hidden hover:shadow-lg transition-shadow duration-200`}
                     >
                       <div className="p-3 sm:p-4">
@@ -552,17 +565,14 @@ const MyTicketsPage = () => {
                             )}
 
                             {order.status === 'expired' && (
-                              <button
-                                onClick={() => handlePayment(order)}
-                                className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 shadow-md`}
-                              >
-                                Compra Cancelada
-                              </button>
+                              <div className="w-full bg-gray-400 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm text-center cursor-not-allowed opacity-75">
+                                Reserva Expirada
+                              </div>
                             )}
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </AnimatePresence>
