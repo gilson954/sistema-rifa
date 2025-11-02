@@ -1,11 +1,12 @@
 // src/components/ReservationModal.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle, ShoppingCart, ChevronDown, ChevronUp } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { formatReservationTime } from '../utils/timeFormatters';
 import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
+import { CustomerData as ExistingCustomer } from '../utils/customerCheck'; // Import ExistingCustomer type
 
 interface Country {
   code: string;
@@ -17,7 +18,7 @@ interface Country {
 interface ReservationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onReserve: (customerData: CustomerData, totalQuantity: number) => Promise<{ reservationId: string; results: ReservationResult[] } | null>; // CRITICAL: totalQuantity e retorno
+  onReserve: (customerData: CustomerData, totalQuantity: number, orderId: string, reservationTimestamp: Date) => Promise<{ reservationId: string; results: ReservationResult[] } | null>; // CRITICAL: Adicionar orderId e reservationTimestamp
   quotaCount: number; // totalQuantity
   totalValue: number;
   selectedQuotas?: number[];
@@ -29,6 +30,7 @@ interface ReservationModalProps {
   campaignTheme: string;
   reserving?: boolean;
   reservationTimeoutMinutes?: number;
+  customerData: ExistingCustomer | null; // CRITICAL FIX: Allow customerData to be null
 }
 
 export interface CustomerData {
@@ -59,16 +61,18 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   customGradientColors,
   campaignTheme,
   reserving = false,
-  reservationTimeoutMinutes = 15
+  reservationTimeoutMinutes = 15,
+  customerData: initialCustomerData // CRITICAL FIX: Rename prop to avoid conflict with state
 }) => {
   const { showSuccess, showError, showWarning } = useNotification();
   const { signInWithPhone } = useAuth();
 
+  // CRITICAL FIX: Initialize with prop or empty values
   const [formData, setFormData] = useState<CustomerData>({
-    name: '',
-    email: '',
-    phoneNumber: '',
-    countryCode: '+55',
+    name: initialCustomerData?.customer_name || '',
+    email: initialCustomerData?.customer_email || '',
+    phoneNumber: initialCustomerData?.customer_phone ? initialCustomerData.customer_phone.replace(/\D/g, '') : '',
+    countryCode: initialCustomerData?.customer_phone ? (initialCustomerData.customer_phone.match(/^\+\d+/) || ['+55'])[0] : '+55',
     acceptTerms: false
   });
 
@@ -83,8 +87,36 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showAllQuotas, setShowAllQuotas] = useState(false);
 
-  React.useEffect(() => {
-    if (isOpen) {
+  // CRITICAL FIX: Use useEffect to update formData and selectedCountry when initialCustomerData changes
+  useEffect(() => {
+    if (initialCustomerData) {
+      setFormData(prev => ({
+        ...prev,
+        name: initialCustomerData.customer_name || '',
+        email: initialCustomerData.customer_email || '',
+        phoneNumber: initialCustomerData.customer_phone ? initialCustomerData.customer_phone.replace(/\D/g, '') : '',
+        countryCode: initialCustomerData.customer_phone ? (initialCustomerData.customer_phone.match(/^\+\d+/) || ['+55'])[0] : '+55',
+      }));
+      if (initialCustomerData.customer_phone) {
+        const dialCode = (initialCustomerData.customer_phone.match(/^\+\d+/) || ['+55'])[0];
+        // Find the country by dial code
+        const countries = [
+          { code: 'BR', name: 'Brasil', dialCode: '+55', flag: '🇧🇷' },
+          { code: 'US', name: 'Estados Unidos', dialCode: '+1', flag: '🇺🇸' },
+          { code: 'CA', name: 'Canadá', dialCode: '+1', flag: '🇨🇦' },
+          { code: 'GB', name: 'Reino Unido', dialCode: '+44', flag: '🇬🇧' },
+          { code: 'PT', name: 'Portugal', dialCode: '+351', flag: '🇵🇹' },
+          { code: 'ES', name: 'Espanha', dialCode: '+34', flag: '🇪🇸' },
+          { code: 'AR', name: 'Argentina', dialCode: '+54', flag: '🇦🇷' },
+          { code: 'MX', name: 'México', dialCode: '+52', flag: '🇲🇽' },
+        ];
+        const foundCountry = countries.find(c => c.dialCode === dialCode);
+        if (foundCountry) {
+          setSelectedCountry(foundCountry);
+        }
+      }
+    } else {
+      // For new customers, ensure form is reset to empty
       setFormData({
         name: '',
         email: '',
@@ -92,11 +124,17 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
         countryCode: '+55',
         acceptTerms: false
       });
-      setConfirmPhoneNumber('');
-      setErrors({});
-      setShowAllQuotas(false);
+      setSelectedCountry({
+        code: 'BR',
+        name: 'Brasil',
+        dialCode: '+55',
+        flag: '🇧🇷'
+      });
     }
-  }, [isOpen]);
+    setConfirmPhoneNumber(''); // Reset confirm phone number
+    setErrors({}); // Clear errors
+    setShowAllQuotas(false); // Reset quota display
+  }, [initialCustomerData, isOpen]); // Depend on initialCustomerData and isOpen
 
   const getThemeClasses = (theme: string) => {
     switch (theme) {
@@ -235,7 +273,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       return;
     }
 
-    const customerData: CustomerData = {
+    const customerDataToPass: CustomerData = {
       name: formData.name,
       email: formData.email,
       phoneNumber: fullPhoneNumber,
@@ -243,7 +281,14 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       acceptTerms: formData.acceptTerms
     };
 
-    console.log('📦 ReservationModal - Customer Data to be sent:', customerData);
+    console.log('📦 ReservationModal - Customer Data to be sent:', customerDataToPass);
+
+    // CRITICAL FIX: Gerar order_id e reservationTimestamp aqui para consistência
+    const orderId = crypto.randomUUID(); // Gerar um UUID para o order_id
+    const reservationTimestamp = new Date(); // Usar um timestamp consistente
+
+    console.log('🆔 ReservationModal - Generated Order ID:', orderId);
+    console.log('⏰ ReservationModal - Generated Timestamp:', reservationTimestamp.toISOString());
 
     try {
       console.log('🔐 ReservationModal - Attempting auto-login with:', fullPhoneNumber);
@@ -264,7 +309,8 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 
     console.log('🎫 ReservationModal - Initiating ticket reservation...');
     try {
-      await onReserve(customerData, quotaCount); // CRITICAL: Passar quotaCount
+      // CRITICAL FIX: Passar orderId e reservationTimestamp para onReserve
+      await onReserve(customerDataToPass, quotaCount, orderId, reservationTimestamp);
     } catch (apiError: any) {
       console.error('❌ ReservationModal - Error during ticket reservation:', apiError);
       
