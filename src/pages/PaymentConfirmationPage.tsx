@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
 interface ReservationData {
-  reservationId: string;
+  reservationId: string; // ✅ CRITICAL: Agora é o order_id (UUID)
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -111,6 +111,10 @@ const PaymentConfirmationPage = () => {
     if (reservationData.customerPhone && !isPhoneAuthenticated) {
       signInWithPhone(reservationData.customerPhone);
     }
+
+    // ✅ Log para debug do reservationId
+    console.log('🔵 PaymentConfirmationPage - Reservation ID:', reservationData.reservationId);
+    console.log('🔵 PaymentConfirmationPage - Full Reservation Data:', reservationData);
   }, [reservationData, navigate, signInWithPhone, isPhoneAuthenticated]);
 
   useEffect(() => {
@@ -183,13 +187,18 @@ const PaymentConfirmationPage = () => {
   }, [reservationData?.expiresAt]);
 
   const handleCopyPixKey = async () => {
-    const pixKey = `00020126580014br.gov.bcb.pix0136${reservationData?.reservationId || 'mock-key'}5204000053039865802BR5925RIFAQUI PAGAMENTOS LTDA6009SAO PAULO62070503***6304ABCD`;
+    // ✅ CRITICAL: Usar o reservationId sem hífens para o código PIX
+    const reservationIdClean = reservationData?.reservationId.replace(/-/g, '') || 'mock-key';
+    const pixKey = `00020126580014br.gov.bcb.pix0136${reservationIdClean}5204000053039865802BR5925RIFAQUI PAGAMENTOS LTDA6009SAO PAULO62070503***6304ABCD`;
+    
+    console.log('🔵 PaymentConfirmationPage - PIX Key generated:', pixKey);
+    
     try {
       await navigator.clipboard.writeText(pixKey);
       setCopiedPix(true);
       setTimeout(() => setCopiedPix(false), 2000);
     } catch (error) {
-      console.error('Failed to copy PIX key:', error);
+      console.error('❌ Failed to copy PIX key:', error);
     }
   };
 
@@ -285,13 +294,18 @@ const PaymentConfirmationPage = () => {
                     Detalhes da sua compra
                   </span>
                 </div>
-                <div className={`text-xs ${themeClasses.textSecondary} font-mono mb-4 bg-gray-100 dark:bg-gray-800 p-2 rounded`}>
+                {/* ✅ CORREÇÃO: Exibir o reservationId corretamente */}
+                <div className={`text-xs ${themeClasses.textSecondary} font-mono mb-4 bg-gray-100 dark:bg-gray-800 p-2 rounded break-all`}>
                   {reservationData.reservationId}
                 </div>
                 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className={`text-sm ${themeClasses.textSecondary}`}>
+                    <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                      <User className="h-4 w-4" />
+                      Nome
+                    </span>
+                    <span className={`text-sm font-medium ${themeClasses.text}`}>
                       {reservationData.customerName}
                     </span>
                   </div>
@@ -322,11 +336,15 @@ const PaymentConfirmationPage = () => {
                   <div className="flex items-center justify-between">
                     <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
                       <Hash className="h-4 w-4" />
-                      {reservationData.quotaCount} Cota(s)
+                      Quantidade
+                    </span>
+                    <span className={`text-sm font-medium ${themeClasses.text}`}>
+                      {reservationData.quotaCount} {reservationData.quotaCount === 1 ? 'Número' : 'Números'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t">
                     <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                      <DollarSign className="h-4 w-4" />
                       Valor
                     </span>
                     <span className={`text-lg font-bold ${themeClasses.text}`}>
@@ -465,7 +483,7 @@ const PaymentConfirmationPage = () => {
               <input
                 type="text"
                 readOnly
-                value={`00020126580014br.gov.bcb.pix0136${reservationData.reservationId}5204000053039865802BR5925RIFAQUI...`}
+                value={`00020126580014br.gov.bcb.pix0136${reservationData.reservationId.replace(/-/g, '')}5204000053039865802BR5925RIFAQUI...`}
                 className={`flex-1 ${themeClasses.inputBg} ${themeClasses.text} px-4 py-3 rounded-lg border ${themeClasses.border} font-mono text-sm`}
               />
               <button
@@ -538,7 +556,8 @@ const PaymentConfirmationPage = () => {
                   Informações do Pedido
                 </span>
               </div>
-              <div className={`text-xs ${themeClasses.textSecondary} font-mono mb-4 bg-gray-100 dark:bg-gray-800 p-2 rounded`}>
+              {/* ✅ CORREÇÃO: Exibir o reservationId corretamente */}
+              <div className={`text-xs ${themeClasses.textSecondary} font-mono mb-4 bg-gray-100 dark:bg-gray-800 p-2 rounded break-all`}>
                 ID: {reservationData.reservationId}
               </div>
               
