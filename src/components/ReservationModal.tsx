@@ -1,3 +1,4 @@
+// src/components/ReservationModal.tsx
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle, ShoppingCart, ChevronDown, ChevronUp } from 'lucide-react';
@@ -16,8 +17,8 @@ interface Country {
 interface ReservationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onReserve: (customerData: CustomerData) => Promise<void>; // ✅ MUDANÇA: Agora é Promise<void>
-  quotaCount: number;
+  onReserve: (customerData: CustomerData, totalQuantity: number) => Promise<{ reservationId: string; results: ReservationResult[] } | null>; // CRITICAL: totalQuantity e retorno
+  quotaCount: number; // totalQuantity
   totalValue: number;
   selectedQuotas?: number[];
   campaignTitle: string;
@@ -38,11 +39,17 @@ export interface CustomerData {
   acceptTerms: boolean;
 }
 
+interface ReservationResult {
+  quota_number: number;
+  status: string;
+  message: string;
+}
+
 const ReservationModal: React.FC<ReservationModalProps> = ({
   isOpen,
   onClose,
   onReserve,
-  quotaCount,
+  quotaCount, // totalQuantity
   totalValue,
   selectedQuotas,
   campaignTitle,
@@ -200,7 +207,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       return;
     }
 
-    // ✅ CORREÇÃO: Normalizar o telefone para E.164 (+55XXXXXXXXXXX)
     const phoneDigitsOnly = formData.phoneNumber.replace(/\D/g, '');
     const dialCode = selectedCountry.dialCode.replace(/\D/g, '');
     
@@ -212,7 +218,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     
     const fullPhoneNumber = `+${dialCode}${finalPhoneDigits}`;
 
-    // ✅ LOGS para debug conforme o plano
     console.log('═══════════════════════════════════════════');
     console.log('🔵 ReservationModal - Debug de Telefone');
     console.log('═══════════════════════════════════════════');
@@ -257,11 +262,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       console.error('❌ ReservationModal - Exception during auto-login:', error);
     }
 
-    // ✅ CRITICAL FIX: Chamar onReserve e verificar o resultado
     console.log('🎫 ReservationModal - Initiating ticket reservation...');
     try {
-      await onReserve(customerData);
-      console.log('✅ ReservationModal - Ticket reservation successful!');
+      await onReserve(customerData, quotaCount); // CRITICAL: Passar quotaCount
     } catch (apiError: any) {
       console.error('❌ ReservationModal - Error during ticket reservation:', apiError);
       
