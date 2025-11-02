@@ -1,3 +1,4 @@
+// src/hooks/useTickets.ts
 import { useState, useEffect, useCallback } from 'react';
 import { TicketsAPI, TicketStatusInfo, ReservationResult } from '../lib/api/tickets';
 import { useAuth } from '../context/AuthContext';
@@ -40,23 +41,26 @@ export const useTickets = (campaignId: string) => {
 
   /**
    * Reserva cotas para o usuário atual
-   * 
-   * ✅ CORREÇÃO APLICADA: Agora lança erros corretamente para serem capturados pelo ReservationModal
-   * 
+   *
+   * @param totalQuantity - Quantidade total de tickets a reservar
+   * @param userId - ID do usuário (pode ser null para anônimos)
+   * @param customerName - Nome do cliente
+   * @param customerEmail - Email do cliente
+   * @param customerPhone - Telefone do cliente (JÁ NORMALIZADO)
+   * @returns {Promise<{ reservationId: string; results: ReservationResult[] } | null>} Resultado da reserva ou null
    * @throws {Error} Lança erro com mensagem apropriada se a reserva falhar
-   * @returns {Promise<ReservationResult[] | null>} Resultado da reserva ou null
    */
   const reserveTickets = async (
-    quotaNumbers: number[],
+    totalQuantity: number, // CRITICAL: Agora recebe a quantidade total
     userId: string | null = null,
     customerName: string = '',
     customerEmail: string = '',
     customerPhone: string = ''
-  ): Promise<ReservationResult[] | null> => {
-    if (!campaignId || quotaNumbers.length === 0) {
+  ): Promise<{ reservationId: string; results: ReservationResult[] } | null> => {
+    if (!campaignId || totalQuantity === 0) {
       const error = new Error('Dados inválidos para reserva');
-      console.error('❌ useTickets.reserveTickets - Invalid data:', { campaignId, quotaNumbers });
-      throw error; // ✅ CRITICAL FIX: Lançar erro
+      console.error('❌ useTickets.reserveTickets - Invalid data:', { campaignId, totalQuantity });
+      throw error;
     }
 
     setReserving(true);
@@ -64,7 +68,7 @@ export const useTickets = (campaignId: string) => {
 
     console.log('🔵 useTickets.reserveTickets - Starting reservation...');
     console.log('🔵 Campaign ID:', campaignId);
-    console.log('🔵 Quota Numbers:', quotaNumbers);
+    console.log('🔵 Total Quantity:', totalQuantity);
     console.log('🔵 User ID:', userId || user?.id || null);
     console.log('🔵 Customer Name:', customerName);
     console.log('🔵 Customer Email:', customerEmail);
@@ -73,7 +77,7 @@ export const useTickets = (campaignId: string) => {
     try {
       const { data, error: apiError } = await TicketsAPI.reserveTickets(
         campaignId,
-        quotaNumbers,
+        totalQuantity, // CRITICAL: Passar a quantidade total
         userId || user?.id || null,
         customerName,
         customerEmail,
@@ -83,10 +87,8 @@ export const useTickets = (campaignId: string) => {
       if (apiError) {
         console.error('❌ useTickets.reserveTickets - API Error:', apiError);
         
-        // ✅ CRITICAL FIX: Criar mensagem de erro mais informativa
         let errorMessage = 'Erro ao reservar cotas';
         
-        // Verificar se há uma mensagem de erro específica da API
         if (typeof apiError === 'object' && apiError !== null) {
           if ('message' in apiError && apiError.message) {
             errorMessage = apiError.message as string;
@@ -101,19 +103,18 @@ export const useTickets = (campaignId: string) => {
         
         setError(errorMessage);
         
-        // ✅ CRITICAL FIX: Lançar o erro com a mensagem apropriada
         const error = new Error(errorMessage);
         throw error;
       }
 
-      if (!data || data.length === 0) {
+      if (!data || data.results.length === 0) {
         console.warn('⚠️ useTickets.reserveTickets - No data returned from API');
         const error = new Error('Nenhuma cota foi reservada. Tente novamente.');
         setError(error.message);
         throw error;
       }
 
-      console.log(`✅ useTickets.reserveTickets - Successfully reserved ${data.length} tickets`);
+      console.log(`✅ useTickets.reserveTickets - Successfully reserved ${data.results.length} tickets for Order ID: ${data.reservationId}`);
 
       // Atualiza o status local após reserva bem-sucedida
       await fetchTicketsStatus();
@@ -122,10 +123,8 @@ export const useTickets = (campaignId: string) => {
     } catch (error) {
       console.error('❌ useTickets.reserveTickets - Exception caught:', error);
       
-      // ✅ CRITICAL FIX: Se o erro já foi tratado acima, apenas relançar
-      // Se for um erro inesperado, criar uma mensagem genérica
       if (error instanceof Error) {
-        throw error; // Relançar o erro que já tem mensagem
+        throw error;
       } else {
         const genericError = new Error('Erro inesperado ao reservar cotas. Tente novamente.');
         setError(genericError.message);
