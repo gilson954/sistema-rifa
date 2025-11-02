@@ -179,6 +179,14 @@ const CampaignPage = () => {
   const [showPhoneLoginModal, setShowPhoneLoginModal] = useState(false);
   const [cotasPremiadas, setCotasPremiadas] = useState<CotaPremiada[]>([]);
   const [loadingCotasPremiadas, setLoadingCotasPremiadas] = useState(false);
+  
+  // ✅ CRITICAL FIX: Estados para gerenciar dados entre os passos conforme plano do bolt
+  const [customerDataForStep2, setCustomerDataForStep2] = useState<ExistingCustomer | null>(null);
+  const [quotaCountForStep2, setQuotaCountForStep2] = useState(0);
+  const [orderIdForReservation, setOrderIdForReservation] = useState<string | null>(null);
+  const [reservationTimestampForReservation, setReservationTimestampForReservation] = useState<Date | null>(null);
+  
+  // Estados antigos mantidos para compatibilidade (podem ser removidos depois se não forem usados)
   const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomer | null>(null);
   const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
   const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
@@ -412,15 +420,22 @@ const CampaignPage = () => {
     setQuantity(newQuantity);
   }, []);
 
-  // ✅ CORREÇÃO: handleReservationSubmit atualizado conforme plano do bolt
-  const handleReservationSubmit = useCallback(async (customerData: CustomerData, totalQuantity: number) => {
+  // ✅ CRITICAL FIX: handleReservationSubmit atualizado para usar orderId e timestamp
+  const handleReservationSubmit = useCallback(async (
+    customerData: CustomerData, 
+    totalQuantity: number, 
+    orderId: string, 
+    reservationTimestamp: Date
+  ) => {
     if (!campaign) {
       showError('Erro: dados da campanha não encontrados');
-      return;
+      return null;
     }
 
     console.log('🔵 CampaignPage - handleReservationSubmit START');
     console.log('Total Quantity:', totalQuantity);
+    console.log('Order ID:', orderId);
+    console.log('Reservation Timestamp:', reservationTimestamp.toISOString());
     console.log('Customer Data:', customerData);
 
     try {
@@ -429,15 +444,14 @@ const CampaignPage = () => {
       const fullPhoneNumber = customerData.phoneNumber;
 
       console.log('🔵 CampaignPage - Customer phone (already normalized):', fullPhoneNumber);
-      console.log('🟢 CampaignPage - Calling reserveTickets with totalQuantity:', totalQuantity);
+      console.log('🟢 CampaignPage - Calling reserveTickets with orderId and timestamp');
 
-      // CRITICAL: Chamar a nova função reserveTickets que aceita totalQuantity
+      // CRITICAL: Chamar reserveTickets com orderId e timestamp
       const reservationResult = await reserveTickets(
-        totalQuantity, // CRITICAL: Passar a quantidade total
-        user?.id || null,
-        customerData.name,
-        customerData.email,
-        fullPhoneNumber
+        customerData,
+        totalQuantity,
+        orderId,
+        reservationTimestamp
       );
 
       if (reservationResult) {
@@ -470,24 +484,28 @@ const CampaignPage = () => {
         navigate('/payment-confirmation', {
           state: {
             reservationData: {
-              reservationId: reservationResult.reservationId, // CRITICAL: Usar o reservationId retornado
+              reservationId: reservationResult.reservationId,
               customerName: customerData.name,
               customerEmail: customerData.email,
               customerPhone: fullPhoneNumber,
-              quotaCount: totalQuantity, // CRITICAL: Usar a quantidade total
+              quotaCount: totalQuantity,
               totalValue: totalValue,
-              selectedQuotas: reservationResult.results.map(r => r.quota_number), // CRITICAL: Usar os resultados da reserva
+              selectedQuotas: reservationResult.results.map(r => r.quota_number),
               campaignTitle: campaign.title,
               campaignId: campaign.id,
               campaignPublicId: campaign.public_id,
-              expiresAt: new Date(Date.now() + (campaign.reservation_timeout_minutes || 15) * 60 * 1000).toISOString(),
+              expiresAt: new Date(reservationTimestamp.getTime() + (campaign.reservation_timeout_minutes || 15) * 60 * 1000).toISOString(),
               reservationTimeoutMinutes: campaign.reservation_timeout_minutes,
               campaignModel: campaign.campaign_model,
               prizeImageUrl: campaign.prize_image_urls?.[0]
             }
           }
         });
+
+        return reservationResult;
       }
+
+      return null;
     } catch (error: any) {
       console.error('❌ Error during reservation:', error);
 
@@ -506,6 +524,7 @@ const CampaignPage = () => {
       }
 
       showError(errorMessage);
+      return null;
     } finally {
       setShowReservationModal(false);
       console.log('🔵 CampaignPage - handleReservationSubmit END');
@@ -526,44 +545,78 @@ const CampaignPage = () => {
     setShowStep1Modal(true);
   }, [user, campaign, selectedQuotas, quantity, navigate, showWarning]);
 
-  // ✅ CORREÇÃO: handleStep1NewCustomer passa totalQuantity
+  // ✅ CRITICAL FIX: handleStep1NewCustomer gera orderId e timestamp
   const handleStep1NewCustomer = useCallback((totalQuantity: number) => {
     console.log('🔵 handleStep1NewCustomer - totalQuantity:', totalQuantity);
+    
+    // CRITICAL: Definir customerData como null para novos clientes
+    setCustomerDataForStep2(null);
+    setQuotaCountForStep2(totalQuantity);
+    
+    // CRITICAL: Gerar orderId e timestamp aqui para consistência
+    const newOrderId = crypto.randomUUID();
+    const newReservationTimestamp = new Date();
+    setOrderIdForReservation(newOrderId);
+    setReservationTimestampForReservation(newReservationTimestamp);
+    
+    console.log('🆕 Generated Order ID:', newOrderId);
+    console.log('🆕 Generated Timestamp:', newReservationTimestamp.toISOString());
+    
     setShowStep1Modal(false);
     setShowReservationModal(true);
   }, []);
 
-  // ✅ CORREÇÃO: handleStep1ExistingCustomer passa totalQuantity
+  // ✅ CRITICAL FIX: handleStep1ExistingCustomer gera orderId e timestamp
   const handleStep1ExistingCustomer = useCallback((customerData: ExistingCustomer, totalQuantity: number) => {
     console.log('🔵 handleStep1ExistingCustomer - totalQuantity:', totalQuantity);
+    console.log('🔵 Customer Data:', customerData);
+    
+    setCustomerDataForStep2(customerData);
+    setQuotaCountForStep2(totalQuantity);
+    
+    // CRITICAL: Gerar orderId e timestamp aqui para consistência
+    const newOrderId = crypto.randomUUID();
+    const newReservationTimestamp = new Date();
+    setOrderIdForReservation(newOrderId);
+    setReservationTimestampForReservation(newReservationTimestamp);
+    
+    console.log('🆕 Generated Order ID:', newOrderId);
+    console.log('🆕 Generated Timestamp:', newReservationTimestamp.toISOString());
+    
+    // Manter compatibilidade com estado antigo
     setExistingCustomerData(customerData);
+    
     setShowStep1Modal(false);
     setShowStep2Modal(true);
   }, []);
 
-  // ✅ CORREÇÃO: handleStep2Confirm atualizado conforme plano do bolt
+  // ✅ CRITICAL FIX: handleStep2Confirm usa orderId e timestamp gerados
   const handleStep2Confirm = useCallback(async (customerData: CustomerData, totalQuantity: number) => {
-    if (!campaign) return;
+    if (!campaign || !orderIdForReservation || !reservationTimestampForReservation) {
+      showError('Erro: dados de reserva incompletos');
+      return;
+    }
 
     console.log('=== handleStep2Confirm START ===');
     console.log('Customer data:', customerData);
     console.log('Campaign:', campaign);
     console.log('Total Quantity:', totalQuantity);
+    console.log('Order ID:', orderIdForReservation);
+    console.log('Reservation Timestamp:', reservationTimestampForReservation.toISOString());
 
     setShowStep2Modal(false);
 
     try {
       showInfo('Processando sua reserva...');
 
-      console.log('🔵 Reserving tickets with totalQuantity:', totalQuantity);
+      console.log('🔵 Reserving tickets with orderId and timestamp');
 
-      // CRITICAL: Chamar a nova função reserveTickets que aceita totalQuantity
+      // CRITICAL: Chamar reserveTickets com orderId e timestamp
       const reservationResult = await reserveTickets(
-        totalQuantity, // CRITICAL: Passar a quantidade total
-        user?.id || null,
-        customerData.name,
-        customerData.email,
-        customerData.phoneNumber
+        customerData,
+        totalQuantity,
+        orderIdForReservation,
+        reservationTimestampForReservation
       );
 
       console.log('Reservation result:', reservationResult);
@@ -576,7 +629,7 @@ const CampaignPage = () => {
         );
 
         const reservationTimeoutMinutes = campaign.reservation_timeout_minutes || 30;
-        const expiresAt = new Date(Date.now() + reservationTimeoutMinutes * 60 * 1000).toISOString();
+        const expiresAt = new Date(reservationTimestampForReservation.getTime() + reservationTimeoutMinutes * 60 * 1000).toISOString();
 
         console.log('✅ SUCCESS! Navigating to payment-confirmation with reservationId:', reservationResult.reservationId);
 
@@ -586,13 +639,13 @@ const CampaignPage = () => {
         navigate('/payment-confirmation', {
           state: {
             reservationData: {
-              reservationId: reservationResult.reservationId, // CRITICAL: Usar o reservationId retornado
+              reservationId: reservationResult.reservationId,
               customerName: customerData.name,
               customerEmail: customerData.email,
               customerPhone: customerData.phoneNumber,
-              quotaCount: totalQuantity, // CRITICAL: Usar a quantidade total
+              quotaCount: totalQuantity,
               totalValue,
-              selectedQuotas: reservationResult.results.map(r => r.quota_number), // CRITICAL: Usar os resultados da reserva
+              selectedQuotas: reservationResult.results.map(r => r.quota_number),
               campaignTitle: campaign.title,
               campaignId: campaign.id,
               campaignPublicId: campaign.public_id,
@@ -613,7 +666,7 @@ const CampaignPage = () => {
     } finally {
       console.log('=== handleStep2Confirm END ===');
     }
-  }, [campaign, user, reserveTickets, navigate, showError, showSuccess, showInfo]);
+  }, [campaign, user, reserveTickets, navigate, showError, showSuccess, showInfo, orderIdForReservation, reservationTimestampForReservation]);
 
   const handlePreviousImage = () => {
     if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
@@ -1622,13 +1675,13 @@ const CampaignPage = () => {
       />
 
       {/* Step 2 Modal - Existing Customer Confirmation */}
-      {existingCustomerData && (
+      {customerDataForStep2 && quotaCountForStep2 > 0 && orderIdForReservation && reservationTimestampForReservation && (
         <ReservationStep2Modal
           isOpen={showStep2Modal}
           onClose={() => setShowStep2Modal(false)}
           onConfirm={handleStep2Confirm}
-          customerData={existingCustomerData}
-          quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
+          customerData={customerDataForStep2}
+          quotaCount={quotaCountForStep2}
           totalValue={getCurrentTotalValue()}
           selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
           campaignTitle={campaign.title}
@@ -1642,22 +1695,25 @@ const CampaignPage = () => {
       )}
 
       {/* Reservation Modal - New Customer Registration */}
-      <ReservationModal
-        isOpen={showReservationModal}
-        onClose={() => setShowReservationModal(false)}
-        onReserve={handleReservationSubmit}
-        quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
-        totalValue={getCurrentTotalValue()}
-        selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
-        campaignTitle={campaign.title}
-        primaryColor={primaryColor}
-        campaignTheme={campaignTheme}
-        reserving={reserving}
-        reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
-        colorMode={organizerProfile?.color_mode}
-        gradientClasses={organizerProfile?.gradient_classes}
-        customGradientColors={organizerProfile?.custom_gradient_colors}
-      />
+      {showReservationModal && quotaCountForStep2 > 0 && orderIdForReservation && reservationTimestampForReservation && (
+        <ReservationModal
+          isOpen={showReservationModal}
+          onClose={() => setShowReservationModal(false)}
+          onReserve={handleReservationSubmit}
+          quotaCount={quotaCountForStep2}
+          totalValue={getCurrentTotalValue()}
+          selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
+          campaignTitle={campaign.title}
+          primaryColor={primaryColor}
+          campaignTheme={campaignTheme}
+          reserving={reserving}
+          reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
+          colorMode={organizerProfile?.color_mode}
+          gradientClasses={organizerProfile?.gradient_classes}
+          customGradientColors={organizerProfile?.custom_gradient_colors}
+          customerData={null}
+        />
+      )}
 
       {/* Prizes Display Modal */}
       {campaign && (
