@@ -1,3 +1,4 @@
+// src/components/ReservationStep1Modal.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,9 +17,9 @@ interface Country {
 interface ReservationStep1ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onNewCustomer: () => void;
-  onExistingCustomer: (customerData: ExistingCustomer) => void;
-  quotaCount: number;
+  onNewCustomer: (totalQuantity: number) => void; // CRITICAL: Passar totalQuantity
+  onExistingCustomer: (customerData: ExistingCustomer, totalQuantity: number) => void; // CRITICAL: Passar totalQuantity
+  quotaCount: number; // totalQuantity
   totalValue: number;
   selectedQuotas?: number[];
   campaignTitle: string;
@@ -34,7 +35,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
   onClose,
   onNewCustomer,
   onExistingCustomer,
-  quotaCount,
+  quotaCount, // totalQuantity
   totalValue,
   selectedQuotas,
   campaignTitle,
@@ -186,15 +187,13 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
     setError('');
 
     try {
-      // ✅ CORREÇÃO: Apenas combina dialCode + phoneNumber SEM normalizar
-      // Exemplo: "+55" + "62981127960" = "+5562981127960"
-      const fullPhoneNumber = `${selectedCountry.dialCode}${phoneNumber}`;
+      const phoneDigitsOnly = phoneNumber.replace(/\D/g, '');
+      const fullPhoneNumber = `${selectedCountry.dialCode}${phoneDigitsOnly}`;
 
-      console.log('🔵 ReservationStep1Modal - Phone number:', phoneNumber);
+      console.log('🔵 ReservationStep1Modal - Phone digits only:', phoneDigitsOnly);
       console.log('🟢 ReservationStep1Modal - Full phone (dialCode + raw):', fullPhoneNumber);
       console.log('🟡 ReservationStep1Modal - Sending to API (NO normalization):', fullPhoneNumber);
 
-      // ✅ Usa o número completo DIRETO, sem normalizar
       const { data: customerData, error: checkError } = await checkCustomerByPhone(fullPhoneNumber);
 
       if (checkError) {
@@ -205,16 +204,14 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
 
       if (customerData) {
         console.log('✅ Customer found:', customerData);
-        // Cliente existente - fazer login e chamar callback
         await signInWithPhone(fullPhoneNumber, {
           name: customerData.customer_name,
           email: customerData.customer_email
         });
-        onExistingCustomer(customerData);
+        onExistingCustomer(customerData, quotaCount); // CRITICAL: Passar quotaCount
       } else {
         console.log('🆕 New customer - opening registration modal');
-        // Cliente novo - abrir modal de cadastro
-        onNewCustomer();
+        onNewCustomer(quotaCount); // CRITICAL: Passar quotaCount
       }
     } catch (err) {
       console.error('❌ Error checking customer:', err);
