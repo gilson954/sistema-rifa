@@ -84,7 +84,6 @@ const maskPhoneNumber = (phone: string | null): string => {
   return phone.substring(0, 4) + '****' + phone.substring(phone.length - 2);
 };
 
-
 const slideVariants = {
   enter: (direction: number) => ({
     x: direction > 0 ? 300 : -300,
@@ -403,7 +402,6 @@ const CampaignPage = () => {
         if (newSelection.length <= maxLimit) {
           return newSelection;
         }
-        // Show error when limit is exceeded
         showWarning(`Máximo de ${maxLimit.toLocaleString('pt-BR')} ${maxLimit === 1 ? 'cota' : 'cotas'} por compra`);
         return prev;
       }
@@ -414,106 +412,46 @@ const CampaignPage = () => {
     setQuantity(newQuantity);
   }, []);
 
-  const handleReservationSubmit = useCallback(async (customerData: CustomerData) => {
+  // ✅ CORREÇÃO: handleReservationSubmit atualizado conforme plano do bolt
+  const handleReservationSubmit = useCallback(async (customerData: CustomerData, totalQuantity: number) => {
     if (!campaign) {
       showError('Erro: dados da campanha não encontrados');
       return;
     }
 
+    console.log('🔵 CampaignPage - handleReservationSubmit START');
+    console.log('Total Quantity:', totalQuantity);
+    console.log('Customer Data:', customerData);
+
     try {
-      let quotasToReserve: number[] = [];
-
-      if (campaign.campaign_model === 'manual') {
-        if (selectedQuotas.length === 0) {
-          showWarning('Selecione pelo menos uma cota para reservar');
-          return;
-        }
-        quotasToReserve = selectedQuotas;
-      } else {
-        if (quantity <= 0) {
-          showWarning('Selecione uma quantidade válida de cotas');
-          return;
-        }
-
-        // Modo automático: buscar cotas disponíveis diretamente do banco
-        console.log('🔍 [handleReservationSubmit] Searching for available tickets...');
-        console.log('Campaign ID:', campaign.id);
-        console.log('Requested quantity:', quantity);
-
-        // First, check total ticket count for this campaign
-        const { count: totalTicketCount } = await supabase
-          .from('tickets')
-          .select('*', { count: 'exact', head: true })
-          .eq('campaign_id', campaign.id);
-
-        console.log('Total tickets in database:', totalTicketCount);
-
-        // Check available tickets count
-        const { count: availableCount } = await supabase
-          .from('tickets')
-          .select('*', { count: 'exact', head: true })
-          .eq('campaign_id', campaign.id)
-          .eq('status', 'disponível');
-
-        console.log('Available tickets:', availableCount);
-
-        // Use RPC function to bypass PostgREST 1000 row limit
-        const { data: availableQuotas, error: quotasError } = await supabase
-          .rpc('get_available_quotas', {
-            p_campaign_id: campaign.id,
-            p_limit: quantity
-          });
-
-        console.log('Query result:', availableQuotas?.length || 0, 'tickets found');
-
-        if (quotasError) {
-          console.error('Database error:', quotasError);
-          showError(`Erro ao buscar cotas: ${quotasError.message}`);
-          return;
-        }
-
-        if (!availableQuotas || availableQuotas.length === 0) {
-          if (totalTicketCount === 0) {
-            showError('Esta campanha não tem cotas criadas. Contate o organizador.');
-          } else {
-            showError(`Nenhuma cota disponível. Total na campanha: ${totalTicketCount || 0}, Disponíveis: ${availableCount || 0}`);
-          }
-          return;
-        }
-
-        if (availableQuotas.length < quantity) {
-          showWarning(`Apenas ${availableQuotas.length} cotas disponíveis. Ajustando quantidade.`);
-        }
-
-        // RPC function returns quota_numbers directly (not objects)
-        quotasToReserve = availableQuotas;
-      }
-
       showInfo('Processando sua reserva...');
 
-      // ✅ CORREÇÃO: Limpar formatação do número antes de usar
       const fullPhoneNumber = customerData.phoneNumber;
 
       console.log('🔵 CampaignPage - Customer phone (already normalized):', fullPhoneNumber);
-      console.log('🟢 CampaignPage - Calling reserveTickets with phone:', fullPhoneNumber);
+      console.log('🟢 CampaignPage - Calling reserveTickets with totalQuantity:', totalQuantity);
 
-      const result = await reserveTickets(
-        quotasToReserve,
+      // CRITICAL: Chamar a nova função reserveTickets que aceita totalQuantity
+      const reservationResult = await reserveTickets(
+        totalQuantity, // CRITICAL: Passar a quantidade total
         user?.id || null,
         customerData.name,
         customerData.email,
-        fullPhoneNumber  // Agora enviando número limpo
+        fullPhoneNumber
       );
 
-      if (result) {
+      if (reservationResult) {
         const { total: totalValue } = calculateTotalWithPromotions(
-          quotasToReserve.length,
+          totalQuantity,
           campaign.ticket_price,
           campaign.promotions || []
         );
 
+        console.log('✅ Reservation successful! ReservationId:', reservationResult.reservationId);
+        console.log('✅ Reserved tickets count:', reservationResult.results.length);
+
         setReservationCustomerData(customerData);
-        setReservationQuotas(quotasToReserve);
+        setReservationQuotas(reservationResult.results.map(r => r.quota_number));
         setReservationTotalValue(totalValue);
 
         setSelectedQuotas([]);
@@ -528,25 +466,30 @@ const CampaignPage = () => {
 
         showSuccess('Reserva realizada com sucesso!');
 
+        // CRITICAL: Navegar com os dados corretos usando reservationId
         navigate('/payment-confirmation', {
           state: {
             reservationData: {
-              reservationId: `RES-${Date.now()}`,
+              reservationId: reservationResult.reservationId, // CRITICAL: Usar o reservationId retornado
               customerName: customerData.name,
               customerEmail: customerData.email,
               customerPhone: fullPhoneNumber,
-              quotaCount: quotasToReserve.length,
+              quotaCount: totalQuantity, // CRITICAL: Usar a quantidade total
               totalValue: totalValue,
-              selectedQuotas: quotasToReserve,
+              selectedQuotas: reservationResult.results.map(r => r.quota_number), // CRITICAL: Usar os resultados da reserva
               campaignTitle: campaign.title,
               campaignId: campaign.id,
-              expiresAt: new Date(Date.now() + (campaign.reservation_timeout_minutes || 15) * 60 * 1000).toISOString()
+              campaignPublicId: campaign.public_id,
+              expiresAt: new Date(Date.now() + (campaign.reservation_timeout_minutes || 15) * 60 * 1000).toISOString(),
+              reservationTimeoutMinutes: campaign.reservation_timeout_minutes,
+              campaignModel: campaign.campaign_model,
+              prizeImageUrl: campaign.prize_image_urls?.[0]
             }
           }
         });
       }
     } catch (error: any) {
-      console.error('Error during reservation:', error);
+      console.error('❌ Error during reservation:', error);
 
       let errorMessage = 'Erro ao reservar cotas. Tente novamente.';
 
@@ -565,8 +508,9 @@ const CampaignPage = () => {
       showError(errorMessage);
     } finally {
       setShowReservationModal(false);
+      console.log('🔵 CampaignPage - handleReservationSubmit END');
     }
-  }, [campaign, user, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate, showSuccess, showError, showWarning, showInfo, isPhoneAuthenticated, signInWithPhone]);
+  }, [campaign, user, reserveTickets, navigate, showSuccess, showError, showWarning, showInfo, isPhoneAuthenticated, signInWithPhone]);
 
   const handleOpenReservationModal = useCallback(() => {
     if (campaign?.campaign_model === 'manual' && selectedQuotas.length === 0) {
@@ -582,170 +526,94 @@ const CampaignPage = () => {
     setShowStep1Modal(true);
   }, [user, campaign, selectedQuotas, quantity, navigate, showWarning]);
 
-  const handleStep1NewCustomer = useCallback(() => {
+  // ✅ CORREÇÃO: handleStep1NewCustomer passa totalQuantity
+  const handleStep1NewCustomer = useCallback((totalQuantity: number) => {
+    console.log('🔵 handleStep1NewCustomer - totalQuantity:', totalQuantity);
     setShowStep1Modal(false);
     setShowReservationModal(true);
   }, []);
 
-  const handleStep1ExistingCustomer = useCallback((customerData: ExistingCustomer) => {
+  // ✅ CORREÇÃO: handleStep1ExistingCustomer passa totalQuantity
+  const handleStep1ExistingCustomer = useCallback((customerData: ExistingCustomer, totalQuantity: number) => {
+    console.log('🔵 handleStep1ExistingCustomer - totalQuantity:', totalQuantity);
     setExistingCustomerData(customerData);
     setShowStep1Modal(false);
     setShowStep2Modal(true);
   }, []);
 
-  const handleStep2Confirm = useCallback(async () => {
-    if (!existingCustomerData || !campaign) return;
+  // ✅ CORREÇÃO: handleStep2Confirm atualizado conforme plano do bolt
+  const handleStep2Confirm = useCallback(async (customerData: CustomerData, totalQuantity: number) => {
+    if (!campaign) return;
 
     console.log('=== handleStep2Confirm START ===');
-    console.log('Customer data:', existingCustomerData);
+    console.log('Customer data:', customerData);
     console.log('Campaign:', campaign);
-    console.log('Selected quotas:', selectedQuotas);
-    console.log('Quantity:', quantity);
+    console.log('Total Quantity:', totalQuantity);
+
+    setShowStep2Modal(false);
 
     try {
-      let quotaNumbersToReserve: number[] = [];
+      showInfo('Processando sua reserva...');
 
-      if (campaign.campaign_model === 'manual') {
-        // Modo manual: usar cotas selecionadas
-        quotaNumbersToReserve = selectedQuotas;
-      } else {
-        // Modo automático: buscar cotas disponíveis diretamente do banco
-        console.log('🔍 [AUTOMATIC MODE] Searching for available tickets...');
-        console.log('Campaign ID:', campaign.id);
-        console.log('Requested quantity:', quantity);
+      console.log('🔵 Reserving tickets with totalQuantity:', totalQuantity);
 
-        // First, check total ticket count for this campaign
-        const { count: totalTicketCount, error: countError } = await supabase
-          .from('tickets')
-          .select('*', { count: 'exact', head: true })
-          .eq('campaign_id', campaign.id);
-
-        console.log('Total tickets in database:', totalTicketCount);
-        console.log('Campaign total_tickets:', campaign.total_tickets);
-
-        if (countError) {
-          console.error('Error counting tickets:', countError);
-        }
-
-        // Check available tickets count
-        const { count: availableCount, error: availableCountError } = await supabase
-          .from('tickets')
-          .select('*', { count: 'exact', head: true })
-          .eq('campaign_id', campaign.id)
-          .eq('status', 'disponível');
-
-        console.log('Available tickets (status=disponível):', availableCount);
-
-        if (availableCountError) {
-          console.error('Error counting available tickets:', availableCountError);
-        }
-
-        // Use RPC function to bypass PostgREST 1000 row limit
-        const { data: availableQuotas, error: quotasError } = await supabase
-          .rpc('get_available_quotas', {
-            p_campaign_id: campaign.id,
-            p_limit: quantity
-          });
-
-        console.log('Query result - available quotas:', availableQuotas);
-        console.log('Query error:', quotasError);
-
-        if (quotasError) {
-          console.error('Database error fetching tickets:', quotasError);
-          showError(`Erro ao buscar cotas: ${quotasError.message}`);
-          setShowStep2Modal(false);
-          return;
-        }
-
-        if (!availableQuotas || availableQuotas.length === 0) {
-          if (totalTicketCount === 0) {
-            showError('Esta campanha não tem cotas criadas. Contate o organizador.');
-            console.error('❌ No tickets found in database for this campaign');
-          } else if (availableCount === 0) {
-            showError('Todas as cotas desta campanha já foram reservadas ou compradas.');
-            console.log('ℹ️ All tickets are reserved or purchased');
-          } else {
-            showError(`Nenhuma cota disponível no momento. Disponíveis: ${availableCount || 0}`);
-          }
-          setShowStep2Modal(false);
-          return;
-        }
-
-        if (availableQuotas.length < quantity) {
-          showWarning(`Apenas ${availableQuotas.length} cotas disponíveis. Ajustando quantidade.`);
-        }
-
-        // RPC function returns quota_numbers directly (not objects)
-        quotaNumbersToReserve = availableQuotas;
-        console.log('✅ Quotas to reserve:', quotaNumbersToReserve.length);
-      }
-
-      console.log('Quotas to reserve:', quotaNumbersToReserve);
-
-      if (quotaNumbersToReserve.length === 0) {
-        showError('Nenhuma cota disponível para reserva.');
-        setShowStep2Modal(false);
-        return;
-      }
-
-      console.log('Reserving tickets...');
-
-      const results = await reserveTickets(
-        quotaNumbersToReserve,
+      // CRITICAL: Chamar a nova função reserveTickets que aceita totalQuantity
+      const reservationResult = await reserveTickets(
+        totalQuantity, // CRITICAL: Passar a quantidade total
         user?.id || null,
-        existingCustomerData.customer_name,
-        existingCustomerData.customer_email,
-        existingCustomerData.customer_phone
+        customerData.name,
+        customerData.email,
+        customerData.phoneNumber
       );
 
-      console.log('Reservation results:', results);
+      console.log('Reservation result:', reservationResult);
 
-      if (results && results.length > 0) {
-        // Calcula o valor total com promoções
+      if (reservationResult) {
         const { total: totalValue } = calculateTotalWithPromotions(
-          quotaNumbersToReserve.length,
+          totalQuantity,
           campaign.ticket_price,
           campaign.promotions || []
         );
 
-        // Calcula tempo de expiração
         const reservationTimeoutMinutes = campaign.reservation_timeout_minutes || 30;
         const expiresAt = new Date(Date.now() + reservationTimeoutMinutes * 60 * 1000).toISOString();
 
-        console.log('SUCCESS! Navigating to payment-confirmation with state');
+        console.log('✅ SUCCESS! Navigating to payment-confirmation with reservationId:', reservationResult.reservationId);
 
-        // Fecha o modal antes de navegar
-        setShowStep2Modal(false);
+        showSuccess('Cotas reservadas com sucesso!');
 
+        // CRITICAL: Navegar com os dados corretos usando reservationId
         navigate('/payment-confirmation', {
           state: {
             reservationData: {
-              reservationId: `${campaign.id}_${quotaNumbersToReserve[0]}`,
-              customerName: existingCustomerData.customer_name,
-              customerEmail: existingCustomerData.customer_email,
-              customerPhone: existingCustomerData.customer_phone,
-              quotaCount: quotaNumbersToReserve.length,
+              reservationId: reservationResult.reservationId, // CRITICAL: Usar o reservationId retornado
+              customerName: customerData.name,
+              customerEmail: customerData.email,
+              customerPhone: customerData.phoneNumber,
+              quotaCount: totalQuantity, // CRITICAL: Usar a quantidade total
               totalValue,
-              selectedQuotas: quotaNumbersToReserve,
+              selectedQuotas: reservationResult.results.map(r => r.quota_number), // CRITICAL: Usar os resultados da reserva
               campaignTitle: campaign.title,
               campaignId: campaign.id,
               campaignPublicId: campaign.public_id,
               expiresAt,
-              reservationTimeoutMinutes
+              reservationTimeoutMinutes,
+              campaignModel: campaign.campaign_model,
+              prizeImageUrl: campaign.prize_image_urls?.[0]
             }
           }
         });
       } else {
-        console.error('ERROR: No reservations returned');
+        console.error('❌ ERROR: No reservations returned');
         showError('Erro ao reservar cotas. Tente novamente.');
       }
-    } catch (error) {
-      console.error('EXCEPTION during reservation:', error);
-      showError('Erro ao reservar cotas. Tente novamente.');
+    } catch (error: any) {
+      console.error('❌ EXCEPTION during reservation:', error);
+      showError(error.message || 'Erro ao reservar cotas. Tente novamente.');
     } finally {
       console.log('=== handleStep2Confirm END ===');
     }
-  }, [existingCustomerData, campaign, user, selectedQuotas, quantity, getAvailableTickets, reserveTickets, navigate, showError]);
+  }, [campaign, user, reserveTickets, navigate, showError, showSuccess, showInfo]);
 
   const handlePreviousImage = () => {
     if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
