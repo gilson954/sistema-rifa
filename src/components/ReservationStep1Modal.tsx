@@ -17,8 +17,8 @@ interface Country {
 interface ReservationStep1ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onNewCustomer: (totalQuantity: number) => void; // CRITICAL: Passar totalQuantity
-  onExistingCustomer: (customerData: ExistingCustomer, totalQuantity: number) => void; // CRITICAL: Passar totalQuantity
+  onNewCustomer: (totalQuantity: number, orderId: string, reservationTimestamp: Date) => void; // CRITICAL: Adicionar orderId e reservationTimestamp
+  onExistingCustomer: (customerData: ExistingCustomer, totalQuantity: number, orderId: string, reservationTimestamp: Date) => void; // CRITICAL: Adicionar orderId e reservationTimestamp
   quotaCount: number; // totalQuantity
   totalValue: number;
   selectedQuotas?: number[];
@@ -186,6 +186,16 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
     setChecking(true);
     setError('');
 
+    // CRITICAL FIX: Gerar orderId e reservationTimestamp aqui para consistência
+    const orderId = crypto.randomUUID(); // Gerar um UUID para o order_id
+    const reservationTimestamp = new Date(); // Usar um timestamp consistente
+
+    console.log('═══════════════════════════════════════════');
+    console.log('🔵 ReservationStep1Modal - Starting customer check');
+    console.log('═══════════════════════════════════════════');
+    console.log('🆔 Generated Order ID:', orderId);
+    console.log('⏰ Generated Timestamp:', reservationTimestamp.toISOString());
+
     try {
       const phoneDigitsOnly = phoneNumber.replace(/\D/g, '');
       const fullPhoneNumber = `${selectedCountry.dialCode}${phoneDigitsOnly}`;
@@ -204,20 +214,39 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
 
       if (customerData) {
         console.log('✅ Customer found:', customerData);
+        console.log('📞 Customer phone:', customerData.customer_phone);
+        console.log('👤 Customer name:', customerData.customer_name);
+        console.log('📧 Customer email:', customerData.customer_email);
+        
         await signInWithPhone(fullPhoneNumber, {
           name: customerData.customer_name,
           email: customerData.customer_email
         });
-        onExistingCustomer(customerData, quotaCount); // CRITICAL: Passar quotaCount
+        
+        console.log('🔄 ReservationStep1Modal - Calling onExistingCustomer with:');
+        console.log('   - Customer Data:', customerData);
+        console.log('   - Quota Count:', quotaCount);
+        console.log('   - Order ID:', orderId);
+        console.log('   - Timestamp:', reservationTimestamp.toISOString());
+        
+        // CRITICAL: Passar customerData, quotaCount, orderId e reservationTimestamp
+        onExistingCustomer(customerData, quotaCount, orderId, reservationTimestamp);
       } else {
         console.log('🆕 New customer - opening registration modal');
-        onNewCustomer(quotaCount); // CRITICAL: Passar quotaCount
+        console.log('🔄 ReservationStep1Modal - Calling onNewCustomer with:');
+        console.log('   - Quota Count:', quotaCount);
+        console.log('   - Order ID:', orderId);
+        console.log('   - Timestamp:', reservationTimestamp.toISOString());
+        
+        // CRITICAL: Passar quotaCount, orderId e reservationTimestamp (customerData será null/undefined no próximo passo)
+        onNewCustomer(quotaCount, orderId, reservationTimestamp);
       }
     } catch (err) {
       console.error('❌ Error checking customer:', err);
       setError('Erro inesperado. Tente novamente.');
     } finally {
       setChecking(false);
+      console.log('═══════════════════════════════════════════');
     }
   };
 
