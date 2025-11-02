@@ -4,6 +4,14 @@ import { TicketsAPI, TicketStatusInfo, ReservationResult } from '../lib/api/tick
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
+interface CustomerData {
+  name: string;
+  email: string;
+  phoneNumber: string;
+  countryCode: string;
+  acceptTerms: boolean;
+}
+
 export const useTickets = (campaignId: string) => {
   const { user } = useAuth();
   const [tickets, setTickets] = useState<TicketStatusInfo[]>([]);
@@ -42,20 +50,18 @@ export const useTickets = (campaignId: string) => {
   /**
    * Reserva cotas para o usuário atual
    *
+   * @param customerData - Dados do cliente (nome, email, telefone)
    * @param totalQuantity - Quantidade total de tickets a reservar
-   * @param userId - ID do usuário (pode ser null para anônimos)
-   * @param customerName - Nome do cliente
-   * @param customerEmail - Email do cliente
-   * @param customerPhone - Telefone do cliente (JÁ NORMALIZADO)
+   * @param orderId - ID do pedido gerado no frontend
+   * @param reservationTimestamp - Timestamp consistente para o pedido
    * @returns {Promise<{ reservationId: string; results: ReservationResult[] } | null>} Resultado da reserva ou null
    * @throws {Error} Lança erro com mensagem apropriada se a reserva falhar
    */
   const reserveTickets = async (
-    totalQuantity: number, // CRITICAL: Agora recebe a quantidade total
-    userId: string | null = null,
-    customerName: string = '',
-    customerEmail: string = '',
-    customerPhone: string = ''
+    customerData: CustomerData,
+    totalQuantity: number,
+    orderId: string,
+    reservationTimestamp: Date
   ): Promise<{ reservationId: string; results: ReservationResult[] } | null> => {
     if (!campaignId || totalQuantity === 0) {
       const error = new Error('Dados inválidos para reserva');
@@ -69,20 +75,25 @@ export const useTickets = (campaignId: string) => {
     console.log('🔵 useTickets.reserveTickets - Starting reservation...');
     console.log('🔵 Campaign ID:', campaignId);
     console.log('🔵 Total Quantity:', totalQuantity);
-    console.log('🔵 User ID:', userId || user?.id || null);
-    console.log('🔵 Customer Name:', customerName);
-    console.log('🔵 Customer Email:', customerEmail);
-    console.log('🔵 Customer Phone:', customerPhone);
+    console.log('🔵 User ID:', user?.id || null);
+    console.log('🔵 Customer Name:', customerData.name);
+    console.log('🔵 Customer Email:', customerData.email);
+    console.log('🔵 Customer Phone:', customerData.phoneNumber);
+    console.log('🔵 Order ID:', orderId);
+    console.log('🔵 Reservation Timestamp:', reservationTimestamp.toISOString());
 
     try {
-      const { data, error: apiError } = await TicketsAPI.reserveTickets(
-        campaignId,
-        totalQuantity, // CRITICAL: Passar a quantidade total
-        userId || user?.id || null,
-        customerName,
-        customerEmail,
-        customerPhone
-      );
+      // CRITICAL FIX: Chamar o novo RPC reserve_tickets_by_quantity
+      const { data, error: apiError } = await supabase.rpc('reserve_tickets_by_quantity', {
+        p_campaign_id: campaignId,
+        p_quantity_to_reserve: totalQuantity,
+        p_user_id: user?.id || null,
+        p_customer_name: customerData.name,
+        p_customer_email: customerData.email,
+        p_customer_phone: customerData.phoneNumber,
+        p_reservation_timestamp: reservationTimestamp.toISOString(),
+        p_order_id: orderId
+      });
 
       if (apiError) {
         console.error('❌ useTickets.reserveTickets - API Error:', apiError);
@@ -107,19 +118,19 @@ export const useTickets = (campaignId: string) => {
         throw error;
       }
 
-      if (!data || data.results.length === 0) {
+      if (!data || data.length === 0) {
         console.warn('⚠️ useTickets.reserveTickets - No data returned from API');
         const error = new Error('Nenhuma cota foi reservada. Tente novamente.');
         setError(error.message);
         throw error;
       }
 
-      console.log(`✅ useTickets.reserveTickets - Successfully reserved ${data.results.length} tickets for Order ID: ${data.reservationId}`);
+      console.log(`✅ useTickets.reserveTickets - Successfully reserved ${data.length} tickets for Order ID: ${orderId}`);
 
       // Atualiza o status local após reserva bem-sucedida
       await fetchTicketsStatus();
 
-      return data;
+      return { reservationId: orderId, results: data };
     } catch (error) {
       console.error('❌ useTickets.reserveTickets - Exception caught:', error);
       
