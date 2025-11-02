@@ -107,15 +107,18 @@ const MyTicketsPage = () => {
           .eq('id', firstOrder.campaign_id)
           .maybeSingle();
 
-        if (campaign?.user_id) {
-          const { data: profile } = await supabase
-            .from('public_profiles_view')
-            .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
-            .eq('id', campaign.user_id)
-            .maybeSingle();
+        // ✅ CRITICAL: Verificar se campaign não é null antes de acessar user_id
+        if (campaign) {
+          if (campaign.user_id) {
+            const { data: profile } = await supabase
+              .from('public_profiles_view')
+              .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
+              .eq('id', campaign.user_id)
+              .maybeSingle();
 
-          if (profile) {
-            setOrganizerProfile(profile);
+            if (profile) {
+              setOrganizerProfile(profile);
+            }
           }
         }
       }
@@ -131,6 +134,7 @@ const MyTicketsPage = () => {
     try {
       console.log('🔵 MyTicketsPage - Loading orders for phone:', phone);
       
+      // ✅ CRITICAL: A função getOrdersByPhoneNumber agora agrupa por order_id
       const { data, error: apiError } = await TicketsAPI.getOrdersByPhoneNumber(phone);
 
       if (apiError) {
@@ -141,6 +145,7 @@ const MyTicketsPage = () => {
         
         let filteredOrders = data || [];
 
+        // Filtrar por organizador se necessário
         if (campaignContext?.organizerId) {
           const { data: organizerCampaigns } = await supabase
             .from('campaigns')
@@ -217,11 +222,14 @@ const MyTicketsPage = () => {
     }
   };
 
+  // ✅ CRITICAL: Função handlePayment atualizada para usar order_id corretamente
   const handlePayment = (order: CustomerOrder) => {
+    console.log('🔵 MyTicketsPage - Navigating to payment with order_id:', order.order_id);
+    
     navigate('/payment-confirmation', {
       state: {
         reservationData: {
-          reservationId: order.order_id,
+          reservationId: order.order_id, // ✅ CRITICAL: Usar order_id como reservationId
           customerName: order.customer_name || '',
           customerEmail: order.customer_email || '',
           customerPhone: order.customer_phone || '',
@@ -232,7 +240,7 @@ const MyTicketsPage = () => {
           campaignId: order.campaign_id,
           campaignPublicId: order.campaign_public_id,
           expiresAt: order.reservation_expires_at,
-          reservationTimeoutMinutes: 30
+          reservationTimeoutMinutes: 30 // Valor padrão; será sobrescrito pelo backend se necessário
         }
       }
     });
@@ -564,13 +572,13 @@ const MyTicketsPage = () => {
                               </button>
                             )}
 
-                            {/* ✅ CORREÇÃO: Botão "Compra Cancelada" clicável para pedidos expirados */}
+                            {/* ✅ CORREÇÃO: Botão "Ver Detalhes" para pedidos expirados */}
                             {order.status === 'expired' && (
                               <button
                                 onClick={() => handlePayment(order)}
                                 className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 shadow-md`}
                               >
-                                Compra Cancelada
+                                Ver Detalhes
                               </button>
                             )}
                           </div>
