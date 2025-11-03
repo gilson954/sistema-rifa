@@ -18,7 +18,7 @@ interface Country {
 interface ReservationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onReserve: (customerData: CustomerData, totalQuantity: number, orderId: string, reservationTimestamp: Date) => Promise<{ reservationId: string; results: ReservationResult[] } | null>; // CRITICAL: Adicionar orderId e reservationTimestamp
+  onReserve: (customerData: CustomerData, totalQuantity: number, orderId: string, reservationTimestamp: Date) => Promise<{ reservationId: string; results: ReservationResult[] } | null>; // CRITICAL: orderId e reservationTimestamp
   quotaCount: number; // totalQuantity
   totalValue: number;
   selectedQuotas?: number[];
@@ -31,6 +31,8 @@ interface ReservationModalProps {
   reserving?: boolean;
   reservationTimeoutMinutes?: number;
   customerData: ExistingCustomer | null; // CRITICAL FIX: Allow customerData to be null
+  orderId: string; // CRITICAL: Novo parâmetro - RECEBIDO COMO PROP
+  reservationTimestamp: Date; // CRITICAL: Novo parâmetro - RECEBIDO COMO PROP
 }
 
 export interface CustomerData {
@@ -47,6 +49,17 @@ interface ReservationResult {
   message: string;
 }
 
+const countries: Country[] = [
+  { code: 'BR', name: 'Brasil', dialCode: '+55', flag: '🇧🇷' },
+  { code: 'US', name: 'Estados Unidos', dialCode: '+1', flag: '🇺🇸' },
+  { code: 'CA', name: 'Canadá', dialCode: '+1', flag: '🇨🇦' },
+  { code: 'GB', name: 'Reino Unido', dialCode: '+44', flag: '🇬🇧' },
+  { code: 'PT', name: 'Portugal', dialCode: '+351', flag: '🇵🇹' },
+  { code: 'ES', name: 'Espanha', dialCode: '+34', flag: '🇪🇸' },
+  { code: 'AR', name: 'Argentina', dialCode: '+54', flag: '🇦🇷' },
+  { code: 'MX', name: 'México', dialCode: '+52', flag: '🇲🇽' },
+];
+
 const ReservationModal: React.FC<ReservationModalProps> = ({
   isOpen,
   onClose,
@@ -62,7 +75,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   campaignTheme,
   reserving = false,
   reservationTimeoutMinutes = 15,
-  customerData: initialCustomerData // CRITICAL FIX: Rename prop to avoid conflict with state
+  customerData: initialCustomerData, // CRITICAL FIX: Rename prop to avoid conflict with state
+  orderId, // CRITICAL: Receber orderId como prop (gerado no Step1)
+  reservationTimestamp // CRITICAL: Receber reservationTimestamp como prop (gerado no Step1)
 }) => {
   const { showSuccess, showError, showWarning } = useNotification();
   const { signInWithPhone } = useAuth();
@@ -99,17 +114,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       }));
       if (initialCustomerData.customer_phone) {
         const dialCode = (initialCustomerData.customer_phone.match(/^\+\d+/) || ['+55'])[0];
-        // Find the country by dial code
-        const countries = [
-          { code: 'BR', name: 'Brasil', dialCode: '+55', flag: '🇧🇷' },
-          { code: 'US', name: 'Estados Unidos', dialCode: '+1', flag: '🇺🇸' },
-          { code: 'CA', name: 'Canadá', dialCode: '+1', flag: '🇨🇦' },
-          { code: 'GB', name: 'Reino Unido', dialCode: '+44', flag: '🇬🇧' },
-          { code: 'PT', name: 'Portugal', dialCode: '+351', flag: '🇵🇹' },
-          { code: 'ES', name: 'Espanha', dialCode: '+34', flag: '🇪🇸' },
-          { code: 'AR', name: 'Argentina', dialCode: '+54', flag: '🇦🇷' },
-          { code: 'MX', name: 'México', dialCode: '+52', flag: '🇲🇽' },
-        ];
         const foundCountry = countries.find(c => c.dialCode === dialCode);
         if (foundCountry) {
           setSelectedCountry(foundCountry);
@@ -283,12 +287,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 
     console.log('📦 ReservationModal - Customer Data to be sent:', customerDataToPass);
 
-    // CRITICAL FIX: Gerar order_id e reservationTimestamp aqui para consistência
-    const orderId = crypto.randomUUID(); // Gerar um UUID para o order_id
-    const reservationTimestamp = new Date(); // Usar um timestamp consistente
-
-    console.log('🆔 ReservationModal - Generated Order ID:', orderId);
-    console.log('⏰ ReservationModal - Generated Timestamp:', reservationTimestamp.toISOString());
+    // CRITICAL FIX: orderId e reservationTimestamp já vêm como props (gerados no Step1)
+    console.log('🆔 ReservationModal - Received Order ID (from prop):', orderId);
+    console.log('⏰ ReservationModal - Received Timestamp (from prop):', reservationTimestamp.toISOString());
 
     try {
       console.log('🔐 ReservationModal - Attempting auto-login with:', fullPhoneNumber);
@@ -309,7 +310,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 
     console.log('🎫 ReservationModal - Initiating ticket reservation...');
     try {
-      // CRITICAL FIX: Passar orderId e reservationTimestamp para onReserve
+      // CRITICAL FIX: Passar orderId e reservationTimestamp (recebidos como props) para onReserve
       await onReserve(customerDataToPass, quotaCount, orderId, reservationTimestamp);
     } catch (apiError: any) {
       console.error('❌ ReservationModal - Error during ticket reservation:', apiError);
