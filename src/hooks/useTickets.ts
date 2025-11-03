@@ -118,19 +118,23 @@ export const useTickets = (campaignId: string) => {
         throw error;
       }
 
-      if (!data || data.length === 0) {
+      // CRITICAL CHANGE: data agora será um objeto jsonb (que é um array de resultados)
+      // O Supabase retorna o JSONB como um array JavaScript diretamente
+      const reservedResults: ReservationResult[] = data as ReservationResult[];
+
+      if (!reservedResults || reservedResults.length === 0) {
         console.warn('⚠️ useTickets.reserveTickets - No data returned from API');
         const error = new Error('Nenhuma cota foi reservada. Tente novamente.');
         setError(error.message);
         throw error;
       }
 
-      console.log(`✅ useTickets.reserveTickets - Successfully reserved ${data.length} tickets for Order ID: ${orderId}`);
+      console.log(`✅ useTickets.reserveTickets - Successfully reserved ${reservedResults.length} tickets for Order ID: ${orderId}`);
 
       // Atualiza o status local após reserva bem-sucedida
       await fetchTicketsStatus();
 
-      return { reservationId: orderId, results: data };
+      return { reservationId: orderId, results: reservedResults };
     } catch (error) {
       console.error('❌ useTickets.reserveTickets - Exception caught:', error);
       
