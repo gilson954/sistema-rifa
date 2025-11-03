@@ -16,7 +16,7 @@ interface CustomerDataForReservation {
 interface ReservationStep2ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (customerData: CustomerDataForReservation, totalQuantity: number) => void; // CRITICAL FIX: Passar customerData e totalQuantity
+  onConfirm: (customerData: CustomerDataForReservation, totalQuantity: number, orderId: string, reservationTimestamp: Date) => void; // CRITICAL FIX: Adicionar orderId e reservationTimestamp
   customerData: ExistingCustomer;
   quotaCount: number;
   totalValue: number;
@@ -28,6 +28,8 @@ interface ReservationStep2ModalProps {
   customGradientColors?: string | null;
   campaignTheme: string;
   confirming?: boolean;
+  orderId: string; // CRITICAL: Novo parâmetro - RECEBIDO COMO PROP
+  reservationTimestamp: Date; // CRITICAL: Novo parâmetro - RECEBIDO COMO PROP
 }
 
 const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
@@ -44,7 +46,9 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
   gradientClasses,
   customGradientColors,
   campaignTheme,
-  confirming = false
+  confirming = false,
+  orderId, // CRITICAL: Receber orderId como prop (gerado no Step1)
+  reservationTimestamp // CRITICAL: Receber reservationTimestamp como prop (gerado no Step1)
 }) => {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState<string>('');
@@ -53,8 +57,18 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
     if (isOpen) {
       setAcceptTerms(false);
       setError('');
+      
+      // CRITICAL: Log dos valores recebidos
+      console.log('═══════════════════════════════════════════');
+      console.log('🔵 ReservationStep2Modal - Modal Opened');
+      console.log('═══════════════════════════════════════════');
+      console.log('🆔 Received Order ID (from prop):', orderId);
+      console.log('⏰ Received Timestamp (from prop):', reservationTimestamp.toISOString());
+      console.log('👤 Customer Data:', customerData);
+      console.log('📊 Quota Count:', quotaCount);
+      console.log('═══════════════════════════════════════════');
     }
-  }, [isOpen]);
+  }, [isOpen, orderId, reservationTimestamp, customerData, quotaCount]);
 
   const getThemeClasses = (theme: string) => {
     switch (theme) {
@@ -147,7 +161,7 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
     return '';
   };
 
-  // ✅ CRITICAL FIX: handleConfirm agora passa customerData e totalQuantity
+  // ✅ CRITICAL FIX: handleConfirm agora passa customerData, totalQuantity, orderId e reservationTimestamp
   const handleConfirm = () => {
     console.log('╔═══════════════════════════════════════╗');
     console.log('🔵 ReservationStep2Modal - handleConfirm');
@@ -161,6 +175,8 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
 
     console.log('📊 Customer Data (from utils):', customerData);
     console.log('📊 Quota Count:', quotaCount);
+    console.log('🆔 Order ID (from prop):', orderId);
+    console.log('⏰ Reservation Timestamp (from prop):', reservationTimestamp.toISOString());
 
     // CRITICAL: Converter ExistingCustomer para CustomerDataForReservation
     const customerDataForReservation: CustomerDataForReservation = {
@@ -175,11 +191,13 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
     console.log('🔄 Calling onConfirm with:');
     console.log('   - customerData:', customerDataForReservation);
     console.log('   - totalQuantity:', quotaCount);
+    console.log('   - orderId:', orderId);
+    console.log('   - reservationTimestamp:', reservationTimestamp.toISOString());
 
     setError('');
     
-    // CRITICAL FIX: Passar customerData e totalQuantity
-    onConfirm(customerDataForReservation, quotaCount);
+    // CRITICAL FIX: Passar customerData, totalQuantity, orderId e reservationTimestamp
+    onConfirm(customerDataForReservation, quotaCount, orderId, reservationTimestamp);
   };
 
   const handleClose = () => {
