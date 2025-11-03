@@ -545,73 +545,110 @@ const CampaignPage = () => {
     setShowStep1Modal(true);
   }, [user, campaign, selectedQuotas, quantity, navigate, showWarning]);
 
-  // ✅ CRITICAL FIX: handleStep1NewCustomer gera orderId e timestamp
-  const handleStep1NewCustomer = useCallback((totalQuantity: number) => {
-    console.log('🔵 handleStep1NewCustomer - totalQuantity:', totalQuantity);
+  // ✅ CRITICAL FIX: handleStep1NewCustomer recebe orderId e timestamp do Step1Modal
+  const handleStep1NewCustomer = useCallback((totalQuantity: number, orderId: string, reservationTimestamp: Date) => {
+    console.log('╔═══════════════════════════════════════╗');
+    console.log('🔵 handleStep1NewCustomer - NOVO CLIENTE');
+    console.log('╚═══════════════════════════════════════╝');
+    console.log('📊 Total Quantity:', totalQuantity);
+    console.log('🆔 Order ID (from Step1):', orderId);
+    console.log('⏰ Timestamp (from Step1):', reservationTimestamp.toISOString());
     
     // CRITICAL: Definir customerData como null para novos clientes
     setCustomerDataForStep2(null);
     setQuotaCountForStep2(totalQuantity);
-    
-    // CRITICAL: Gerar orderId e timestamp aqui para consistência
-    const newOrderId = crypto.randomUUID();
-    const newReservationTimestamp = new Date();
-    setOrderIdForReservation(newOrderId);
-    setReservationTimestampForReservation(newReservationTimestamp);
-    
-    console.log('🆕 Generated Order ID:', newOrderId);
-    console.log('🆕 Generated Timestamp:', newReservationTimestamp.toISOString());
+    setOrderIdForReservation(orderId);
+    setReservationTimestampForReservation(reservationTimestamp);
     
     setShowStep1Modal(false);
     setShowReservationModal(true);
+    
+    console.log('✅ State updated, opening ReservationModal');
   }, []);
 
-  // ✅ CRITICAL FIX: handleStep1ExistingCustomer gera orderId e timestamp
-  const handleStep1ExistingCustomer = useCallback((customerData: ExistingCustomer, totalQuantity: number) => {
-    console.log('🔵 handleStep1ExistingCustomer - totalQuantity:', totalQuantity);
-    console.log('🔵 Customer Data:', customerData);
+  // ✅ CRITICAL FIX: handleStep1ExistingCustomer recebe orderId e timestamp do Step1Modal
+  const handleStep1ExistingCustomer = useCallback((customerData: ExistingCustomer, totalQuantity: number, orderId: string, reservationTimestamp: Date) => {
+    console.log('╔═══════════════════════════════════════╗');
+    console.log('🔵 handleStep1ExistingCustomer - CLIENTE EXISTENTE');
+    console.log('╚═══════════════════════════════════════╝');
+    console.log('📊 Total Quantity:', totalQuantity);
+    console.log('👤 Customer Data:', customerData);
+    console.log('🆔 Order ID (from Step1):', orderId);
+    console.log('⏰ Timestamp (from Step1):', reservationTimestamp.toISOString());
     
     setCustomerDataForStep2(customerData);
     setQuotaCountForStep2(totalQuantity);
-    
-    // CRITICAL: Gerar orderId e timestamp aqui para consistência
-    const newOrderId = crypto.randomUUID();
-    const newReservationTimestamp = new Date();
-    setOrderIdForReservation(newOrderId);
-    setReservationTimestampForReservation(newReservationTimestamp);
-    
-    console.log('🆕 Generated Order ID:', newOrderId);
-    console.log('🆕 Generated Timestamp:', newReservationTimestamp.toISOString());
+    setOrderIdForReservation(orderId);
+    setReservationTimestampForReservation(reservationTimestamp);
     
     // Manter compatibilidade com estado antigo
     setExistingCustomerData(customerData);
     
     setShowStep1Modal(false);
     setShowStep2Modal(true);
+    
+    console.log('✅ State updated, opening Step2Modal');
   }, []);
 
-  // ✅ CRITICAL FIX: handleStep2Confirm usa orderId e timestamp gerados
+  // ✅ CRITICAL FIX: handleStep2Confirm com validação robusta
   const handleStep2Confirm = useCallback(async (customerData: CustomerData, totalQuantity: number) => {
-    if (!campaign || !orderIdForReservation || !reservationTimestampForReservation) {
-      showError('Erro: dados de reserva incompletos');
+    console.log('╔═══════════════════════════════════════╗');
+    console.log('═══ handleStep2Confirm START ═══');
+    console.log('╚═══════════════════════════════════════╝');
+    console.log('📊 Customer data:', customerData);
+    console.log('📊 Total Quantity:', totalQuantity);
+    console.log('🆔 Order ID (from state):', orderIdForReservation);
+    console.log('⏰ Timestamp (from state):', reservationTimestampForReservation?.toISOString());
+    console.log('🏢 Campaign:', campaign?.title);
+
+    // CRITICAL: Validação robusta antes de prosseguir
+    if (!customerData) {
+      console.error('❌ ERROR: customerData is undefined!');
+      showError('Dados do cliente não disponíveis. Por favor, tente novamente.');
       return;
     }
 
-    console.log('=== handleStep2Confirm START ===');
-    console.log('Customer data:', customerData);
-    console.log('Campaign:', campaign);
-    console.log('Total Quantity:', totalQuantity);
-    console.log('Order ID:', orderIdForReservation);
-    console.log('Reservation Timestamp:', reservationTimestampForReservation.toISOString());
+    if (!customerData.name || !customerData.email || !customerData.phoneNumber) {
+      console.error('❌ ERROR: customerData is incomplete!', customerData);
+      showError('Dados do cliente incompletos. Por favor, verifique os campos obrigatórios.');
+      return;
+    }
+
+    if (!totalQuantity || totalQuantity <= 0) {
+      console.error('❌ ERROR: totalQuantity is invalid!', totalQuantity);
+      showError('Quantidade de cotas inválida. Por favor, tente novamente.');
+      return;
+    }
+
+    if (!campaign) {
+      console.error('❌ ERROR: campaign is undefined!');
+      showError('Erro: dados da campanha não encontrados');
+      return;
+    }
+
+    if (!orderIdForReservation || !reservationTimestampForReservation) {
+      console.error('❌ ERROR: orderId or timestamp is missing!', {
+        orderId: orderIdForReservation,
+        timestamp: reservationTimestampForReservation
+      });
+      showError('Erro: ID do pedido ou timestamp ausente. Por favor, tente novamente.');
+      return;
+    }
+
+    console.log('✅ All validations passed! Proceeding with reservation...');
 
     setShowStep2Modal(false);
 
     try {
       showInfo('Processando sua reserva...');
 
-      console.log('🔵 Reserving tickets with orderId and timestamp');
+      console.log('🔵 Calling reserveTickets with:');
+      console.log('  - customerData:', customerData);
+      console.log('  - totalQuantity:', totalQuantity);
+      console.log('  - orderId:', orderIdForReservation);
+      console.log('  - timestamp:', reservationTimestampForReservation.toISOString());
 
-      // CRITICAL: Chamar reserveTickets com orderId e timestamp
+      // CRITICAL: Chamar reserveTickets com todos os parâmetros validados
       const reservationResult = await reserveTickets(
         customerData,
         totalQuantity,
@@ -619,7 +656,7 @@ const CampaignPage = () => {
         reservationTimestampForReservation
       );
 
-      console.log('Reservation result:', reservationResult);
+      console.log('📦 Reservation result:', reservationResult);
 
       if (reservationResult) {
         const { total: totalValue } = calculateTotalWithPromotions(
@@ -631,11 +668,15 @@ const CampaignPage = () => {
         const reservationTimeoutMinutes = campaign.reservation_timeout_minutes || 30;
         const expiresAt = new Date(reservationTimestampForReservation.getTime() + reservationTimeoutMinutes * 60 * 1000).toISOString();
 
-        console.log('✅ SUCCESS! Navigating to payment-confirmation with reservationId:', reservationResult.reservationId);
+        console.log('✅ SUCCESS! Navigating to payment-confirmation');
+        console.log('  - reservationId:', reservationResult.reservationId);
+        console.log('  - quotaCount:', totalQuantity);
+        console.log('  - totalValue:', totalValue);
+        console.log('  - expiresAt:', expiresAt);
 
         showSuccess('Cotas reservadas com sucesso!');
 
-        // CRITICAL: Navegar com os dados corretos usando reservationId
+        // CRITICAL: Navegar com os dados corretos
         navigate('/payment-confirmation', {
           state: {
             reservationData: {
@@ -657,14 +698,21 @@ const CampaignPage = () => {
           }
         });
       } else {
-        console.error('❌ ERROR: No reservations returned');
-        showError('Erro ao reservar cotas. Tente novamente.');
+        console.error('❌ ERROR: No reservations returned from reserveTickets');
+        showError('Erro ao reservar cotas. Nenhuma reserva foi criada. Tente novamente.');
       }
     } catch (error: any) {
-      console.error('❌ EXCEPTION during reservation:', error);
+      console.error('╔═══════════════════════════════════════╗');
+      console.error('❌ EXCEPTION during reservation');
+      console.error('╚═══════════════════════════════════════╝');
+      console.error('Error object:', error);
+      console.error('Error message:', error?.message);
+      console.error('Error stack:', error?.stack);
       showError(error.message || 'Erro ao reservar cotas. Tente novamente.');
     } finally {
-      console.log('=== handleStep2Confirm END ===');
+      console.log('╔═══════════════════════════════════════╗');
+      console.log('═══ handleStep2Confirm END ═══');
+      console.log('╚═══════════════════════════════════════╝');
     }
   }, [campaign, user, reserveTickets, navigate, showError, showSuccess, showInfo, orderIdForReservation, reservationTimestampForReservation]);
 
