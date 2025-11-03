@@ -1,13 +1,23 @@
+// src/components/ReservationStep2Modal.tsx
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, CheckCircle, ShoppingCart, Phone } from 'lucide-react';
-import { CustomerData } from '../utils/customerCheck';
+import { X, User, CheckCircle, ShoppingCart, Phone, Mail } from 'lucide-react';
+import { CustomerData as ExistingCustomer } from '../utils/customerCheck';
+
+// CRITICAL: Interface para os dados que serão enviados para reserveTickets
+interface CustomerDataForReservation {
+  name: string;
+  email: string;
+  phoneNumber: string;
+  countryCode: string;
+  acceptTerms: boolean;
+}
 
 interface ReservationStep2ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
-  customerData: CustomerData;
+  onConfirm: (customerData: CustomerDataForReservation, totalQuantity: number) => void; // CRITICAL FIX: Passar customerData e totalQuantity
+  customerData: ExistingCustomer;
   quotaCount: number;
   totalValue: number;
   selectedQuotas?: number[];
@@ -137,14 +147,39 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
     return '';
   };
 
+  // ✅ CRITICAL FIX: handleConfirm agora passa customerData e totalQuantity
   const handleConfirm = () => {
+    console.log('╔═══════════════════════════════════════╗');
+    console.log('🔵 ReservationStep2Modal - handleConfirm');
+    console.log('╚═══════════════════════════════════════╝');
+
     if (!acceptTerms) {
+      console.log('❌ Terms not accepted');
       setError('Você deve aceitar os termos de uso');
       return;
     }
 
+    console.log('📊 Customer Data (from utils):', customerData);
+    console.log('📊 Quota Count:', quotaCount);
+
+    // CRITICAL: Converter ExistingCustomer para CustomerDataForReservation
+    const customerDataForReservation: CustomerDataForReservation = {
+      name: customerData.customer_name,
+      email: customerData.customer_email,
+      phoneNumber: customerData.customer_phone,
+      countryCode: customerData.customer_phone.match(/^\+\d+/)?.[0] || '+55',
+      acceptTerms: true
+    };
+
+    console.log('📦 Customer Data (for reservation):', customerDataForReservation);
+    console.log('🔄 Calling onConfirm with:');
+    console.log('   - customerData:', customerDataForReservation);
+    console.log('   - totalQuantity:', quotaCount);
+
     setError('');
-    onConfirm();
+    
+    // CRITICAL FIX: Passar customerData e totalQuantity
+    onConfirm(customerDataForReservation, quotaCount);
   };
 
   const handleClose = () => {
@@ -399,14 +434,14 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
               animate="visible"
             >
               <motion.div 
-                className={`p-5 ${theme.cardBg} border ${theme.border} rounded-2xl shadow-sm`}
+                className={`p-5 ${theme.cardBg} border ${theme.border} rounded-2xl shadow-sm space-y-4`}
                 whileHover={{ scale: 1.01, y: -2 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               >
                 <div className="flex items-center gap-4">
                   {/* Avatar */}
                   <motion.div 
-                    className={`w-16 h-16 rounded-full ${theme.userBg} flex items-center justify-center`}
+                    className={`w-16 h-16 rounded-full ${theme.userBg} flex items-center justify-center flex-shrink-0`}
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ 
@@ -419,27 +454,35 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
                     <User className={`h-8 w-8 ${theme.iconColor}`} />
                   </motion.div>
 
-                  {/* Customer Data */}
+                  {/* Customer Name */}
                   <motion.div 
-                    className="flex-1"
+                    className="flex-1 min-w-0"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5, duration: 0.4 }}
                   >
-                    <h3 className={`text-lg font-bold ${theme.text}`}>
+                    <h3 className={`text-lg font-bold ${theme.text} truncate`}>
                       {customerData.customer_name}
                     </h3>
-                    <motion.div 
-                      className={`flex items-center gap-2 mt-1 text-sm ${theme.textSecondary}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.6, duration: 0.3 }}
-                    >
-                      <Phone className="h-3.5 w-3.5" />
-                      <span>{customerData.customer_phone}</span>
-                    </motion.div>
                   </motion.div>
                 </div>
+
+                {/* Contact Info */}
+                <motion.div 
+                  className="space-y-2 pt-2 border-t border-gray-200/30 dark:border-gray-700/30"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6, duration: 0.3 }}
+                >
+                  <div className={`flex items-center gap-2 text-sm ${theme.textSecondary}`}>
+                    <Phone className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className="truncate">{customerData.customer_phone}</span>
+                  </div>
+                  <div className={`flex items-center gap-2 text-sm ${theme.textSecondary}`}>
+                    <Mail className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className="truncate">{customerData.customer_email}</span>
+                  </div>
+                </motion.div>
               </motion.div>
             </motion.div>
 
