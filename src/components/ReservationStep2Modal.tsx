@@ -1,8 +1,8 @@
 // src/components/ReservationStep2Modal.tsx
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, CheckCircle, ShoppingCart, Phone, Mail } from 'lucide-react';
-import { CustomerData as ExistingCustomer } from '../utils/customerCheck';
+import { X, User, CheckCircle, ShoppingCart, Phone } from 'lucide-react';
+import { CustomerData } from '../utils/customerCheck';
 
 // CRITICAL: Interface para os dados que serão enviados para reserveTickets
 interface CustomerDataForReservation {
@@ -16,8 +16,8 @@ interface CustomerDataForReservation {
 interface ReservationStep2ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (customerData: CustomerDataForReservation, totalQuantity: number, orderId: string, reservationTimestamp: Date) => void; // CRITICAL FIX: Adicionar orderId e reservationTimestamp
-  customerData: ExistingCustomer;
+  onConfirm: (customerData: CustomerDataForReservation, totalQuantity: number, orderId: string, reservationTimestamp: Date) => void; // CRITICAL FIX: Adicionar parâmetros
+  customerData: CustomerData;
   quotaCount: number;
   totalValue: number;
   selectedQuotas?: number[];
@@ -178,7 +178,7 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
     console.log('🆔 Order ID (from prop):', orderId);
     console.log('⏰ Reservation Timestamp (from prop):', reservationTimestamp.toISOString());
 
-    // CRITICAL: Converter ExistingCustomer para CustomerDataForReservation
+    // CRITICAL: Converter CustomerData para CustomerDataForReservation
     const customerDataForReservation: CustomerDataForReservation = {
       name: customerData.customer_name,
       email: customerData.customer_email,
@@ -452,14 +452,14 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
               animate="visible"
             >
               <motion.div 
-                className={`p-5 ${theme.cardBg} border ${theme.border} rounded-2xl shadow-sm space-y-4`}
+                className={`p-5 ${theme.cardBg} border ${theme.border} rounded-2xl shadow-sm`}
                 whileHover={{ scale: 1.01, y: -2 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               >
                 <div className="flex items-center gap-4">
                   {/* Avatar */}
                   <motion.div 
-                    className={`w-16 h-16 rounded-full ${theme.userBg} flex items-center justify-center flex-shrink-0`}
+                    className={`w-16 h-16 rounded-full ${theme.userBg} flex items-center justify-center`}
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ 
@@ -472,35 +472,27 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
                     <User className={`h-8 w-8 ${theme.iconColor}`} />
                   </motion.div>
 
-                  {/* Customer Name */}
+                  {/* Customer Data */}
                   <motion.div 
-                    className="flex-1 min-w-0"
+                    className="flex-1"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5, duration: 0.4 }}
                   >
-                    <h3 className={`text-lg font-bold ${theme.text} truncate`}>
+                    <h3 className={`text-lg font-bold ${theme.text}`}>
                       {customerData.customer_name}
                     </h3>
+                    <motion.div 
+                      className={`flex items-center gap-2 mt-1 text-sm ${theme.textSecondary}`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.6, duration: 0.3 }}
+                    >
+                      <Phone className="h-3.5 w-3.5" />
+                      <span>{customerData.customer_phone}</span>
+                    </motion.div>
                   </motion.div>
                 </div>
-
-                {/* Contact Info */}
-                <motion.div 
-                  className="space-y-2 pt-2 border-t border-gray-200/30 dark:border-gray-700/30"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6, duration: 0.3 }}
-                >
-                  <div className={`flex items-center gap-2 text-sm ${theme.textSecondary}`}>
-                    <Phone className="h-3.5 w-3.5 flex-shrink-0" />
-                    <span className="truncate">{customerData.customer_phone}</span>
-                  </div>
-                  <div className={`flex items-center gap-2 text-sm ${theme.textSecondary}`}>
-                    <Mail className="h-3.5 w-3.5 flex-shrink-0" />
-                    <span className="truncate">{customerData.customer_email}</span>
-                  </div>
-                </motion.div>
               </motion.div>
             </motion.div>
 
