@@ -180,13 +180,11 @@ const CampaignPage = () => {
   const [cotasPremiadas, setCotasPremiadas] = useState<CotaPremiada[]>([]);
   const [loadingCotasPremiadas, setLoadingCotasPremiadas] = useState(false);
   
-  // ✅ CRITICAL FIX: Estados para gerenciar dados entre os passos
   const [customerDataForStep2, setCustomerDataForStep2] = useState<ExistingCustomer | null>(null);
   const [quotaCountForStep2, setQuotaCountForStep2] = useState(0);
   const [orderIdForReservation, setOrderIdForReservation] = useState<string | null>(null);
   const [reservationTimestampForReservation, setReservationTimestampForReservation] = useState<Date | null>(null);
   
-  // Estados antigos mantidos para compatibilidade
   const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomer | null>(null);
   const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
   const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
@@ -1182,67 +1180,35 @@ const CampaignPage = () => {
               <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: primaryColor || '#3B82F6' }}></div>
             </div>
           ) : organizerProfile ? (
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                {organizerProfile.avatar_url ? (
-                  organizerProfile.color_mode === 'gradient' ? (
-                    <div
-                      className={getColorClassName("p-1 rounded-full shadow-md")}
-                      style={getColorStyle(true)}
-                    >
-                      <img
-                        src={organizerProfile.avatar_url}
-                        alt={organizerProfile.name}
-                        className="w-16 h-16 rounded-full object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <img
-                      src={organizerProfile.avatar_url}
-                      alt={organizerProfile.name}
-                      className="w-20 h-20 rounded-full object-cover shadow-md"
-                    />
-                  )
-                ) : (
-                  <div
-                    className={getColorClassName("w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-md")}
-                    style={getColorStyle(true)}
-                  >
-                    {organizerProfile.name ? organizerProfile.name.charAt(0).toUpperCase() : 'O'}
-                  </div>
-                )}
-              </div>
+            <div className="flex flex-col items-center text-center">
+              <p className={`text-sm ${themeClasses.textSecondary} mb-1`}>
+                Organizador:
+              </p>
+              <h4 className={`text-lg font-semibold ${themeClasses.text} mb-3`}>
+                {organizerProfile.name}
+              </h4>
 
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm ${themeClasses.textSecondary} leading-tight`}>
-                  Organizador:
-                </p>
-                <h4 className={`text-base font-semibold ${themeClasses.text} truncate`}>
-                  {organizerProfile.name}
-                </h4>
-
-                {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
-                  <div className="mt-2 flex items-center gap-2">
-                    {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
-                      if (!url || typeof url !== 'string') return null;
-                      const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
-                      if (!config) return null;
-                      const IconComponent = config.icon;
-                      return (
-                        <button
-                          key={platform}
-                          onClick={() => handleOrganizerSocialClick(platform, url)}
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform duration-150"
-                          style={{ backgroundColor: config.color }}
-                          title={`${config.name} do organizador`}
-                        >
-                          <IconComponent size={12} />
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+              {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
+                <div className="flex items-center gap-2">
+                  {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
+                    if (!url || typeof url !== 'string') return null;
+                    const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
+                    if (!config) return null;
+                    const IconComponent = config.icon;
+                    return (
+                      <button
+                        key={platform}
+                        onClick={() => handleOrganizerSocialClick(platform, url)}
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform duration-150"
+                        style={{ backgroundColor: config.color }}
+                        title={`${config.name} do organizador`}
+                      >
+                        <IconComponent size={16} />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-4">
@@ -1609,7 +1575,7 @@ const CampaignPage = () => {
         campaignTheme={campaignTheme}
       />
 
-      {/* ✅ CRITICAL FIX: Step 2 Modal - Renderização Condicional ROBUSTA */}
+      {/* Step 2 Modal */}
       {showStep2Modal && 
        customerDataForStep2 && 
        quotaCountForStep2 > 0 && 
@@ -1635,7 +1601,7 @@ const CampaignPage = () => {
         />
       )}
 
-      {/* ✅ CRITICAL FIX: Reservation Modal - Renderização Condicional ROBUSTA */}
+      {/* Reservation Modal */}
       {showReservationModal && 
        quotaCountForStep2 > 0 && 
        orderIdForReservation && 
