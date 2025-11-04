@@ -1180,18 +1180,16 @@ const CampaignPage = () => {
               <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: primaryColor || '#3B82F6' }}></div>
             </div>
           ) : organizerProfile ? (
-            <div className="flex items-center justify-between">
-              <div>
-                <p className={`text-sm ${themeClasses.textSecondary} leading-tight`}>
-                  Organizador:
-                </p>
-                <h4 className={`text-base font-semibold ${themeClasses.text}`}>
-                  {organizerProfile.name}
-                </h4>
-              </div>
+            <div className="flex items-center gap-3">
+              <span className={`text-sm ${themeClasses.textSecondary}`}>
+                Organizador:
+              </span>
+              <span className={`text-base font-semibold ${themeClasses.text}`}>
+                {organizerProfile.name}
+              </span>
 
               {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 ml-2">
                   {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
                     if (!url || typeof url !== 'string') return null;
                     const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
