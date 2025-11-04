@@ -180,11 +180,13 @@ const CampaignPage = () => {
   const [cotasPremiadas, setCotasPremiadas] = useState<CotaPremiada[]>([]);
   const [loadingCotasPremiadas, setLoadingCotasPremiadas] = useState(false);
   
+  // ✅ CRITICAL FIX: Estados para gerenciar dados entre os passos
   const [customerDataForStep2, setCustomerDataForStep2] = useState<ExistingCustomer | null>(null);
   const [quotaCountForStep2, setQuotaCountForStep2] = useState(0);
   const [orderIdForReservation, setOrderIdForReservation] = useState<string | null>(null);
   const [reservationTimestampForReservation, setReservationTimestampForReservation] = useState<Date | null>(null);
   
+  // Estados antigos mantidos para compatibilidade
   const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomer | null>(null);
   const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
   const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
@@ -1167,6 +1169,92 @@ const CampaignPage = () => {
           </motion.section>
         )}
 
+        {/* Organizador */}
+        {!isCampaignCompleted && (
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}
+        >
+          {loadingOrganizer ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: primaryColor || '#3B82F6' }}></div>
+            </div>
+          ) : organizerProfile ? (
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                {organizerProfile.avatar_url ? (
+                  organizerProfile.color_mode === 'gradient' ? (
+                    <div
+                      className={getColorClassName("p-1 rounded-full shadow-md")}
+                      style={getColorStyle(true)}
+                    >
+                      <img
+                        src={organizerProfile.avatar_url}
+                        alt={organizerProfile.name}
+                        className="w-16 h-16 rounded-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <img
+                      src={organizerProfile.avatar_url}
+                      alt={organizerProfile.name}
+                      className="w-20 h-20 rounded-full object-cover shadow-md"
+                    />
+                  )
+                ) : (
+                  <div
+                    className={getColorClassName("w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-md")}
+                    style={getColorStyle(true)}
+                  >
+                    {organizerProfile.name ? organizerProfile.name.charAt(0).toUpperCase() : 'O'}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm ${themeClasses.textSecondary} leading-tight`}>
+                  Organizador:
+                </p>
+                <h4 className={`text-base font-semibold ${themeClasses.text} truncate`}>
+                  {organizerProfile.name}
+                </h4>
+
+                {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
+                  <div className="mt-2 flex items-center gap-2">
+                    {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
+                      if (!url || typeof url !== 'string') return null;
+                      const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
+                      if (!config) return null;
+                      const IconComponent = config.icon;
+                      return (
+                        <button
+                          key={platform}
+                          onClick={() => handleOrganizerSocialClick(platform, url)}
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform duration-150"
+                          style={{ backgroundColor: config.color }}
+                          title={`${config.name} do organizador`}
+                        >
+                          <IconComponent size={12} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <Users className={`h-8 w-8 ${themeClasses.textSecondary} mx-auto mb-2`} />
+              <p className={`text-sm ${themeClasses.textSecondary}`}>
+                Informações do organizador não disponíveis
+              </p>
+            </div>
+          )}
+        </motion.section>
+        )}
+
         {/* Promoções */}
         {!isCampaignCompleted && campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
           <motion.section
@@ -1521,7 +1609,7 @@ const CampaignPage = () => {
         campaignTheme={campaignTheme}
       />
 
-      {/* Step 2 Modal */}
+      {/* ✅ CRITICAL FIX: Step 2 Modal - Renderização Condicional ROBUSTA */}
       {showStep2Modal && 
        customerDataForStep2 && 
        quotaCountForStep2 > 0 && 
@@ -1547,7 +1635,7 @@ const CampaignPage = () => {
         />
       )}
 
-      {/* Reservation Modal */}
+      {/* ✅ CRITICAL FIX: Reservation Modal - Renderização Condicional ROBUSTA */}
       {showReservationModal && 
        quotaCountForStep2 > 0 && 
        orderIdForReservation && 
