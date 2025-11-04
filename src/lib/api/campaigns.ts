@@ -68,6 +68,21 @@ export class CampaignAPI {
     try {
       try {
         console.log('🔧 [API DEBUG] Data being validated:', JSON.stringify(data, null, 2));
+        
+        // 🆕 NOVO: Logs adicionados para verificar o comprimento da descrição
+        if (data.description !== undefined) {
+          if (data.description === null) {
+            console.log('🔧 [API DEBUG] Description is null');
+          } else {
+            console.log('🔧 [API DEBUG] Description length:', data.description.length);
+            console.log('🔧 [API DEBUG] Description type:', typeof data.description);
+            console.log('🔧 [API DEBUG] Description preview (first 100 chars):', data.description.substring(0, 100));
+            console.log('🔧 [API DEBUG] Description preview (last 100 chars):', data.description.substring(Math.max(0, data.description.length - 100)));
+          }
+        } else {
+          console.log('🔧 [API DEBUG] Description is undefined (not being updated)');
+        }
+        
         updateCampaignSchema.parse(data);
       } catch (validationError) {
         if (validationError instanceof ZodError) {
