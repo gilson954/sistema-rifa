@@ -31,7 +31,7 @@ export const createCampaignSchema = z.object({
   
   description: z
     .string()
-    .max(5000, 'A descrição deve ter no máximo 2000 caracteres')
+    .max(5000, 'A descrição deve ter no máximo 5000 caracteres')
     .optional()
     .nullable(),
   
