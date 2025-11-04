@@ -1180,13 +1180,15 @@ const CampaignPage = () => {
               <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: primaryColor || '#3B82F6' }}></div>
             </div>
           ) : organizerProfile ? (
-            <div className="flex flex-col items-center text-center">
-              <p className={`text-sm ${themeClasses.textSecondary} mb-1`}>
-                Organizador:
-              </p>
-              <h4 className={`text-lg font-semibold ${themeClasses.text} mb-3`}>
-                {organizerProfile.name}
-              </h4>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className={`text-sm ${themeClasses.textSecondary} leading-tight`}>
+                  Organizador:
+                </p>
+                <h4 className={`text-base font-semibold ${themeClasses.text}`}>
+                  {organizerProfile.name}
+                </h4>
+              </div>
 
               {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
                 <div className="flex items-center gap-2">
@@ -1199,11 +1201,11 @@ const CampaignPage = () => {
                       <button
                         key={platform}
                         onClick={() => handleOrganizerSocialClick(platform, url)}
-                        className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform duration-150"
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform duration-150"
                         style={{ backgroundColor: config.color }}
                         title={`${config.name} do organizador`}
                       >
-                        <IconComponent size={16} />
+                        <IconComponent size={12} />
                       </button>
                     );
                   })}
