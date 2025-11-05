@@ -92,7 +92,7 @@ export const createCampaignSchema = z.object({
     .number()
     .int()
     .min(1, 'Máximo deve ser pelo menos 1')
-    .default(1000),
+    .default(1000), // O default será sobrescrito pelo cálculo na Step1
   
   initial_filter: z
     .enum(['all', 'available'])
@@ -137,9 +137,10 @@ export const createCampaignSchema = z.object({
     path: ['min_tickets_per_purchase']
   }
 ).refine(
-  (data) => data.max_tickets_per_purchase <= data.total_tickets,
+  // CRITICAL FIX: max_tickets_per_purchase deve ser menor que total_tickets
+  (data) => data.max_tickets_per_purchase < data.total_tickets,
   {
-    message: 'A quantidade máxima por compra não pode ser maior que o total de cotas',
+    message: 'A quantidade máxima por compra não pode ser maior ou igual ao total de cotas',
     path: ['max_tickets_per_purchase']
   }
 );
@@ -163,9 +164,10 @@ export const updateCampaignSchema = createCampaignSchema.partial().omit({
     path: ['min_tickets_per_purchase']
   }
 ).refine(
-  (data) => !data.max_tickets_per_purchase || !data.total_tickets || data.max_tickets_per_purchase <= data.total_tickets,
+  // CRITICAL FIX: max_tickets_per_purchase deve ser menor que total_tickets
+  (data) => !data.max_tickets_per_purchase || !data.total_tickets || data.max_tickets_per_purchase < data.total_tickets,
   {
-    message: 'A quantidade máxima por compra não pode ser maior que o total de cotas',
+    message: 'A quantidade máxima por compra não pode ser maior ou igual ao total de cotas',
     path: ['max_tickets_per_purchase']
   }
 ).superRefine((data, ctx) => {
