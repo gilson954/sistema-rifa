@@ -145,7 +145,7 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
       case 'disponivel':
         return (
           <motion.div 
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/20 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-md text-xs font-semibold border border-green-500/30"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-900/30 text-white dark:text-green-300 rounded-md text-xs font-bold shadow-sm"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
@@ -156,7 +156,7 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
       case 'comprada':
         return (
           <motion.div 
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/20 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-md text-xs font-semibold border border-orange-500/30"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 dark:bg-orange-900/30 text-white dark:text-orange-300 rounded-md text-xs font-bold shadow-sm"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
@@ -167,7 +167,7 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
       case 'encontrada':
         return (
           <motion.div 
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/20 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md text-xs font-semibold border border-blue-500/30"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 dark:bg-blue-900/30 text-white dark:text-blue-300 rounded-md text-xs font-bold shadow-sm"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
