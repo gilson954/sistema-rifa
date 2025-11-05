@@ -31,16 +31,59 @@ const MyTicketsPage = () => {
   const [timeRemainingMap, setTimeRemainingMap] = useState<Record<string, string>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+  const [campaignTotalTicketsMap, setCampaignTotalTicketsMap] = useState<Record<string, number>>({});
   const ordersPerPage = 5;
 
   const campaignContext = location.state as { campaignId?: string; organizerId?: string } | null;
 
-  // ✅ CORREÇÃO: Carregar pedidos do usuário
+  // ✅ CRITICAL: Função para calcular o padding correto baseado no total de cotas da campanha
+  const getQuotaNumberPadding = (campaignId: string): number => {
+    const totalTickets = campaignTotalTicketsMap[campaignId];
+    if (!totalTickets || totalTickets === 0) return 4; // Padrão de 4 dígitos
+    
+    // O maior número exibido é totalTickets - 1
+    const maxDisplayNumber = totalTickets - 1;
+    return String(maxDisplayNumber).length;
+  };
+
+  // ✅ CRITICAL: Função para formatar o número da cota (quota_number - 1)
+  const formatQuotaNumber = (numero: number, campaignId: string): string => {
+    // CRITICAL FIX: Formatar numero - 1 para exibição
+    const displayNumber = numero - 1;
+    const padding = getQuotaNumberPadding(campaignId);
+    return displayNumber.toString().padStart(padding, '0');
+  };
+
+  // ✅ Carregar pedidos do usuário
   useEffect(() => {
     if (isPhoneAuthenticated && phoneUser) {
       loadUserOrders(phoneUser.phone);
     }
   }, [isPhoneAuthenticated, phoneUser, campaignContext?.organizerId]);
+
+  // ✅ Carregar total_tickets de cada campanha para cálculo correto do padding
+  useEffect(() => {
+    const loadCampaignTotalTickets = async () => {
+      if (orders.length === 0) return;
+
+      const campaignIds = [...new Set(orders.map(order => order.campaign_id))];
+      
+      const { data: campaigns } = await supabase
+        .from('campaigns')
+        .select('id, total_tickets')
+        .in('id', campaignIds);
+
+      if (campaigns) {
+        const totalTicketsMap: Record<string, number> = {};
+        campaigns.forEach(campaign => {
+          totalTicketsMap[campaign.id] = campaign.total_tickets;
+        });
+        setCampaignTotalTicketsMap(totalTicketsMap);
+      }
+    };
+
+    loadCampaignTotalTickets();
+  }, [orders]);
 
   // ✅ CORREÇÃO DO TIMER: Usar reservation_expires_at da resposta da API
   useEffect(() => {
@@ -86,7 +129,7 @@ const MyTicketsPage = () => {
     const interval = setInterval(updateTimers, 1000);
 
     return () => clearInterval(interval);
-  }, [orders]); // Dependência 'orders' garante que o timer é reavaliado quando os pedidos mudam
+  }, [orders]);
 
   const handleLogout = async () => {
     await signOut();
@@ -536,12 +579,13 @@ const MyTicketsPage = () => {
                                   )}
                                 </div>
                                 <div className="flex flex-wrap gap-1 sm:gap-1.5">
+                                  {/* ✅ CRITICAL FIX: Exibir quota_number - 1 com padding correto */}
                                   {(isExpanded ? order.ticket_numbers : order.ticket_numbers.slice(0, maxVisibleTickets)).map((num) => (
                                     <span
                                       key={num}
                                       className="px-1.5 sm:px-2 py-0.5 text-xs font-bold rounded-md bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                                     >
-                                      {num.toString().padStart(4, '0')}
+                                      {formatQuotaNumber(num, order.campaign_id)}
                                     </span>
                                   ))}
                                   {!isExpanded && hasMoreTickets && (
