@@ -92,6 +92,7 @@ export const createCampaignSchema = z.object({
     .number()
     .int()
     .min(1, 'Máximo deve ser pelo menos 1')
+    .max(20000, 'Máximo absoluto não pode ser maior que 20.000')
     .default(1000), // O default será sobrescrito pelo cálculo na Step1
   
   initial_filter: z
