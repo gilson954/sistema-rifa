@@ -89,12 +89,16 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
     }
   };
 
-  const handleCreateCota = async (numeroCota: number, premio: string) => {
+  // ✅ CRITICAL FIX: Converter o número digitado pelo usuário (0 a N-1) para o número real do banco (1 a N)
+  const handleCreateCota = async (numeroCotaInput: number, premio: string) => {
     setSubmitting(true);
     try {
+      // CRITICAL FIX: Converter o número da cota do usuário (0 a N-1) para o número real (1 a N)
+      const numeroCotaReal = numeroCotaInput + 1;
+      
       const { data, error } = await CotasPremiadasAPI.createCotaPremiada({
         campaign_id: campaignId,
-        numero_cota: numeroCota,
+        numero_cota: numeroCotaReal, // ✅ Usar o número real (1 a N)
         premio,
       });
 
@@ -147,16 +151,19 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
   const filteredCotas = getFilteredCotas();
 
   // ✅ CRITICAL FIX: Função para calcular o número de dígitos para o preenchimento
-  // Calcula com base no maior número de cota (totalTickets - 1)
+  // O quota_number no banco vai de 1 a N, mas exibimos de 00 a N-1
   const getQuotaNumberPadding = () => {
-    if (totalTickets === 0) return 1; // Garante pelo menos 1 dígito para '0'
-    const maxQuotaNumber = totalTickets - 1; // Ex: 100 cotas → maior número é 99
-    return String(maxQuotaNumber).length; // Ex: "99".length = 2
+    if (totalTickets === 0) return 1; // Garante pelo menos 1 dígito
+    // O maior número exibido é totalTickets - 1
+    const maxDisplayNumber = totalTickets - 1;
+    return String(maxDisplayNumber).length;
   };
 
-  // Função para formatar o número da cota com o preenchimento correto
+  // ✅ CRITICAL FIX: Função para formatar o número da cota (numero_cota - 1)
   const formatQuotaNumber = (numero: number) => {
-    return numero.toString().padStart(getQuotaNumberPadding(), '0');
+    // CRITICAL FIX: Formatar numero - 1 para exibição
+    const displayNumber = numero - 1;
+    return displayNumber.toString().padStart(getQuotaNumberPadding(), '0');
   };
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -349,7 +356,7 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
                                 ? 'Titulo comprado'
                                 : 'Titulo encontrado'}
                             </p>
-                            {/* ✅ APLICANDO A FORMATAÇÃO CORRETA */}
+                            {/* ✅ CRITICAL FIX: Exibir numero_cota - 1 com padding correto */}
                             <p className="text-2xl font-extrabold text-gray-900 dark:text-white">
                               {formatQuotaNumber(cota.numero_cota)}
                             </p>
@@ -395,6 +402,8 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
         </motion.div>
       )}
 
+      {/* ✅ IMPORTANTE: O modal filho (CadastrarCotaPremiadaModal) recebe numeroCotaInput (0 a N-1) 
+          e handleCreateCota faz a conversão para numeroCotaReal (1 a N) */}
       <CadastrarCotaPremiadaModal
         isOpen={showCadastrarModal}
         onClose={() => setShowCadastrarModal(false)}
