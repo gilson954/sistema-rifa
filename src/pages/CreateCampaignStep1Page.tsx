@@ -32,31 +32,33 @@ const CreateCampaignStep1Page = () => {
     'Outros'
   ];
 
-  // Array de quantidades de cotas
-  const ticketQuantities = [
-    25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900,
-    1000, 2000, 3000, 4000, 5000, 10000, 20000, 30000,
-    40000, 50000, 100000, 500000, 1000000, 10000000
+  const ticketQuantityOptions = [
+    { value: 25, label: '25 cotas' },
+    { value: 50, label: '50 cotas' },
+    { value: 100, label: '100 cotas' },
+    { value: 200, label: '200 cotas' },
+    { value: 300, label: '300 cotas' },
+    { value: 400, label: '400 cotas' },
+    { value: 500, label: '500 cotas' },
+    { value: 600, label: '600 cotas' },
+    { value: 700, label: '700 cotas' },
+    { value: 800, label: '800 cotas' },
+    { value: 900, label: '900 cotas' },
+    { value: 1000, label: '1.000 cotas' },
+    { value: 2000, label: '2.000 cotas' },
+    { value: 3000, label: '3.000 cotas' },
+    { value: 4000, label: '4.000 cotas' },
+    { value: 5000, label: '5.000 cotas' },
+    { value: 10000, label: '10.000 cotas' },
+    { value: 20000, label: '20.000 cotas' },
+    { value: 30000, label: '30.000 cotas' },
+    { value: 40000, label: '40.000 cotas' },
+    { value: 50000, label: '50.000 cotas' },
+    { value: 100000, label: '100.000 cotas' },
+    { value: 500000, label: '500.000 cotas' },
+    { value: 1000000, label: '1.000.000 cotas' },
+    { value: 10000000, label: '10.000.000 cotas' }
   ];
-
-  // Função para formatar números com separador de milhar
-  const formatNumberWithDots = (num: number) =>
-    num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-  // Função para gerar o label do range (ex: "00 à 99")
-  const getRangeLabel = (quantity: number) => {
-    const max = quantity - 1; // O maior número de cota (ex: 100 cotas = 0-99)
-    const digits = String(max).length; // Calcula o número de dígitos do valor máximo
-    const start = String(0).padStart(digits, "0"); // Preenche o início com zeros
-    const end = String(max).padStart(digits, "0");   // Preenche o fim com zeros
-    return `${start} à ${end}`;
-  };
-
-  // Geração dinâmica das opções de quantidade de cotas
-  const ticketQuantityOptions = ticketQuantities.map((qty) => ({
-    value: qty.toString(), // O valor do select deve ser string
-    label: `${formatNumberWithDots(qty)} cotas - (${getRangeLabel(qty)})`,
-  }));
 
   const updateCalculations = (price: string, quantity: string) => {
     const ticketPrice = parseFloat(price) / 100 || 0;
@@ -140,9 +142,7 @@ const CreateCampaignStep1Page = () => {
     setLoading(true);
 
     try {
-      // CRITICAL FIX: maxTicketsPerPurchase deve ser totalTickets - 1
-      // E não pode ser menor que 1
-      const maxTicketsPerPurchase = Math.max(1, totalTickets - 1);
+      const maxTicketsPerPurchase = Math.min(20000, totalTickets);
 
       const campaignData = {
         title: formData.title,
@@ -152,7 +152,7 @@ const CreateCampaignStep1Page = () => {
         require_email: true,
         show_ranking: false,
         min_tickets_per_purchase: 1,
-        max_tickets_per_purchase: maxTicketsPerPurchase, // <-- CORRIGIDO AQUI
+        max_tickets_per_purchase: maxTicketsPerPurchase,
         initial_filter: 'all',
         campaign_model: campaignModel,
         prize_image_urls: []
