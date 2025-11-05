@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Trophy, User, Phone, Mail, CreditCard, Calendar, DollarSign, Ticket, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { SorteioAPI, Winner } from '../lib/api/sorteio';
+import { CampaignAPI } from '../lib/api/campaigns';
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -42,6 +43,7 @@ const DetalhesGanhadorPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [totalTicketsCampaign, setTotalTicketsCampaign] = useState(0);
   const ticketsPerPage = 50;
   const maxVisibleTicketsCollapsed = 50;
 
@@ -55,9 +57,10 @@ const DetalhesGanhadorPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const [winnerResult, ticketsResult] = await Promise.all([
+      const [winnerResult, ticketsResult, campaignResult] = await Promise.all([
         SorteioAPI.getWinnerById(winnerId),
-        getWinnerTickets()
+        getWinnerTickets(),
+        CampaignAPI.getCampaignById(campaignId)
       ]);
 
       if (winnerResult.data) {
@@ -66,6 +69,10 @@ const DetalhesGanhadorPage: React.FC = () => {
 
       if (ticketsResult) {
         setTickets(ticketsResult);
+      }
+
+      if (campaignResult.data) {
+        setTotalTicketsCampaign(campaignResult.data.total_tickets);
       }
     } catch (error) {
       console.error('Error loading winner data:', error);
@@ -93,7 +100,7 @@ const DetalhesGanhadorPage: React.FC = () => {
 
     const phone = winner.winner_phone.replace(/\D/g, '');
     const message = encodeURIComponent(
-      `Olá ${winner.winner_name}! Parabéns por ganhar o prêmio "${winner.prize_name}" com o título ${winner.ticket_number}! 🎉`
+      `Olá ${winner.winner_name}! Parabéns por ganhar o prêmio "${winner.prize_name}" com o título ${formatQuotaNumber(winner.ticket_number)}! 🎉`
     );
     window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
   };
@@ -103,6 +110,18 @@ const DetalhesGanhadorPage: React.FC = () => {
     if (!isExpanded) {
       setCurrentPage(1);
     }
+  };
+
+  // Função para calcular o número de dígitos para o preenchimento
+  const getQuotaNumberPadding = () => {
+    if (totalTicketsCampaign === 0) return 1;
+    const maxQuotaNumber = totalTicketsCampaign - 1;
+    return String(maxQuotaNumber).length;
+  };
+
+  // Função para formatar o número da cota com o preenchimento correto
+  const formatQuotaNumber = (numero: number) => {
+    return numero.toString().padStart(getQuotaNumberPadding(), '0');
   };
 
   // Determinar quantos tickets mostrar
@@ -173,7 +192,7 @@ const DetalhesGanhadorPage: React.FC = () => {
                   <div className="flex items-center gap-2 text-purple-100">
                     <Ticket className="h-5 w-5" />
                     <span className="text-lg font-semibold">
-                      Título vencedor: {winner.ticket_number}
+                      Título vencedor: {formatQuotaNumber(winner.ticket_number)}
                     </span>
                   </div>
                 </div>
@@ -311,7 +330,7 @@ const DetalhesGanhadorPage: React.FC = () => {
                           : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:shadow-md hover:scale-105'
                       }`}
                     >
-                      {ticket.quota_number}
+                      {formatQuotaNumber(ticket.quota_number)}
                     </div>
                   ))}
                   
