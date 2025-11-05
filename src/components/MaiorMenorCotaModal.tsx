@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, TrendingUp, TrendingDown, Calendar, DollarSign, Search } from 'lucide-react';
 import DatePicker from 'react-datepicker';
@@ -24,6 +24,11 @@ interface TicketData {
   ticket_count: number;
 }
 
+interface Campaign {
+  total_tickets: number;
+  ticket_price: number;
+}
+
 const MaiorMenorCotaModal: React.FC<MaiorMenorCotaModalProps> = ({
   isOpen,
   onClose,
@@ -35,6 +40,41 @@ const MaiorMenorCotaModal: React.FC<MaiorMenorCotaModalProps> = ({
   const [result, setResult] = useState<TicketData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+
+  // ✅ Carregar dados da campanha para calcular padding correto
+  useEffect(() => {
+    const loadCampaign = async () => {
+      if (!campaignId) return;
+
+      const { data } = await supabase
+        .from('campaigns')
+        .select('total_tickets, ticket_price')
+        .eq('id', campaignId)
+        .single();
+
+      if (data) {
+        setCampaign(data);
+      }
+    };
+
+    if (isOpen) {
+      loadCampaign();
+    }
+  }, [isOpen, campaignId]);
+
+  // ✅ CRITICAL FIX: Função para formatar o número da cota (quota_number - 1)
+  const formatQuotaNumber = (quotaNumber: number): string => {
+    if (!campaign?.total_tickets) {
+      // Fallback: usa padding de 4 dígitos se campaign não estiver carregada
+      return (quotaNumber - 1).toString().padStart(4, '0');
+    }
+    // Calcula o número de dígitos baseado no maior número exibido (total_tickets - 1)
+    const maxDisplayNumber = campaign.total_tickets - 1;
+    const digits = String(maxDisplayNumber).length;
+    // CRITICAL FIX: Converter quota_number - 1 para exibição
+    return (quotaNumber - 1).toString().padStart(digits, '0');
+  };
 
   const handleSearch = async () => {
     if (!selectedDate) {
@@ -243,8 +283,9 @@ const MaiorMenorCotaModal: React.FC<MaiorMenorCotaModalProps> = ({
                         <span className="text-sm text-gray-600 dark:text-gray-400">
                           {searchType === 'menor' ? 'Menor cota encontrada:' : 'Maior cota encontrada:'}
                         </span>
+                        {/* ✅ CRITICAL FIX: Exibir quota_number - 1 com padding correto */}
                         <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                          {result.quota_number.toString().padStart(5, '0')}
+                          {formatQuotaNumber(result.quota_number)}
                         </span>
                       </div>
 
