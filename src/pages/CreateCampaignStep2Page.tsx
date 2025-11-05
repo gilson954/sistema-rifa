@@ -197,14 +197,12 @@ const CreateCampaignStep2Page = () => {
       newErrors.minTicketsPerPurchase = 'Mínimo deve ser menor ou igual ao máximo';
     }
 
-    // CRITICAL FIX: Máximo de bilhetes por compra não pode ser maior ou igual a total_tickets
-    if (campaign?.total_tickets && formData.maxTicketsPerPurchase >= campaign.total_tickets) {
-      newErrors.maxTicketsPerPurchase = `Máximo não pode ser maior ou igual ao total de cotas (${campaign.total_tickets - 1})`;
+    if (formData.maxTicketsPerPurchase > (campaign?.total_tickets || 0)) {
+      newErrors.maxTicketsPerPurchase = 'Máximo não pode ser maior que o total de cotas';
     }
 
-    // O limite absoluto de 20000 ainda é válido, mas deve ser aplicado após a regra total_tickets - 1
     if (formData.maxTicketsPerPurchase > 20000) {
-      newErrors.maxTicketsPerPurchase = 'Máximo absoluto não pode ser maior que 20.000';
+      newErrors.maxTicketsPerPurchase = 'Máximo não pode ser maior que 20.000';
     }
 
     setErrors(newErrors);
@@ -680,7 +678,6 @@ const CreateCampaignStep2Page = () => {
                     value={formData.minTicketsPerPurchase}
                     onChange={handleInputChange}
                     min="1"
-                    max={campaign?.total_tickets ? campaign.total_tickets - 1 : 20000}
                     className={`w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
                       errors.minTicketsPerPurchase ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
@@ -704,7 +701,7 @@ const CreateCampaignStep2Page = () => {
                     value={formData.maxTicketsPerPurchase}
                     onChange={handleInputChange}
                     min="1"
-                    max={campaign?.total_tickets ? campaign.total_tickets - 1 : 20000}
+                    max="20000"
                     className={`w-full px-5 py-4 border-2 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
                       errors.maxTicketsPerPurchase ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
