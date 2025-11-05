@@ -141,11 +141,17 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
   };
 
   const getStatusBadge = (cota: CotaPremiada) => {
+    const isDark = campaignTheme === 'escuro' || campaignTheme === 'escuro-preto';
+    
     switch (cota.status) {
       case 'disponivel':
         return (
           <motion.div 
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-900/30 text-white dark:text-green-300 rounded-md text-xs font-bold shadow-sm"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm ${
+              isDark 
+                ? 'bg-green-900/40 text-green-300 border border-green-700' 
+                : 'bg-green-600 text-white'
+            }`}
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
@@ -156,7 +162,11 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
       case 'comprada':
         return (
           <motion.div 
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 dark:bg-orange-900/30 text-white dark:text-orange-300 rounded-md text-xs font-bold shadow-sm"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm ${
+              isDark 
+                ? 'bg-orange-900/40 text-orange-300 border border-orange-700' 
+                : 'bg-orange-600 text-white'
+            }`}
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
@@ -167,7 +177,11 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
       case 'encontrada':
         return (
           <motion.div 
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 dark:bg-blue-900/30 text-white dark:text-blue-300 rounded-md text-xs font-bold shadow-sm"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm ${
+              isDark 
+                ? 'bg-blue-900/40 text-blue-300 border border-blue-700' 
+                : 'bg-blue-600 text-white'
+            }`}
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
