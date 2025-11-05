@@ -99,11 +99,11 @@ const SalesHistoryPage = () => {
   // Helper function to format quota number with proper padding
   const formatQuotaNumber = (quotaNumber: number): string => {
     if (!campaign?.total_tickets) {
-      return quotaNumber.toString().padStart(4, '0'); // Default to 4 digits
+      return quotaNumber.toString().padStart(4, '0'); // Default to 4 digits if total_tickets is not available yet
     }
     
     // Calculate the number of digits needed based on total tickets
-    const digits = campaign.total_tickets.toString().length;
+    const digits = String(campaign.total_tickets - 1).length;
     return quotaNumber.toString().padStart(digits, '0');
   };
 
