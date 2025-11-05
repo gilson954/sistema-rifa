@@ -96,15 +96,17 @@ const SalesHistoryPage = () => {
     { value: 'pendente_aprovacao', label: 'Pendente aprovação' }
   ];
 
-  // Helper function to format quota number with proper padding
+  // CRITICAL FIX: Helper function to format quota number with proper padding
+  // Exibe quota_number - 1 (00 a N-1) ao invés de quota_number (1 a N)
   const formatQuotaNumber = (quotaNumber: number): string => {
     if (!campaign?.total_tickets) {
-      return quotaNumber.toString().padStart(4, '0'); // Default to 4 digits if total_tickets is not available yet
+      // Default to 4 digits if total_tickets is not available yet
+      return (quotaNumber - 1).toString().padStart(4, '0');
     }
     
     // Calculate the number of digits needed based on total tickets
     const digits = String(campaign.total_tickets - 1).length;
-    return quotaNumber.toString().padStart(digits, '0');
+    return (quotaNumber - 1).toString().padStart(digits, '0');
   };
 
   // Fetch sales history data
