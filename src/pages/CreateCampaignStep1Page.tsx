@@ -140,7 +140,9 @@ const CreateCampaignStep1Page = () => {
     setLoading(true);
 
     try {
-      const maxTicketsPerPurchase = Math.min(20000, totalTickets);
+      // CRITICAL FIX: maxTicketsPerPurchase deve ser totalTickets - 1
+      // E não pode ser menor que 1
+      const maxTicketsPerPurchase = Math.max(1, totalTickets - 1);
 
       const campaignData = {
         title: formData.title,
@@ -150,7 +152,7 @@ const CreateCampaignStep1Page = () => {
         require_email: true,
         show_ranking: false,
         min_tickets_per_purchase: 1,
-        max_tickets_per_purchase: maxTicketsPerPurchase,
+        max_tickets_per_purchase: maxTicketsPerPurchase, // <-- CORRIGIDO AQUI
         initial_filter: 'all',
         campaign_model: campaignModel,
         prize_image_urls: []
