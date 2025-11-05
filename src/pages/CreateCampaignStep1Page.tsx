@@ -1,3 +1,4 @@
+// src/pages/CreateCampaignStep1Page.tsx
 import React, { useState } from 'react';
 import { ArrowRight, ChevronDown, Sparkles, DollarSign, TrendingUp, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -32,33 +33,31 @@ const CreateCampaignStep1Page = () => {
     'Outros'
   ];
 
-  const ticketQuantityOptions = [
-    { value: 25, label: '25 cotas' },
-    { value: 50, label: '50 cotas' },
-    { value: 100, label: '100 cotas' },
-    { value: 200, label: '200 cotas' },
-    { value: 300, label: '300 cotas' },
-    { value: 400, label: '400 cotas' },
-    { value: 500, label: '500 cotas' },
-    { value: 600, label: '600 cotas' },
-    { value: 700, label: '700 cotas' },
-    { value: 800, label: '800 cotas' },
-    { value: 900, label: '900 cotas' },
-    { value: 1000, label: '1.000 cotas' },
-    { value: 2000, label: '2.000 cotas' },
-    { value: 3000, label: '3.000 cotas' },
-    { value: 4000, label: '4.000 cotas' },
-    { value: 5000, label: '5.000 cotas' },
-    { value: 10000, label: '10.000 cotas' },
-    { value: 20000, label: '20.000 cotas' },
-    { value: 30000, label: '30.000 cotas' },
-    { value: 40000, label: '40.000 cotas' },
-    { value: 50000, label: '50.000 cotas' },
-    { value: 100000, label: '100.000 cotas' },
-    { value: 500000, label: '500.000 cotas' },
-    { value: 1000000, label: '1.000.000 cotas' },
-    { value: 10000000, label: '10.000.000 cotas' }
+  // Array de quantidades de cotas
+  const ticketQuantities = [
+    25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900,
+    1000, 2000, 3000, 4000, 5000, 10000, 20000, 30000,
+    40000, 50000, 100000, 500000, 1000000, 10000000
   ];
+
+  // Função para formatar números com separador de milhar
+  const formatNumberWithDots = (num: number) =>
+    num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+  // Função para gerar o label do range (ex: "00 à 99")
+  const getRangeLabel = (quantity: number) => {
+    const max = quantity - 1;
+    const digits = String(max).length; // Calcula o número de dígitos do valor máximo
+    const start = String(0).padStart(digits, "0"); // Preenche o início com zeros
+    const end = String(max).padStart(digits, "0");   // Preenche o fim com zeros
+    return `${start} à ${end}`;
+  };
+
+  // Geração dinâmica das opções de quantidade de cotas
+  const ticketQuantityOptions = ticketQuantities.map((qty) => ({
+    value: qty.toString(), // O valor do select deve ser string
+    label: `${formatNumberWithDots(qty)} cotas - (${getRangeLabel(qty)})`,
+  }));
 
   const updateCalculations = (price: string, quantity: string) => {
     const ticketPrice = parseFloat(price) / 100 || 0;
@@ -213,8 +212,13 @@ const CreateCampaignStep1Page = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Error Message */}
           {errors.submit && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 shadow-md">
-              <p className="text-red-700 dark:text-red-300 text-sm font-medium">{errors.submit}</p>
+            <div className="rounded-2xl p-5 border border-red-200/20 dark:border-red-800/30 bg-red-50/60 dark:bg-red-900/20 backdrop-blur-sm">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                  <AlertTriangle className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-red-700 dark:text-red-300 font-medium">{errors.submit}</p>
+              </div>
             </div>
           )}
 
@@ -342,7 +346,7 @@ const CreateCampaignStep1Page = () => {
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 text-white rounded-xl flex items-center justify-center shadow-lg">
-                    <TrendingUp className="h-6 w-6" />
+                        <TrendingUp className="h-6 w-6" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                     Projeção financeira
@@ -390,7 +394,7 @@ const CreateCampaignStep1Page = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <Award className="h-6 w-6 text-white" />
+                        <Award className="h-6 w-6" />
                       </div>
                       <span className="text-base font-bold text-gray-900 dark:text-white">Lucro estimado</span>
                     </div>
@@ -415,7 +419,7 @@ const CreateCampaignStep1Page = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 rounded-xl font-bold text-lg shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-white flex items-center justify-center space-x-3"
+            className="w-full py-4 rounded-xl font-bold text-lg shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white flex items-center justify-center space-x-3"
           >
             {loading ? (
               <>
