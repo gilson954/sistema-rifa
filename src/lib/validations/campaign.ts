@@ -31,7 +31,7 @@ export const createCampaignSchema = z.object({
   
   description: z
     .string()
-    .max(5000, 'A descrição deve ter no máximo 5000 caracteres')
+    .max(2000, 'A descrição deve ter no máximo 2000 caracteres')
     .optional()
     .nullable(),
   
@@ -92,8 +92,7 @@ export const createCampaignSchema = z.object({
     .number()
     .int()
     .min(1, 'Máximo deve ser pelo menos 1')
-    .max(20000, 'Máximo absoluto não pode ser maior que 20.000')
-    .default(1000), // O default será sobrescrito pelo cálculo na Step1
+    .default(1000),
   
   initial_filter: z
     .enum(['all', 'available'])
@@ -138,10 +137,9 @@ export const createCampaignSchema = z.object({
     path: ['min_tickets_per_purchase']
   }
 ).refine(
-  // CRITICAL FIX: max_tickets_per_purchase deve ser menor que total_tickets
-  (data) => data.max_tickets_per_purchase < data.total_tickets,
+  (data) => data.max_tickets_per_purchase <= data.total_tickets,
   {
-    message: 'A quantidade máxima por compra não pode ser maior ou igual ao total de cotas',
+    message: 'A quantidade máxima por compra não pode ser maior que o total de cotas',
     path: ['max_tickets_per_purchase']
   }
 );
@@ -154,7 +152,7 @@ export const updateCampaignSchema = createCampaignSchema.partial().omit({
 }).extend({
   description: z
     .union([
-      z.string().max(5000, 'A descrição deve ter no máximo 5000 caracteres'),
+      z.string().max(2000, 'A descrição deve ter no máximo 2000 caracteres'),
       z.null()
     ])
     .optional()
@@ -165,10 +163,9 @@ export const updateCampaignSchema = createCampaignSchema.partial().omit({
     path: ['min_tickets_per_purchase']
   }
 ).refine(
-  // CRITICAL FIX: max_tickets_per_purchase deve ser menor que total_tickets
-  (data) => !data.max_tickets_per_purchase || !data.total_tickets || data.max_tickets_per_purchase < data.total_tickets,
+  (data) => !data.max_tickets_per_purchase || !data.total_tickets || data.max_tickets_per_purchase <= data.total_tickets,
   {
-    message: 'A quantidade máxima por compra não pode ser maior ou igual ao total de cotas',
+    message: 'A quantidade máxima por compra não pode ser maior que o total de cotas',
     path: ['max_tickets_per_purchase']
   }
 ).superRefine((data, ctx) => {
