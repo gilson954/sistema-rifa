@@ -146,10 +146,15 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
 
   const filteredCotas = getFilteredCotas();
 
+  // ✅ CRITICAL FIX: Função para calcular o número de dígitos para o preenchimento
+  // Calcula com base no maior número de cota (totalTickets - 1)
   const getQuotaNumberPadding = () => {
-    return totalTickets.toString().length;
+    if (totalTickets === 0) return 1; // Garante pelo menos 1 dígito para '0'
+    const maxQuotaNumber = totalTickets - 1; // Ex: 100 cotas → maior número é 99
+    return String(maxQuotaNumber).length; // Ex: "99".length = 2
   };
 
+  // Função para formatar o número da cota com o preenchimento correto
   const formatQuotaNumber = (numero: number) => {
     return numero.toString().padStart(getQuotaNumberPadding(), '0');
   };
@@ -205,6 +210,7 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
             exit="exit"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
@@ -236,6 +242,7 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
               </div>
             </div>
 
+            {/* Controls */}
             <div className="p-5 border-b border-gray-200 dark:border-gray-700 space-y-4">
               <div className="flex items-center justify-between">
                 <label className="flex items-center space-x-3 cursor-pointer">
@@ -266,6 +273,7 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
                 </label>
               </div>
 
+              {/* Filter Tabs */}
               <div className="flex items-center space-x-2">
                 {(['todos', 'disponivel', 'encontrada'] as FilterTab[]).map((filter) => (
                   <button
@@ -283,6 +291,7 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
               </div>
             </div>
 
+            {/* Content */}
             <div className="flex-1 overflow-y-auto p-5 custom-scrollbar-dark">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
@@ -340,6 +349,7 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
                                 ? 'Titulo comprado'
                                 : 'Titulo encontrado'}
                             </p>
+                            {/* ✅ APLICANDO A FORMATAÇÃO CORRETA */}
                             <p className="text-2xl font-extrabold text-gray-900 dark:text-white">
                               {formatQuotaNumber(cota.numero_cota)}
                             </p>
