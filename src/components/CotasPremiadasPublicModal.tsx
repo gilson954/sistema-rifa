@@ -132,16 +132,20 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
 
   const theme = getThemeClasses(campaignTheme);
 
-  // Função para calcular o número de dígitos para o preenchimento
+  // ✅ CRITICAL FIX: Função para calcular o número de dígitos para o preenchimento
+  // O quota_number no banco vai de 1 a N, mas exibimos de 00 a N-1
   const getQuotaNumberPadding = () => {
-    if (totalTickets === 0) return 1; // Garante pelo menos 1 dígito para '0'
-    const maxQuotaNumber = totalTickets - 1;
-    return String(maxQuotaNumber).length;
+    if (totalTickets === 0) return 1; // Garante pelo menos 1 dígito
+    // O maior número exibido é totalTickets - 1
+    const maxDisplayNumber = totalTickets - 1;
+    return String(maxDisplayNumber).length;
   };
 
-  // Função para formatar o número da cota com o preenchimento correto
+  // ✅ CRITICAL FIX: Função para formatar o número da cota (numero_cota - 1)
   const formatQuotaNumber = (numero: number) => {
-    return numero.toString().padStart(getQuotaNumberPadding(), '0');
+    // CRITICAL FIX: Formatar numero - 1 para exibição
+    const displayNumber = numero - 1;
+    return displayNumber.toString().padStart(getQuotaNumberPadding(), '0');
   };
 
   const getStatusBadge = (cota: CotaPremiada) => {
@@ -374,6 +378,7 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
                             whileHover={{ scale: 1.05 }}
                             transition={{ duration: 0.2 }}
                           >
+                            {/* ✅ CRITICAL FIX: Exibir numero_cota - 1 com padding correto */}
                             <span className={`font-bold text-sm ${theme.badgeText}`}>
                               {formatQuotaNumber(cota.numero_cota)}
                             </span>
