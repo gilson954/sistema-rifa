@@ -169,15 +169,22 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   };
 
   // Calculate padding length for quota numbers based on total quotas
+  // CRITICAL FIX: Calcular o número de dígitos com base no maior número de cota (totalQuotas - 1)
   // Examples: 
-  // - 100 cotas (0-99): máximo é 99 → 2 dígitos
-  // - 1000 cotas (0-999): máximo é 999 → 3 dígitos
-  // - 10000 cotas (0-9999): máximo é 9999 → 4 dígitos
-  // - 100000 cotas (0-99999): máximo é 99999 → 5 dígitos
-  // - 1000000 cotas (0-999999): máximo é 999999 → 6 dígitos
-  // - 10000000 cotas (0-9999999): máximo é 9999999 → 7 dígitos
+  // - 100 cotas (0-99): máximo é 99 → 2 dígitos ✅
+  // - 1000 cotas (0-999): máximo é 999 → 3 dígitos ✅
+  // - 10000 cotas (0-9999): máximo é 9999 → 4 dígitos ✅
+  // - 100000 cotas (0-99999): máximo é 99999 → 5 dígitos ✅
+  // - 1000000 cotas (0-999999): máximo é 999999 → 6 dígitos ✅
+  // - 10000000 cotas (0-9999999): máximo é 9999999 → 7 dígitos ✅
   const getPadLength = () => {
-    return totalQuotas.toString().length;
+    // Se totalQuotas for 0, retorna 1 para evitar problemas
+    if (totalQuotas === 0) return 1;
+    
+    // Calcular baseado no maior número de cota (totalQuotas - 1)
+    // Exemplo: 100 cotas → maior número é 99 → 2 dígitos
+    const maxQuotaNumber = totalQuotas - 1;
+    return String(maxQuotaNumber).length;
   };
 
   // Filtrar cotas com base no filtro ativo
@@ -321,7 +328,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
       <div className={`quota-grid grid ${getGridCols()} gap-1 p-4 ${getThemeClasses(campaignTheme).cardBg} rounded-lg overflow-hidden`}>
         {filteredQuotas.map((quotaNumber) => {
           const status = getQuotaStatus(quotaNumber);
-          const padLength = getPadLength();
+          const padLength = getPadLength(); // ✅ Agora calcula corretamente
           const quotaStyles = getQuotaStyles(status);
           const isSelected = status === 'selected';
           
@@ -344,6 +351,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
                 'Disponível'
               }`}
             >
+              {/* ✅ CRITICAL FIX: Aplicar padStart com o padLength calculado corretamente */}
               {quotaNumber.toString().padStart(padLength, '0')}
             </button>
           );
