@@ -1,6 +1,6 @@
 // src/components/PrizesDisplayModal.tsx
 import React from 'react';
-import { X, Trophy } from 'lucide-react';
+import { X, Trophy, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Prize } from '../types/promotion';
 
@@ -83,11 +83,15 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
           background: 'bg-white',
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
-          cardBg: 'bg-gray-50',
+          cardBg: 'bg-gray-100/80',
           border: 'border-gray-200',
           iconBg: 'bg-orange-100',
           iconColor: 'text-orange-600',
           closeButtonHover: 'hover:bg-gray-100',
+          badgeBg: 'bg-gray-200',
+          badgeText: 'text-gray-700',
+          statusBg: 'bg-green-100',
+          statusText: 'text-green-700',
         };
       case 'escuro':
       case 'escuro-preto':
@@ -95,22 +99,30 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
           background: 'bg-gray-900',
           text: 'text-white',
           textSecondary: 'text-gray-300',
-          cardBg: 'bg-gray-800',
+          cardBg: 'bg-gray-800/80',
           border: 'border-gray-700',
           iconBg: 'bg-orange-900/30',
           iconColor: 'text-orange-400',
           closeButtonHover: 'hover:bg-gray-700',
+          badgeBg: 'bg-gray-700',
+          badgeText: 'text-gray-200',
+          statusBg: 'bg-green-900/30',
+          statusText: 'text-green-400',
         };
       default:
         return {
           background: 'bg-white',
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
-          cardBg: 'bg-gray-50',
+          cardBg: 'bg-gray-100/80',
           border: 'border-gray-200',
           iconBg: 'bg-orange-100',
           iconColor: 'text-orange-600',
           closeButtonHover: 'hover:bg-gray-100',
+          badgeBg: 'bg-gray-200',
+          badgeText: 'text-gray-700',
+          statusBg: 'bg-green-100',
+          statusText: 'text-green-700',
         };
     }
   };
@@ -275,30 +287,50 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
               </motion.p>
 
               {prizes && prizes.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {prizes.map((prize, index) => (
                     <motion.div
                       key={prize.id}
-                      className={`flex items-center space-x-3 p-4 ${theme.cardBg} rounded-xl border ${theme.border}`}
+                      className={`flex items-center justify-between p-3.5 ${theme.cardBg} rounded-lg border ${theme.border}`}
                       custom={index}
                       variants={prizeItemVariants}
                       initial="hidden"
                       animate="visible"
                       whileHover={{
-                        scale: 1.03,
-                        boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
+                        scale: 1.02,
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                         transition: { duration: 0.2 }
                       }}
                     >
+                      {/* Badge com número do prêmio */}
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <motion.div
+                          className={`px-3 py-1.5 rounded-md ${theme.badgeBg} flex-shrink-0`}
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <span className={`font-bold text-sm ${theme.badgeText}`}>
+                            {String(index + 1).padStart(6, '0')}
+                          </span>
+                        </motion.div>
+                        
+                        {/* Nome do prêmio */}
+                        <p className={`font-semibold ${theme.text} truncate`}>
+                          {prize.name}
+                        </p>
+                      </div>
+
+                      {/* Status Disponível */}
                       <motion.div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${getColorStyle().className}`}
-                        style={getColorStyle().style}
-                        whileHover={{ scale: 1.2, rotate: 360 }}
-                        transition={{ duration: 0.5 }}
+                        className={`flex items-center space-x-1.5 px-3 py-1.5 ${theme.statusBg} rounded-md flex-shrink-0`}
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ duration: 0.2 }}
                       >
-                        <span className="font-bold text-sm text-white">{index + 1}º</span>
+                        <CheckCircle className={`h-4 w-4 ${theme.statusText}`} />
+                        <span className={`text-xs font-semibold ${theme.statusText}`}>
+                          Disponível
+                        </span>
                       </motion.div>
-                      <p className={`font-medium ${theme.text}`}>{prize.name}</p>
                     </motion.div>
                   ))}
                 </div>
@@ -324,7 +356,7 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
                   >
                     <Trophy className="h-8 w-8 text-white" />
                   </motion.div>
-                  <p className={`font-medium ${theme.text}`}>Nenhum prêmio cadastrado ainda.</p>
+                  <p className={`mt-4 font-medium ${theme.text}`}>Nenhum prêmio cadastrado ainda.</p>
                 </motion.div>
               )}
             </div>
