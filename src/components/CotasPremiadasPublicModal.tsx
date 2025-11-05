@@ -86,11 +86,13 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
           background: 'bg-white',
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
-          cardBg: 'bg-gray-50',
+          cardBg: 'bg-gray-100/80',
           border: 'border-gray-200',
           iconBg: 'bg-orange-100',
           iconColor: 'text-orange-600',
           closeButtonHover: 'hover:bg-gray-100',
+          badgeBg: 'bg-gray-200',
+          badgeText: 'text-gray-700',
         };
       case 'escuro':
       case 'escuro-preto':
@@ -98,22 +100,26 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
           background: 'bg-gray-900',
           text: 'text-white',
           textSecondary: 'text-gray-300',
-          cardBg: 'bg-gray-800',
+          cardBg: 'bg-gray-800/80',
           border: 'border-gray-700',
           iconBg: 'bg-orange-900/30',
           iconColor: 'text-orange-400',
           closeButtonHover: 'hover:bg-gray-700',
+          badgeBg: 'bg-gray-700',
+          badgeText: 'text-gray-200',
         };
       default:
         return {
           background: 'bg-white',
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
-          cardBg: 'bg-gray-50',
+          cardBg: 'bg-gray-100/80',
           border: 'border-gray-200',
           iconBg: 'bg-orange-100',
           iconColor: 'text-orange-600',
           closeButtonHover: 'hover:bg-gray-100',
+          badgeBg: 'bg-gray-200',
+          badgeText: 'text-gray-700',
         };
     }
   };
@@ -138,24 +144,36 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
     switch (cota.status) {
       case 'disponivel':
         return (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full text-sm font-semibold">
+          <motion.div 
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-md text-xs font-semibold"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.2 }}
+          >
             <CheckCircle className="h-4 w-4" />
             <span>Disponível</span>
-          </div>
+          </motion.div>
         );
       case 'comprada':
         return (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 rounded-full text-sm font-semibold">
+          <motion.div 
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 rounded-md text-xs font-semibold"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.2 }}
+          >
             <ShoppingBag className="h-4 w-4" />
             <span>Comprada</span>
-          </div>
+          </motion.div>
         );
       case 'encontrada':
         return (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-sm font-semibold">
+          <motion.div 
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-md text-xs font-semibold"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.2 }}
+          >
             <Trophy className="h-4 w-4" />
-            <span>Ganhador: {cota.winner_name || 'Desconhecido'}</span>
-          </div>
+            <span className="truncate max-w-[150px]">Ganhador: {cota.winner_name || 'Desconhecido'}</span>
+          </motion.div>
         );
       default:
         return null;
@@ -274,6 +292,7 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
             exit="exit"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Header */}
             <motion.div
               className={`flex items-center justify-between p-5 border-b ${theme.border}`}
               variants={headerVariants}
@@ -302,6 +321,7 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
               </motion.button>
             </motion.div>
 
+            {/* Body */}
             <div className="p-5">
               <motion.p
                 className={`text-sm ${theme.textSecondary} mb-4`}
@@ -314,41 +334,48 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
 
               {cotasPremiadas && cotasPremiadas.length > 0 ? (
                 <>
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {displayedCotas.map((cota, index) => (
                       <motion.div
                         key={cota.id}
-                        className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 ${theme.cardBg} rounded-xl border ${theme.border}`}
+                        className={`flex items-center justify-between p-3.5 ${theme.cardBg} rounded-lg border ${theme.border}`}
                         custom={index}
                         variants={cotaItemVariants}
                         initial="hidden"
                         animate="visible"
                         whileHover={{
                           scale: 1.02,
-                          boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                           transition: { duration: 0.2 },
                         }}
                       >
-                        <div className="flex items-center space-x-4 flex-1 min-w-0">
+                        {/* Badge com número da cota + Nome do prêmio */}
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
                           <motion.div
-                            className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${getColorStyle().className}`}
-                            style={getColorStyle().style}
-                            whileHover={{ scale: 1.1 }}
-                            transition={{ duration: 0.3 }}
+                            className={`px-3 py-1.5 rounded-md ${theme.badgeBg} flex-shrink-0`}
+                            whileHover={{ scale: 1.05 }}
+                            transition={{ duration: 0.2 }}
                           >
-                            <span className="font-bold text-sm text-white">
+                            <span className={`font-bold text-sm ${theme.badgeText}`}>
                               {formatQuotaNumber(cota.numero_cota)}
                             </span>
                           </motion.div>
-                          <div className="flex-1 min-w-0">
-                            <p className={`font-semibold ${theme.text} truncate`}>{cota.premio}</p>
-                          </div>
+                          
+                          {/* Nome do prêmio */}
+                          <p className={`font-semibold ${theme.text} truncate`}>
+                            {cota.premio}
+                          </p>
                         </div>
-                        <div className="flex-shrink-0">{getStatusBadge(cota)}</div>
+
+                        {/* Status Badge */}
+                        <div className="flex-shrink-0">
+                          {getStatusBadge(cota)}
+                        </div>
                       </motion.div>
                     ))}
                   </div>
 
+                  {/* Botão Mostrar Mais */}
                   {cotasPremiadas.length > 10 && (
                     <motion.div
                       className="mt-4 text-center"
@@ -358,12 +385,15 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
                     >
                       <motion.button
                         onClick={() => setShowAll(!showAll)}
-                        className="text-purple-600 dark:text-purple-400 font-semibold hover:underline"
+                        className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${getColorStyle().className}`}
+                        style={getColorStyle().style}
                         variants={buttonVariants}
                         whileHover="hover"
                         whileTap="tap"
                       >
-                        {showAll ? 'Mostrar menos' : `Mostrar mais (${cotasPremiadas.length - 10})`}
+                        <span className="text-white">
+                          {showAll ? 'Mostrar menos' : `Mostrar mais (${cotasPremiadas.length - 10})`}
+                        </span>
                       </motion.button>
                     </motion.div>
                   )}
@@ -390,11 +420,12 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
                   >
                     <Award className="h-8 w-8 text-white" />
                   </motion.div>
-                  <p className={`font-medium ${theme.text}`}>Nenhuma cota premiada cadastrada ainda.</p>
+                  <p className={`mt-4 font-medium ${theme.text}`}>Nenhuma cota premiada cadastrada ainda.</p>
                 </motion.div>
               )}
             </div>
 
+            {/* Footer */}
             <motion.div
               className={`p-5 border-t ${theme.border}`}
               variants={buttonVariants}
