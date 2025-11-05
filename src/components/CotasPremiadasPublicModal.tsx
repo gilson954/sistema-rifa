@@ -132,10 +132,14 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
 
   const theme = getThemeClasses(campaignTheme);
 
+  // Função para calcular o número de dígitos para o preenchimento
   const getQuotaNumberPadding = () => {
-    return totalTickets.toString().length;
+    if (totalTickets === 0) return 1; // Garante pelo menos 1 dígito para '0'
+    const maxQuotaNumber = totalTickets - 1;
+    return String(maxQuotaNumber).length;
   };
 
+  // Função para formatar o número da cota com o preenchimento correto
   const formatQuotaNumber = (numero: number) => {
     return numero.toString().padStart(getQuotaNumberPadding(), '0');
   };
