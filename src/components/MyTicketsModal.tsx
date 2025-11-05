@@ -5,6 +5,7 @@ import CountryPhoneSelect from './CountryPhoneSelect';
 import { supabase } from '../lib/supabase';
 import { TicketsAPI } from '../lib/api/tickets';
 import { formatCurrency } from '../utils/currency';
+import { CampaignAPI } from '../lib/api/campaigns';
 
 interface Country {
   code: string;
@@ -64,6 +65,7 @@ const MyTicketsModal: React.FC<MyTicketsModalProps> = ({
   const [tickets, setTickets] = useState<TicketData[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [customerName, setCustomerName] = useState('');
+  const [totalTicketsCampaign, setTotalTicketsCampaign] = useState(0);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -73,8 +75,18 @@ const MyTicketsModal: React.FC<MyTicketsModalProps> = ({
       setTickets([]);
       setShowResults(false);
       setCustomerName('');
+      setTotalTicketsCampaign(0);
+      
+      // Se campaignId existe, buscar totalTickets
+      if (campaignId) {
+        CampaignAPI.getCampaignById(campaignId).then(res => {
+          if (res.data) {
+            setTotalTicketsCampaign(res.data.total_tickets);
+          }
+        });
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, campaignId]);
 
   const getThemeClasses = (theme: string) => {
     switch (theme) {
@@ -297,6 +309,18 @@ const MyTicketsModal: React.FC<MyTicketsModalProps> = ({
 
   const theme = getThemeClasses(campaignTheme);
 
+  // Função para calcular o número de dígitos para o preenchimento
+  const getQuotaNumberPadding = () => {
+    if (totalTicketsCampaign === 0) return 1;
+    const maxQuotaNumber = totalTicketsCampaign - 1;
+    return String(maxQuotaNumber).length;
+  };
+
+  // Função para formatar o número da cota com o preenchimento correto
+  const formatQuotaNumber = (numero: number) => {
+    return numero.toString().padStart(getQuotaNumberPadding(), '0');
+  };
+
   if (!isOpen) return null;
 
   const purchasedTickets = tickets.filter(t => t.status === 'purchased');
@@ -483,7 +507,7 @@ const MyTicketsModal: React.FC<MyTicketsModalProps> = ({
                           <div className="flex flex-col items-center space-y-2">
                             <StatusIcon className={`h-5 w-5 ${statusInfo.color}`} />
                             <p className={`text-2xl font-bold ${theme.text}`}>
-                              {ticket.ticket_number.toString().padStart(4, '0')}
+                              {formatQuotaNumber(ticket.ticket_number)}
                             </p>
                             {userId && ticket.campaigns && (
                               <p className={`text-xs ${theme.textSecondary} text-center`}>
