@@ -158,6 +158,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     }
     
     // Permitir seleção apenas no modo manual e para cotas disponíveis/selecionadas
+    // CRITICAL: Passar o quota_number real (1 a N) para o handler
     if (mode === 'manual' && (status === 'available' || status === 'selected') && onQuotaSelect) {
       onQuotaSelect(quotaNumber);
     }
@@ -168,28 +169,27 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     return 'grid-cols-10 sm:grid-cols-15 md:grid-cols-20';
   };
 
-  // Calculate padding length for quota numbers based on total quotas
-  // CRITICAL FIX: Calcular o número de dígitos com base no maior número de cota (totalQuotas - 1)
+  // CRITICAL FIX: Calculate padding length for quota numbers based on total quotas
+  // O quota_number no banco vai de 1 a N, mas exibimos de 00 a N-1
+  // Então o número máximo exibido é totalQuotas - 1
   // Examples: 
-  // - 100 cotas (0-99): máximo é 99 → 2 dígitos ✅
-  // - 1000 cotas (0-999): máximo é 999 → 3 dígitos ✅
-  // - 10000 cotas (0-9999): máximo é 9999 → 4 dígitos ✅
-  // - 100000 cotas (0-99999): máximo é 99999 → 5 dígitos ✅
-  // - 1000000 cotas (0-999999): máximo é 999999 → 6 dígitos ✅
-  // - 10000000 cotas (0-9999999): máximo é 9999999 → 7 dígitos ✅
+  // - 100 cotas (quota_number: 1-100, display: 00-99): máximo exibido é 99 → 2 dígitos ✅
+  // - 1000 cotas (quota_number: 1-1000, display: 000-999): máximo exibido é 999 → 3 dígitos ✅
+  // - 10000 cotas (quota_number: 1-10000, display: 0000-9999): máximo exibido é 9999 → 4 dígitos ✅
   const getPadLength = () => {
     // Se totalQuotas for 0, retorna 1 para evitar problemas
     if (totalQuotas === 0) return 1;
     
-    // Calcular baseado no maior número de cota (totalQuotas - 1)
-    // Exemplo: 100 cotas → maior número é 99 → 2 dígitos
-    const maxQuotaNumber = totalQuotas - 1;
-    return String(maxQuotaNumber).length;
+    // Calcular baseado no maior número exibido (totalQuotas - 1)
+    // Exemplo: 100 cotas → maior número exibido é 99 → 2 dígitos
+    const maxDisplayNumber = totalQuotas - 1;
+    return String(maxDisplayNumber).length;
   };
 
   // Filtrar cotas com base no filtro ativo
   const getFilteredQuotas = () => {
-    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index);
+    // CRITICAL: quota_number no banco vai de 1 a totalQuotas
+    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index + 1);
     
     switch (activeFilter) {
       case 'available':
@@ -328,9 +328,12 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
       <div className={`quota-grid grid ${getGridCols()} gap-1 p-4 ${getThemeClasses(campaignTheme).cardBg} rounded-lg overflow-hidden`}>
         {filteredQuotas.map((quotaNumber) => {
           const status = getQuotaStatus(quotaNumber);
-          const padLength = getPadLength(); // ✅ Agora calcula corretamente
+          const padLength = getPadLength();
           const quotaStyles = getQuotaStyles(status);
           const isSelected = status === 'selected';
+          
+          // CRITICAL FIX: Exibir quota_number - 1 para o usuário
+          const displayNumber = quotaNumber - 1;
           
           return (
             <button
@@ -344,15 +347,15 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
               `}
               style={isSelected ? getColorStyle() : {}}
               disabled={mode === 'automatic' || status === 'purchased' || status === 'reserved'}
-              title={`Cota ${quotaNumber.toString().padStart(padLength, '0')} - ${
+              title={`Cota ${displayNumber.toString().padStart(padLength, '0')} - ${
                 status === 'purchased' ? 'Comprada' : 
                 status === 'reserved' ? 'Reservada' : 
                 status === 'selected' ? 'Selecionada' : 
                 'Disponível'
               }`}
             >
-              {/* ✅ CRITICAL FIX: Aplicar padStart com o padLength calculado corretamente */}
-              {quotaNumber.toString().padStart(padLength, '0')}
+              {/* CRITICAL FIX: Exibir quota_number - 1 com padding correto */}
+              {displayNumber.toString().padStart(padLength, '0')}
             </button>
           );
         })}
