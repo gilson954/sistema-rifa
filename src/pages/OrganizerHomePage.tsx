@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/currency';
 import CampaignFooter from '../components/CampaignFooter';
 import PhoneLoginModal from '../components/PhoneLoginModal';
+import SocialMediaFloatingMenu from '../components/SocialMediaFloatingMenu';
 import { useAuth } from '../context/AuthContext';
 
 interface OrganizerProfile {
@@ -15,6 +16,8 @@ interface OrganizerProfile {
   name: string;
   avatar_url?: string;
   logo_url?: string;
+  social_media_links?: any;
+  payment_integrations_config?: any;
   primary_color?: string;
   theme?: string;
   color_mode?: string;
@@ -42,7 +45,7 @@ const OrganizerHomePage: React.FC = () => {
       try {
         const { data: profile } = await supabase
           .from('public_profiles_view')
-          .select('id, name, avatar_url, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
+          .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
           .eq('id', userId)
           .maybeSingle();
 
@@ -457,6 +460,18 @@ const OrganizerHomePage: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Botão Flutuante de Redes Sociais */}
+      <SocialMediaFloatingMenu
+        socialMediaLinks={organizerProfile?.social_media_links}
+        whatsappSupport={organizerProfile?.payment_integrations_config?.whatsapp_number}
+        whatsappGroup={organizerProfile?.social_media_links?.whatsapp_group}
+        primaryColor={organizerProfile?.primary_color}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
+        animatedGradient={true}
+      />
 
       <PhoneLoginModal
         isOpen={isPhoneModalOpen}
