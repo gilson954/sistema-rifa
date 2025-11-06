@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Ticket, Calendar, CheckCircle, Clock, XCircle, AlertCircle, LogOut, Timer, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import CampaignFooter from '../components/CampaignFooter';
+import SocialMediaFloatingMenu from '../components/SocialMediaFloatingMenu';
 import { TicketsAPI, CustomerOrder } from '../lib/api/tickets';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/currency';
