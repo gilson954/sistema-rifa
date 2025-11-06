@@ -399,34 +399,57 @@ const CampaignPage = () => {
     }
 
     if (campaign.campaign_model === 'manual') {
-      // Para modo manual, selecionar cotas automaticamente
+      // Para modo manual, adicionar cotas ALEATÓRIAS automaticamente
       const availableTickets = getAvailableTickets();
       
-      if (availableTickets.length < promoQuantity) {
-        showError(`Não há cotas suficientes disponíveis. Apenas ${availableTickets.length} cotas disponíveis.`);
+      // Filtrar cotas que ainda não foram selecionadas
+      const notSelectedYet = availableTickets.filter(
+        ticket => !selectedQuotas.includes(ticket.quota_number)
+      );
+      
+      if (notSelectedYet.length < promoQuantity) {
+        showError(`Não há cotas suficientes disponíveis. Apenas ${notSelectedYet.length} cotas disponíveis.`);
         return;
       }
 
-      // Selecionar as primeiras N cotas disponíveis
-      const quotasToSelect = availableTickets
+      // Embaralhar e selecionar N cotas ALEATÓRIAS
+      const shuffled = [...notSelectedYet].sort(() => Math.random() - 0.5);
+      const randomQuotas = shuffled
         .slice(0, promoQuantity)
         .map(ticket => ticket.quota_number);
 
-      setSelectedQuotas(quotasToSelect);
-      showSuccess(`${promoQuantity} cotas selecionadas!`);
+      // ADICIONAR às cotas já selecionadas (não substituir)
+      const newSelection = [...selectedQuotas, ...randomQuotas];
+      
+      // Verificar limite máximo
+      const maxLimit = campaign.max_tickets_per_purchase || 20000;
+      if (newSelection.length > maxLimit) {
+        showWarning(`Máximo de ${maxLimit.toLocaleString('pt-BR')} ${maxLimit === 1 ? 'cota' : 'cotas'} por compra`);
+        return;
+      }
+
+      setSelectedQuotas(newSelection);
+      showSuccess(`${promoQuantity} cotas aleatórias adicionadas! Total: ${newSelection.length}`);
     } else {
-      // Para modo automático, apenas atualizar a quantidade
+      // Para modo automático, ADICIONAR à quantidade existente
+      const currentTotal = quantity + promoQuantity;
       const availableCount = campaign.total_tickets - campaign.sold_tickets;
       
-      if (availableCount < promoQuantity) {
+      if (currentTotal > availableCount) {
         showError(`Não há cotas suficientes disponíveis. Apenas ${availableCount} cotas disponíveis.`);
         return;
       }
 
-      setQuantity(promoQuantity);
-      showSuccess(`Quantidade ajustada para ${promoQuantity} cotas!`);
+      const maxLimit = campaign.max_tickets_per_purchase || 20000;
+      if (currentTotal > maxLimit) {
+        showWarning(`Máximo de ${maxLimit.toLocaleString('pt-BR')} ${maxLimit === 1 ? 'cota' : 'cotas'} por compra`);
+        return;
+      }
+
+      setQuantity(currentTotal);
+      showSuccess(`${promoQuantity} cotas adicionadas! Total: ${currentTotal}`);
     }
-  }, [campaign, isCampaignAvailable, getAvailableTickets, showSuccess, showError, showWarning]);
+  }, [campaign, isCampaignAvailable, getAvailableTickets, selectedQuotas, quantity, showSuccess, showError, showWarning]);
 
   const handleQuotaSelect = useCallback((quotaNumber: number) => {
     if (!campaign || campaign.campaign_model !== 'manual') return;
