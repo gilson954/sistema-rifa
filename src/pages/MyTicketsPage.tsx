@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Ticket, Calendar, CheckCircle, Clock, XCircle, AlertCircle, LogOut, Timer, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import CampaignFooter from '../components/CampaignFooter';
-import SocialMediaFloatingMenu from '../components/SocialMediaFloatingMenu';
 import { TicketsAPI, CustomerOrder } from '../lib/api/tickets';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/currency';
@@ -18,14 +17,6 @@ interface OrganizerProfile {
   color_mode?: string;
   gradient_classes?: string;
   custom_gradient_colors?: string;
-  whatsapp_link?: string;
-  instagram_link?: string;
-  facebook_link?: string;
-  telegram_link?: string;
-  tiktok_link?: string;
-  youtube_link?: string;
-  twitter_link?: string;
-  linkedin_link?: string;
 }
 
 const MyTicketsPage = () => {
@@ -126,11 +117,7 @@ const MyTicketsPage = () => {
         const firstOrder = orders[0];
         const { data: campaign } = await supabase.from('campaigns').select('user_id').eq('id', firstOrder.campaign_id).maybeSingle();
         if (campaign && campaign.user_id) {
-          const { data: profile } = await supabase
-            .from('public_profiles_view')
-            .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, whatsapp_link, instagram_link, facebook_link, telegram_link, tiktok_link, youtube_link, twitter_link, linkedin_link')
-            .eq('id', campaign.user_id)
-            .maybeSingle();
+          const { data: profile } = await supabase.from('public_profiles_view').select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors').eq('id', campaign.user_id).maybeSingle();
           if (profile) { setOrganizerProfile(profile); }
         }
       }
@@ -441,22 +428,6 @@ const MyTicketsPage = () => {
           </>
         )}
       </main>
-
-      {/* SocialMediaFloatingMenu - Integrado com os dados do organizador */}
-      {organizerProfile && (
-        <SocialMediaFloatingMenu
-          primaryColor={organizerProfile.primary_color}
-          theme={organizerProfile.theme}
-          whatsappLink={organizerProfile.whatsapp_link}
-          instagramLink={organizerProfile.instagram_link}
-          facebookLink={organizerProfile.facebook_link}
-          telegramLink={organizerProfile.telegram_link}
-          tiktokLink={organizerProfile.tiktok_link}
-          youtubeLink={organizerProfile.youtube_link}
-          twitterLink={organizerProfile.twitter_link}
-          linkedinLink={organizerProfile.linkedin_link}
-        />
-      )}
 
       <CampaignFooter campaignTheme={campaignTheme} />
     </div>
