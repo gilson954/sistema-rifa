@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Ticket, Calendar, CheckCircle, Clock, XCircle, AlertCircle, LogOut, Timer, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import CampaignFooter from '../components/CampaignFooter';
+import SocialMediaFloatingMenu from '../components/SocialMediaFloatingMenu';
 import { TicketsAPI, CustomerOrder } from '../lib/api/tickets';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/currency';
@@ -17,6 +18,9 @@ interface OrganizerProfile {
   color_mode?: string;
   gradient_classes?: string;
   custom_gradient_colors?: string;
+  social_media_links?: Record<string, string | boolean | null>;
+  whatsapp_support?: string | null;
+  whatsapp_group?: string | null;
 }
 
 const MyTicketsPage = () => {
@@ -117,8 +121,14 @@ const MyTicketsPage = () => {
         const firstOrder = orders[0];
         const { data: campaign } = await supabase.from('campaigns').select('user_id').eq('id', firstOrder.campaign_id).maybeSingle();
         if (campaign && campaign.user_id) {
-          const { data: profile } = await supabase.from('public_profiles_view').select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors').eq('id', campaign.user_id).maybeSingle();
-          if (profile) { setOrganizerProfile(profile); }
+          const { data: profile } = await supabase
+            .from('public_profiles_view')
+            .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, social_media_links, whatsapp_support, whatsapp_group')
+            .eq('id', campaign.user_id)
+            .maybeSingle();
+          if (profile) { 
+            setOrganizerProfile(profile); 
+          }
         }
       }
     };
@@ -323,7 +333,45 @@ const MyTicketsPage = () => {
                   const hasMoreTickets = order.ticket_numbers.length > maxVisibleTickets;
 
                   return (
-                    <motion.div key={order.order_id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className={`${themeClasses.cardBg} rounded-lg sm:rounded-xl shadow-md border-l-4 ${statusInfo.borderColor} overflow-hidden hover:shadow-lg transition-shadow duration-200`}>
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1} className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-semibold text-xs sm:text-sm transition-all duration-300 ${currentPage === 1 ? `${themeClasses.paginationButtonDisabledBg} ${themeClasses.paginationButtonDisabledText} cursor-not-allowed` : `${themeClasses.paginationButtonBg} ${themeClasses.paginationButtonText} hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white shadow-md hover:shadow-lg`}`}>
+                    Ant.
+                  </motion.button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <motion.button key={page} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => setCurrentPage(page)} className={`w-8 h-8 sm:w-10 sm:h-10 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-300 ${currentPage === page ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg scale-110' : `${themeClasses.paginationButtonBg} ${themeClasses.paginationButtonText} hover:bg-gray-100 dark:hover:bg-gray-700`}`}>
+                        {page}
+                      </motion.button>
+                    ))}
+                  </div>
+                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages} className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-semibold text-xs sm:text-sm transition-all duration-300 ${currentPage === totalPages ? `${themeClasses.paginationButtonDisabledBg} ${themeClasses.paginationButtonDisabledText} cursor-not-allowed` : `${themeClasses.paginationButtonBg} ${themeClasses.paginationButtonText} hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white shadow-md hover:shadow-lg`}`}>
+                    Próx.
+                  </motion.button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </main>
+
+      {/* Menu Flutuante de Redes Sociais */}
+      {organizerProfile && (
+        <SocialMediaFloatingMenu
+          socialMediaLinks={organizerProfile.social_media_links}
+          whatsappSupport={organizerProfile.whatsapp_support}
+          whatsappGroup={organizerProfile.whatsapp_group}
+          primaryColor={organizerProfile.primary_color}
+          colorMode={organizerProfile.color_mode}
+          gradientClasses={organizerProfile.gradient_classes}
+          customGradientColors={organizerProfile.custom_gradient_colors}
+        />
+      )}
+
+      <CampaignFooter campaignTheme={campaignTheme} />
+    </div>
+  );
+};
+
+export default MyTicketsPage;.div key={order.order_id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className={`${themeClasses.cardBg} rounded-lg sm:rounded-xl shadow-md border-l-4 ${statusInfo.borderColor} overflow-hidden hover:shadow-lg transition-shadow duration-200`}>
                       <div className="p-3 sm:p-4">
                         <div className="flex gap-3 sm:gap-4">
                           <div className="flex-shrink-0">
@@ -409,29 +457,4 @@ const MyTicketsPage = () => {
                   Mostrando <span className="font-bold text-blue-600 dark:text-blue-400">{((currentPage - 1) * ordersPerPage) + 1}</span> a <span className="font-bold text-blue-600 dark:text-blue-400">{Math.min(currentPage * ordersPerPage, orders.length)}</span> de <span className="font-bold text-blue-600 dark:text-blue-400">{orders.length}</span> pedidos
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-2 w-full justify-center">
-                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1} className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-semibold text-xs sm:text-sm transition-all duration-300 ${currentPage === 1 ? `${themeClasses.paginationButtonDisabledBg} ${themeClasses.paginationButtonDisabledText} cursor-not-allowed` : `${themeClasses.paginationButtonBg} ${themeClasses.paginationButtonText} hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white shadow-md hover:shadow-lg`}`}>
-                    Ant.
-                  </motion.button>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <motion.button key={page} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => setCurrentPage(page)} className={`w-8 h-8 sm:w-10 sm:h-10 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-300 ${currentPage === page ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg scale-110' : `${themeClasses.paginationButtonBg} ${themeClasses.paginationButtonText} hover:bg-gray-100 dark:hover:bg-gray-700`}`}>
-                        {page}
-                      </motion.button>
-                    ))}
-                  </div>
-                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages} className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-semibold text-xs sm:text-sm transition-all duration-300 ${currentPage === totalPages ? `${themeClasses.paginationButtonDisabledBg} ${themeClasses.paginationButtonDisabledText} cursor-not-allowed` : `${themeClasses.paginationButtonBg} ${themeClasses.paginationButtonText} hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white shadow-md hover:shadow-lg`}`}>
-                    Próx.
-                  </motion.button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </main>
-
-      <CampaignFooter campaignTheme={campaignTheme} />
-    </div>
-  );
-};
-
-export default MyTicketsPage;
+                  <motion
