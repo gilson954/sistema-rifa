@@ -31,6 +31,7 @@ import PrizesDisplayModal from '../components/PrizesDisplayModal';
 import CotasPremiadasPublicModal from '../components/CotasPremiadasPublicModal';
 import CampaignFooter from '../components/CampaignFooter';
 import PhoneLoginModal from '../components/PhoneLoginModal';
+import SocialMediaFloatingMenu from '../components/SocialMediaFloatingMenu';
 import { CustomerData as ExistingCustomer } from '../utils/customerCheck';
 import { Promotion } from '../types/promotion';
 import { CotaPremiada } from '../types/cotasPremiadas';
@@ -840,10 +841,6 @@ const CampaignPage = () => {
     return total;
   };
 
-  const handleOrganizerSocialClick = (platform: string, url: string) => {
-    window.open(url, '_blank');
-  };
-
   if (loading || ticketsLoading) {
     const loadingPrimaryColor = organizerProfile?.primary_color || '#3B82F6';
     return (
@@ -1227,8 +1224,8 @@ const CampaignPage = () => {
           </motion.section>
         )}
 
-        {/* Organizador */}
-        {!isCampaignCompleted && (
+        {/* Organizador - SEÇÃO REMOVIDA (links de redes sociais agora no menu flutuante) */}
+        {!isCampaignCompleted && organizerProfile && (
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1239,7 +1236,7 @@ const CampaignPage = () => {
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: primaryColor || '#3B82F6' }}></div>
             </div>
-          ) : organizerProfile ? (
+          ) : (
             <div className="flex items-center gap-3">
               <span className={`text-sm ${themeClasses.textSecondary}`}>
                 Organizador:
@@ -1247,35 +1244,6 @@ const CampaignPage = () => {
               <span className={`text-base font-semibold ${themeClasses.text}`}>
                 {organizerProfile.name}
               </span>
-
-              {organizerProfile.social_media_links && Object.keys(organizerProfile.social_media_links).length > 0 && (
-                <div className="flex items-center gap-2 ml-2">
-                  {Object.entries(organizerProfile.social_media_links).map(([platform, url]) => {
-                    if (!url || typeof url !== 'string') return null;
-                    const config = socialMediaConfig[platform as keyof typeof socialMediaConfig];
-                    if (!config) return null;
-                    const IconComponent = config.icon;
-                    return (
-                      <button
-                        key={platform}
-                        onClick={() => handleOrganizerSocialClick(platform, url)}
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-white hover:scale-105 transition-transform duration-150"
-                        style={{ backgroundColor: config.color }}
-                        title={`${config.name} do organizador`}
-                      >
-                        <IconComponent size={12} />
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-4">
-              <Users className={`h-8 w-8 ${themeClasses.textSecondary} mx-auto mb-2`} />
-              <p className={`text-sm ${themeClasses.textSecondary}`}>
-                Informações do organizador não disponíveis
-              </p>
             </div>
           )}
         </motion.section>
@@ -1750,6 +1718,16 @@ const CampaignPage = () => {
       />
 
       <CampaignFooter campaignTheme={campaignTheme} />
+
+      {/* Menu Flutuante de Redes Sociais */}
+      <SocialMediaFloatingMenu
+        socialMediaLinks={organizerProfile?.social_media_links}
+        primaryColor={primaryColor}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
+        campaignTheme={campaignTheme}
+      />
     </div>
   );
 };
