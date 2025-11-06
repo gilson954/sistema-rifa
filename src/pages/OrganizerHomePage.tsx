@@ -360,7 +360,7 @@ const OrganizerHomePage: React.FC = () => {
               Mais Campanhas
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 px-2 sm:px-0">
               {paginatedCampaigns.map((campaign, index) => (
                 <motion.div
                   key={campaign.id}
@@ -377,9 +377,9 @@ const OrganizerHomePage: React.FC = () => {
                     organizerTheme === 'claro'
                       ? 'shadow-[0_8px_30px_-5px_rgba(0,0,0,0.25),0_5px_15px_-5px_rgba(0,0,0,0.15)]'
                       : 'shadow-[0_8px_30px_-5px_rgba(0,0,0,0.6),0_5px_15px_-5px_rgba(0,0,0,0.4)]'
-                  } hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.35),0_10px_25px_-5px_rgba(0,0,0,0.25)]`}
+                  } hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.35),0_10px_25px_-5px_rgba(0,0,0,0.25)] max-w-sm mx-auto w-full`}
                 >
-                  <div className="relative h-48 overflow-hidden">
+                  <div className="relative h-44 sm:h-48 overflow-hidden">
                     <motion.img
                       src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=600'}
                       alt={campaign.title}
@@ -390,19 +390,19 @@ const OrganizerHomePage: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
                   </div>
 
-                  <div className="p-5">
-                    <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center line-clamp-2 min-h-[56px]`}>
+                  <div className="p-4">
+                    <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center line-clamp-2 min-h-[48px]`}>
                       {campaign.title}
                     </h3>
 
-                    <div className="flex items-center justify-center mb-4">
-                      <span className={`text-xl font-bold ${themeClasses.text}`}>
+                    <div className="flex items-center justify-center mb-3">
+                      <span className={`text-lg font-bold ${themeClasses.text}`}>
                         {formatCurrency(campaign.ticket_price)}
                       </span>
                     </div>
 
                     <motion.button
-                      className={getColorClassName("w-[160px] mx-auto block px-4 py-2 rounded-lg font-bold text-sm text-white shadow-md pointer-events-none")}
+                      className={getColorClassName("w-full px-4 py-2 rounded-lg font-bold text-sm text-white shadow-md pointer-events-none")}
                       style={getColorStyle(true)}
                       animate={{ opacity: [1, 0, 1] }}
                       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
