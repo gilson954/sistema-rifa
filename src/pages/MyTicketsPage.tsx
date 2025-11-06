@@ -120,7 +120,7 @@ const MyTicketsPage = () => {
         if (campaign && campaign.user_id) {
           const { data: profile } = await supabase
             .from('public_profiles_view')
-            .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
+            .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, whatsapp_link, instagram_link, facebook_link, telegram_link, tiktok_link, youtube_link, twitter_link, linkedin_link')
             .eq('id', campaign.user_id)
             .maybeSingle();
           if (profile) { setOrganizerProfile(profile); }
@@ -437,9 +437,16 @@ const MyTicketsPage = () => {
       {/* SocialMediaFloatingMenu - Integrado com os dados do organizador */}
       {organizerProfile && (
         <SocialMediaFloatingMenu
-          organizerId={organizerProfile.id}
           primaryColor={organizerProfile.primary_color}
           theme={organizerProfile.theme}
+          whatsappLink={organizerProfile.whatsapp_link}
+          instagramLink={organizerProfile.instagram_link}
+          facebookLink={organizerProfile.facebook_link}
+          telegramLink={organizerProfile.telegram_link}
+          tiktokLink={organizerProfile.tiktok_link}
+          youtubeLink={organizerProfile.youtube_link}
+          twitterLink={organizerProfile.twitter_link}
+          linkedinLink={organizerProfile.linkedin_link}
         />
       )}
 
