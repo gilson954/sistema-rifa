@@ -222,8 +222,8 @@ const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
         .fab-button {
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 14px 20px;
+          gap: 6px;
+          padding: 10px 16px;
           border-radius: 50px;
           border: none;
           cursor: pointer;
@@ -231,7 +231,7 @@ const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
           transition: all 0.3s ease;
           color: white;
           font-weight: 600;
-          font-size: 14px;
+          font-size: 13px;
           outline: none;
         }
 
@@ -345,9 +345,10 @@ const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.3 }}
           >
-            {isOpen ? <X size={20} /> : <Share2 size={20} />}
+            {isOpen ? <X size={18} /> : <Share2 size={18} />}
           </motion.div>
-          <span>Redes Sociais</span>
+          <span className="hidden sm:inline">Redes Sociais</span>
+          <span className="sm:hidden">Redes</span>
         </motion.button>
       </div>
     </>
