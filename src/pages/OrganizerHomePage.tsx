@@ -32,7 +32,7 @@ const OrganizerHomePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
-  const campaignsPerPage = 6;
+  const campaignsPerPage = 10;
 
   useEffect(() => {
     const loadOrganizerData = async () => {
