@@ -1282,16 +1282,13 @@ const CampaignPage = () => {
             transition={{ duration: 0.5, delay: 0.5 }}
             className={`${themeClasses.cardBg} rounded-xl shadow-lg border ${themeClasses.border} p-6 mb-4 max-w-3xl mx-auto`}
           >
-            <div className="text-center mb-6">
-              <h2 className={`text-3xl md:text-4xl font-extrabold ${themeClasses.text} mb-3`}>
-                Pacotes Promocionais!
+            <div className="text-center mb-5">
+              <h2 className={`text-2xl md:text-3xl font-extrabold ${themeClasses.text} mb-2 flex items-center justify-center gap-2`}>
+                🎁 Promoções Disponíveis
               </h2>
-              <p className={`text-sm md:text-base ${themeClasses.textSecondary} font-medium`}>
-                Compre mais cotas e economize! Quanto mais você participar, maiores suas chances de ganhar.
-              </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="flex flex-wrap gap-3 justify-center">
               {campaign.promotions.map((promo: Promotion) => {
                 const originalValue = promo.ticketQuantity * campaign.ticket_price;
                 const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0;
@@ -1301,7 +1298,7 @@ const CampaignPage = () => {
                 return (
                   <motion.div 
                     key={promo.id}
-                    whileHover={{ scale: 1.05, y: -4 }}
+                    whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.2 }}
                   >
@@ -1314,26 +1311,16 @@ const CampaignPage = () => {
                           type="button"
                           onClick={() => handlePromotionClick(promo.ticketQuantity)}
                           disabled={!isCampaignAvailable}
-                          className={`w-full p-5 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
+                          className={`flex items-center justify-between gap-3 min-w-[240px] px-5 py-3 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
                             themeClasses.cardBg
                           }`}
                         >
-                          <div className="text-center space-y-2">
-                            <div className={`text-2xl font-bold ${themeClasses.text}`}>
-                              {promo.ticketQuantity}
-                            </div>
-                            <div className={`text-xs ${themeClasses.textSecondary} uppercase tracking-wide`}>
-                              cotas por
-                            </div>
-                            <div className={`text-xl font-extrabold ${themeClasses.text}`}>
-                              {formatCurrency(finalValue)}
-                            </div>
-                            <div className="pt-2">
-                              <span className="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
-                                {discountPercentage}% OFF
-                              </span>
-                            </div>
-                          </div>
+                          <span className={`text-sm md:text-base font-bold ${themeClasses.text}`}>
+                            {promo.ticketQuantity} cotas por {formatCurrency(finalValue)}
+                          </span>
+                          <span className="flex-shrink-0 px-3 py-1 bg-green-500 text-white text-xs font-extrabold rounded-full">
+                            {discountPercentage}%
+                          </span>
                         </button>
                       </div>
                     ) : (
@@ -1341,29 +1328,19 @@ const CampaignPage = () => {
                         type="button"
                         onClick={() => handlePromotionClick(promo.ticketQuantity)}
                         disabled={!isCampaignAvailable}
-                        className={`w-full p-5 rounded-xl transition-all duration-200 shadow-md border-2 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl ${
+                        className={`flex items-center justify-between gap-3 min-w-[240px] px-5 py-3 rounded-xl transition-all duration-200 shadow-md border-2 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg ${
                           themeClasses.cardBg
                         }`}
                         style={{
                           borderColor: organizerProfile?.primary_color || (campaignTheme === 'claro' ? '#d1d5db' : '#4b5563')
                         }}
                       >
-                        <div className="text-center space-y-2">
-                          <div className={`text-2xl font-bold ${themeClasses.text}`}>
-                            {promo.ticketQuantity}
-                          </div>
-                          <div className={`text-xs ${themeClasses.textSecondary} uppercase tracking-wide`}>
-                            cotas por
-                          </div>
-                          <div className={`text-xl font-extrabold ${themeClasses.text}`}>
-                            {formatCurrency(finalValue)}
-                          </div>
-                          <div className="pt-2">
-                            <span className="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
-                              {discountPercentage}% OFF
-                            </span>
-                          </div>
-                        </div>
+                        <span className={`text-sm md:text-base font-bold ${themeClasses.text}`}>
+                          {promo.ticketQuantity} cotas por {formatCurrency(finalValue)}
+                        </span>
+                        <span className="flex-shrink-0 px-3 py-1 bg-green-500 text-white text-xs font-extrabold rounded-full">
+                          {discountPercentage}%
+                        </span>
                       </button>
                     )}
                   </motion.div>
