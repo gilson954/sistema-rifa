@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
 interface ReservationData {
-  reservationId: string; // ✅ CRITICAL: Agora é o order_id (UUID)
+  reservationId: string;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -66,6 +66,8 @@ const PaymentConfirmationPage = () => {
           cardBg: 'bg-white',
           border: 'border-gray-200',
           inputBg: 'bg-gray-50',
+          idBoxBg: 'bg-gray-100',
+          idBoxText: 'text-gray-700',
           stepBg: 'bg-green-500',
           stepText: 'text-white'
         };
@@ -77,6 +79,8 @@ const PaymentConfirmationPage = () => {
           cardBg: 'bg-slate-800',
           border: 'border-slate-700',
           inputBg: 'bg-slate-700',
+          idBoxBg: 'bg-slate-700',
+          idBoxText: 'text-gray-200',
           stepBg: 'bg-green-500',
           stepText: 'text-white'
         };
@@ -88,6 +92,8 @@ const PaymentConfirmationPage = () => {
           cardBg: 'bg-gray-900',
           border: 'border-gray-800',
           inputBg: 'bg-gray-800',
+          idBoxBg: 'bg-gray-800',
+          idBoxText: 'text-gray-200',
           stepBg: 'bg-green-500',
           stepText: 'text-white'
         };
@@ -99,6 +105,8 @@ const PaymentConfirmationPage = () => {
           cardBg: 'bg-white',
           border: 'border-gray-200',
           inputBg: 'bg-gray-50',
+          idBoxBg: 'bg-gray-100',
+          idBoxText: 'text-gray-700',
           stepBg: 'bg-green-500',
           stepText: 'text-white'
         };
@@ -107,15 +115,11 @@ const PaymentConfirmationPage = () => {
 
   const themeClasses = getThemeClasses(campaignTheme);
 
-  // CRITICAL FIX: Helper function to format quota number with proper padding
-  // Exibe quota_number - 1 (00 a N-1) ao invés de quota_number (1 a N)
   const formatQuotaNumber = (quotaNumber: number): string => {
     if (!campaign?.total_tickets) {
-      // Default to 3 digits if total_tickets is not available yet
       return (quotaNumber - 1).toString().padStart(3, '0');
     }
     
-    // Calculate the number of digits needed based on total tickets
     const digits = String(campaign.total_tickets - 1).length;
     return (quotaNumber - 1).toString().padStart(digits, '0');
   };
@@ -130,7 +134,6 @@ const PaymentConfirmationPage = () => {
       signInWithPhone(reservationData.customerPhone);
     }
 
-    // ✅ Log para debug do reservationId
     console.log('🔵 PaymentConfirmationPage - Reservation ID:', reservationData.reservationId);
     console.log('🔵 PaymentConfirmationPage - Full Reservation Data:', reservationData);
   }, [reservationData, navigate, signInWithPhone, isPhoneAuthenticated]);
@@ -148,7 +151,6 @@ const PaymentConfirmationPage = () => {
           setCampaignModel(campaignData.campaign_model || 'manual');
           setCampaign({ total_tickets: campaignData.total_tickets || 100 });
           
-          // Define a imagem da campanha
           if (campaignData.prize_image_urls && campaignData.prize_image_urls.length > 0) {
             setCampaignImageUrl(campaignData.prize_image_urls[0]);
           }
@@ -206,7 +208,6 @@ const PaymentConfirmationPage = () => {
   }, [reservationData?.expiresAt]);
 
   const handleCopyPixKey = async () => {
-    // ✅ CRITICAL: Usar o reservationId sem hífens para o código PIX
     const reservationIdClean = reservationData?.reservationId.replace(/-/g, '') || 'mock-key';
     const pixKey = `00020126580014br.gov.bcb.pix0136${reservationIdClean}5204000053039865802BR5925RIFAQUI PAGAMENTOS LTDA6009SAO PAULO62070503***6304ABCD`;
     
@@ -253,7 +254,6 @@ const PaymentConfirmationPage = () => {
         />
 
         <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-          {/* Alerta de Expiração */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -277,7 +277,6 @@ const PaymentConfirmationPage = () => {
             </div>
           </motion.div>
 
-          {/* Detalhes da Compra Expirada */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -313,8 +312,7 @@ const PaymentConfirmationPage = () => {
                     Detalhes da sua compra
                   </span>
                 </div>
-                {/* ✅ CORREÇÃO: Exibir o reservationId corretamente */}
-                <div className={`text-xs ${themeClasses.textSecondary} font-mono mb-4 bg-gray-100 dark:bg-gray-800 p-2 rounded break-all`}>
+                <div className={`text-xs font-mono mb-4 ${themeClasses.idBoxBg} ${themeClasses.idBoxText} p-3 rounded-lg break-all`}>
                   {reservationData.reservationId}
                 </div>
                 
@@ -381,7 +379,6 @@ const PaymentConfirmationPage = () => {
             </div>
           </motion.div>
 
-          {/* Botão Voltar */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -418,7 +415,6 @@ const PaymentConfirmationPage = () => {
       />
 
       <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        {/* Header com Timer */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -455,7 +451,6 @@ const PaymentConfirmationPage = () => {
           </div>
         </motion.div>
 
-        {/* Steps */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -490,7 +485,6 @@ const PaymentConfirmationPage = () => {
           </div>
         </motion.div>
 
-        {/* PIX Code */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -525,7 +519,6 @@ const PaymentConfirmationPage = () => {
           </div>
         </motion.div>
 
-        {/* Warning */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -539,7 +532,6 @@ const PaymentConfirmationPage = () => {
           </div>
         </motion.div>
 
-        {/* Detalhes da Compra */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -575,9 +567,8 @@ const PaymentConfirmationPage = () => {
                   Informações do Pedido
                 </span>
               </div>
-              {/* ✅ CORREÇÃO: Exibir o reservationId corretamente */}
-              <div className={`text-xs ${themeClasses.textSecondary} font-mono mb-4 bg-gray-100 dark:bg-gray-800 p-2 rounded break-all`}>
-                ID: {reservationData.reservationId}
+              <div className={`text-xs font-mono mb-4 ${themeClasses.idBoxBg} ${themeClasses.idBoxText} p-3 rounded-lg break-all`}>
+                {reservationData.reservationId}
               </div>
               
               <div className="space-y-3">
@@ -635,7 +626,6 @@ const PaymentConfirmationPage = () => {
               </div>
             </div>
 
-            {/* CRITICAL FIX: Exibir números reservados formatados (quota_number - 1) */}
             {campaignModel === 'manual' && reservationData.selectedQuotas && reservationData.selectedQuotas.length > 0 && (
               <div className={`${themeClasses.inputBg} rounded-xl p-4`}>
                 <p className={`text-sm font-medium ${themeClasses.text} mb-3`}>
@@ -657,7 +647,6 @@ const PaymentConfirmationPage = () => {
               </div>
             )}
 
-            {/* Para modelo automático ou sem números selecionados */}
             {(campaignModel !== 'manual' || !reservationData.selectedQuotas || reservationData.selectedQuotas.length === 0) && (
               <div className={`${themeClasses.inputBg} rounded-xl p-4`}>
                 <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>
