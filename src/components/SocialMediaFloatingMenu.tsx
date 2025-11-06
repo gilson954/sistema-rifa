@@ -262,8 +262,8 @@ const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
         }
 
         .social-button:hover {
-          transform: translateX(-4px) scale(1.05);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          transform: translateX(-8px) scale(1.1);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
 
         .social-icon {
