@@ -36,32 +36,26 @@ const MyTicketsPage = () => {
 
   const campaignContext = location.state as { campaignId?: string; organizerId?: string } | null;
 
-  // ✅ CRITICAL: Função para calcular o padding correto baseado no total de cotas da campanha
   const getQuotaNumberPadding = (campaignId: string): number => {
     const totalTickets = campaignTotalTicketsMap[campaignId];
-    if (!totalTickets || totalTickets === 0) return 4; // Padrão de 4 dígitos
+    if (!totalTickets || totalTickets === 0) return 4;
     
-    // O maior número exibido é totalTickets - 1
     const maxDisplayNumber = totalTickets - 1;
     return String(maxDisplayNumber).length;
   };
 
-  // ✅ CRITICAL: Função para formatar o número da cota (quota_number - 1)
   const formatQuotaNumber = (numero: number, campaignId: string): string => {
-    // CRITICAL FIX: Formatar numero - 1 para exibição
     const displayNumber = numero - 1;
     const padding = getQuotaNumberPadding(campaignId);
     return displayNumber.toString().padStart(padding, '0');
   };
 
-  // ✅ Carregar pedidos do usuário
   useEffect(() => {
     if (isPhoneAuthenticated && phoneUser) {
       loadUserOrders(phoneUser.phone);
     }
   }, [isPhoneAuthenticated, phoneUser, campaignContext?.organizerId]);
 
-  // ✅ Carregar total_tickets de cada campanha para cálculo correto do padding
   useEffect(() => {
     const loadCampaignTotalTickets = async () => {
       if (orders.length === 0) return;
@@ -85,9 +79,7 @@ const MyTicketsPage = () => {
     loadCampaignTotalTickets();
   }, [orders]);
 
-  // ✅ CORREÇÃO DO TIMER: Usar reservation_expires_at da resposta da API
   useEffect(() => {
-    // Filtra apenas pedidos reservados com tempo de expiração
     const pendingOrders = orders.filter(order => order.status === 'reserved' && order.reservation_expires_at);
 
     if (pendingOrders.length === 0) return;
@@ -105,13 +97,11 @@ const MyTicketsPage = () => {
         if (difference <= 0) {
           newTimeMap[order.order_id] = 'EXPIRADO';
         } else {
-          // Calcular dias, horas, minutos e segundos
           const days = Math.floor(difference / (1000 * 60 * 60 * 24));
           const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
           const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((difference % (1000 * 60)) / 1000);
           
-          // Formatar conforme o tempo restante
           if (days > 0) {
             newTimeMap[order.order_id] = `${days}d ${hours}h ${minutes}min`;
           } else if (hours > 0) {
@@ -150,7 +140,6 @@ const MyTicketsPage = () => {
           .eq('id', firstOrder.campaign_id)
           .maybeSingle();
 
-        // ✅ CRITICAL: Verificar se campaign não é null antes de acessar user_id
         if (campaign) {
           if (campaign.user_id) {
             const { data: profile } = await supabase
@@ -177,7 +166,6 @@ const MyTicketsPage = () => {
     try {
       console.log('🔵 MyTicketsPage - Loading orders for phone:', phone);
       
-      // ✅ CRITICAL: A função getOrdersByPhoneNumber agora agrupa por order_id
       const { data, error: apiError } = await TicketsAPI.getOrdersByPhoneNumber(phone);
 
       if (apiError) {
@@ -188,7 +176,6 @@ const MyTicketsPage = () => {
         
         let filteredOrders = data || [];
 
-        // Filtrar por organizador se necessário
         if (campaignContext?.organizerId) {
           const { data: organizerCampaigns } = await supabase
             .from('campaigns')
@@ -265,14 +252,13 @@ const MyTicketsPage = () => {
     }
   };
 
-  // ✅ CRITICAL: Função handlePayment atualizada para usar order_id corretamente
   const handlePayment = (order: CustomerOrder) => {
     console.log('🔵 MyTicketsPage - Navigating to payment with order_id:', order.order_id);
     
     navigate('/payment-confirmation', {
       state: {
         reservationData: {
-          reservationId: order.order_id, // ✅ CRITICAL: Usar order_id como reservationId
+          reservationId: order.order_id,
           customerName: order.customer_name || '',
           customerEmail: order.customer_email || '',
           customerPhone: order.customer_phone || '',
@@ -283,7 +269,7 @@ const MyTicketsPage = () => {
           campaignId: order.campaign_id,
           campaignPublicId: order.campaign_public_id,
           expiresAt: order.reservation_expires_at,
-          reservationTimeoutMinutes: 30 // Valor padrão; será sobrescrito pelo backend se necessário
+          reservationTimeoutMinutes: 30
         }
       }
     });
@@ -331,7 +317,15 @@ const MyTicketsPage = () => {
           textSecondary: 'text-gray-600',
           cardBg: 'bg-white',
           border: 'border-gray-200',
-          headerBg: 'bg-white'
+          headerBg: 'bg-white',
+          userBadgeBg: 'bg-gray-100',
+          userBadgeBorder: 'border-gray-200',
+          paginationContainerBg: 'bg-white',
+          paginationContainerBorder: 'border-gray-200',
+          paginationButtonBg: 'bg-white',
+          paginationButtonText: 'text-gray-700',
+          paginationButtonDisabledBg: 'bg-gray-200',
+          paginationButtonDisabledText: 'text-gray-400'
         };
       case 'escuro':
         return {
@@ -340,7 +334,15 @@ const MyTicketsPage = () => {
           textSecondary: 'text-gray-300',
           cardBg: 'bg-slate-800',
           border: 'border-slate-700',
-          headerBg: 'bg-black'
+          headerBg: 'bg-black',
+          userBadgeBg: 'bg-slate-700',
+          userBadgeBorder: 'border-slate-600',
+          paginationContainerBg: 'bg-slate-800',
+          paginationContainerBorder: 'border-slate-700',
+          paginationButtonBg: 'bg-slate-700',
+          paginationButtonText: 'text-gray-200',
+          paginationButtonDisabledBg: 'bg-slate-900',
+          paginationButtonDisabledText: 'text-gray-600'
         };
       case 'escuro-preto':
         return {
@@ -349,7 +351,15 @@ const MyTicketsPage = () => {
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
           border: 'border-gray-800',
-          headerBg: 'bg-black'
+          headerBg: 'bg-black',
+          userBadgeBg: 'bg-gray-800',
+          userBadgeBorder: 'border-gray-700',
+          paginationContainerBg: 'bg-gray-900',
+          paginationContainerBorder: 'border-gray-800',
+          paginationButtonBg: 'bg-gray-800',
+          paginationButtonText: 'text-gray-200',
+          paginationButtonDisabledBg: 'bg-black',
+          paginationButtonDisabledText: 'text-gray-600'
         };
       default:
         return {
@@ -358,7 +368,15 @@ const MyTicketsPage = () => {
           textSecondary: 'text-gray-600',
           cardBg: 'bg-white',
           border: 'border-gray-200',
-          headerBg: 'bg-white'
+          headerBg: 'bg-white',
+          userBadgeBg: 'bg-gray-100',
+          userBadgeBorder: 'border-gray-200',
+          paginationContainerBg: 'bg-white',
+          paginationContainerBorder: 'border-gray-200',
+          paginationButtonBg: 'bg-white',
+          paginationButtonText: 'text-gray-700',
+          paginationButtonDisabledBg: 'bg-gray-200',
+          paginationButtonDisabledText: 'text-gray-400'
         };
     }
   }
@@ -398,11 +416,7 @@ const MyTicketsPage = () => {
 
             <div className="flex items-center gap-2 sm:gap-3">
               {phoneUser && (
-                <div className={`hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg border ${
-                  campaignTheme === 'claro'
-                    ? 'bg-gray-100 border-gray-200'
-                    : 'bg-gray-800 border-gray-700'
-                }`}>
+                <div className={`hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg border ${themeClasses.userBadgeBg} ${themeClasses.userBadgeBorder}`}>
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                   <span className={`text-sm font-medium ${themeClasses.text}`}>
                     {phoneUser.name}
@@ -579,7 +593,6 @@ const MyTicketsPage = () => {
                                   )}
                                 </div>
                                 <div className="flex flex-wrap gap-1 sm:gap-1.5">
-                                  {/* ✅ CRITICAL FIX: Exibir quota_number - 1 com padding correto */}
                                   {(isExpanded ? order.ticket_numbers : order.ticket_numbers.slice(0, maxVisibleTickets)).map((num) => (
                                     <span
                                       key={num}
@@ -610,108 +623,4 @@ const MyTicketsPage = () => {
                             {order.status === 'reserved' && (
                               <button
                                 onClick={() => handlePayment(order)}
-                                className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 shadow-md`}
-                              >
-                                Efetuar Pagamento
-                              </button>
-                            )}
-
-                            {/* ✅ CORREÇÃO: Botão "Ver Detalhes" para pedidos expirados */}
-                            {order.status === 'expired' && (
-                              <button
-                                onClick={() => handlePayment(order)}
-                                className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 shadow-md`}
-                              >
-                                Ver Detalhes
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </div>
-
-            {totalPages > 1 && (
-              <div className={`flex flex-col items-center justify-between mt-6 sm:mt-8 gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg sm:rounded-xl border shadow-md ${
-                campaignTheme === 'claro'
-                  ? 'bg-white border-gray-200'
-                  : 'bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-gray-700/30'
-              } backdrop-blur-sm`}>
-                <div className={`text-xs sm:text-sm font-medium ${themeClasses.textSecondary} text-center`}>
-                  Mostrando{' '}
-                  <span className="font-bold text-blue-600 dark:text-blue-400">
-                    {((currentPage - 1) * ordersPerPage) + 1}
-                  </span>
-                  {' '}a{' '}
-                  <span className="font-bold text-blue-600 dark:text-blue-400">
-                    {Math.min(currentPage * ordersPerPage, orders.length)}
-                  </span>
-                  {' '}de{' '}
-                  <span className="font-bold text-blue-600 dark:text-blue-400">
-                    {orders.length}
-                  </span>
-                  {' '}pedidos
-                </div>
-
-                <div className="flex items-center gap-1.5 sm:gap-2 w-full justify-center">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-semibold text-xs sm:text-sm transition-all duration-300 ${
-                      currentPage === 1
-                        ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white shadow-md hover:shadow-lg'
-                    }`}
-                  >
-                    Ant.
-                  </motion.button>
-
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <motion.button
-                        key={page}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => setCurrentPage(page)}
-                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-300 ${
-                          currentPage === page
-                            ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg scale-110'
-                            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
-                        }`}
-                      >
-                        {page}
-                      </motion.button>
-                    ))}
-                  </div>
-
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages}
-                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-semibold text-xs sm:text-sm transition-all duration-300 ${
-                      currentPage === totalPages
-                        ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white shadow-md hover:shadow-lg'
-                    }`}
-                  >
-                    Próx.
-                  </motion.button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </main>
-
-      <CampaignFooter campaignTheme={campaignTheme} />
-    </div>
-  );
-};
-
-export default MyTicketsPage;
+                                className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bol
