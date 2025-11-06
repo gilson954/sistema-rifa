@@ -391,6 +391,59 @@ const CampaignPage = () => {
     };
   }, [campaign?.promotions, campaign?.ticket_price]);
 
+  // Nova função para lidar com cliques em promoções
+  const handlePromotionClick = useCallback((promoQuantity: number) => {
+    if (!campaign || !isCampaignAvailable) {
+      showWarning('Esta campanha não está disponível no momento');
+      return;
+    }
+
+    if (campaign.campaign_model === 'manual') {
+      // Para modo manual, selecionar cotas automaticamente
+      const availableTickets = getAvailableTickets();
+      
+      if (availableTickets.length < promoQuantity) {
+        showError(`Não há cotas suficientes disponíveis. Apenas ${availableTickets.length} cotas disponíveis.`);
+        return;
+      }
+
+      // Selecionar as primeiras N cotas disponíveis
+      const quotasToSelect = availableTickets
+        .slice(0, promoQuantity)
+        .map(ticket => ticket.quota_number);
+
+      setSelectedQuotas(quotasToSelect);
+      showSuccess(`${promoQuantity} cotas adicionadas automaticamente!`);
+      
+      // Scroll suave até a grade de cotas
+      setTimeout(() => {
+        const quotaGridElement = document.querySelector('[data-quota-grid]');
+        if (quotaGridElement) {
+          quotaGridElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    } else {
+      // Para modo automático, apenas atualizar a quantidade
+      const availableCount = campaign.total_tickets - campaign.sold_tickets;
+      
+      if (availableCount < promoQuantity) {
+        showError(`Não há cotas suficientes disponíveis. Apenas ${availableCount} cotas disponíveis.`);
+        return;
+      }
+
+      setQuantity(promoQuantity);
+      showSuccess(`Quantidade ajustada para ${promoQuantity} cotas!`);
+      
+      // Scroll suave até o seletor de quantidade
+      setTimeout(() => {
+        const quotaSelectorElement = document.querySelector('[data-quota-selector]');
+        if (quotaSelectorElement) {
+          quotaSelectorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
+  }, [campaign, isCampaignAvailable, getAvailableTickets, showSuccess, showError, showWarning]);
+
   const handleQuotaSelect = useCallback((quotaNumber: number) => {
     if (!campaign || campaign.campaign_model !== 'manual') return;
 
@@ -1221,65 +1274,99 @@ const CampaignPage = () => {
         </motion.section>
         )}
 
-        {/* Promoções */}
+        {/* Promoções - ATUALIZADO COM BOTÕES CLICÁVEIS */}
         {!isCampaignCompleted && campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
           <motion.section
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
-            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-3 mb-4 max-w-3xl mx-auto`}
+            className={`${themeClasses.cardBg} rounded-xl shadow-lg border ${themeClasses.border} p-6 mb-4 max-w-3xl mx-auto`}
           >
-            <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center`}>
-              🎁 Promoções Disponíveis
-            </h3>
+            <div className="text-center mb-6">
+              <h2 className={`text-3xl md:text-4xl font-extrabold ${themeClasses.text} mb-3`}>
+                Pacotes Promocionais!
+              </h2>
+              <p className={`text-sm md:text-base ${themeClasses.textSecondary} font-medium`}>
+                Compre mais cotas e economize! Quanto mais você participar, maiores suas chances de ganhar.
+              </p>
+            </div>
 
-            <div className="flex flex-wrap gap-3 justify-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {campaign.promotions.map((promo: Promotion) => {
                 const originalValue = promo.ticketQuantity * campaign.ticket_price;
                 const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0;
+                const finalValue = originalValue - promo.fixedDiscountAmount;
                 const colorMode = organizerProfile?.color_mode || 'solid';
 
                 return (
-                  <div key={promo.id}>
+                  <motion.div 
+                    key={promo.id}
+                    whileHover={{ scale: 1.05, y: -4 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     {colorMode === 'gradient' ? (
                       <div
-                        className={getColorClassName("p-0.5 rounded-lg shadow-sm")}
+                        className={getColorClassName("p-0.5 rounded-xl shadow-md")}
                         style={getColorStyle(true)}
                       >
                         <button
                           type="button"
-                          onClick={() => {}}
-                          className={`flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 ${
+                          onClick={() => handlePromotionClick(promo.ticketQuantity)}
+                          disabled={!isCampaignAvailable}
+                          className={`w-full p-5 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
                             themeClasses.cardBg
                           }`}
                         >
-                          <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
-                            {promo.ticketQuantity} cotas por {formatCurrency(originalValue - promo.fixedDiscountAmount)}
-                          </span>
-                          <span className="ml-3 text-sm font-extrabold text-green-500 dark:text-green-300">
-                            {discountPercentage}%
-                          </span>
+                          <div className="text-center space-y-2">
+                            <div className={`text-2xl font-bold ${themeClasses.text}`}>
+                              {promo.ticketQuantity}
+                            </div>
+                            <div className={`text-xs ${themeClasses.textSecondary} uppercase tracking-wide`}>
+                              cotas por
+                            </div>
+                            <div className={`text-xl font-extrabold ${themeClasses.text}`}>
+                              {formatCurrency(finalValue)}
+                            </div>
+                            <div className="pt-2">
+                              <span className="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
+                                {discountPercentage}% OFF
+                              </span>
+                            </div>
+                          </div>
                         </button>
                       </div>
                     ) : (
                       <button
                         type="button"
-                        onClick={() => {}}
-                        className={`flex items-center justify-between min-w-[220px] max-w-xs px-4 py-2 rounded-lg transition-all duration-150 shadow-sm border-2`}
+                        onClick={() => handlePromotionClick(promo.ticketQuantity)}
+                        disabled={!isCampaignAvailable}
+                        className={`w-full p-5 rounded-xl transition-all duration-200 shadow-md border-2 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl ${
+                          themeClasses.cardBg
+                        }`}
                         style={{
-                          background: 'transparent',
                           borderColor: organizerProfile?.primary_color || (campaignTheme === 'claro' ? '#d1d5db' : '#4b5563')
                         }}
                       >
-                        <span className={`text-sm font-bold ${themeClasses.text} truncate`}>
-                          {promo.ticketQuantity} cotas por {formatCurrency(originalValue - promo.fixedDiscountAmount)}
-                        </span>
-                        <span className="ml-3 text-sm font-extrabold text-green-500 dark:text-green-300">
-                          {discountPercentage}%
-                        </span>
+                        <div className="text-center space-y-2">
+                          <div className={`text-2xl font-bold ${themeClasses.text}`}>
+                            {promo.ticketQuantity}
+                          </div>
+                          <div className={`text-xs ${themeClasses.textSecondary} uppercase tracking-wide`}>
+                            cotas por
+                          </div>
+                          <div className={`text-xl font-extrabold ${themeClasses.text}`}>
+                            {formatCurrency(finalValue)}
+                          </div>
+                          <div className="pt-2">
+                            <span className="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
+                              {discountPercentage}% OFF
+                            </span>
+                          </div>
+                        </div>
                       </button>
                     )}
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
@@ -1312,21 +1399,23 @@ const CampaignPage = () => {
                 </div>
               )}
 
-              <QuotaGrid
-                totalQuotas={campaign.total_tickets}
-                selectedQuotas={selectedQuotas}
-                onQuotaSelect={isCampaignAvailable ? handleQuotaSelect : undefined}
-                activeFilter={activeFilter}
-                onFilterChange={setActiveFilter}
-                mode="manual"
-                tickets={tickets}
-                currentUserId={user?.id}
-                campaignTheme={campaignTheme}
-                primaryColor={primaryColor}
-                colorMode={organizerProfile?.color_mode}
-                gradientClasses={organizerProfile?.gradient_classes}
-                customGradientColors={organizerProfile?.custom_gradient_colors}
-              />
+              <div data-quota-grid>
+                <QuotaGrid
+                  totalQuotas={campaign.total_tickets}
+                  selectedQuotas={selectedQuotas}
+                  onQuotaSelect={isCampaignAvailable ? handleQuotaSelect : undefined}
+                  activeFilter={activeFilter}
+                  onFilterChange={setActiveFilter}
+                  mode="manual"
+                  tickets={tickets}
+                  currentUserId={user?.id}
+                  campaignTheme={campaignTheme}
+                  primaryColor={primaryColor}
+                  colorMode={organizerProfile?.color_mode}
+                  gradientClasses={organizerProfile?.gradient_classes}
+                  customGradientColors={organizerProfile?.custom_gradient_colors}
+                />
+              </div>
 
               {selectedQuotas.length > 0 && (
                 <div className={`${themeClasses.background} rounded-xl p-4 border ${themeClasses.border}`}>
@@ -1412,24 +1501,26 @@ const CampaignPage = () => {
                 </div>
               )}
 
-            <QuotaSelector
-              ticketPrice={campaign.ticket_price}
-              minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
-              maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 20000}
-              onQuantityChange={handleQuantityChange}
-              initialQuantity={Math.max(1, campaign.min_tickets_per_purchase || 1)}
-              mode="automatic"
-              promotionInfo={currentPromotionInfo}
-              promotions={campaign.promotions || []}
-              primaryColor={primaryColor}
-              campaignTheme={campaignTheme}
-              onReserve={isCampaignAvailable ? handleOpenReservationModal : undefined}
-              reserving={reserving}
-              disabled={!isCampaignAvailable}
-              colorMode={organizerProfile?.color_mode}
-              gradientClasses={organizerProfile?.gradient_classes}
-              customGradientColors={organizerProfile?.custom_gradient_colors}
-            />
+            <div data-quota-selector>
+              <QuotaSelector
+                ticketPrice={campaign.ticket_price}
+                minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
+                maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 20000}
+                onQuantityChange={handleQuantityChange}
+                initialQuantity={quantity}
+                mode="automatic"
+                promotionInfo={currentPromotionInfo}
+                promotions={campaign.promotions || []}
+                primaryColor={primaryColor}
+                campaignTheme={campaignTheme}
+                onReserve={isCampaignAvailable ? handleOpenReservationModal : undefined}
+                reserving={reserving}
+                disabled={!isCampaignAvailable}
+                colorMode={organizerProfile?.color_mode}
+                gradientClasses={organizerProfile?.gradient_classes}
+                customGradientColors={organizerProfile?.custom_gradient_colors}
+              />
+            </div>
             </>
           )}
         </motion.section>
