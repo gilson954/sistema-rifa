@@ -50,6 +50,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [animationDirection, setAnimationDirection] = useState<'up' | 'down' | null>(null);
+  const [promotionApplied, setPromotionApplied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -57,14 +58,20 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   // ✅ CORREÇÃO: useRef para controlar se já foi inicializado
   const isInitializedRef = useRef(false);
   const lastNotifiedQuantityRef = useRef<number>(quantity);
+  const isExternalUpdateRef = useRef(false);
 
-  // ✅ CORREÇÃO: useEffect melhorado para evitar loops e avisos
+  // ✅ Sincroniza com initialQuantity quando muda externamente (promoções)
   useEffect(() => {
     const validQuantity = Math.max(initialQuantity, minTicketsPerPurchase);
     
     // Só atualiza se a quantidade for diferente da atual
     if (validQuantity !== quantity) {
+      isExternalUpdateRef.current = true;
       setQuantity(validQuantity);
+      
+      // Indica visualmente que uma promoção foi aplicada
+      setPromotionApplied(true);
+      setTimeout(() => setPromotionApplied(false), 2000);
     }
 
     // Notifica o parent apenas se:
@@ -85,6 +92,12 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
 
   // ✅ Novo useEffect para sincronizar quantity com parent quando mudar internamente
   useEffect(() => {
+    // Ignora notificações de mudanças externas (de promoções)
+    if (isExternalUpdateRef.current) {
+      isExternalUpdateRef.current = false;
+      return;
+    }
+    
     // Só notifica se a quantidade mudou e já está inicializado
     if (isInitializedRef.current && lastNotifiedQuantityRef.current !== quantity) {
       lastNotifiedQuantityRef.current = quantity;
@@ -345,7 +358,11 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
 
       {/* Quantity Input - Novo Design */}
       <div className="flex items-center justify-center mb-4">
-        <div className={`flex items-stretch rounded-md text-3xl font-semibold ring transition-all duration-200 ${theme.inputRing} ${theme.inputFocusRing} focus-within:ring-2`}>
+        <div className={`
+          flex items-stretch rounded-md text-3xl font-semibold ring transition-all duration-200 
+          ${theme.inputRing} ${theme.inputFocusRing} focus-within:ring-2
+          ${promotionApplied ? 'ring-2 ring-green-500 animate-pulse' : ''}
+        `}>
           <button
             aria-hidden
             tabIndex={-1}
@@ -415,6 +432,20 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Indicador de Promoção Aplicada */}
+      {promotionApplied && (
+        <div className="text-center mb-3 animate-fade-in">
+          <div className="inline-block px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/30">
+            <p className="text-green-500 text-sm font-semibold flex items-center gap-1.5">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Promoção aplicada!
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Label de cotas */}
       <div className="text-center mb-4">
