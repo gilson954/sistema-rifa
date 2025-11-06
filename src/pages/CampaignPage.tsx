@@ -843,8 +843,11 @@ const CampaignPage = () => {
 
   if (loading || ticketsLoading) {
     const loadingPrimaryColor = organizerProfile?.primary_color || '#3B82F6';
+    const loadingTheme = organizerProfile?.theme || 'claro';
+    const loadingBgColor = loadingTheme === 'claro' ? 'bg-gray-50' : loadingTheme === 'escuro' ? 'bg-slate-900' : 'bg-black';
+    
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+      <div className={`min-h-screen ${loadingBgColor} flex items-center justify-center`}>
         <div className="animate-spin rounded-full h-32 w-32 border-b-2" style={{ borderColor: loadingPrimaryColor }}></div>
       </div>
     );
@@ -1378,7 +1381,7 @@ const CampaignPage = () => {
                     Cotas Selecionadas
                   </h3>
                   
-                  <div className="mb-3">
+                  <div className="mb-3 pb-16">
                     <div className={`text-sm ${themeClasses.textSecondary} mb-2`}>
                       Números selecionados:
                     </div>
@@ -1398,10 +1401,10 @@ const CampaignPage = () => {
                   {currentPromotionInfo && (
                     <div className="mb-3 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                       <div className="text-center">
-                        <div className="text-xs font-medium text-green-800 dark:text-green-200 mb-1">
+                        <div className="text-xs font-medium text-green-700 dark:text-green-400 mb-1">
                           🎉 Promoção Aplicada: {currentPromotionInfo.discountPercentage}% OFF
                         </div>
-                        <div className="text-xs text-green-700 dark:text-green-300">
+                        <div className="text-xs text-green-700 dark:text-green-400">
                           Economia de {formatCurrency(currentPromotionInfo.savings)}
                         </div>
                       </div>
