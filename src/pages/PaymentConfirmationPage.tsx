@@ -35,6 +35,10 @@ interface OrganizerProfile {
   custom_gradient_colors?: string;
 }
 
+interface Campaign {
+  total_tickets: number;
+}
+
 const PaymentConfirmationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -46,6 +50,7 @@ const PaymentConfirmationPage = () => {
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [campaignModel, setCampaignModel] = useState<string>('manual');
   const [campaignImageUrl, setCampaignImageUrl] = useState<string>('');
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
 
   const reservationData = location.state?.reservationData as ReservationData;
 
@@ -102,6 +107,19 @@ const PaymentConfirmationPage = () => {
 
   const themeClasses = getThemeClasses(campaignTheme);
 
+  // CRITICAL FIX: Helper function to format quota number with proper padding
+  // Exibe quota_number - 1 (00 a N-1) ao invés de quota_number (1 a N)
+  const formatQuotaNumber = (quotaNumber: number): string => {
+    if (!campaign?.total_tickets) {
+      // Default to 3 digits if total_tickets is not available yet
+      return (quotaNumber - 1).toString().padStart(3, '0');
+    }
+    
+    // Calculate the number of digits needed based on total tickets
+    const digits = String(campaign.total_tickets - 1).length;
+    return (quotaNumber - 1).toString().padStart(digits, '0');
+  };
+
   useEffect(() => {
     if (!reservationData) {
       navigate('/');
@@ -120,25 +138,26 @@ const PaymentConfirmationPage = () => {
   useEffect(() => {
     const loadOrganizerProfile = async () => {
       if (reservationData?.campaignId) {
-        const { data: campaign } = await supabase
+        const { data: campaignData } = await supabase
           .from('campaigns')
-          .select('user_id, campaign_model, prize_image_urls')
+          .select('user_id, campaign_model, prize_image_urls, total_tickets')
           .eq('id', reservationData.campaignId)
           .maybeSingle();
 
-        if (campaign) {
-          setCampaignModel(campaign.campaign_model || 'manual');
+        if (campaignData) {
+          setCampaignModel(campaignData.campaign_model || 'manual');
+          setCampaign({ total_tickets: campaignData.total_tickets || 100 });
           
           // Define a imagem da campanha
-          if (campaign.prize_image_urls && campaign.prize_image_urls.length > 0) {
-            setCampaignImageUrl(campaign.prize_image_urls[0]);
+          if (campaignData.prize_image_urls && campaignData.prize_image_urls.length > 0) {
+            setCampaignImageUrl(campaignData.prize_image_urls[0]);
           }
 
-          if (campaign.user_id) {
+          if (campaignData.user_id) {
             const { data: profile } = await supabase
               .from('public_profiles_view')
               .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
-              .eq('id', campaign.user_id)
+              .eq('id', campaignData.user_id)
               .maybeSingle();
 
             if (profile) {
@@ -616,13 +635,36 @@ const PaymentConfirmationPage = () => {
               </div>
             </div>
 
+            {/* CRITICAL FIX: Exibir números reservados formatados (quota_number - 1) */}
             {campaignModel === 'manual' && reservationData.selectedQuotas && reservationData.selectedQuotas.length > 0 && (
               <div className={`${themeClasses.inputBg} rounded-xl p-4`}>
-                <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>
+                <p className={`text-sm font-medium ${themeClasses.text} mb-3`}>
                   ✓ Números reservados com sucesso
                 </p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {reservationData.selectedQuotas.map((quota, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center justify-center px-3 py-1.5 bg-green-500 text-white text-sm font-bold rounded-lg"
+                    >
+                      {formatQuotaNumber(quota)}
+                    </span>
+                  ))}
+                </div>
                 <p className={`text-xs ${themeClasses.textSecondary}`}>
                   Seus números serão liberados assim que o pagamento for confirmado.
+                </p>
+              </div>
+            )}
+
+            {/* Para modelo automático ou sem números selecionados */}
+            {(campaignModel !== 'manual' || !reservationData.selectedQuotas || reservationData.selectedQuotas.length === 0) && (
+              <div className={`${themeClasses.inputBg} rounded-xl p-4`}>
+                <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>
+                  ✓ Reserva realizada com sucesso
+                </p>
+                <p className={`text-xs ${themeClasses.textSecondary}`}>
+                  Seus números serão gerados automaticamente após a confirmação do pagamento.
                 </p>
               </div>
             )}
