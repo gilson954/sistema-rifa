@@ -240,8 +240,7 @@ const OrganizerHomePage: React.FC = () => {
       <header className={`shadow-sm border-b ${themeClasses.border} ${organizerTheme === 'escuro' ? 'bg-black' : themeClasses.cardBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            <div className="flex-1"></div>
-            <div className="flex items-center justify-center flex-1">
+            <div className="flex items-center">
               {organizerProfile?.logo_url ? (
                 organizerProfile.color_mode === 'gradient' ? (
                   <div
@@ -272,7 +271,7 @@ const OrganizerHomePage: React.FC = () => {
                 </div>
               )}
             </div>
-            <div className="flex-1 flex justify-end">
+            <div className="flex items-center">
               <button
                 onClick={handleMyTicketsClick}
                 className={getColorClassName("text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105")}
