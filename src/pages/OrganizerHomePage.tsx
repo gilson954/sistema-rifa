@@ -297,15 +297,22 @@ const OrganizerHomePage: React.FC = () => {
             transition={{ duration: 0.5 }}
             className="mb-12"
           >
-            <h2 className={`text-xl font-bold ${themeClasses.text} mb-2 flex items-center gap-2`}>
+            <h2 className={`text-xl font-bold ${themeClasses.text} mb-4 flex items-center gap-2`}>
               <Trophy className="h-6 w-6 text-yellow-500" />
               Campanha em Destaque
             </h2>
             <motion.div
-              whileHover={{ y: -4, scale: 1.01 }}
-              transition={{ duration: 0.3 }}
+              whileHover={{ 
+                y: -12,
+                scale: 1.02,
+                transition: { duration: 0.3 }
+              }}
               onClick={() => handleCampaignClick(featuredCampaign.public_id)}
-              className={`${themeClasses.cardBg} rounded-2xl shadow-xl border ${themeClasses.border} overflow-hidden cursor-pointer`}
+              className={`${themeClasses.cardBg} rounded-2xl border ${themeClasses.border} overflow-hidden cursor-pointer ${
+                organizerTheme === 'claro' 
+                  ? 'shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3),0_10px_30px_-10px_rgba(0,0,0,0.2)]' 
+                  : 'shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7),0_10px_30px_-10px_rgba(0,0,0,0.5)]'
+              } hover:shadow-[0_30px_80px_-15px_rgba(0,0,0,0.4),0_15px_40px_-10px_rgba(0,0,0,0.3)]`}
             >
               <div className="relative h-[400px] sm:h-[500px]">
                 <img
@@ -316,11 +323,15 @@ const OrganizerHomePage: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
                 <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-                  <h3 className="text-2xl sm:text-4xl font-bold text-white mb-4">{featuredCampaign.title}</h3>
+                  <h3 className="text-2xl sm:text-4xl font-bold text-white mb-4 drop-shadow-lg">
+                    {featuredCampaign.title}
+                  </h3>
 
                   {featuredCampaign.show_draw_date && featuredCampaign.draw_date && (
                     <div className="flex flex-wrap gap-3 mb-4">
-                      <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
+                      <div 
+                        className={`flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg`}
+                      >
                         <Calendar className="h-5 w-5 text-white" />
                         <span className="text-white font-medium text-sm">
                           {formatDate(featuredCampaign.draw_date)}
@@ -330,11 +341,18 @@ const OrganizerHomePage: React.FC = () => {
                   )}
 
                   <motion.button
-                    className={getColorClassName("w-[180px] px-6 py-2 rounded-lg font-bold text-lg text-white shadow-lg pointer-events-none")}
+                    className={getColorClassName("w-[180px] px-6 py-3 rounded-lg font-bold text-lg text-white pointer-events-none shadow-2xl")}
                     style={getColorStyle(true)}
-                    animate={{ opacity: [1, 0, 1] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    whileHover={{ scale: 1.04 }}
+                    animate={{ 
+                      opacity: [1, 0.7, 1],
+                      scale: [1, 1.05, 1]
+                    }}
+                    transition={{ 
+                      duration: 3, 
+                      repeat: Infinity, 
+                      ease: "easeInOut" 
+                    }}
+                    whileHover={{ scale: 1.08 }}
                     whileTap={{ scale: 0.96 }}
                   >
                     {featuredCampaign.status === 'active' ? 'Adquira Já!' : 'Concluída'}
@@ -358,35 +376,55 @@ const OrganizerHomePage: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.1 }}
-                  whileHover={{ y: -4, scale: 1.02 }}
+                  whileHover={{ 
+                    y: -12,
+                    scale: 1.04,
+                    transition: { duration: 0.3 }
+                  }}
                   onClick={() => handleCampaignClick(campaign.public_id)}
-                  className={`${themeClasses.cardBg} rounded-xl shadow-lg border ${themeClasses.border} overflow-hidden cursor-pointer`}
+                  className={`${themeClasses.cardBg} rounded-xl border ${themeClasses.border} overflow-hidden cursor-pointer ${
+                    organizerTheme === 'claro'
+                      ? 'shadow-[0_8px_30px_-5px_rgba(0,0,0,0.25),0_5px_15px_-5px_rgba(0,0,0,0.15)]'
+                      : 'shadow-[0_8px_30px_-5px_rgba(0,0,0,0.6),0_5px_15px_-5px_rgba(0,0,0,0.4)]'
+                  } hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.35),0_10px_25px_-5px_rgba(0,0,0,0.25)]`}
                 >
-                  <div className="relative h-48">
-                    <img
+                  <div className="relative h-48 overflow-hidden">
+                    <motion.img
                       src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=600'}
                       alt={campaign.title}
                       className="w-full h-full object-cover"
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.4 }}
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
                   </div>
 
-                  <div className="p-4">
-                    <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center`}>
+                  <div className="p-5">
+                    <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 text-center line-clamp-2 min-h-[56px]`}>
                       {campaign.title}
                     </h3>
 
                     <div className="flex items-center justify-center mb-4">
-                      <span className={`text-lg font-bold ${themeClasses.text}`}>
+                      <span className={`text-xl font-bold ${themeClasses.text}`}>
                         {formatCurrency(campaign.ticket_price)}
                       </span>
                     </div>
 
                     <motion.button
-                      className={getColorClassName("w-[160px] mx-auto block px-4 py-2 rounded-lg font-bold text-sm text-white shadow-md pointer-events-none")}
+                      className={getColorClassName("w-full px-4 py-2.5 rounded-lg font-bold text-sm text-white pointer-events-none shadow-xl")}
                       style={getColorStyle(true)}
-                      animate={{ opacity: [1, 0, 1] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                      whileHover={{ scale: 1.03 }}
+                      animate={{ 
+                        opacity: [1, 0.8, 1],
+                      }}
+                      transition={{ 
+                        duration: 3, 
+                        repeat: Infinity, 
+                        ease: "easeInOut" 
+                      }}
+                      whileHover={{ 
+                        scale: 1.05,
+                        transition: { duration: 0.2 }
+                      }}
                       whileTap={{ scale: 0.97 }}
                     >
                       {campaign.status === 'active' ? 'Adquira Já!' : 'Concluída'}
@@ -397,7 +435,11 @@ const OrganizerHomePage: React.FC = () => {
             </div>
 
             {totalPages > 1 && (
-              <div className={`flex items-center justify-center gap-4 p-4 rounded-xl ${themeClasses.cardBg} border ${themeClasses.border}`}>
+              <div 
+                className={`flex items-center justify-center gap-4 p-4 rounded-xl ${themeClasses.cardBg} border ${themeClasses.border} ${
+                  organizerTheme === 'claro' ? 'shadow-lg' : 'shadow-2xl'
+                }`}
+              >
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
