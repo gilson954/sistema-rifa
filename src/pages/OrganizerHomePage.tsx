@@ -303,17 +303,16 @@ const OrganizerHomePage: React.FC = () => {
             </h2>
             <motion.div
               whileHover={{ 
-                y: -8,
-                scale: 1.01,
+                y: -12,
+                scale: 1.02,
                 transition: { duration: 0.3 }
               }}
               onClick={() => handleCampaignClick(featuredCampaign.public_id)}
-              className={`${themeClasses.cardBg} rounded-2xl border ${themeClasses.border} overflow-hidden cursor-pointer`}
-              style={{
-                boxShadow: organizerTheme === 'claro'
-                  ? '0 10px 30px -5px rgba(0, 0, 0, 0.1), 0 10px 20px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.05)'
-                  : '0 10px 30px -5px rgba(0, 0, 0, 0.5), 0 10px 20px -5px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05)'
-              }}
+              className={`${themeClasses.cardBg} rounded-2xl border ${themeClasses.border} overflow-hidden cursor-pointer ${
+                organizerTheme === 'claro' 
+                  ? 'shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3),0_10px_30px_-10px_rgba(0,0,0,0.2)]' 
+                  : 'shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7),0_10px_30px_-10px_rgba(0,0,0,0.5)]'
+              } hover:shadow-[0_30px_80px_-15px_rgba(0,0,0,0.4),0_15px_40px_-10px_rgba(0,0,0,0.3)]`}
             >
               <div className="relative h-[400px] sm:h-[500px]">
                 <img
@@ -331,10 +330,7 @@ const OrganizerHomePage: React.FC = () => {
                   {featuredCampaign.show_draw_date && featuredCampaign.draw_date && (
                     <div className="flex flex-wrap gap-3 mb-4">
                       <div 
-                        className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg"
-                        style={{
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-                        }}
+                        className={`flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg`}
                       >
                         <Calendar className="h-5 w-5 text-white" />
                         <span className="text-white font-medium text-sm">
@@ -345,11 +341,8 @@ const OrganizerHomePage: React.FC = () => {
                   )}
 
                   <motion.button
-                    className={getColorClassName("w-[180px] px-6 py-3 rounded-lg font-bold text-lg text-white pointer-events-none")}
-                    style={{
-                      ...getColorStyle(true),
-                      boxShadow: '0 8px 20px rgba(0, 0, 0, 0.3), 0 4px 10px rgba(0, 0, 0, 0.2)'
-                    }}
+                    className={getColorClassName("w-[180px] px-6 py-3 rounded-lg font-bold text-lg text-white pointer-events-none shadow-2xl")}
+                    style={getColorStyle(true)}
                     animate={{ 
                       opacity: [1, 0.7, 1],
                       scale: [1, 1.05, 1]
@@ -384,17 +377,16 @@ const OrganizerHomePage: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.1 }}
                   whileHover={{ 
-                    y: -8,
-                    scale: 1.03,
+                    y: -12,
+                    scale: 1.04,
                     transition: { duration: 0.3 }
                   }}
                   onClick={() => handleCampaignClick(campaign.public_id)}
-                  className={`${themeClasses.cardBg} rounded-xl border ${themeClasses.border} overflow-hidden cursor-pointer`}
-                  style={{
-                    boxShadow: organizerTheme === 'claro'
-                      ? '0 4px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 10px -3px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.05)'
-                      : '0 4px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 10px -3px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.05)'
-                  }}
+                  className={`${themeClasses.cardBg} rounded-xl border ${themeClasses.border} overflow-hidden cursor-pointer ${
+                    organizerTheme === 'claro'
+                      ? 'shadow-[0_8px_30px_-5px_rgba(0,0,0,0.25),0_5px_15px_-5px_rgba(0,0,0,0.15)]'
+                      : 'shadow-[0_8px_30px_-5px_rgba(0,0,0,0.6),0_5px_15px_-5px_rgba(0,0,0,0.4)]'
+                  } hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.35),0_10px_25px_-5px_rgba(0,0,0,0.25)]`}
                 >
                   <div className="relative h-48 overflow-hidden">
                     <motion.img
@@ -419,13 +411,8 @@ const OrganizerHomePage: React.FC = () => {
                     </div>
 
                     <motion.button
-                      className={getColorClassName("w-full px-4 py-2.5 rounded-lg font-bold text-sm text-white pointer-events-none")}
-                      style={{
-                        ...getColorStyle(true),
-                        boxShadow: organizerTheme === 'claro'
-                          ? '0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1)'
-                          : '0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3)'
-                      }}
+                      className={getColorClassName("w-full px-4 py-2.5 rounded-lg font-bold text-sm text-white pointer-events-none shadow-xl")}
+                      style={getColorStyle(true)}
                       animate={{ 
                         opacity: [1, 0.8, 1],
                       }}
@@ -436,9 +423,7 @@ const OrganizerHomePage: React.FC = () => {
                       }}
                       whileHover={{ 
                         scale: 1.05,
-                        boxShadow: organizerTheme === 'claro'
-                          ? '0 6px 16px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.15)'
-                          : '0 6px 16px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.4)'
+                        transition: { duration: 0.2 }
                       }}
                       whileTap={{ scale: 0.97 }}
                     >
@@ -451,12 +436,9 @@ const OrganizerHomePage: React.FC = () => {
 
             {totalPages > 1 && (
               <div 
-                className={`flex items-center justify-center gap-4 p-4 rounded-xl ${themeClasses.cardBg} border ${themeClasses.border}`}
-                style={{
-                  boxShadow: organizerTheme === 'claro'
-                    ? '0 2px 8px rgba(0, 0, 0, 0.08)'
-                    : '0 2px 8px rgba(0, 0, 0, 0.3)'
-                }}
+                className={`flex items-center justify-center gap-4 p-4 rounded-xl ${themeClasses.cardBg} border ${themeClasses.border} ${
+                  organizerTheme === 'claro' ? 'shadow-lg' : 'shadow-2xl'
+                }`}
               >
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
