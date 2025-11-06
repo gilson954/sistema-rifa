@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Clock, Copy, CheckCircle, User, Mail, Phone, Hash, QrCode, AlertTriangle, Timer, Package, DollarSign } from 'lucide-react';
 import CampaignHeader from '../components/CampaignHeader';
 import CampaignFooter from '../components/CampaignFooter';
+import SocialMediaFloatingMenu from '../components/SocialMediaFloatingMenu';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -33,6 +34,7 @@ interface OrganizerProfile {
   color_mode?: string;
   gradient_classes?: string;
   custom_gradient_colors?: string;
+  social_media_links?: any;
 }
 
 interface Campaign {
@@ -158,7 +160,7 @@ const PaymentConfirmationPage = () => {
           if (campaignData.user_id) {
             const { data: profile } = await supabase
               .from('public_profiles_view')
-              .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
+              .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, social_media_links')
               .eq('id', campaignData.user_id)
               .maybeSingle();
 
@@ -393,6 +395,17 @@ const PaymentConfirmationPage = () => {
             </button>
           </motion.div>
         </main>
+
+        {/* Menu flutuante de redes sociais - Exibido quando há perfil do organizador */}
+        {organizerProfile && (
+          <SocialMediaFloatingMenu
+            socialMediaLinks={organizerProfile.social_media_links}
+            primaryColor={organizerProfile.primary_color || '#3B82F6'}
+            colorMode={organizerProfile.color_mode || 'solid'}
+            gradientClasses={organizerProfile.gradient_classes || ''}
+            customGradientColors={organizerProfile.custom_gradient_colors || ''}
+          />
+        )}
 
         <CampaignFooter campaignTheme={campaignTheme} />
       </div>
@@ -660,6 +673,17 @@ const PaymentConfirmationPage = () => {
           </div>
         </motion.div>
       </main>
+
+      {/* Menu flutuante de redes sociais - Exibido quando há perfil do organizador */}
+      {organizerProfile && (
+        <SocialMediaFloatingMenu
+          socialMediaLinks={organizerProfile.social_media_links}
+          primaryColor={organizerProfile.primary_color || '#3B82F6'}
+          colorMode={organizerProfile.color_mode || 'solid'}
+          gradientClasses={organizerProfile.gradient_classes || ''}
+          customGradientColors={organizerProfile.custom_gradient_colors || ''}
+        />
+      )}
 
       <CampaignFooter campaignTheme={campaignTheme} />
     </div>
