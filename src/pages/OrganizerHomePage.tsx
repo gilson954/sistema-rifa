@@ -360,7 +360,7 @@ const OrganizerHomePage: React.FC = () => {
               Mais Campanhas
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5 mb-8">
               {paginatedCampaigns.map((campaign, index) => (
                 <motion.div
                   key={campaign.id}
@@ -368,44 +368,41 @@ const OrganizerHomePage: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.1 }}
                   whileHover={{ 
-                    y: -8,
-                    scale: 1.02,
+                    y: -6,
+                    scale: 1.03,
                     transition: { duration: 0.3 }
                   }}
                   onClick={() => handleCampaignClick(campaign.public_id)}
-                  className={`${themeClasses.cardBg} rounded-2xl border ${themeClasses.border} overflow-hidden cursor-pointer ${
+                  className={`${themeClasses.cardBg} rounded-xl border ${themeClasses.border} overflow-hidden cursor-pointer ${
                     organizerTheme === 'claro'
-                      ? 'shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2),0_5px_20px_-5px_rgba(0,0,0,0.12)]'
-                      : 'shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6),0_5px_20px_-5px_rgba(0,0,0,0.4)]'
-                  } hover:shadow-[0_20px_60px_-12px_rgba(0,0,0,0.3),0_10px_30px_-8px_rgba(0,0,0,0.2)] transition-all duration-300`}
+                      ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
+                      : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
+                  } hover:shadow-[0_15px_45px_-10px_rgba(0,0,0,0.3),0_8px_22px_-6px_rgba(0,0,0,0.2)] transition-all duration-300`}
                 >
-                  <div className="relative h-56 sm:h-64 lg:h-72 overflow-hidden">
+                  <div className="relative h-32 sm:h-40 lg:h-44 overflow-hidden">
                     <motion.img
                       src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=600'}
                       alt={campaign.title}
                       className="w-full h-full object-cover"
-                      whileHover={{ scale: 1.08 }}
-                      transition={{ duration: 0.5 }}
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.4 }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent opacity-60" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent" />
                   </div>
 
-                  <div className="p-5 sm:p-6">
-                    <h3 className={`text-lg sm:text-xl font-bold ${themeClasses.text} mb-4 text-center line-clamp-2 min-h-[56px] leading-tight`}>
+                  <div className="p-3 sm:p-4">
+                    <h3 className={`text-xs sm:text-sm font-bold ${themeClasses.text} mb-2 text-center line-clamp-2 min-h-[32px] sm:min-h-[36px] leading-tight`}>
                       {campaign.title}
                     </h3>
 
-                    <div className="flex items-center justify-center mb-5">
-                      <div className="text-center">
-                        <p className={`text-xs ${themeClasses.textSecondary} mb-1`}>Valor por cota</p>
-                        <span className={`text-2xl sm:text-3xl font-bold ${themeClasses.text}`}>
-                          {formatCurrency(campaign.ticket_price)}
-                        </span>
-                      </div>
+                    <div className="flex items-center justify-center mb-3">
+                      <span className={`text-base sm:text-lg lg:text-xl font-bold ${themeClasses.text}`}>
+                        {formatCurrency(campaign.ticket_price)}
+                      </span>
                     </div>
 
                     <motion.button
-                      className={getColorClassName("w-full px-6 py-3 rounded-xl font-bold text-base text-white shadow-lg pointer-events-none")}
+                      className={getColorClassName("w-full px-3 py-2 rounded-lg font-bold text-xs sm:text-sm text-white shadow-md pointer-events-none")}
                       style={getColorStyle(true)}
                       animate={{ opacity: [1, 0, 1] }}
                       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
