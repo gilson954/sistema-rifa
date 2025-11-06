@@ -413,15 +413,7 @@ const CampaignPage = () => {
         .map(ticket => ticket.quota_number);
 
       setSelectedQuotas(quotasToSelect);
-      showSuccess(`${promoQuantity} cotas adicionadas automaticamente!`);
-      
-      // Scroll suave até a grade de cotas
-      setTimeout(() => {
-        const quotaGridElement = document.querySelector('[data-quota-grid]');
-        if (quotaGridElement) {
-          quotaGridElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 100);
+      showSuccess(`${promoQuantity} cotas selecionadas!`);
     } else {
       // Para modo automático, apenas atualizar a quantidade
       const availableCount = campaign.total_tickets - campaign.sold_tickets;
@@ -433,14 +425,6 @@ const CampaignPage = () => {
 
       setQuantity(promoQuantity);
       showSuccess(`Quantidade ajustada para ${promoQuantity} cotas!`);
-      
-      // Scroll suave até o seletor de quantidade
-      setTimeout(() => {
-        const quotaSelectorElement = document.querySelector('[data-quota-selector]');
-        if (quotaSelectorElement) {
-          quotaSelectorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 100);
     }
   }, [campaign, isCampaignAvailable, getAvailableTickets, showSuccess, showError, showWarning]);
 
@@ -1280,15 +1264,18 @@ const CampaignPage = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
-            className={`${themeClasses.cardBg} rounded-xl shadow-lg border ${themeClasses.border} p-6 mb-4 max-w-3xl mx-auto`}
+            className={`${themeClasses.cardBg} rounded-xl shadow-lg border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}
           >
-            <div className="text-center mb-5">
-              <h2 className={`text-2xl md:text-3xl font-extrabold ${themeClasses.text} mb-2 flex items-center justify-center gap-2`}>
+            <div className={`text-center px-6 pt-6 pb-4`}>
+              <h2 className={`text-xl md:text-2xl font-bold ${themeClasses.text} mb-2 flex items-center justify-center gap-2`}>
                 🎁 Promoções Disponíveis
               </h2>
+              <p className={`text-xs md:text-sm ${themeClasses.textSecondary}`}>
+                Compre mais cotas e economize! Quanto mais você participar, maiores suas chances de ganhar.
+              </p>
             </div>
 
-            <div className="flex flex-wrap gap-3 justify-center">
+            <div className="px-4 pb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {campaign.promotions.map((promo: Promotion) => {
                 const originalValue = promo.ticketQuantity * campaign.ticket_price;
                 const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0;
@@ -1298,27 +1285,27 @@ const CampaignPage = () => {
                 return (
                   <motion.div 
                     key={promo.id}
-                    whileHover={{ scale: 1.03 }}
+                    whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.2 }}
                   >
                     {colorMode === 'gradient' ? (
                       <div
-                        className={getColorClassName("p-0.5 rounded-xl shadow-md")}
+                        className={getColorClassName("p-0.5 rounded-lg")}
                         style={getColorStyle(true)}
                       >
                         <button
                           type="button"
                           onClick={() => handlePromotionClick(promo.ticketQuantity)}
                           disabled={!isCampaignAvailable}
-                          className={`flex items-center justify-between gap-3 min-w-[240px] px-5 py-3 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
+                          className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
                             themeClasses.cardBg
                           }`}
                         >
-                          <span className={`text-sm md:text-base font-bold ${themeClasses.text}`}>
+                          <span className={`text-xs md:text-sm font-bold ${themeClasses.text} text-left`}>
                             {promo.ticketQuantity} cotas por {formatCurrency(finalValue)}
                           </span>
-                          <span className="flex-shrink-0 px-3 py-1 bg-green-500 text-white text-xs font-extrabold rounded-full">
+                          <span className="flex-shrink-0 px-2 py-0.5 bg-green-500 text-white text-xs font-bold rounded-full">
                             {discountPercentage}%
                           </span>
                         </button>
@@ -1328,17 +1315,17 @@ const CampaignPage = () => {
                         type="button"
                         onClick={() => handlePromotionClick(promo.ticketQuantity)}
                         disabled={!isCampaignAvailable}
-                        className={`flex items-center justify-between gap-3 min-w-[240px] px-5 py-3 rounded-xl transition-all duration-200 shadow-md border-2 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg ${
+                        className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg transition-all duration-200 border-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                           themeClasses.cardBg
                         }`}
                         style={{
                           borderColor: organizerProfile?.primary_color || (campaignTheme === 'claro' ? '#d1d5db' : '#4b5563')
                         }}
                       >
-                        <span className={`text-sm md:text-base font-bold ${themeClasses.text}`}>
+                        <span className={`text-xs md:text-sm font-bold ${themeClasses.text} text-left`}>
                           {promo.ticketQuantity} cotas por {formatCurrency(finalValue)}
                         </span>
-                        <span className="flex-shrink-0 px-3 py-1 bg-green-500 text-white text-xs font-extrabold rounded-full">
+                        <span className="flex-shrink-0 px-2 py-0.5 bg-green-500 text-white text-xs font-bold rounded-full">
                           {discountPercentage}%
                         </span>
                       </button>
