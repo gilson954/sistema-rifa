@@ -14,10 +14,20 @@ interface OrganizerProfile {
   name: string;
   logo_url?: string;
   primary_color?: string;
+  secondary_color?: string;
   theme?: string;
   color_mode?: string;
   gradient_classes?: string;
   custom_gradient_colors?: string;
+  whatsapp_support?: string;
+  whatsapp_group?: string;
+  instagram_link?: string;
+  facebook_link?: string;
+  telegram_link?: string;
+  tiktok_link?: string;
+  youtube_link?: string;
+  twitter_link?: string;
+  linkedin_link?: string;
 }
 
 const MyTicketsPage = () => {
@@ -120,7 +130,7 @@ const MyTicketsPage = () => {
         if (campaign && campaign.user_id) {
           const { data: profile } = await supabase
             .from('public_profiles_view')
-            .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, whatsapp_link, instagram_link, facebook_link, telegram_link, tiktok_link, youtube_link, twitter_link, linkedin_link')
+            .select('id, name, logo_url, primary_color, secondary_color, theme, color_mode, gradient_classes, custom_gradient_colors, whatsapp_support, whatsapp_group, instagram_link, facebook_link, telegram_link, tiktok_link, youtube_link, twitter_link, linkedin_link')
             .eq('id', campaign.user_id)
             .maybeSingle();
           if (profile) { setOrganizerProfile(profile); }
@@ -437,16 +447,22 @@ const MyTicketsPage = () => {
       {/* SocialMediaFloatingMenu - Integrado com os dados do organizador */}
       {organizerProfile && (
         <SocialMediaFloatingMenu
+          socialMediaLinks={{
+            instagram: organizerProfile.instagram_link || '',
+            facebook: organizerProfile.facebook_link || '',
+            telegram: organizerProfile.telegram_link || '',
+            tiktok: organizerProfile.tiktok_link || '',
+            youtube: organizerProfile.youtube_link || '',
+            twitter: organizerProfile.twitter_link || '',
+            linkedin: organizerProfile.linkedin_link || '',
+          }}
+          whatsappSupport={organizerProfile.whatsapp_support}
+          whatsappGroup={organizerProfile.whatsapp_group}
           primaryColor={organizerProfile.primary_color}
-          theme={organizerProfile.theme}
-          whatsappLink={organizerProfile.whatsapp_link}
-          instagramLink={organizerProfile.instagram_link}
-          facebookLink={organizerProfile.facebook_link}
-          telegramLink={organizerProfile.telegram_link}
-          tiktokLink={organizerProfile.tiktok_link}
-          youtubeLink={organizerProfile.youtube_link}
-          twitterLink={organizerProfile.twitter_link}
-          linkedinLink={organizerProfile.linkedin_link}
+          secondaryColor={organizerProfile.secondary_color}
+          colorMode={organizerProfile.color_mode}
+          gradientClasses={organizerProfile.gradient_classes}
+          customGradientColors={organizerProfile.custom_gradient_colors}
         />
       )}
 
