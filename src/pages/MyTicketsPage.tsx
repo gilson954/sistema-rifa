@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Ticket, Calendar, CheckCircle, Clock, XCircle, AlertCircle, LogOut, Timer, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import CampaignFooter from '../components/CampaignFooter';
+import SocialMediaFloatingMenu from '../components/SocialMediaFloatingMenu';
 import { TicketsAPI, CustomerOrder } from '../lib/api/tickets';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/currency';
@@ -117,7 +118,11 @@ const MyTicketsPage = () => {
         const firstOrder = orders[0];
         const { data: campaign } = await supabase.from('campaigns').select('user_id').eq('id', firstOrder.campaign_id).maybeSingle();
         if (campaign && campaign.user_id) {
-          const { data: profile } = await supabase.from('public_profiles_view').select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors').eq('id', campaign.user_id).maybeSingle();
+          const { data: profile } = await supabase
+            .from('public_profiles_view')
+            .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
+            .eq('id', campaign.user_id)
+            .maybeSingle();
           if (profile) { setOrganizerProfile(profile); }
         }
       }
@@ -428,6 +433,15 @@ const MyTicketsPage = () => {
           </>
         )}
       </main>
+
+      {/* SocialMediaFloatingMenu - Integrado com os dados do organizador */}
+      {organizerProfile && (
+        <SocialMediaFloatingMenu
+          organizerId={organizerProfile.id}
+          primaryColor={organizerProfile.primary_color}
+          theme={organizerProfile.theme}
+        />
+      )}
 
       <CampaignFooter campaignTheme={campaignTheme} />
     </div>
