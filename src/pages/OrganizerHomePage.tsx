@@ -339,18 +339,11 @@ const OrganizerHomePage: React.FC = () => {
                   )}
 
                   <motion.button
-                    className={getColorClassName("w-[180px] px-6 py-3 rounded-lg font-bold text-lg text-white pointer-events-none shadow-2xl")}
+                    className={getColorClassName("w-[180px] px-6 py-2 rounded-lg font-bold text-lg text-white shadow-lg pointer-events-none")}
                     style={getColorStyle(true)}
-                    animate={{ 
-                      opacity: [1, 0.7, 1],
-                      scale: [1, 1.05, 1]
-                    }}
-                    transition={{ 
-                      duration: 3, 
-                      repeat: Infinity, 
-                      ease: "easeInOut" 
-                    }}
-                    whileHover={{ scale: 1.08 }}
+                    animate={{ opacity: [1, 0, 1] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    whileHover={{ scale: 1.04 }}
                     whileTap={{ scale: 0.96 }}
                   >
                     {featuredCampaign.status === 'active' ? 'Adquira Já!' : 'Concluída'}
@@ -409,20 +402,11 @@ const OrganizerHomePage: React.FC = () => {
                     </div>
 
                     <motion.button
-                      className={getColorClassName("w-full px-4 py-2.5 rounded-lg font-bold text-sm text-white pointer-events-none shadow-xl")}
+                      className={getColorClassName("w-[160px] mx-auto block px-4 py-2 rounded-lg font-bold text-sm text-white shadow-md pointer-events-none")}
                       style={getColorStyle(true)}
-                      animate={{ 
-                        opacity: [1, 0.8, 1],
-                      }}
-                      transition={{ 
-                        duration: 3, 
-                        repeat: Infinity, 
-                        ease: "easeInOut" 
-                      }}
-                      whileHover={{ 
-                        scale: 1.05,
-                        transition: { duration: 0.2 }
-                      }}
+                      animate={{ opacity: [1, 0, 1] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                      whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                     >
                       {campaign.status === 'active' ? 'Adquira Já!' : 'Concluída'}
