@@ -379,7 +379,7 @@ const OrganizerHomePage: React.FC = () => {
                       : 'shadow-[0_8px_30px_-5px_rgba(0,0,0,0.6),0_5px_15px_-5px_rgba(0,0,0,0.4)]'
                   } hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.35),0_10px_25px_-5px_rgba(0,0,0,0.25)] max-w-sm mx-auto w-full`}
                 >
-                  <div className="relative h-44 sm:h-48 overflow-hidden">
+                  <div className="relative h-40 sm:h-44 overflow-hidden">
                     <motion.img
                       src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=600'}
                       alt={campaign.title}
@@ -390,19 +390,19 @@ const OrganizerHomePage: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
                   </div>
 
-                  <div className="p-4">
-                    <h3 className={`text-base font-bold ${themeClasses.text} mb-2 text-center line-clamp-2 min-h-[48px]`}>
+                  <div className="p-3.5">
+                    <h3 className={`text-sm sm:text-base font-bold ${themeClasses.text} mb-1.5 text-center line-clamp-2 min-h-[40px]`}>
                       {campaign.title}
                     </h3>
 
-                    <div className="flex items-center justify-center mb-3">
-                      <span className={`text-lg font-bold ${themeClasses.text}`}>
+                    <div className="flex items-center justify-center mb-2.5">
+                      <span className={`text-base sm:text-lg font-bold ${themeClasses.text}`}>
                         {formatCurrency(campaign.ticket_price)}
                       </span>
                     </div>
 
                     <motion.button
-                      className={getColorClassName("w-full px-4 py-2 rounded-lg font-bold text-sm text-white shadow-md pointer-events-none")}
+                      className={getColorClassName("w-full px-4 py-2 rounded-lg font-bold text-xs sm:text-sm text-white shadow-md pointer-events-none")}
                       style={getColorStyle(true)}
                       animate={{ opacity: [1, 0, 1] }}
                       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
