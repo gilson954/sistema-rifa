@@ -31,6 +31,49 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
   const navigate = useNavigate();
   const { isPhoneAuthenticated, phoneUser, signOut } = useAuth();
 
+  const getThemeClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
+        return {
+          headerBg: 'bg-white',
+          borderClass: 'border-gray-300',
+          userBadgeBg: 'bg-gray-100',
+          userBadgeText: 'text-gray-900',
+          userBadgeBorder: 'border-gray-300',
+          logoText: 'text-gray-900 dark:text-white'
+        };
+      case 'escuro':
+        return {
+          headerBg: 'bg-black',
+          borderClass: 'border-gray-800',
+          userBadgeBg: 'bg-slate-700',
+          userBadgeText: 'text-white',
+          userBadgeBorder: 'border-slate-600',
+          logoText: 'text-white'
+        };
+      case 'escuro-preto':
+        return {
+          headerBg: 'bg-black',
+          borderClass: 'border-gray-800',
+          userBadgeBg: 'bg-gray-800',
+          userBadgeText: 'text-white',
+          userBadgeBorder: 'border-gray-700',
+          logoText: 'text-white'
+        };
+      default:
+        return {
+          headerBg: 'bg-white',
+          borderClass: 'border-gray-300',
+          userBadgeBg: 'bg-gray-100',
+          userBadgeText: 'text-gray-900',
+          userBadgeBorder: 'border-gray-300',
+          logoText: 'text-gray-900 dark:text-white'
+        };
+    }
+  };
+
+  const themeStyles = getThemeClasses(campaignTheme);
+
   const getCustomGradientStyle = () => {
     if (!customGradientColors) return {};
 
@@ -111,11 +154,8 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
     });
   };
 
-  const themeClasses = campaignTheme === 'escuro' || campaignTheme === 'escuro-preto' ? 'bg-black' : 'bg-white';
-  const borderClass = campaignTheme === 'claro' ? 'border-gray-300' : 'border-gray-800';
-
   return (
-    <header className={`shadow-sm border-b ${borderClass} ${themeClasses}`}>
+    <header className={`shadow-sm border-b ${themeStyles.borderClass} ${themeStyles.headerBg}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <button
@@ -148,7 +188,7 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
                   alt="Rifaqui Logo"
                   className="w-10 h-10 object-contain"
                 />
-                <span className={`ml-2 text-2xl font-bold ${campaignTheme === 'claro' ? 'text-gray-900 dark:text-white' : 'text-white'}`}>
+                <span className={`ml-2 text-2xl font-bold ${themeStyles.logoText}`}>
                   Rifaqui
                 </span>
               </>
@@ -157,13 +197,9 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
 
           <div className="flex items-center space-x-3">
             {isPhoneAuthenticated && phoneUser && (
-              <div className={`hidden md:flex items-center space-x-2 px-4 py-2 rounded-lg border ${
-                campaignTheme === 'claro' 
-                  ? 'bg-gray-900 border-gray-700' 
-                  : 'bg-gray-900 border-gray-700'
-              }`}>
+              <div className={`hidden md:flex items-center space-x-2 px-4 py-2 rounded-lg border ${themeStyles.userBadgeBg} ${themeStyles.userBadgeText} ${themeStyles.userBadgeBorder}`}>
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-sm font-medium text-white">
+                <span className="text-sm font-medium">
                   {phoneUser.name}
                 </span>
               </div>
