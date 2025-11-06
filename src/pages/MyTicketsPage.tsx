@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Ticket, Calendar, CheckCircle, Clock, XCircle, AlertCircle, LogOut, Timer, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import CampaignFooter from '../components/CampaignFooter';
-import SocialMediaFloatingMenu from '../components/SocialMediaFloatingMenu';
 import { TicketsAPI, CustomerOrder } from '../lib/api/tickets';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/currency';
@@ -14,15 +13,10 @@ interface OrganizerProfile {
   name: string;
   logo_url?: string;
   primary_color?: string;
-  secondary_color?: string;
   theme?: string;
   color_mode?: string;
   gradient_classes?: string;
   custom_gradient_colors?: string;
-  animated_gradient?: boolean;
-  social_media_links?: Record<string, string | boolean | null>;
-  whatsapp_support?: string | null;
-  whatsapp_group?: string | null;
 }
 
 const MyTicketsPage = () => {
@@ -123,28 +117,8 @@ const MyTicketsPage = () => {
         const firstOrder = orders[0];
         const { data: campaign } = await supabase.from('campaigns').select('user_id').eq('id', firstOrder.campaign_id).maybeSingle();
         if (campaign && campaign.user_id) {
-          const { data: profile } = await supabase
-            .from('public_profiles_view')
-            .select(`
-              id, 
-              name, 
-              logo_url, 
-              primary_color, 
-              secondary_color,
-              theme, 
-              color_mode, 
-              gradient_classes, 
-              custom_gradient_colors,
-              animated_gradient,
-              social_media_links,
-              whatsapp_support,
-              whatsapp_group
-            `)
-            .eq('id', campaign.user_id)
-            .maybeSingle();
-          if (profile) { 
-            setOrganizerProfile(profile); 
-          }
+          const { data: profile } = await supabase.from('public_profiles_view').select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors').eq('id', campaign.user_id).maybeSingle();
+          if (profile) { setOrganizerProfile(profile); }
         }
       }
     };
@@ -454,21 +428,6 @@ const MyTicketsPage = () => {
           </>
         )}
       </main>
-
-      {/* Botão Flutuante de Redes Sociais */}
-      {organizerProfile && (
-        <SocialMediaFloatingMenu
-          socialMediaLinks={organizerProfile.social_media_links}
-          whatsappSupport={organizerProfile.whatsapp_support}
-          whatsappGroup={organizerProfile.whatsapp_group}
-          primaryColor={organizerProfile.primary_color}
-          secondaryColor={organizerProfile.secondary_color}
-          colorMode={organizerProfile.color_mode}
-          gradientClasses={organizerProfile.gradient_classes}
-          customGradientColors={organizerProfile.custom_gradient_colors}
-          animatedGradient={organizerProfile.animated_gradient}
-        />
-      )}
 
       <CampaignFooter campaignTheme={campaignTheme} />
     </div>
