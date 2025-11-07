@@ -77,9 +77,9 @@ function DynamicPageMetadata() {
 
             // Buscar logo do organizador
             const { data: profile, error: profileError } = await supabase
-              .from('public_profiles')
+              .from('public_profiles_view')
               .select('logo_url')
-              .eq('user_id', campaign.user_id)
+              .eq('id', campaign.user_id)
               .single();
 
             if (profile && !profileError && profile.logo_url && faviconElement) {
@@ -100,9 +100,9 @@ function DynamicPageMetadata() {
         try {
           // Buscar informações do organizador
           const { data: profile, error: profileError } = await supabase
-            .from('public_profiles')
+            .from('public_profiles_view')
             .select('name, logo_url')
-            .eq('user_id', userId)
+            .eq('id', userId)
             .single();
 
           // Atualizar título da página para "Campanha"
