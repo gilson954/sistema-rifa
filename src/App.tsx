@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import Layout from './components/Layout';
@@ -42,12 +42,175 @@ import GanhadoresPage from './pages/GanhadoresPage';
 import DetalhesGanhadorPage from './pages/DetalhesGanhadorPage';
 import OrganizerHomePage from './pages/OrganizerHomePage';
 import EmailConfirmationSuccessPage from './pages/EmailConfirmationSuccessPage';
+import { supabase } from './lib/supabase';
+
+// Componente interno para gerenciar favicon e título dinâmicos
+function DynamicPageMetadata() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const updateFaviconAndTitle = async () => {
+      const pathname = location.pathname;
+      const faviconElement = document.getElementById('favicon') as HTMLLinkElement;
+      const defaultFavicon = '/logo-chatgpt.png';
+      
+      // Resetar para favicon padrão
+      if (faviconElement) {
+        faviconElement.href = defaultFavicon;
+      }
+
+      // Página de Campanha - /c/:publicId
+      if (pathname.startsWith('/c/')) {
+        const publicId = pathname.split('/c/')[1];
+        
+        try {
+          // Buscar campanha e informações do organizador
+          const { data: campaign, error: campaignError } = await supabase
+            .from('campaigns')
+            .select('title, user_id')
+            .eq('public_id', publicId)
+            .single();
+
+          if (campaign && !campaignError) {
+            // Atualizar título da página
+            document.title = `${campaign.title} - Rifaqui`;
+
+            // Buscar logo do organizador
+            const { data: profile, error: profileError } = await supabase
+              .from('public_profiles')
+              .select('logo_url')
+              .eq('user_id', campaign.user_id)
+              .single();
+
+            if (profile && !profileError && profile.logo_url && faviconElement) {
+              faviconElement.href = profile.logo_url;
+            }
+          } else {
+            document.title = 'Campanha - Rifaqui';
+          }
+        } catch (error) {
+          console.error('Erro ao buscar dados da campanha:', error);
+          document.title = 'Campanha - Rifaqui';
+        }
+      }
+      // Página do Organizador - /org/:userId
+      else if (pathname.startsWith('/org/')) {
+        const userId = pathname.split('/org/')[1];
+        
+        try {
+          // Buscar informações do organizador
+          const { data: profile, error: profileError } = await supabase
+            .from('public_profiles')
+            .select('name, logo_url')
+            .eq('user_id', userId)
+            .single();
+
+          if (profile && !profileError) {
+            // Atualizar título da página
+            document.title = `${profile.name || 'Organizador'} - Rifaqui`;
+
+            // Atualizar favicon
+            if (profile.logo_url && faviconElement) {
+              faviconElement.href = profile.logo_url;
+            }
+          } else {
+            document.title = 'Organizador - Rifaqui';
+          }
+        } catch (error) {
+          console.error('Erro ao buscar dados do organizador:', error);
+          document.title = 'Organizador - Rifaqui';
+        }
+      }
+      // Página Minhas Cotas
+      else if (pathname === '/my-tickets') {
+        document.title = 'Minhas Cotas - Rifaqui';
+      }
+      // Página de Confirmação de Pagamento
+      else if (pathname === '/payment-confirmation') {
+        document.title = 'Confirmação de Pagamento - Rifaqui';
+      }
+      // Página de Sucesso de Pagamento
+      else if (pathname === '/payment-success') {
+        document.title = 'Pagamento Confirmado - Rifaqui';
+      }
+      // Página de Pagamento Cancelado
+      else if (pathname === '/payment-cancelled') {
+        document.title = 'Pagamento Cancelado - Rifaqui';
+      }
+      // Dashboard
+      else if (pathname.startsWith('/dashboard')) {
+        if (pathname === '/dashboard') {
+          document.title = 'Dashboard - Rifaqui';
+        } else if (pathname.includes('/create-campaign')) {
+          document.title = 'Criar Campanha - Rifaqui';
+        } else if (pathname.includes('/integrations')) {
+          document.title = 'Integrações de Pagamento - Rifaqui';
+        } else if (pathname.includes('/affiliations')) {
+          document.title = 'Afiliações - Rifaqui';
+        } else if (pathname.includes('/social-media')) {
+          document.title = 'Redes Sociais - Rifaqui';
+        } else if (pathname.includes('/analytics')) {
+          document.title = 'Pixels e Analytics - Rifaqui';
+        } else if (pathname.includes('/customize')) {
+          document.title = 'Personalização - Rifaqui';
+        } else if (pathname.includes('/account')) {
+          document.title = 'Minha Conta - Rifaqui';
+        } else if (pathname.includes('/tutorials')) {
+          document.title = 'Tutoriais - Rifaqui';
+        } else if (pathname.includes('/suggestions')) {
+          document.title = 'Sugestões - Rifaqui';
+        } else if (pathname.includes('/sales-history')) {
+          document.title = 'Histórico de Vendas - Rifaqui';
+        } else if (pathname.includes('/realizar-sorteio')) {
+          document.title = 'Realizar Sorteio - Rifaqui';
+        } else if (pathname.includes('/ganhadores')) {
+          document.title = 'Ganhadores - Rifaqui';
+        }
+      }
+      // Admin
+      else if (pathname.startsWith('/admin')) {
+        if (pathname === '/admin/dashboard') {
+          document.title = 'Admin Dashboard - Rifaqui';
+        } else if (pathname === '/admin/suggestions') {
+          document.title = 'Admin Sugestões - Rifaqui';
+        } else if (pathname === '/admin/login') {
+          document.title = 'Admin Login - Rifaqui';
+        }
+      }
+      // Páginas de Autenticação
+      else if (pathname === '/login') {
+        document.title = 'Login - Rifaqui';
+      } else if (pathname === '/register') {
+        document.title = 'Cadastro - Rifaqui';
+      } else if (pathname === '/forgot-password') {
+        document.title = 'Recuperar Senha - Rifaqui';
+      } else if (pathname === '/reset-password') {
+        document.title = 'Redefinir Senha - Rifaqui';
+      } else if (pathname === '/email-confirmation-success') {
+        document.title = 'E-mail Confirmado - Rifaqui';
+      }
+      // Página Inicial
+      else if (pathname === '/') {
+        document.title = 'Rifaqui';
+      }
+      // Fallback
+      else {
+        document.title = 'Rifaqui';
+      }
+    };
+
+    updateFaviconAndTitle();
+  }, [location]);
+
+  return null;
+}
 
 function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
         <Router>
+          <DynamicPageMetadata />
           <Routes>
           {/* Rotas Públicas */}
           <Route path="/" element={<Layout />}>
