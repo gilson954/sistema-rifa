@@ -74,27 +74,48 @@ const OrganizerHomePage: React.FC = () => {
     loadOrganizerData();
   }, [userId]);
 
-  // Define o título da página como "Campanha"
+  // useEffect para atualizar o favicon dinamicamente
   useEffect(() => {
-    document.title = 'Campanha';
-  }, []);
-
-  // Atualiza o favicon dinamicamente
-  useEffect(() => {
-    const updateFavicon = () => {
-      const faviconLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
-      
-      if (faviconLink && organizerProfile?.logo_url) {
+    const faviconLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+    
+    if (organizerProfile?.logo_url) {
+      // Se há logo do organizador, usar ele
+      if (faviconLink) {
         faviconLink.href = organizerProfile.logo_url;
-      } else if (faviconLink) {
-        // Volta para o favicon padrão se não houver logo
-        faviconLink.href = '/favicon.ico';
+      } else {
+        const newFavicon = document.createElement('link');
+        newFavicon.rel = 'icon';
+        newFavicon.href = organizerProfile.logo_url;
+        document.head.appendChild(newFavicon);
+      }
+    } else {
+      // Se não há logo do organizador, restaurar o padrão
+      if (faviconLink) {
+        faviconLink.href = '/logo-chatgpt.png';
+      }
+    }
+
+    // Cleanup: restaurar favicon padrão ao desmontar
+    return () => {
+      const favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+      if (favicon) {
+        favicon.href = '/logo-chatgpt.png';
       }
     };
+  }, [organizerProfile]);
 
-    if (organizerProfile) {
-      updateFavicon();
+  // useEffect para atualizar o título da página dinamicamente
+  useEffect(() => {
+    if (organizerProfile?.name) {
+      document.title = `${organizerProfile.name} - Campanhas`;
+    } else {
+      document.title = 'Campanhas';
     }
+
+    // Cleanup: restaurar título padrão quando o componente desmontar
+    return () => {
+      document.title = 'Rifaqui';
+    };
   }, [organizerProfile]);
 
   const getCustomGradientStyle = (customColorsJson: string) => {
