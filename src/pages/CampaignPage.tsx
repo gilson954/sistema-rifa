@@ -163,14 +163,22 @@ const CampaignPage = () => {
     error: ticketsError,
     reserveTickets,
     getAvailableTickets,
-    reserving
-  } = useTickets(campaign?.id || '');
+    reserving,
+    totalTickets,
+    currentPage: ticketsCurrentPage,
+    totalPages: ticketsTotalPages,
+    setPage: setTicketsPage
+  } = useTickets(campaign?.id || '', currentQuotaPage, quotasPerPage);
 
   const { winners, loading: winnersLoading } = useCampaignWinners(campaign?.id);
 
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [activeFilter, setActiveFilter] = useState<'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers'>('all');
+  
+  // Estado de paginação para QuotaGrid
+  const [currentQuotaPage, setCurrentQuotaPage] = useState(1);
+  const quotasPerPage = 100; // Mostrar 100 cotas por página
   
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [showStep1Modal, setShowStep1Modal] = useState(false);
@@ -350,8 +358,8 @@ const CampaignPage = () => {
         if (organizerProfile?.logo_url) {
           faviconLink.href = organizerProfile.logo_url;
         } else {
-          // Voltar ao favicon padrão se não houver logo
-          faviconLink.href = '/favicon.ico';
+          // Voltar ao favicon padrão se não houver logo do organizador
+          faviconLink.href = '/logo-chatgpt.png';
         }
       }
     };
@@ -362,7 +370,7 @@ const CampaignPage = () => {
     return () => {
       const faviconLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
       if (faviconLink) {
-        faviconLink.href = '/favicon.ico';
+        faviconLink.href = '/logo-chatgpt.png';
       }
     };
   }, [organizerProfile?.logo_url]);
@@ -514,6 +522,11 @@ const CampaignPage = () => {
       }
     });
   }, [campaign, getAvailableTickets, showWarning]);
+
+  const handleQuotaPageChange = useCallback((newPage: number) => {
+    setCurrentQuotaPage(newPage);
+    setTicketsPage(newPage);
+  }, [setTicketsPage]);
 
   const handleQuantityChange = useCallback((newQuantity: number) => {
     setQuantity(newQuantity);
@@ -819,7 +832,8 @@ const CampaignPage = () => {
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
           cardBg: 'bg-white',
-          border: 'border-gray-200'
+          border: 'border-gray-200',
+          rifaquiText: 'text-gray-900'
         };
       case 'escuro':
         return {
@@ -827,7 +841,8 @@ const CampaignPage = () => {
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-slate-800',
-          border: 'border-slate-700'
+          border: 'border-slate-700',
+          rifaquiText: 'text-white'
         };
       case 'escuro-preto':
         return {
@@ -835,7 +850,8 @@ const CampaignPage = () => {
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
-          border: 'border-gray-800'
+          border: 'border-gray-800',
+          rifaquiText: 'text-white'
         };
       default:
         return {
@@ -843,7 +859,8 @@ const CampaignPage = () => {
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
           cardBg: 'bg-white',
-          border: 'border-gray-200'
+          border: 'border-gray-200',
+          rifaquiText: 'text-gray-900'
         };
     }
   };
@@ -928,30 +945,17 @@ const CampaignPage = () => {
       {/* Header */}
       <header className={`shadow-sm border-b ${themeClasses.border} ${campaignTheme === 'escuro' ? 'bg-black' : themeClasses.cardBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
             <button
               onClick={() => campaign?.user_id && navigate(`/org/${campaign.user_id}`)}
               className="flex items-center space-x-2 hover:opacity-80 transition-opacity duration-200"
             >
               {organizerProfile?.logo_url ? (
-                organizerProfile.color_mode === 'gradient' ? (
-                  <div
-                    className={getColorClassName("p-1 rounded-lg shadow-md")}
-                    style={getColorStyle(true)}
-                  >
-                    <img
-                      src={organizerProfile.logo_url}
-                      alt="Logo do organizador"
-                      className="h-14 w-auto max-w-[180px] object-contain bg-white dark:bg-gray-800 rounded-md"
-                    />
-                  </div>
-                ) : (
-                  <img
-                    src={organizerProfile.logo_url}
-                    alt="Logo do organizador"
-                    className="h-16 w-auto max-w-[180px] object-contain shadow-md rounded-lg"
-                  />
-                )
+                <img
+                  src={organizerProfile.logo_url}
+                  alt="Logo do organizador"
+                  className="h-16 w-auto max-w-[200px] object-contain"
+                />
               ) : (
                 <>
                   <img
@@ -959,7 +963,7 @@ const CampaignPage = () => {
                     alt="Rifaqui Logo"
                     className="w-10 h-10 object-contain"
                   />
-                  <span className="ml-2 text-2xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
+                  <span className={`ml-2 text-2xl font-bold ${themeClasses.rifaquiText}`}>Rifaqui</span>
                 </>
               )}
             </button>
@@ -1412,6 +1416,9 @@ const CampaignPage = () => {
                   colorMode={organizerProfile?.color_mode}
                   gradientClasses={organizerProfile?.gradient_classes}
                   customGradientColors={organizerProfile?.custom_gradient_colors}
+                  currentPage={currentQuotaPage}
+                  totalPages={ticketsTotalPages}
+                  onPageChange={handleQuotaPageChange}
                 />
               </div>
 
