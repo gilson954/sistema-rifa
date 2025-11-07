@@ -74,6 +74,29 @@ const OrganizerHomePage: React.FC = () => {
     loadOrganizerData();
   }, [userId]);
 
+  // Define o título da página como "Campanha"
+  useEffect(() => {
+    document.title = 'Campanha';
+  }, []);
+
+  // Atualiza o favicon dinamicamente
+  useEffect(() => {
+    const updateFavicon = () => {
+      const faviconLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+      
+      if (faviconLink && organizerProfile?.logo_url) {
+        faviconLink.href = organizerProfile.logo_url;
+      } else if (faviconLink) {
+        // Volta para o favicon padrão se não houver logo
+        faviconLink.href = '/favicon.ico';
+      }
+    };
+
+    if (organizerProfile) {
+      updateFavicon();
+    }
+  }, [organizerProfile]);
+
   const getCustomGradientStyle = (customColorsJson: string) => {
     try {
       const colors = JSON.parse(customColorsJson);
