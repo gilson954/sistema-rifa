@@ -41,7 +41,6 @@ const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Processar links de redes sociais vindos do organizador
   const processedSocialMedia: Array<{ platform: string; url: string; label: string; icon: any; color: string }> = [];
@@ -104,26 +103,6 @@ const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
     setIsOpen(!isOpen);
   };
 
-  // Abrir menu ao passar o mouse (com pequeno delay)
-  const handleMouseEnter = () => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-    }
-    hoverTimeoutRef.current = setTimeout(() => {
-      setIsOpen(true);
-    }, 200); // Delay de 200ms para evitar aberturas acidentais
-  };
-
-  // Fechar menu ao remover o mouse (com pequeno delay)
-  const handleMouseLeave = () => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-    }
-    hoverTimeoutRef.current = setTimeout(() => {
-      setIsOpen(false);
-    }, 300); // Delay de 300ms para dar tempo de mover o mouse para os botões
-  };
-
   // Fechar menu ao clicar fora ou pressionar ESC
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -148,15 +127,6 @@ const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
       document.removeEventListener('keydown', handleEscapeKey);
     };
   }, [isOpen]);
-
-  // Limpar timeout ao desmontar componente
-  useEffect(() => {
-    return () => {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // Gerar estilo de gradiente customizado
   const getCustomGradientStyle = (customColorsJson: string) => {
@@ -314,12 +284,7 @@ const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
       `}</style>
 
       {/* Container do menu flutuante */}
-      <div 
-        className="fab-container" 
-        ref={menuRef}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
+      <div className="fab-container" ref={menuRef}>
         {/* Lista de redes sociais (renderizada quando o menu está aberto) */}
         <AnimatePresence>
           {isOpen && (
