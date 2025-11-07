@@ -327,6 +327,20 @@ const CampaignPage = () => {
     }
   }, [campaign?.user_id]);
 
+  // Atualizar título da página dinamicamente
+  useEffect(() => {
+    if (campaign?.title) {
+      document.title = `${campaign.title} | Rifaqui`;
+    } else {
+      document.title = 'Campanha | Rifaqui';
+    }
+
+    // Restaurar título padrão ao desmontar
+    return () => {
+      document.title = 'Rifaqui - Plataforma de Rifas Online';
+    };
+  }, [campaign?.title]);
+
   useEffect(() => {
     if (campaign?.id && campaign?.campaign_model === 'automatic' && campaign?.cotas_premiadas_visiveis) {
       const loadCotasPremiadas = async () => {
