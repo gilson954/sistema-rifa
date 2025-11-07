@@ -105,20 +105,16 @@ function DynamicPageMetadata() {
             .eq('user_id', userId)
             .single();
 
-          if (profile && !profileError) {
-            // Atualizar título da página
-            document.title = `${profile.name || 'Organizador'} - Rifaqui`;
+          // Atualizar título da página para "Campanha"
+          document.title = 'Campanha';
 
-            // Atualizar favicon
-            if (profile.logo_url && faviconElement) {
-              faviconElement.href = profile.logo_url;
-            }
-          } else {
-            document.title = 'Organizador - Rifaqui';
+          // Atualizar favicon com o logo do organizador
+          if (profile && !profileError && profile.logo_url && faviconElement) {
+            faviconElement.href = profile.logo_url;
           }
         } catch (error) {
           console.error('Erro ao buscar dados do organizador:', error);
-          document.title = 'Organizador - Rifaqui';
+          document.title = 'Campanha';
         }
       }
       // Página Minhas Cotas
