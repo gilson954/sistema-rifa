@@ -341,6 +341,32 @@ const CampaignPage = () => {
     };
   }, [campaign?.title]);
 
+  // Atualizar favicon dinamicamente com o logo do organizador
+  useEffect(() => {
+    const updateFavicon = () => {
+      const faviconLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+      
+      if (faviconLink) {
+        if (organizerProfile?.logo_url) {
+          faviconLink.href = organizerProfile.logo_url;
+        } else {
+          // Voltar ao favicon padrão se não houver logo
+          faviconLink.href = '/favicon.ico';
+        }
+      }
+    };
+
+    updateFavicon();
+
+    // Restaurar favicon padrão ao desmontar
+    return () => {
+      const faviconLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+      if (faviconLink) {
+        faviconLink.href = '/favicon.ico';
+      }
+    };
+  }, [organizerProfile?.logo_url]);
+
   useEffect(() => {
     if (campaign?.id && campaign?.campaign_model === 'automatic' && campaign?.cotas_premiadas_visiveis) {
       const loadCotasPremiadas = async () => {
