@@ -135,7 +135,7 @@ const MyTicketsPage = () => {
 
   // Atualiza o título da página
   useEffect(() => {
-    document.title = 'Minhas Cotas - Rifaqui';
+    document.title = 'Meus Pedidos';
   }, []);
 
   // Atualiza o favicon dinamicamente com o logo do organizador
