@@ -338,9 +338,9 @@ const CampaignPage = () => {
   // Atualizar título da página dinamicamente
   useEffect(() => {
     if (campaign?.title) {
-      document.title = `${campaign.title} | Rifaqui`;
+      document.title = campaign.title;
     } else {
-      document.title = 'Campanha | Rifaqui';
+      document.title = 'Campanha';
     }
 
     // Restaurar título padrão ao desmontar
