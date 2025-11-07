@@ -35,7 +35,8 @@ export const useTickets = (campaignId: string, initialPageSize: number = 1000) =
   const [totalPages, setTotalPages] = useState(0);
 
   /**
-   * ✨ NOVA FUNÇÃO: Busca o status dos tickets com paginação
+   * ✨ FUNÇÃO ATUALIZADA: Busca o status dos tickets com paginação
+   * Agora usa getCampaignTicketsStatus que retorna PaginatedTicketsResponse
    * 
    * @param page - Número da página (default: página atual)
    * @param size - Tamanho da página (default: pageSize atual)
@@ -54,7 +55,8 @@ export const useTickets = (campaignId: string, initialPageSize: number = 1000) =
 
     console.log(`📄 useTickets - Fetching page ${page} with size ${size}...`);
 
-    const result = await TicketsAPI.getCampaignTicketsStatusPaginated(
+    // ✅ CORREÇÃO: Usar getCampaignTicketsStatus que agora retorna PaginatedTicketsResponse
+    const result = await TicketsAPI.getCampaignTicketsStatus(
       campaignId,
       user?.id,
       page,
