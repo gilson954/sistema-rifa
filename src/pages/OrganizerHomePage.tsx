@@ -106,17 +106,14 @@ const OrganizerHomePage: React.FC = () => {
 
   // useEffect para atualizar o título da página dinamicamente
   useEffect(() => {
-    if (organizerProfile?.name) {
-      document.title = `${organizerProfile.name} - Campanhas`;
-    } else {
-      document.title = 'Campanhas';
-    }
+    // Sempre exibir apenas "Campanhas"
+    document.title = 'Campanhas';
 
     // Cleanup: restaurar título padrão quando o componente desmontar
     return () => {
       document.title = 'Rifaqui';
     };
-  }, [organizerProfile]);
+  }, []);
 
   const getCustomGradientStyle = (customColorsJson: string) => {
     try {
@@ -289,24 +286,11 @@ const OrganizerHomePage: React.FC = () => {
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center">
               {organizerProfile?.logo_url ? (
-                organizerProfile.color_mode === 'gradient' ? (
-                  <div
-                    className={getColorClassName("p-1 rounded-lg shadow-md")}
-                    style={getColorStyle(true)}
-                  >
-                    <img
-                      src={organizerProfile.logo_url}
-                      alt="Logo do organizador"
-                      className="h-14 w-auto max-w-[200px] object-contain bg-white dark:bg-gray-800 rounded-md"
-                    />
-                  </div>
-                ) : (
-                  <img
-                    src={organizerProfile.logo_url}
-                    alt="Logo do organizador"
-                    className="h-16 w-auto max-w-[200px] object-contain shadow-md rounded-lg"
-                  />
-                )
+                <img
+                  src={organizerProfile.logo_url}
+                  alt="Logo do organizador"
+                  className="h-16 w-auto max-w-[200px] object-contain shadow-md rounded-lg"
+                />
               ) : (
                 <div className="flex items-center">
                   <img
