@@ -133,12 +133,10 @@ const MyTicketsPage = () => {
     loadOrganizerFromOrders();
   }, [orders]);
 
-  // useEffect para atualizar o favicon dinamicamente
   useEffect(() => {
     const faviconLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
     
     if (organizerProfile?.logo_url) {
-      // Se há logo do organizador, usar ele
       if (faviconLink) {
         faviconLink.href = organizerProfile.logo_url;
       } else {
@@ -148,13 +146,11 @@ const MyTicketsPage = () => {
         document.head.appendChild(newFavicon);
       }
     } else {
-      // Se não há logo do organizador, restaurar o padrão
       if (faviconLink) {
         faviconLink.href = '/logo-chatgpt.png';
       }
     }
 
-    // Cleanup: restaurar favicon padrão ao desmontar
     return () => {
       const favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
       if (favicon) {
@@ -163,11 +159,9 @@ const MyTicketsPage = () => {
     };
   }, [organizerProfile]);
 
-  // useEffect para atualizar o título da página dinamicamente
   useEffect(() => {
     document.title = 'Meus Pedidos';
 
-    // Cleanup: restaurar título padrão quando o componente desmontar
     return () => {
       document.title = 'Rifaqui';
     };
@@ -246,6 +240,7 @@ const MyTicketsPage = () => {
   }, [isPhoneAuthenticated, authLoading, navigate]);
 
   const campaignTheme = organizerProfile?.theme || 'claro';
+  const primaryColor = organizerProfile?.primary_color || '#3B82F6';
 
   function getThemeClasses(theme: string) {
     switch (theme) {
@@ -255,7 +250,8 @@ const MyTicketsPage = () => {
           userBadgeBg: 'bg-gray-100', userBadgeBorder: 'border-gray-200',
           paginationContainerBg: 'bg-white', paginationContainerBorder: 'border-gray-200',
           paginationButtonBg: 'bg-white', paginationButtonText: 'text-gray-700',
-          paginationButtonDisabledBg: 'bg-gray-200', paginationButtonDisabledText: 'text-gray-400'
+          paginationButtonDisabledBg: 'bg-gray-200', paginationButtonDisabledText: 'text-gray-400',
+          rifaquiText: 'text-gray-900'
         };
       case 'escuro':
         return {
@@ -263,7 +259,8 @@ const MyTicketsPage = () => {
           userBadgeBg: 'bg-slate-700', userBadgeBorder: 'border-slate-600',
           paginationContainerBg: 'bg-slate-800', paginationContainerBorder: 'border-slate-700',
           paginationButtonBg: 'bg-slate-700', paginationButtonText: 'text-gray-200',
-          paginationButtonDisabledBg: 'bg-slate-900', paginationButtonDisabledText: 'text-gray-600'
+          paginationButtonDisabledBg: 'bg-slate-900', paginationButtonDisabledText: 'text-gray-600',
+          rifaquiText: 'text-white'
         };
       case 'escuro-preto':
         return {
@@ -271,7 +268,8 @@ const MyTicketsPage = () => {
           userBadgeBg: 'bg-gray-800', userBadgeBorder: 'border-gray-700',
           paginationContainerBg: 'bg-gray-900', paginationContainerBorder: 'border-gray-800',
           paginationButtonBg: 'bg-gray-800', paginationButtonText: 'text-gray-200',
-          paginationButtonDisabledBg: 'bg-black', paginationButtonDisabledText: 'text-gray-600'
+          paginationButtonDisabledBg: 'bg-black', paginationButtonDisabledText: 'text-gray-600',
+          rifaquiText: 'text-white'
         };
       default:
         return {
@@ -279,7 +277,8 @@ const MyTicketsPage = () => {
           userBadgeBg: 'bg-gray-100', userBadgeBorder: 'border-gray-200',
           paginationContainerBg: 'bg-white', paginationContainerBorder: 'border-gray-200',
           paginationButtonBg: 'bg-white', paginationButtonText: 'text-gray-700',
-          paginationButtonDisabledBg: 'bg-gray-200', paginationButtonDisabledText: 'text-gray-400'
+          paginationButtonDisabledBg: 'bg-gray-200', paginationButtonDisabledText: 'text-gray-400',
+          rifaquiText: 'text-gray-900'
         };
     }
   }
@@ -288,7 +287,10 @@ const MyTicketsPage = () => {
     const loadingThemeClasses = getThemeClasses(campaignTheme);
     return (
       <div className={`min-h-screen ${loadingThemeClasses.background} transition-colors duration-300 flex items-center justify-center`}>
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+        <div 
+          className="animate-spin rounded-full h-16 w-16 border-b-2" 
+          style={{ borderColor: primaryColor }}
+        ></div>
       </div>
     );
   }
@@ -306,11 +308,19 @@ const MyTicketsPage = () => {
           <div className="flex items-center justify-between h-16 sm:h-20">
             <button onClick={() => { organizerProfile?.id ? navigate(`/org/${organizerProfile.id}`) : navigate('/'); }} className="flex items-center hover:opacity-80 transition-opacity duration-200">
               {organizerProfile?.logo_url ? (
-                <img src={organizerProfile.logo_url} alt="Logo" className="h-10 sm:h-14 w-auto max-w-[150px] sm:max-w-[200px] object-contain" />
+                <img
+                  src={organizerProfile.logo_url}
+                  alt="Logo do organizador"
+                  className="h-10 sm:h-16 w-auto max-w-[200px] object-contain"
+                />
               ) : (
                 <div className="flex items-center">
-                  <Ticket className="h-6 sm:h-8 w-6 sm:w-8 text-blue-600" />
-                  <span className={`ml-2 text-lg sm:text-xl font-bold ${themeClasses.text}`}>Meus Pedidos</span>
+                  <img
+                    src="/logo-chatgpt.png"
+                    alt="Rifaqui Logo"
+                    className="w-8 sm:w-10 h-8 sm:h-10 object-contain"
+                  />
+                  <span className={`ml-2 text-lg sm:text-2xl font-bold ${themeClasses.rifaquiText}`}>Rifaqui</span>
                 </div>
               )}
             </button>
@@ -338,7 +348,10 @@ const MyTicketsPage = () => {
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+            <div 
+              className="animate-spin rounded-full h-16 w-16 border-b-2" 
+              style={{ borderColor: primaryColor }}
+            ></div>
           </div>
         ) : error ? (
           <div className={`${themeClasses.cardBg} rounded-2xl shadow-xl p-8 border border-red-200 dark:border-red-800`}>
@@ -477,7 +490,6 @@ const MyTicketsPage = () => {
         )}
       </main>
 
-      {/* Menu flutuante de redes sociais - Exibido apenas quando há perfil do organizador */}
       {organizerProfile && isPhoneAuthenticated && (
         <SocialMediaFloatingMenu
           socialMediaLinks={organizerProfile.social_media_links}
