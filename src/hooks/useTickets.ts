@@ -12,18 +12,38 @@ interface CustomerData {
   acceptTerms: boolean;
 }
 
-export const useTickets = (campaignId: string) => {
+/**
+ * Hook personalizado para gerenciar tickets com suporte a PAGINAÇÃO
+ * 
+ * ✨ ATUALIZAÇÃO: Agora suporta paginação para melhor performance
+ * em campanhas com muitas cotas (ex: 100.000 cotas)
+ */
+export const useTickets = (campaignId: string, initialPageSize: number = 1000) => {
   const { user } = useAuth();
+  
+  // Estado dos tickets (apenas da página atual)
   const [tickets, setTickets] = useState<TicketStatusInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reserving, setReserving] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
 
+  // Estado de paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(initialPageSize);
+  const [totalTickets, setTotalTickets] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   /**
-   * Busca o status dos tickets da campanha
+   * ✨ NOVA FUNÇÃO: Busca o status dos tickets com paginação
+   * 
+   * @param page - Número da página (default: página atual)
+   * @param size - Tamanho da página (default: pageSize atual)
    */
-  const fetchTicketsStatus = useCallback(async () => {
+  const fetchTicketsStatus = useCallback(async (
+    page: number = currentPage,
+    size: number = pageSize
+  ) => {
     if (!campaignId) {
       setLoading(false);
       return;
@@ -32,20 +52,83 @@ export const useTickets = (campaignId: string) => {
     setLoading(true);
     setError(null);
 
-    const { data, error: apiError } = await TicketsAPI.getCampaignTicketsStatus(
+    console.log(`📄 useTickets - Fetching page ${page} with size ${size}...`);
+
+    const result = await TicketsAPI.getCampaignTicketsStatusPaginated(
       campaignId,
-      user?.id
+      user?.id,
+      page,
+      size
     );
 
-    if (apiError) {
+    if (result.error) {
       setError('Erro ao carregar status das cotas');
-      console.error('Error fetching tickets status:', apiError);
+      console.error('❌ Error fetching tickets status:', result.error);
+      setTickets([]);
     } else {
-      setTickets(data || []);
+      setTickets(result.data || []);
+      setTotalTickets(result.total);
+      setTotalPages(result.totalPages);
+      setCurrentPage(result.page);
+      
+      console.log(`✅ useTickets - Loaded page ${result.page}/${result.totalPages} (${result.data?.length || 0} tickets)`);
     }
 
     setLoading(false);
-  }, [campaignId, user?.id]);
+  }, [campaignId, user?.id, currentPage, pageSize]);
+
+  /**
+   * ✨ NOVA FUNÇÃO: Navega para uma página específica
+   */
+  const goToPage = useCallback(async (page: number) => {
+    if (page < 1 || page > totalPages) {
+      console.warn(`⚠️ Invalid page number: ${page} (valid range: 1-${totalPages})`);
+      return;
+    }
+
+    await fetchTicketsStatus(page, pageSize);
+  }, [totalPages, pageSize, fetchTicketsStatus]);
+
+  /**
+   * ✨ NOVA FUNÇÃO: Vai para a próxima página
+   */
+  const nextPage = useCallback(async () => {
+    if (currentPage < totalPages) {
+      await goToPage(currentPage + 1);
+    }
+  }, [currentPage, totalPages, goToPage]);
+
+  /**
+   * ✨ NOVA FUNÇÃO: Vai para a página anterior
+   */
+  const previousPage = useCallback(async () => {
+    if (currentPage > 1) {
+      await goToPage(currentPage - 1);
+    }
+  }, [currentPage, goToPage]);
+
+  /**
+   * ✨ NOVA FUNÇÃO: Vai para a primeira página
+   */
+  const firstPage = useCallback(async () => {
+    await goToPage(1);
+  }, [goToPage]);
+
+  /**
+   * ✨ NOVA FUNÇÃO: Vai para a última página
+   */
+  const lastPage = useCallback(async () => {
+    await goToPage(totalPages);
+  }, [totalPages, goToPage]);
+
+  /**
+   * ✨ NOVA FUNÇÃO: Altera o tamanho da página
+   */
+  const changePageSize = useCallback(async (newSize: number) => {
+    setPageSize(newSize);
+    // Ao mudar o tamanho da página, volta para a primeira página
+    await fetchTicketsStatus(1, newSize);
+  }, [fetchTicketsStatus]);
 
   /**
    * Reserva cotas para o usuário atual
@@ -214,42 +297,48 @@ export const useTickets = (campaignId: string) => {
   };
 
   /**
-   * Obtém cotas por status
+   * ⚠️ OBSERVAÇÃO: As funções abaixo operam apenas sobre os tickets da PÁGINA ATUAL
+   * Para buscar por todos os tickets, seria necessário carregar todas as páginas
+   * (o que voltaria ao problema original de lentidão)
+   */
+
+  /**
+   * Obtém cotas por status (apenas da página atual)
    */
   const getTicketsByStatus = useCallback((status: string) => {
     return tickets.filter(ticket => ticket.status === status);
   }, [tickets]);
 
   /**
-   * Obtém cotas do usuário atual
+   * Obtém cotas do usuário atual (apenas da página atual)
    */
   const getMyTickets = useCallback(() => {
     return tickets.filter(ticket => ticket.is_mine);
   }, [tickets]);
 
   /**
-   * Obtém cotas disponíveis
+   * Obtém cotas disponíveis (apenas da página atual)
    */
   const getAvailableTickets = useCallback(() => {
     return tickets.filter(ticket => ticket.status === 'disponível');
   }, [tickets]);
 
   /**
-   * Obtém cotas reservadas
+   * Obtém cotas reservadas (apenas da página atual)
    */
   const getReservedTickets = useCallback(() => {
     return tickets.filter(ticket => ticket.status === 'reservado');
   }, [tickets]);
 
   /**
-   * Obtém cotas compradas
+   * Obtém cotas compradas (apenas da página atual)
    */
   const getPurchasedTickets = useCallback(() => {
     return tickets.filter(ticket => ticket.status === 'comprado');
   }, [tickets]);
 
   /**
-   * Verifica se uma cota específica está disponível
+   * Verifica se uma cota específica está disponível (apenas da página atual)
    */
   const isTicketAvailable = useCallback((quotaNumber: number) => {
     const ticket = tickets.find(t => t.quota_number === quotaNumber);
@@ -257,17 +346,17 @@ export const useTickets = (campaignId: string) => {
   }, [tickets]);
 
   /**
-   * Verifica se uma cota específica pertence ao usuário atual
+   * Verifica se uma cota específica pertence ao usuário atual (apenas da página atual)
    */
   const isMyTicket = useCallback((quotaNumber: number) => {
     const ticket = tickets.find(t => t.quota_number === quotaNumber);
     return ticket?.is_mine || false;
   }, [tickets]);
 
-  // Busca inicial dos tickets
+  // Busca inicial dos tickets (primeira página)
   useEffect(() => {
-    fetchTicketsStatus();
-  }, [fetchTicketsStatus]);
+    fetchTicketsStatus(1, pageSize);
+  }, [campaignId, user?.id]); // Removido fetchTicketsStatus das dependências para evitar loop
 
   // Configurar escuta em tempo real para mudanças nos tickets
   useEffect(() => {
@@ -284,9 +373,9 @@ export const useTickets = (campaignId: string) => {
           filter: `campaign_id=eq.${campaignId}`
         },
         (payload) => {
-          console.log('Ticket change detected:', payload);
-          // Recarrega o status dos tickets quando há mudanças
-          fetchTicketsStatus();
+          console.log('🔔 Ticket change detected:', payload);
+          // Recarrega apenas a página atual quando há mudanças
+          fetchTicketsStatus(currentPage, pageSize);
         }
       )
       .subscribe();
@@ -294,17 +383,38 @@ export const useTickets = (campaignId: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [campaignId, fetchTicketsStatus]);
+  }, [campaignId, currentPage, pageSize]); // Dependências corretas para realtime
 
   return {
+    // Estado dos tickets
     tickets,
     loading,
     error,
     reserving,
     purchasing,
+
+    // Estado de paginação
+    currentPage,
+    pageSize,
+    totalTickets,
+    totalPages,
+    hasNextPage: currentPage < totalPages,
+    hasPreviousPage: currentPage > 1,
+
+    // Funções de paginação
+    goToPage,
+    nextPage,
+    previousPage,
+    firstPage,
+    lastPage,
+    changePageSize,
+
+    // Funções de operação
     fetchTicketsStatus,
     reserveTickets,
     finalizePurchase,
+
+    // Funções de filtro (operam na página atual)
     getTicketsByStatus,
     getMyTickets,
     getAvailableTickets,
