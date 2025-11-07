@@ -21,6 +21,15 @@ export interface TicketStatusInfo {
   bought_at: string | null;
 }
 
+export interface PaginatedTicketsResponse {
+  data: TicketStatusInfo[] | null;
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  error: any;
+}
+
 export interface ReservationResult {
   quota_number: number;
   status: string;
@@ -106,15 +115,25 @@ export const formatPhoneNumber = (phoneNumber: string): string => {
 
 export class TicketsAPI {
   /**
-   * Busca o status de todos os tickets de uma campanha (otimizado para frontend)
-   * Implementa paginação PARALELA para campanhas com mais de 1000 tickets
+   * ✨ FUNÇÃO PRINCIPAL COM PAGINAÇÃO
+   * 
+   * Busca o status dos tickets de uma campanha com paginação
+   * Esta é a função principal que deve ser usada pelo frontend
+   * 
+   * @param campaignId - ID da campanha
+   * @param userId - ID do usuário (opcional)
+   * @param page - Número da página (começa em 1)
+   * @param pageSize - Tamanho da página (padrão: 1000)
+   * @returns Objeto com dados paginados e metadados de paginação
    */
   static async getCampaignTicketsStatus(
     campaignId: string,
-    userId?: string
-  ): Promise<{ data: TicketStatusInfo[] | null; error: any }> {
+    userId?: string,
+    page: number = 1,
+    pageSize: number = 1000
+  ): Promise<PaginatedTicketsResponse> {
     try {
-      // Get campaign to check total_tickets first
+      // Busca informações da campanha para obter o total de tickets
       const { data: campaign } = await supabase
         .from('campaigns')
         .select('total_tickets')
@@ -122,74 +141,66 @@ export class TicketsAPI {
         .maybeSingle();
 
       if (!campaign) {
-        return { data: null, error: new Error('Campaign not found') };
+        return {
+          data: null,
+          total: 0,
+          page,
+          pageSize,
+          totalPages: 0,
+          error: new Error('Campaign not found')
+        };
       }
 
       const totalTickets = campaign.total_tickets;
-      const pageSize = 1000; // Tamanho de cada página (limitado pelo Supabase RPC)
-
-      // Se a campanha tem menos de 1000 tickets, faz uma única requisição
-      if (totalTickets <= pageSize) {
-        const { data, error } = await supabase
-          .rpc('get_campaign_tickets_status', {
-            p_campaign_id: campaignId,
-            p_user_id: userId || null,
-            p_offset: 0,
-            p_limit: pageSize
-          });
-
-        return { data, error };
-      }
-
-      // Para campanhas grandes, implementa paginação PARALELA
       const totalPages = Math.ceil(totalTickets / pageSize);
-      console.log(`Loading ${totalTickets} tickets in ${totalPages} pages (parallel)...`);
+      
+      // Valida o número da página
+      const validPage = Math.max(1, Math.min(page, totalPages));
+      const offset = (validPage - 1) * pageSize;
 
-      // Cria um array de promessas para buscar todas as páginas em paralelo
-      const pagePromises: Promise<{ data: TicketStatusInfo[] | null; error: any }>[] = [];
+      console.log(`📄 Loading page ${validPage}/${totalPages} (${pageSize} tickets per page, offset: ${offset})`);
 
-      for (let page = 0; page < totalPages; page++) {
-        const offset = page * pageSize;
-        
-        // Adiciona a promessa ao array (não aguarda aqui)
-        const promise = supabase
-          .rpc('get_campaign_tickets_status', {
-            p_campaign_id: campaignId,
-            p_user_id: userId || null,
-            p_offset: offset,
-            p_limit: pageSize
-          })
-          .then(result => {
-            console.log(`Page ${page + 1}/${totalPages} loaded (offset: ${offset})`);
-            return result;
-          });
+      // Busca apenas a página solicitada
+      const { data, error } = await supabase
+        .rpc('get_campaign_tickets_status', {
+          p_campaign_id: campaignId,
+          p_user_id: userId || null,
+          p_offset: offset,
+          p_limit: pageSize
+        });
 
-        pagePromises.push(promise);
+      if (error) {
+        console.error('❌ Error loading tickets page:', error);
+        return {
+          data: null,
+          total: totalTickets,
+          page: validPage,
+          pageSize,
+          totalPages,
+          error
+        };
       }
 
-      // Executa todas as requisições em paralelo
-      const results = await Promise.all(pagePromises);
+      console.log(`✅ Successfully loaded page ${validPage}/${totalPages} (${data?.length || 0} tickets)`);
 
-      // Verifica se houve algum erro
-      const errorResult = results.find(result => result.error);
-      if (errorResult) {
-        console.error('Error loading tickets:', errorResult.error);
-        return { data: null, error: errorResult.error };
-      }
-
-      // Combina todos os resultados em um único array
-      const allTickets: TicketStatusInfo[] = [];
-      for (const result of results) {
-        if (result.data && result.data.length > 0) {
-          allTickets.push(...result.data);
-        }
-      }
-
-      console.log(`Successfully loaded ${allTickets.length} tickets in parallel`);
-      return { data: allTickets, error: null };
+      return {
+        data,
+        total: totalTickets,
+        page: validPage,
+        pageSize,
+        totalPages,
+        error: null
+      };
     } catch (error) {
-      console.error('Error fetching campaign tickets status:', error);
-      return { data: null, error };
+      console.error('❌ Unexpected error fetching paginated tickets:', error);
+      return {
+        data: null,
+        total: 0,
+        page,
+        pageSize,
+        totalPages: 0,
+        error
+      };
     }
   }
 
