@@ -21,15 +21,6 @@ export interface TicketStatusInfo {
   bought_at: string | null;
 }
 
-export interface PaginatedTicketsResponse {
-  data: TicketStatusInfo[] | null;
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-  error: any;
-}
-
 export interface ReservationResult {
   quota_number: number;
   status: string;
@@ -115,102 +106,7 @@ export const formatPhoneNumber = (phoneNumber: string): string => {
 
 export class TicketsAPI {
   /**
-   * ✨ NOVA FUNÇÃO COM PAGINAÇÃO PARA FRONTEND
-   * 
-   * Busca o status dos tickets de uma campanha com paginação
-   * Esta função deve ser usada pelo frontend para carregar tickets sob demanda
-   * 
-   * @param campaignId - ID da campanha
-   * @param userId - ID do usuário (opcional)
-   * @param page - Número da página (começa em 1)
-   * @param pageSize - Tamanho da página (padrão: 1000)
-   * @returns Objeto com dados paginados e metadados de paginação
-   */
-  static async getCampaignTicketsStatusPaginated(
-    campaignId: string,
-    userId?: string,
-    page: number = 1,
-    pageSize: number = 1000
-  ): Promise<PaginatedTicketsResponse> {
-    try {
-      // Busca informações da campanha para obter o total de tickets
-      const { data: campaign } = await supabase
-        .from('campaigns')
-        .select('total_tickets')
-        .eq('id', campaignId)
-        .maybeSingle();
-
-      if (!campaign) {
-        return {
-          data: null,
-          total: 0,
-          page,
-          pageSize,
-          totalPages: 0,
-          error: new Error('Campaign not found')
-        };
-      }
-
-      const totalTickets = campaign.total_tickets;
-      const totalPages = Math.ceil(totalTickets / pageSize);
-      
-      // Valida o número da página
-      const validPage = Math.max(1, Math.min(page, totalPages));
-      const offset = (validPage - 1) * pageSize;
-
-      console.log(`📄 Loading page ${validPage}/${totalPages} (${pageSize} tickets per page, offset: ${offset})`);
-
-      // Busca apenas a página solicitada
-      const { data, error } = await supabase
-        .rpc('get_campaign_tickets_status', {
-          p_campaign_id: campaignId,
-          p_user_id: userId || null,
-          p_offset: offset,
-          p_limit: pageSize
-        });
-
-      if (error) {
-        console.error('❌ Error loading tickets page:', error);
-        return {
-          data: null,
-          total: totalTickets,
-          page: validPage,
-          pageSize,
-          totalPages,
-          error
-        };
-      }
-
-      console.log(`✅ Successfully loaded page ${validPage}/${totalPages} (${data?.length || 0} tickets)`);
-
-      return {
-        data,
-        total: totalTickets,
-        page: validPage,
-        pageSize,
-        totalPages,
-        error: null
-      };
-    } catch (error) {
-      console.error('❌ Unexpected error fetching paginated tickets:', error);
-      return {
-        data: null,
-        total: 0,
-        page,
-        pageSize,
-        totalPages: 0,
-        error
-      };
-    }
-  }
-
-  /**
-   * 🔧 FUNÇÃO LEGADA - MANTIDA PARA COMPATIBILIDADE
-   * 
-   * ⚠️ Esta função carrega TODOS os tickets de uma vez (até 100.000)
-   * Use getCampaignTicketsStatusPaginated() para melhor performance
-   * 
-   * Busca o status de todos os tickets de uma campanha
+   * Busca o status de todos os tickets de uma campanha (otimizado para frontend)
    * Implementa paginação PARALELA para campanhas com mais de 1000 tickets
    */
   static async getCampaignTicketsStatus(
@@ -247,8 +143,7 @@ export class TicketsAPI {
 
       // Para campanhas grandes, implementa paginação PARALELA
       const totalPages = Math.ceil(totalTickets / pageSize);
-      console.log(`⚠️ Loading ALL ${totalTickets} tickets in ${totalPages} pages (parallel)...`);
-      console.log(`⚠️ Consider using getCampaignTicketsStatusPaginated() for better performance`);
+      console.log(`Loading ${totalTickets} tickets in ${totalPages} pages (parallel)...`);
 
       // Cria um array de promessas para buscar todas as páginas em paralelo
       const pagePromises: Promise<{ data: TicketStatusInfo[] | null; error: any }>[] = [];
