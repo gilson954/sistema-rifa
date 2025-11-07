@@ -177,18 +177,32 @@ const PaymentConfirmationPage = () => {
 
   // useEffect para atualizar o favicon dinamicamente
   useEffect(() => {
+    const faviconLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+    
     if (organizerProfile?.logo_url) {
-      const faviconLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+      // Se há logo do organizador, usar ele
       if (faviconLink) {
         faviconLink.href = organizerProfile.logo_url;
       } else {
-        // Se não existir, criar o elemento
         const newFavicon = document.createElement('link');
         newFavicon.rel = 'icon';
         newFavicon.href = organizerProfile.logo_url;
         document.head.appendChild(newFavicon);
       }
+    } else {
+      // Se não há logo do organizador, restaurar o padrão
+      if (faviconLink) {
+        faviconLink.href = '/logo-chatgpt.png';
+      }
     }
+
+    // Cleanup: restaurar favicon padrão ao desmontar
+    return () => {
+      const favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+      if (favicon) {
+        favicon.href = '/logo-chatgpt.png';
+      }
+    };
   }, [organizerProfile]);
 
   // useEffect para atualizar o título da página dinamicamente
