@@ -157,6 +157,10 @@ const CampaignPage = () => {
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
 
+  // Estado de paginação para QuotaGrid - DECLARADO ANTES DO useTickets
+  const [currentQuotaPage, setCurrentQuotaPage] = useState(1);
+  const quotasPerPage = 100; // Mostrar 100 cotas por página
+
   const {
     tickets,
     loading: ticketsLoading,
@@ -175,10 +179,6 @@ const CampaignPage = () => {
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [activeFilter, setActiveFilter] = useState<'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers'>('all');
-  
-  // Estado de paginação para QuotaGrid
-  const [currentQuotaPage, setCurrentQuotaPage] = useState(1);
-  const quotasPerPage = 100; // Mostrar 100 cotas por página
   
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [showStep1Modal, setShowStep1Modal] = useState(false);
