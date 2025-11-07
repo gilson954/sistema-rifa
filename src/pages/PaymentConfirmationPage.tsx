@@ -294,17 +294,14 @@ const PaymentConfirmationPage = () => {
 
   // useEffect para atualizar o título da página dinamicamente
   useEffect(() => {
-    if (organizerProfile?.name) {
-      document.title = `${organizerProfile.name} - Pagamento`;
-    } else {
-      document.title = 'Pagamento - Rifaqui';
-    }
+    // Sempre exibir apenas "Pagamento"
+    document.title = 'Pagamento';
 
     // Cleanup: restaurar título padrão quando o componente desmontar
     return () => {
       document.title = 'Rifaqui';
     };
-  }, [organizerProfile]);
+  }, []);
 
   useEffect(() => {
     if (!reservationData?.expiresAt) return;
