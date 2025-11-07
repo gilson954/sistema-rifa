@@ -175,6 +175,36 @@ const PaymentConfirmationPage = () => {
     loadOrganizerProfile();
   }, [reservationData]);
 
+  // useEffect para atualizar o favicon dinamicamente
+  useEffect(() => {
+    if (organizerProfile?.logo_url) {
+      const faviconLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+      if (faviconLink) {
+        faviconLink.href = organizerProfile.logo_url;
+      } else {
+        // Se não existir, criar o elemento
+        const newFavicon = document.createElement('link');
+        newFavicon.rel = 'icon';
+        newFavicon.href = organizerProfile.logo_url;
+        document.head.appendChild(newFavicon);
+      }
+    }
+  }, [organizerProfile]);
+
+  // useEffect para atualizar o título da página dinamicamente
+  useEffect(() => {
+    if (reservationData?.campaignTitle) {
+      document.title = `Pagamento - ${reservationData.campaignTitle}`;
+    } else {
+      document.title = 'Confirmação de Pagamento';
+    }
+
+    // Cleanup: restaurar título padrão quando o componente desmontar
+    return () => {
+      document.title = 'Rifaqui';
+    };
+  }, [reservationData]);
+
   useEffect(() => {
     if (!reservationData?.expiresAt) return;
 
