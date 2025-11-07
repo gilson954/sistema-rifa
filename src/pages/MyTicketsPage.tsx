@@ -133,6 +133,29 @@ const MyTicketsPage = () => {
     loadOrganizerFromOrders();
   }, [orders]);
 
+  // Atualiza o título da página
+  useEffect(() => {
+    document.title = 'Minhas Cotas - Rifaqui';
+  }, []);
+
+  // Atualiza o favicon dinamicamente com o logo do organizador
+  useEffect(() => {
+    const updateFavicon = () => {
+      const faviconLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+      
+      if (faviconLink && organizerProfile?.logo_url) {
+        faviconLink.href = organizerProfile.logo_url;
+      } else if (faviconLink) {
+        // Volta para o favicon padrão se não houver logo
+        faviconLink.href = '/favicon.ico';
+      }
+    };
+
+    if (organizerProfile) {
+      updateFavicon();
+    }
+  }, [organizerProfile]);
+
   const loadUserOrders = async (phone: string) => {
     setLoading(true);
     setError(null);
