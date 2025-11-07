@@ -1399,7 +1399,7 @@ const CampaignPage = () => {
                   </div>
 
                   {currentPromotionInfo && (
-                    <div className="mb-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <div className="mb-3 p-3 bg-green-100 dark:bg-green-900/30 border-2 border-green-500 dark:border-green-600 rounded-lg">
                       <div className="text-center">
                         <div className="text-sm font-bold text-green-600 dark:text-green-400 mb-1">
                           🎉 Promoção Aplicada: {currentPromotionInfo.discountPercentage}% OFF
