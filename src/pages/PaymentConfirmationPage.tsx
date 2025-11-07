@@ -117,6 +117,83 @@ const PaymentConfirmationPage = () => {
 
   const themeClasses = getThemeClasses(campaignTheme);
 
+  const getCustomGradientStyle = (customColorsJson: string) => {
+    try {
+      const colors = JSON.parse(customColorsJson);
+      if (Array.isArray(colors) && colors.length >= 2) {
+        if (colors.length === 2) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]})`;
+        } else if (colors.length === 3) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing custom gradient colors:', error);
+    }
+    return null;
+  };
+
+  const getColorStyle = (isBackground: boolean = true, isText: boolean = false) => {
+    const colorMode = organizerProfile?.color_mode || 'solid';
+    const primaryColor = organizerProfile?.primary_color || '#3B82F6';
+
+    if (colorMode === 'gradient') {
+      const gradientClasses = organizerProfile?.gradient_classes;
+      const customGradientColors = organizerProfile?.custom_gradient_colors;
+
+      if (gradientClasses === 'custom' && customGradientColors) {
+        const gradientStyle = getCustomGradientStyle(customGradientColors);
+        if (gradientStyle) {
+          return {
+            background: gradientStyle,
+            backgroundSize: '200% 200%',
+            ...(isText && {
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              color: 'transparent'
+            })
+          };
+        }
+      }
+
+      if (isText) {
+        return {
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          color: 'transparent'
+        };
+      }
+      return {};
+    }
+
+    if (isText) {
+      return { color: primaryColor };
+    }
+
+    return isBackground ? { backgroundColor: primaryColor } : { color: primaryColor };
+  };
+
+  const getColorClassName = (baseClasses: string = '') => {
+    const colorMode = organizerProfile?.color_mode || 'solid';
+
+    if (colorMode === 'gradient') {
+      const gradientClasses = organizerProfile?.gradient_classes;
+      const customGradientColors = organizerProfile?.custom_gradient_colors;
+
+      if (gradientClasses === 'custom' && customGradientColors) {
+        return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
+      }
+
+      if (gradientClasses && gradientClasses !== 'custom') {
+        return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
+      }
+    }
+
+    return baseClasses;
+  };
+
   const formatQuotaNumber = (quotaNumber: number): string => {
     if (!campaign?.total_tickets) {
       return (quotaNumber - 1).toString().padStart(3, '0');
@@ -143,11 +220,16 @@ const PaymentConfirmationPage = () => {
   useEffect(() => {
     const loadOrganizerProfile = async () => {
       if (reservationData?.campaignId) {
-        const { data: campaignData } = await supabase
+        const { data: campaignData, error: campaignError } = await supabase
           .from('campaigns')
           .select('user_id, campaign_model, prize_image_urls, total_tickets')
           .eq('id', reservationData.campaignId)
           .maybeSingle();
+
+        if (campaignError) {
+          console.error('Error loading campaign data:', campaignError);
+          return;
+        }
 
         if (campaignData) {
           setCampaignModel(campaignData.campaign_model || 'manual');
@@ -158,11 +240,16 @@ const PaymentConfirmationPage = () => {
           }
 
           if (campaignData.user_id) {
-            const { data: profile } = await supabase
+            const { data: profile, error: profileError } = await supabase
               .from('public_profiles_view')
               .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, social_media_links')
               .eq('id', campaignData.user_id)
               .maybeSingle();
+
+            if (profileError) {
+              console.error('Error loading organizer profile:', profileError);
+              return;
+            }
 
             if (profile) {
               setOrganizerProfile(profile);
@@ -207,17 +294,17 @@ const PaymentConfirmationPage = () => {
 
   // useEffect para atualizar o título da página dinamicamente
   useEffect(() => {
-    if (reservationData?.campaignTitle) {
-      document.title = `Pagamento - ${reservationData.campaignTitle}`;
+    if (organizerProfile?.name) {
+      document.title = `${organizerProfile.name} - Pagamento`;
     } else {
-      document.title = 'Confirmação de Pagamento';
+      document.title = 'Pagamento - Rifaqui';
     }
 
     // Cleanup: restaurar título padrão quando o componente desmontar
     return () => {
       document.title = 'Rifaqui';
     };
-  }, [reservationData]);
+  }, [organizerProfile]);
 
   useEffect(() => {
     if (!reservationData?.expiresAt) return;
@@ -276,9 +363,13 @@ const PaymentConfirmationPage = () => {
   };
 
   if (!reservationData) {
+    const primaryColor = organizerProfile?.primary_color || '#3B82F6';
     return (
       <div className={`min-h-screen ${themeClasses.background} flex items-center justify-center`}>
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600"></div>
+        <div 
+          className="animate-spin rounded-full h-16 w-16 border-b-2" 
+          style={{ borderColor: primaryColor }}
+        ></div>
       </div>
     );
   }
@@ -433,7 +524,8 @@ const PaymentConfirmationPage = () => {
           >
             <button
               onClick={() => navigate(`/c/${reservationData.campaignPublicId || reservationData.campaignId}`)}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3 rounded-xl font-bold transition-all duration-200 shadow-lg"
+              className={getColorClassName("w-full px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105")}
+              style={getColorStyle(true, false)}
             >
               Voltar para Campanha
             </button>
