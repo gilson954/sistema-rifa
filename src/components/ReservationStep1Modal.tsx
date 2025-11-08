@@ -388,7 +388,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
             >
               {/* Gradiente de fundo baseado no tema */}
               {campaignTheme === 'claro' && (
-                <div className="absolute inset-0 bg-gradient-to-r from-[#dbdbdb] to-[#919191]"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-[#e8e8e8] to-[#919191]"></div>
               )}
               
               {campaignTheme === 'escuro' && (
