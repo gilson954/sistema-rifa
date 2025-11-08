@@ -895,6 +895,19 @@ const CampaignPage = () => {
     return 'hover:shadow-[0_15px_45px_-10px_rgba(0,0,0,0.3),0_8px_22px_-6px_rgba(0,0,0,0.2)]';
   };
 
+  const getScrollbarClass = () => {
+    switch (campaignTheme) {
+      case 'claro':
+        return 'custom-scrollbar-light';
+      case 'escuro':
+      case 'escuro-preto':
+      case 'escuro-cinza':
+        return 'custom-scrollbar-dark';
+      default:
+        return 'custom-scrollbar-light';
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -1577,9 +1590,7 @@ const CampaignPage = () => {
           
           {campaign.description && isValidDescription(campaign.description) ? (
             <div
-              className={`${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2 ${
-                campaignTheme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
-              }`}
+              className={`${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2 ${getScrollbarClass()}`}
               style={{
                 maxHeight: '400px'
               }}
