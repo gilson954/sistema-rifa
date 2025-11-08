@@ -11,7 +11,7 @@ const CampaignFooter: React.FC<CampaignFooterProps> = ({ campaignTheme = 'claro'
   
   // Footer sempre com fundo escuro, independente do tema
   const bgClass = campaignTheme === 'escuro-preto' ? 'bg-gray-900' : 'bg-black';
-  const borderClass = 'border-gray-800';
+  const borderClass = 'border-[#1f1f1f]';
   const textClass = 'text-white';
   const mutedTextClass = 'text-gray-400';
   
