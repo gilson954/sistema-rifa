@@ -100,6 +100,22 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
           hoverBg: 'hover:bg-gray-800',
           overlayBg: 'bg-black/60'
         };
+    case 'escuro-cinza':
+      return {
+        background: 'bg-[#1A1A1A]',
+        text: 'text-white',
+        textSecondary: 'text-gray-400',
+        cardBg: 'bg-gradient-to-br from-[#2C2C2C] to-[#1A1A1A]',
+        border: 'border-gray-700/50',
+        inputBg: 'bg-[#2C2C2C]',
+        inputBorder: 'border-gray-700',
+        inputText: 'text-white',
+        inputPlaceholder: 'placeholder-gray-400',
+        labelText: 'text-white',
+        iconColor: 'text-gray-400',
+        hoverBg: 'hover:bg-[#3C3C3C]',
+        overlayBg: 'bg-black/60'
+      };
       default:
         return {
           background: 'bg-white',
