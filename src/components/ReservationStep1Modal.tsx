@@ -17,9 +17,9 @@ interface Country {
 interface ReservationStep1ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onNewCustomer: (totalQuantity: number, orderId: string, reservationTimestamp: Date) => void; // CRITICAL: Adicionar orderId e reservationTimestamp
-  onExistingCustomer: (customerData: ExistingCustomer, totalQuantity: number, orderId: string, reservationTimestamp: Date) => void; // CRITICAL: Adicionar orderId e reservationTimestamp
-  quotaCount: number; // totalQuantity
+  onNewCustomer: (totalQuantity: number, orderId: string, reservationTimestamp: Date) => void;
+  onExistingCustomer: (customerData: ExistingCustomer, totalQuantity: number, orderId: string, reservationTimestamp: Date) => void;
+  quotaCount: number;
   totalValue: number;
   selectedQuotas?: number[];
   campaignTitle: string;
@@ -35,7 +35,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
   onClose,
   onNewCustomer,
   onExistingCustomer,
-  quotaCount, // totalQuantity
+  quotaCount,
   totalValue,
   selectedQuotas,
   campaignTitle,
@@ -73,7 +73,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
           text: 'text-gray-900',
           textSecondary: 'text-gray-700',
           cardBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
-          border: 'border-gray-200/50',
+          border: 'border-gray-200',
           inputBg: 'bg-white',
           inputBorder: 'border-gray-300',
           inputText: 'text-gray-900',
@@ -84,15 +84,30 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
           overlayBg: 'bg-gray-900/40'
         };
       case 'escuro':
+        return {
+          background: 'bg-slate-900',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gradient-to-br from-slate-800 to-slate-900',
+          border: 'border-gray-700',
+          inputBg: 'bg-slate-800',
+          inputBorder: 'border-gray-700',
+          inputText: 'text-white',
+          inputPlaceholder: 'placeholder-gray-400',
+          labelText: 'text-gray-100',
+          iconColor: 'text-gray-400',
+          hoverBg: 'hover:bg-slate-800',
+          overlayBg: 'bg-black/60'
+        };
       case 'escuro-preto':
         return {
           background: 'bg-gray-900',
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gradient-to-br from-gray-800 to-gray-900',
-          border: 'border-gray-700/50',
+          border: 'border-gray-700',
           inputBg: 'bg-gray-800',
-          inputBorder: 'border-gray-600',
+          inputBorder: 'border-gray-700',
           inputText: 'text-white',
           inputPlaceholder: 'placeholder-gray-400',
           labelText: 'text-gray-100',
@@ -100,29 +115,29 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
           hoverBg: 'hover:bg-gray-800',
           overlayBg: 'bg-black/60'
         };
-    case 'escuro-cinza':
-      return {
-        background: 'bg-[#1A1A1A]',
-        text: 'text-white',
-        textSecondary: 'text-gray-400',
-        cardBg: 'bg-gradient-to-br from-[#2C2C2C] to-[#1A1A1A]',
-        border: 'border-[#1f1f1f]',
-        inputBg: 'bg-[#2C2C2C]',
-        inputBorder: 'border-gray-700',
-        inputText: 'text-white',
-        inputPlaceholder: 'placeholder-gray-400',
-        labelText: 'text-white',
-        iconColor: 'text-gray-400',
-        hoverBg: 'hover:bg-[#3C3C3C]',
-        overlayBg: 'bg-black/60'
-      };
+      case 'escuro-cinza':
+        return {
+          background: 'bg-[#1A1A1A]',
+          text: 'text-white',
+          textSecondary: 'text-gray-400',
+          cardBg: 'bg-gradient-to-br from-[#2C2C2C] to-[#1A1A1A]',
+          border: 'border-[#3A3A3A]',
+          inputBg: 'bg-[#2C2C2C]',
+          inputBorder: 'border-[#3A3A3A]',
+          inputText: 'text-white',
+          inputPlaceholder: 'placeholder-gray-400',
+          labelText: 'text-white',
+          iconColor: 'text-gray-400',
+          hoverBg: 'hover:bg-[#3C3C3C]',
+          overlayBg: 'bg-black/60'
+        };
       default:
         return {
           background: 'bg-white',
           text: 'text-gray-900',
           textSecondary: 'text-gray-700',
           cardBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
-          border: 'border-gray-200/50',
+          border: 'border-gray-200',
           inputBg: 'bg-white',
           inputBorder: 'border-gray-300',
           inputText: 'text-gray-900',
@@ -173,13 +188,11 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
   };
 
   const validatePhoneNumber = (): boolean => {
-    // phoneNumber agora contém apenas dígitos (já vem bruto do CountryPhoneSelect)
     if (!phoneNumber.trim()) {
       setError('Número de celular é obrigatório');
       return false;
     }
 
-    // Valida o comprimento de acordo com o país
     if (selectedCountry.code === 'BR' && phoneNumber.length !== 11) {
       setError('Número de celular deve ter 11 dígitos');
       return false;
@@ -202,9 +215,8 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
     setChecking(true);
     setError('');
 
-    // CRITICAL FIX: Gerar orderId e reservationTimestamp aqui para consistência
-    const orderId = crypto.randomUUID(); // Gerar um UUID para o order_id
-    const reservationTimestamp = new Date(); // Usar um timestamp consistente
+    const orderId = crypto.randomUUID();
+    const reservationTimestamp = new Date();
 
     console.log('═══════════════════════════════════════════');
     console.log('🔵 ReservationStep1Modal - Starting customer check');
@@ -245,7 +257,6 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
         console.log('   - Order ID:', orderId);
         console.log('   - Timestamp:', reservationTimestamp.toISOString());
         
-        // CRITICAL: Passar customerData, quotaCount, orderId e reservationTimestamp
         onExistingCustomer(customerData, quotaCount, orderId, reservationTimestamp);
       } else {
         console.log('🆕 New customer - opening registration modal');
@@ -254,7 +265,6 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
         console.log('   - Order ID:', orderId);
         console.log('   - Timestamp:', reservationTimestamp.toISOString());
         
-        // CRITICAL: Passar quotaCount, orderId e reservationTimestamp (customerData será null/undefined no próximo passo)
         onNewCustomer(quotaCount, orderId, reservationTimestamp);
       }
     } catch (err) {
@@ -280,7 +290,6 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
 
   const theme = getThemeClasses(campaignTheme);
 
-  // Variantes de animação
   const overlayVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -377,9 +386,12 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
               className="relative overflow-hidden"
               variants={headerVariants}
             >
-              <div className="absolute inset-0 bg-gradient-to-r opacity-10" style={{
-                background: `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}99 100%)`
-              }}></div>
+              {/* Gradiente apenas para tema claro */}
+              {campaignTheme === 'claro' && (
+                <div className="absolute inset-0 bg-gradient-to-r opacity-10" style={{
+                  background: `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}99 100%)`
+                }}></div>
+              )}
 
               <div className={`relative flex items-center justify-between p-6 border-b ${theme.border}`}>
                 <div className="flex items-center space-x-4">
@@ -526,7 +538,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
                   onCountryChange={setSelectedCountry}
                   placeholder="Digite seu número"
                   error={error}
-                  theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto'}
+                  theme={campaignTheme as 'claro' | 'escuro' | 'escuro-preto' | 'escuro-cinza'}
                 />
               </motion.div>
 
