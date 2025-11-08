@@ -85,7 +85,7 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
           text: 'text-white',
           textSecondary: 'text-gray-400',
           cardBg: 'bg-[#2C2C2C]',
-          border: 'border-gray-900',
+          border: 'border-[#1f1f1f]',
           buttonBg: 'bg-[#2C2C2C]',
           buttonHover: 'hover:bg-[#3C3C3C]',
           overlayBg: 'bg-black/60',
