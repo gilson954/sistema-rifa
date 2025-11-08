@@ -378,8 +378,8 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
               variants={headerVariants}
             >
               <div className="absolute inset-0 bg-gradient-to-r opacity-10" style={{
-                background: `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}99 100%)`
-              }}></div>
+  background: `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}99 100%)`
+}}></div>
 
               <div className={`relative flex items-center justify-between p-6 border-b ${theme.border}`}>
                 <div className="flex items-center space-x-4">
