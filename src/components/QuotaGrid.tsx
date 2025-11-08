@@ -1,5 +1,6 @@
 import React from 'react';
 import { TicketStatusInfo } from '../lib/api/tickets';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 interface QuotaGridProps {
   totalQuotas: number;
@@ -15,6 +16,13 @@ interface QuotaGridProps {
   colorMode?: string;
   gradientClasses?: string;
   customGradientColors?: string;
+  // ✨ NOVAS PROPS DE PAGINAÇÃO
+  currentPage?: number;
+  totalPages?: number;
+  pageSize?: number;
+  onPageChange?: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
+  loading?: boolean;
 }
 
 const QuotaGrid: React.FC<QuotaGridProps> = ({
@@ -30,7 +38,14 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   primaryColor,
   colorMode = 'solid',
   gradientClasses,
-  customGradientColors
+  customGradientColors,
+  // Props de paginação com valores padrão
+  currentPage = 1,
+  totalPages = 1,
+  pageSize = 1000,
+  onPageChange,
+  onPageSizeChange,
+  loading = false
 }) => {
   // Function to get theme classes
   const getThemeClasses = (theme: string) => {
@@ -49,7 +64,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
-          border: 'border-gray-800'
+          border: 'border-gray-600'
         };
       case 'escuro-preto':
         return {
@@ -57,8 +72,16 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
-          border: 'border-gray-800'
+          border: 'border-gray-700'
         };
+    case 'escuro-cinza':
+      return {
+        background: 'bg-[#1A1A1A]',
+        text: 'text-white',
+        textSecondary: 'text-gray-400',
+        cardBg: 'bg-[#2C2C2C]',
+        border: 'border-[#1f1f1f]'
+      };
       default:
         return {
           background: 'bg-white',
@@ -172,61 +195,61 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   // CRITICAL FIX: Calculate padding length for quota numbers based on total quotas
   // O quota_number no banco vai de 1 a N, mas exibimos de 00 a N-1
   // Então o número máximo exibido é totalQuotas - 1
-  // Examples: 
-  // - 100 cotas (quota_number: 1-100, display: 00-99): máximo exibido é 99 → 2 dígitos ✅
-  // - 1000 cotas (quota_number: 1-1000, display: 000-999): máximo exibido é 999 → 3 dígitos ✅
-  // - 10000 cotas (quota_number: 1-10000, display: 0000-9999): máximo exibido é 9999 → 4 dígitos ✅
   const getPadLength = () => {
     // Se totalQuotas for 0, retorna 1 para evitar problemas
     if (totalQuotas === 0) return 1;
     
     // Calcular baseado no maior número exibido (totalQuotas - 1)
-    // Exemplo: 100 cotas → maior número exibido é 99 → 2 dígitos
     const maxDisplayNumber = totalQuotas - 1;
     return String(maxDisplayNumber).length;
   };
 
-  // Filtrar cotas com base no filtro ativo
+  // ⚠️ IMPORTANTE: Filtrar cotas APENAS da página atual (tickets carregados)
+  // Não tenta filtrar todas as cotas da campanha
   const getFilteredQuotas = () => {
-    // CRITICAL: quota_number no banco vai de 1 a totalQuotas
-    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index + 1);
+    // Usar apenas os tickets da página atual
+    const currentPageQuotas = tickets.map(t => t.quota_number);
     
     switch (activeFilter) {
       case 'available':
-        return allQuotas.filter(quota => {
+        return currentPageQuotas.filter(quota => {
           const ticket = tickets.find(t => t.quota_number === quota);
           return ticket?.status === 'disponível' && !selectedQuotas.includes(quota);
         });
       case 'reserved':
-        return allQuotas.filter(quota => {
+        return currentPageQuotas.filter(quota => {
           const ticket = tickets.find(t => t.quota_number === quota);
           return ticket?.status === 'reservado';
         });
       case 'purchased':
-        return allQuotas.filter(quota => {
+        return currentPageQuotas.filter(quota => {
           const ticket = tickets.find(t => t.quota_number === quota);
           return ticket?.status === 'comprado';
         });
       case 'my-numbers':
-        return allQuotas.filter(quota => {
+        return currentPageQuotas.filter(quota => {
           const ticket = tickets.find(t => t.quota_number === quota);
           return ticket?.is_mine || selectedQuotas.includes(quota);
         });
       case 'all':
       default:
-        return allQuotas;
+        return currentPageQuotas;
     }
   };
 
-  // Calcular contadores para os filtros
+  // Calcular contadores para os filtros (baseado APENAS nos tickets da página atual)
   const getFilterCounts = () => {
     const availableCount = tickets.filter(t => t.status === 'disponível').length;
     const reservedCount = tickets.filter(t => t.status === 'reservado').length;
     const purchasedCount = tickets.filter(t => t.status === 'comprado').length;
-    const myNumbersCount = tickets.filter(t => t.is_mine).length + selectedQuotas.length;
+    const myNumbersCount = tickets.filter(t => t.is_mine).length + selectedQuotas.filter(q => {
+      // Conta apenas seleções da página atual
+      const ticket = tickets.find(t => t.quota_number === q);
+      return ticket !== undefined;
+    }).length;
     
     return {
-      all: totalQuotas,
+      all: tickets.length, // Total na página atual
       available: Math.max(0, availableCount - selectedQuotas.length),
       reserved: reservedCount,
       purchased: purchasedCount,
@@ -236,6 +259,47 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
 
   const filteredQuotas = getFilteredQuotas();
   const filterCounts = getFilterCounts();
+
+  // ✨ NOVA FUNÇÃO: Gera array de números de página para exibir
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 5; // Máximo de números de página visíveis
+
+    if (totalPages <= maxVisible) {
+      // Se tem poucas páginas, mostra todas
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Lógica para mostrar páginas com reticências
+      if (currentPage <= 3) {
+        // Início: 1 2 3 4 ... última
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        // Fim: 1 ... N-3 N-2 N-1 N
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // Meio: 1 ... current-1 current current+1 ... última
+        pages.push(1);
+        pages.push('...');
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
 
   return (
     <div className="w-full">
@@ -320,46 +384,198 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         </div>
         
         <div className={`text-center text-sm ${getThemeClasses(campaignTheme).textSecondary}`}>
-          {activeFilter === 'my-numbers' ? selectedQuotas.length : filteredQuotas.length}/{totalQuotas}
+          {activeFilter === 'my-numbers' ? selectedQuotas.length : filteredQuotas.length} cotas na página atual
         </div>
       </div>
 
+      {/* ✨ NOVOS CONTROLES DE PAGINAÇÃO - TOPO */}
+      {totalPages > 1 && onPageChange && (
+        <div className={`mb-4 p-4 ${getThemeClasses(campaignTheme).cardBg} rounded-lg border ${getThemeClasses(campaignTheme).border}`}>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Navegação de Páginas */}
+            <div className="flex items-center gap-2">
+              {/* Primeira Página */}
+              <button
+                onClick={() => onPageChange(1)}
+                disabled={currentPage === 1 || loading}
+                className={`p-2 rounded-lg border transition-colors ${
+                  currentPage === 1 || loading
+                    ? `${getThemeClasses(campaignTheme).border} ${getThemeClasses(campaignTheme).textSecondary} opacity-50 cursor-not-allowed`
+                    : `${getThemeClasses(campaignTheme).border} ${getThemeClasses(campaignTheme).text} hover:opacity-80`
+                }`}
+                title="Primeira página"
+              >
+                <ChevronsLeft size={20} />
+              </button>
+
+              {/* Página Anterior */}
+              <button
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1 || loading}
+                className={`p-2 rounded-lg border transition-colors ${
+                  currentPage === 1 || loading
+                    ? `${getThemeClasses(campaignTheme).border} ${getThemeClasses(campaignTheme).textSecondary} opacity-50 cursor-not-allowed`
+                    : `${getThemeClasses(campaignTheme).border} ${getThemeClasses(campaignTheme).text} hover:opacity-80`
+                }`}
+                title="Página anterior"
+              >
+                <ChevronLeft size={20} />
+              </button>
+
+              {/* Números de Página */}
+              <div className="flex items-center gap-1">
+                {getPageNumbers().map((page, index) => (
+                  page === '...' ? (
+                    <span key={`ellipsis-${index}`} className={`px-2 ${getThemeClasses(campaignTheme).textSecondary}`}>
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={page}
+                      onClick={() => onPageChange(page as number)}
+                      disabled={loading}
+                      className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                        currentPage === page
+                          ? getColorClassName('text-white')
+                          : `${getThemeClasses(campaignTheme).text} border ${getThemeClasses(campaignTheme).border} hover:opacity-80`
+                      }`}
+                      style={currentPage === page ? getColorStyle() : {}}
+                    >
+                      {page}
+                    </button>
+                  )
+                ))}
+              </div>
+
+              {/* Próxima Página */}
+              <button
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || loading}
+                className={`p-2 rounded-lg border transition-colors ${
+                  currentPage === totalPages || loading
+                    ? `${getThemeClasses(campaignTheme).border} ${getThemeClasses(campaignTheme).textSecondary} opacity-50 cursor-not-allowed`
+                    : `${getThemeClasses(campaignTheme).border} ${getThemeClasses(campaignTheme).text} hover:opacity-80`
+                }`}
+                title="Próxima página"
+              >
+                <ChevronRight size={20} />
+              </button>
+
+              {/* Última Página */}
+              <button
+                onClick={() => onPageChange(totalPages)}
+                disabled={currentPage === totalPages || loading}
+                className={`p-2 rounded-lg border transition-colors ${
+                  currentPage === totalPages || loading
+                    ? `${getThemeClasses(campaignTheme).border} ${getThemeClasses(campaignTheme).textSecondary} opacity-50 cursor-not-allowed`
+                    : `${getThemeClasses(campaignTheme).border} ${getThemeClasses(campaignTheme).text} hover:opacity-80`
+                }`}
+                title="Última página"
+              >
+                <ChevronsRight size={20} />
+              </button>
+            </div>
+
+            {/* Info da Página */}
+            <div className={`text-sm ${getThemeClasses(campaignTheme).textSecondary}`}>
+              Página {currentPage} de {totalPages} • {totalQuotas.toLocaleString()} cotas no total
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Quota Grid */}
-      <div className={`quota-grid grid ${getGridCols()} gap-1 p-4 ${getThemeClasses(campaignTheme).cardBg} rounded-lg overflow-hidden`}>
-        {filteredQuotas.map((quotaNumber) => {
-          const status = getQuotaStatus(quotaNumber);
-          const padLength = getPadLength();
-          const quotaStyles = getQuotaStyles(status);
-          const isSelected = status === 'selected';
-          
-          // CRITICAL FIX: Exibir quota_number - 1 para o usuário
-          const displayNumber = quotaNumber - 1;
-          
-          return (
-            <button
-              key={quotaNumber}
-              onClick={() => handleQuotaClick(quotaNumber)}
-              className={`
-                w-10 h-10 text-xs font-medium rounded flex items-center justify-center transition-all duration-200
-                ${quotaStyles}
-                ${isSelected ? getColorClassName('') : ''}
-                ${mode === 'automatic' || status === 'purchased' || status === 'reserved' ? 'cursor-not-allowed' : 'cursor-pointer'}
-              `}
-              style={isSelected ? getColorStyle() : {}}
-              disabled={mode === 'automatic' || status === 'purchased' || status === 'reserved'}
-              title={`Cota ${displayNumber.toString().padStart(padLength, '0')} - ${
-                status === 'purchased' ? 'Comprada' : 
-                status === 'reserved' ? 'Reservada' : 
-                status === 'selected' ? 'Selecionada' : 
-                'Disponível'
-              }`}
-            >
-              {/* CRITICAL FIX: Exibir quota_number - 1 com padding correto */}
-              {displayNumber.toString().padStart(padLength, '0')}
-            </button>
-          );
-        })}
+      <div className={`quota-grid grid ${getGridCols()} gap-1 p-4 ${getThemeClasses(campaignTheme).cardBg} rounded-lg overflow-hidden ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
+        {loading ? (
+          <div className="col-span-full flex items-center justify-center py-12">
+            <div className={`text-center ${getThemeClasses(campaignTheme).textSecondary}`}>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-current mx-auto mb-4"></div>
+              <p>Carregando cotas...</p>
+            </div>
+          </div>
+        ) : filteredQuotas.length === 0 ? (
+          <div className="col-span-full flex items-center justify-center py-12">
+            <div className={`text-center ${getThemeClasses(campaignTheme).textSecondary}`}>
+              <p className="text-lg mb-2">🔍</p>
+              <p>Nenhuma cota encontrada com este filtro na página atual.</p>
+              {totalPages > 1 && (
+                <p className="text-sm mt-2">Tente navegar para outras páginas.</p>
+              )}
+            </div>
+          </div>
+        ) : (
+          filteredQuotas.map((quotaNumber) => {
+            const status = getQuotaStatus(quotaNumber);
+            const padLength = getPadLength();
+            const quotaStyles = getQuotaStyles(status);
+            const isSelected = status === 'selected';
+            
+            // CRITICAL FIX: Exibir quota_number - 1 para o usuário
+            const displayNumber = quotaNumber - 1;
+            
+            return (
+              <button
+                key={quotaNumber}
+                onClick={() => handleQuotaClick(quotaNumber)}
+                className={`
+                  w-10 h-10 text-xs font-medium rounded flex items-center justify-center transition-all duration-200
+                  ${quotaStyles}
+                  ${isSelected ? getColorClassName('') : ''}
+                  ${mode === 'automatic' || status === 'purchased' || status === 'reserved' ? 'cursor-not-allowed' : 'cursor-pointer'}
+                `}
+                style={isSelected ? getColorStyle() : {}}
+                disabled={mode === 'automatic' || status === 'purchased' || status === 'reserved'}
+                title={`Cota ${displayNumber.toString().padStart(padLength, '0')} - ${
+                  status === 'purchased' ? 'Comprada' : 
+                  status === 'reserved' ? 'Reservada' : 
+                  status === 'selected' ? 'Selecionada' : 
+                  'Disponível'
+                }`}
+              >
+                {/* CRITICAL FIX: Exibir quota_number - 1 com padding correto */}
+                {displayNumber.toString().padStart(padLength, '0')}
+              </button>
+            );
+          })
+        )}
       </div>
+
+      {/* ✨ NOVOS CONTROLES DE PAGINAÇÃO - RODAPÉ (versão simplificada) */}
+      {totalPages > 1 && onPageChange && !loading && (
+        <div className={`mt-4 p-3 ${getThemeClasses(campaignTheme).cardBg} rounded-lg border ${getThemeClasses(campaignTheme).border}`}>
+          <div className="flex items-center justify-center gap-4">
+            <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                currentPage === 1
+                  ? `${getThemeClasses(campaignTheme).textSecondary} opacity-50 cursor-not-allowed`
+                  : getColorClassName('text-white')
+              }`}
+              style={currentPage === 1 ? {} : getColorStyle()}
+            >
+              ← Anterior
+            </button>
+            
+            <span className={`text-sm ${getThemeClasses(campaignTheme).textSecondary}`}>
+              {currentPage} / {totalPages}
+            </span>
+            
+            <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                currentPage === totalPages
+                  ? `${getThemeClasses(campaignTheme).textSecondary} opacity-50 cursor-not-allowed`
+                  : getColorClassName('text-white')
+              }`}
+              style={currentPage === totalPages ? {} : getColorStyle()}
+            >
+              Próximo →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
