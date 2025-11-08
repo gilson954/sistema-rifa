@@ -81,7 +81,6 @@ const CampaignFooter: React.FC<CampaignFooterProps> = ({ campaignTheme = 'claro'
               </motion.span>
             </motion.button>
           </div>
-
           {/* Mensagem de disclaimer */}
           <div className="max-w-3xl text-center">
             <p className={`text-xs ${mutedTextClass} leading-relaxed`}>
