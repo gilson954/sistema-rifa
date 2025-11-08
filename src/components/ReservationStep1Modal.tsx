@@ -102,7 +102,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
         };
     case 'escuro-cinza':
       return {
-        background: 'bg-[#ab1616]',
+        background: 'bg-[]',
         text: 'text-white',
         textSecondary: 'text-gray-400',
         cardBg: 'bg-gradient-to-br from-[#2C2C2C] to-[#1A1A1A]',
