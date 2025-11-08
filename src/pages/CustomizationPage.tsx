@@ -277,7 +277,7 @@ const CustomizationPage = () => {
           cardBg: 'bg-gray-50',
           border: 'border-gray-200'
         };
-            case 'escuro':
+      case 'escuro':
         return {
           background: 'bg-slate-900',
           text: 'text-white',
@@ -285,13 +285,21 @@ const CustomizationPage = () => {
           cardBg: 'bg-slate-800',
           border: 'border-slate-700'
         };
-case 'escuro-preto':
+      case 'escuro-preto':
         return {
           background: 'bg-black',
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
           border: 'border-gray-700'
+        };
+      case 'escuro-cinza': // NOVO TEMA: Escuro Cinza
+        return {
+          background: 'bg-[#1A1A1A]', // Fundo principal: Cinza bem escuro
+          text: 'text-white', // Texto principal: Branco
+          textSecondary: 'text-[#A0A0A0]', // Texto secundário: Cinza médio
+          cardBg: 'bg-[#2C2C2C]', // Cards/Fundo de elementos: Cinza um pouco mais claro
+          border: 'border-[#404040]' // Bordas: Cinza escuro
         };
       default:
         return {
@@ -518,7 +526,7 @@ case 'escuro-preto':
                   Escolha o tema que melhor combina com sua marca
                 </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                   {/* Light Theme */}
                   <div
                     onClick={() => setSelectedTheme('claro')}
@@ -635,6 +643,45 @@ case 'escuro-preto':
                     </div>
                     <p className="text-center text-base font-bold text-gray-900 dark:text-white">Escuro Preto</p>
                   </div>
+
+                  {/* Dark Gray Theme (Escuro Cinza) - NOVO CARD */}
+                  <div
+                    onClick={() => setSelectedTheme('escuro-cinza')}
+                    className={`cursor-pointer rounded-2xl p-5 transition-all duration-300 hover:scale-105 ${
+                      selectedTheme === 'escuro-cinza'
+                        ? 'ring-4 ring-purple-500 shadow-xl'
+                        : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
+                    }`}
+                  >
+                    <div className={`w-full h-40 ${getThemeClasses('escuro-cinza').background} rounded-xl p-4 mb-4 border-2 ${getThemeClasses('escuro-cinza').border} shadow-inner`}>
+                      <div className="space-y-2">
+                        <div className={`text-sm font-bold ${getThemeClasses('escuro-cinza').text}`}>
+                          Rifa do iPhone 15
+                        </div>
+                        <div className={`text-xs ${getThemeClasses('escuro-cinza').textSecondary}`}>
+                          R$ 5,00 por bilhete
+                        </div>
+                        <div className={`${getThemeClasses('escuro-cinza').cardBg} rounded-lg p-3 space-y-2`}>
+                          <div className={`text-xs font-medium ${getThemeClasses('escuro-cinza').textSecondary}`}>
+                            Progresso
+                          </div>
+                          <div className="bg-gray-700 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full w-2/3 ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                              style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                            ></div>
+                          </div>
+                        </div>
+                        <div 
+                          className={`text-white text-xs py-2 px-3 rounded-lg text-center font-semibold shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                        >
+                          Participar
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-center text-base font-bold text-gray-900 dark:text-white">Escuro Cinza</p>
+                  </div>
                 </div>
               </div>
 
@@ -738,305 +785,181 @@ case 'escuro-preto':
 
                   {/* Color Preview */}
                   <div className="mb-6 p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Cor selecionada:</p>
-                    <div className="flex items-center space-x-4">
-                      <div
-                        className="w-16 h-16 rounded-2xl shadow-lg border-4 border-white dark:border-gray-700"
-                        style={{ backgroundColor: selectedColor }}
-                      ></div>
-                      <div>
-                        <span className="text-gray-900 dark:text-white font-mono text-lg font-bold">{selectedColor.toUpperCase()}</span>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Código hexadecimal</p>
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Pré-visualização da cor principal:</p>
+                    <div className={`w-full h-12 rounded-xl shadow-lg transition-all duration-300`} style={{ backgroundColor: selectedColor }}>
+                      <div className="flex items-center justify-center h-full">
+                        <span className="text-white font-bold">Botão de Exemplo</span>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Gradient Selection - Gradientes Animados */}
+              {/* Color Selection - Gradientes */}
               <div className={colorMode === 'solid' ? 'opacity-40 pointer-events-none' : ''}>
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                      Gradientes animados
-                    </h2>
-                    {colorMode === 'solid' && (
-                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full">
-                        Desabilitado
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-400 mb-6">
-                    {colorMode === 'solid'
-                      ? 'Os gradientes estão desabilitados porque a Cor Sólida está ativa'
-                      : 'Escolha um gradiente pré-definido ou crie o seu próprio com até 3 cores'
-                    }
-                  </p>
-
-                  {/* Tabs: Predefinidos vs Customizado */}
-                  <div className="flex gap-3 mb-6">
-                    <button
-                      onClick={() => colorMode === 'gradient' && setIsCustomGradient(false)}
-                      disabled={colorMode === 'solid'}
-                      className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                        !isCustomGradient && colorMode === 'gradient'
-                          ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      } ${colorMode === 'solid' ? 'cursor-not-allowed' : ''}`}
-                    >
-                      Predefinidos
-                    </button>
-                    <button
-                      onClick={() => colorMode === 'gradient' && setIsCustomGradient(true)}
-                      disabled={colorMode === 'solid'}
-                      className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                        isCustomGradient && colorMode === 'gradient'
-                          ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      } ${colorMode === 'solid' ? 'cursor-not-allowed' : ''}`}
-                    >
-                      Personalizado
-                    </button>
-                  </div>
-
-                  {/* Gradientes Predefinidos */}
-                  {!isCustomGradient && colorMode === 'gradient' && (
-                    <>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
-                        {gradients.map((gradient) => (
-                          <button
-                            key={gradient.id}
-                            onClick={() => colorMode === 'gradient' && setSelectedGradient(gradient.classes)}
-                            disabled={colorMode === 'solid'}
-                            className={`group relative overflow-hidden rounded-2xl transition-all duration-300 ${
-                              selectedGradient === gradient.classes && !isCustomGradient
-                                ? 'ring-4 ring-purple-500 shadow-2xl scale-105'
-                                : 'hover:scale-105 hover:shadow-xl'
-                            } ${colorMode === 'solid' ? 'cursor-not-allowed' : ''}`}
-                          >
-                            <div className={`h-24 bg-gradient-to-r ${gradient.classes} animate-gradient-x bg-[length:200%_200%]`}></div>
-                            {selectedGradient === gradient.classes && !isCustomGradient && (
-                              <div className="absolute top-2 right-2 bg-white dark:bg-gray-900 rounded-full p-1 shadow-lg">
-                                <CheckCircle className="h-5 w-5 text-purple-600" />
-                              </div>
-                            )}
-                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
-                              <p className="text-white text-xs font-semibold text-center">{gradient.name}</p>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
-
-                  {/* Seletor de Gradiente Customizado */}
-                  {isCustomGradient && colorMode === 'gradient' && (
-                    <>
-                      <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl p-8 border border-gray-200/50 dark:border-gray-700/50 mb-6">
-                        <div className="flex items-center justify-between mb-6">
-                          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                            Suas cores personalizadas
-                          </h3>
-                          <button
-                            onClick={colorMode === 'gradient' ? handleRandomGradient : undefined}
-                            disabled={colorMode === 'solid'}
-                            className={`px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-lg text-white rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 hover:scale-105 ${
-                              colorMode === 'solid' ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                          >
-                            <Sparkles className="h-4 w-4" />
-                            Random
-                          </button>
-                        </div>
-
-                        <div className="space-y-4">
-                          {customGradientColors.map((color, index) => (
-                            <div key={index} className="flex items-center gap-4">
-                              <div className="flex-shrink-0 text-sm font-bold text-gray-700 dark:text-gray-300 w-16">
-                                Cor {index + 1}
-                              </div>
-                              
-                              {/* Color Picker */}
-                              <div className="relative flex-1">
-                                <input
-                                  type="color"
-                                  value={color}
-                                  onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
-                                  className="w-full h-12 rounded-xl border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
-                                  style={{ backgroundColor: color }}
-                                />
-                              </div>
-
-                              {/* Color Preview & Code */}
-                              <div className="flex items-center gap-3 flex-1">
-                                <div 
-                                  className="w-12 h-12 rounded-xl shadow-lg border-2 border-white dark:border-gray-700"
-                                  style={{ backgroundColor: color }}
-                                ></div>
-                                <input
-                                  type="text"
-                                  value={color.toUpperCase()}
-                                  onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
-                                  className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                  placeholder="#000000"
-                                />
-                              </div>
-
-                              {/* Remove Button */}
-                              {customGradientColors.length > 2 && (
-                                <button
-                                  onClick={() => handleRemoveCustomColor(index)}
-                                  className="flex-shrink-0 p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-all duration-300"
-                                  title="Remover cor"
-                                >
-                                  <X className="h-5 w-5" />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Add Color Button */}
-                        {customGradientColors.length < 3 && (
-                          <button
-                            onClick={handleAddCustomColor}
-                            className="mt-4 w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-600 dark:text-gray-400 hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 flex items-center justify-center gap-2 font-semibold"
-                          >
-                            <Plus className="h-5 w-5" />
-                            Adicionar cor (máx. 3)
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Preview do Gradiente Customizado */}
-                      <div className="mb-6 p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Gradiente personalizado:</p>
-                        <div 
-                          className="w-full h-20 rounded-2xl shadow-xl animate-gradient-x bg-[length:200%_200%]"
-                          style={{ 
-                            background: getCustomGradientStyle(),
-                            backgroundSize: '200% 200%'
-                          }}
-                        ></div>
-                      </div>
-                    </>
-                  )}
-
-                  {/* Preview do Gradiente Predefinido */}
-                  {!isCustomGradient && colorMode === 'gradient' && (
-                    <div className="mb-6 p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Gradiente selecionado:</p>
-                      <div className={`w-full h-20 rounded-2xl shadow-xl bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`}></div>
-                    </div>
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Gradientes
+                  </h2>
+                  {colorMode === 'solid' && (
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full">
+                      Desabilitado
+                    </span>
                   )}
                 </div>
-              </div>
-
-              {/* Preview em Tempo Real */}
-              <div className="mb-8">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                  <Eye className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                  Pré-visualização
-                </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Veja como sua campanha ficará para os visitantes
+                  {colorMode === 'solid'
+                    ? 'Os gradientes estão desabilitados porque a Cor Sólida está ativa'
+                    : 'Escolha um gradiente pré-definido ou crie o seu próprio com até 3 cores'
+                  }
                 </p>
-                <div className={`${getThemeClasses(selectedTheme).background} rounded-2xl p-8 ${getThemeClasses(selectedTheme).border} border-2 transition-all duration-300 shadow-xl`}>
-                  <div className="space-y-5">
-                    {/* Título da campanha */}
-                    <h4 className={`text-2xl font-bold ${getThemeClasses(selectedTheme).text}`}>
-                      Rifa do iPhone 15 Pro Max
-                    </h4>
-                    
-                    {/* Informações do organizador */}
-                    <div className={`${getThemeClasses(selectedTheme).cardBg} rounded-xl p-4 inline-flex items-center space-x-3 shadow-md`}>
-                      <div 
-                        className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                        style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                      >
-                        G
-                      </div>
-                      <div>
-                        <div className={`text-xs ${getThemeClasses(selectedTheme).textSecondary}`}>
-                          Organizado por:
-                        </div>
-                        <div className={`font-bold ${getThemeClasses(selectedTheme).text}`}>
-                          João Silva
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Progresso da campanha */}
-                    <div className={`${getThemeClasses(selectedTheme).cardBg} rounded-xl p-5 shadow-md`}>
-                      <div className={`text-sm font-semibold ${getThemeClasses(selectedTheme).textSecondary} mb-3`}>
-                        Progresso da campanha
-                      </div>
-                      <div className="bg-gray-300 dark:bg-gray-600 rounded-full h-4 mb-3 shadow-inner">
-                        <div 
-                          className={`h-4 rounded-full w-3/4 transition-all duration-300 shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                        ></div>
-                      </div>
-                      <div className={`text-base font-bold ${getThemeClasses(selectedTheme).text}`}>
-                        750/1000 bilhetes vendidos
-                      </div>
-                    </div>
-                    
-                    {/* Botão de participar */}
-                    <button 
-                      className={`text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl shadow-lg ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                      style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                    >
-                      Participar da Rifa
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
-                  <p className="text-sm text-blue-800 dark:text-blue-200 text-center">
-                    Esta é uma prévia de como sua campanha aparecerá para os visitantes
-                  </p>
-                </div>
-              </div>
 
-              {/* Dica de Acessibilidade */}
-              <div className="mb-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl shadow-md">
-                <div className="flex items-start space-x-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <Sparkles className="text-white h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-blue-900 dark:text-blue-100 text-base font-bold mb-2">
-                      Dica de Design
-                    </p>
-                    <p className="text-blue-800 dark:text-blue-200 text-sm">
-                      {colorMode === 'solid' 
-                        ? 'Para melhor legibilidade, escolha cores mais escuras como cor principal. Cores muito claras podem dificultar a leitura do texto branco nos botões.'
-                        : 'Gradientes animados criam um efeito visual impressionante e moderno. Eles são perfeitos para destacar botões e elementos importantes da sua campanha.'
-                      }
-                    </p>
-                  </div>
+                {/* Tabs: Predefinidos vs Customizado */}
+                <div className="flex gap-3 mb-6">
+                  <button
+                    onClick={() => colorMode === 'gradient' && setIsCustomGradient(false)}
+                    disabled={colorMode === 'solid'}
+                    className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                      !isCustomGradient && colorMode === 'gradient'
+                        ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    } ${colorMode === 'solid' ? 'cursor-not-allowed' : ''}`}
+                  >
+                    Predefinidos
+                  </button>
+                  <button
+                    onClick={() => colorMode === 'gradient' && setIsCustomGradient(true)}
+                    disabled={colorMode === 'solid'}
+                    className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                      isCustomGradient && colorMode === 'gradient'
+                        ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    } ${colorMode === 'solid' ? 'cursor-not-allowed' : ''}`}
+                  >
+                    Personalizado
+                  </button>
                 </div>
-              </div>
 
-              {/* Save Button */}
-              <button 
-                onClick={handleSaveChanges}
-                disabled={saving}
-                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:scale-105 animate-gradient-x bg-[length:200%_200%]"
-              >
-                {saving ? (
+                {/* Gradientes Predefinidos */}
+                {!isCustomGradient && colorMode === 'gradient' && (
                   <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Salvando...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Salvar alterações</span>
-                    <ArrowRight className="h-5 w-5" />
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+                      {gradients.map((gradient) => (
+                        <button
+                          key={gradient.id}
+                          onClick={() => colorMode === 'gradient' && setSelectedGradient(gradient.classes)}
+                          disabled={colorMode === 'solid'}
+                          className={`group relative overflow-hidden rounded-2xl transition-all duration-300 ${
+                            selectedGradient === gradient.classes && !isCustomGradient
+                              ? 'ring-4 ring-purple-500 shadow-2xl scale-105'
+                              : 'hover:scale-105 hover:shadow-xl'
+                          } ${colorMode === 'solid' ? 'cursor-not-allowed' : ''}`}
+                        >
+                          <div className={`h-24 bg-gradient-to-r ${gradient.classes} animate-gradient-x bg-[length:200%_200%]`}></div>
+                          {selectedGradient === gradient.classes && !isCustomGradient && (
+                            <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
+                              <CheckCircle className="h-8 w-8 text-white drop-shadow-lg" />
+                            </div>
+                          )}
+                          <p className={`p-2 text-sm font-semibold text-center ${selectedGradient === gradient.classes ? 'text-purple-600 dark:text-purple-400' : 'text-gray-900 dark:text-white'}`}>
+                            {gradient.name}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
                   </>
                 )}
-              </button>
+
+                {/* Gradiente Customizado */}
+                {isCustomGradient && colorMode === 'gradient' && (
+                  <>
+                    <button
+                        onClick={handleRandomGradient}
+                        className="mb-4 w-full py-3 bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl text-gray-600 dark:text-gray-400 hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 flex items-center justify-center gap-2 font-semibold"
+                    >
+                        <Sparkles className="h-5 w-5" /> Gradiente Aleatório
+                    </button>
+                    <div className="space-y-4 mb-6">
+                      {customGradientColors.map((color, index) => (
+                        <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                          {/* Label */}
+                          <div className="text-lg font-bold text-gray-900 dark:text-white flex-shrink-0">
+                            Cor {index + 1}:
+                          </div>
+                          {/* Color Picker */}
+                          <div className="relative flex-1">
+                            <input
+                              type="color"
+                              value={color}
+                              onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
+                              className="w-full h-12 rounded-xl border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
+                              style={{ backgroundColor: color }}
+                            />
+                          </div>
+                          {/* Color Preview & Code */}
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="w-12 h-12 rounded-xl shadow-lg border-2 border-white dark:border-gray-700" style={{ backgroundColor: color }} ></div>
+                            <input
+                              type="text"
+                              value={color.toUpperCase()}
+                              onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
+                              className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                              placeholder="#000000"
+                            />
+                          </div>
+                          {/* Remove Button */}
+                          {customGradientColors.length > 2 && (
+                            <button
+                              onClick={() => handleRemoveCustomColor(index)}
+                              className="flex-shrink-0 p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-all duration-300"
+                              title="Remover cor"
+                            >
+                              <X className="h-5 w-5" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Add Color Button */}
+                    {customGradientColors.length < 3 && (
+                      <button
+                        onClick={handleAddCustomColor}
+                        className="mt-4 w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-600 dark:text-gray-400 hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 flex items-center justify-center gap-2 font-semibold"
+                      >
+                        <Plus className="h-5 w-5" /> Adicionar cor (máx. 3)
+                      </button>
+                    )}
+
+                    {/* Preview do Gradiente Customizado */}
+                    <div className="mb-6 p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
+                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Gradiente personalizado:</p>
+                      <div className="w-full h-12 rounded-xl shadow-lg transition-all duration-300 animate-gradient-x bg-[length:200%_200%]"
+                        style={{ background: getCustomGradientStyle(), backgroundSize: '200% 200%' }}>
+                        <div className="flex items-center justify-center h-full">
+                          <span className="text-white font-bold">Botão de Exemplo</span>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Botão de salvar */}
+              <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={handleSaveChanges}
+                  disabled={saving}
+                  className="w-full sm:w-auto px-8 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-5 w-5" />
+                  )}
+                  <span>{saving ? 'Salvando...' : 'Salvar Alterações'}</span>
+                </button>
+              </div>
             </div>
           )}
 
@@ -1044,33 +967,19 @@ case 'escuro-preto':
           {activeTab === 'sua-logo' && (
             <div>
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
-                <Upload className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-                Sua logo
+                <Upload className="h-8 w-8 text-purple-600 dark:text-purple-400" /> Sua logo
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-8">
-                Adicione sua logo e deixe suas campanhas com a identidade da sua marca
-              </p>
-
+              <p className="text-gray-600 dark:text-gray-400 mb-8"> Adicione sua logo e deixe suas campanhas com a identidade da sua marca </p>
               <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                  Logo da empresa
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Dimensões recomendadas: <span className="text-purple-600 dark:text-purple-400 font-bold">100x50px</span> (proporção 2:1)
-                </p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2"> Logo da empresa </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6"> Dimensões recomendadas: <span className="text-purple-600 dark:text-purple-400 font-bold">100x50px</span> (proporção 2:1) </p>
 
                 {/* Logo Atual */}
                 {currentLogoUrl && (
                   <div className="mb-8">
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                      Logo atual
-                    </h4>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4"> Logo atual </h4>
                     <div className="relative inline-block group">
-                      <img
-                        src={currentLogoUrl}
-                        alt="Logo atual"
-                        className="max-w-xs max-h-32 object-contain bg-white dark:bg-gray-700 p-4 rounded-2xl border-2 border-gray-300 dark:border-gray-600 shadow-lg"
-                      />
+                      <img src={currentLogoUrl} alt="Logo atual" className="max-w-xs max-h-32 object-contain bg-white dark:bg-gray-700 p-4 rounded-2xl border-2 border-gray-300 dark:border-gray-600 shadow-lg" />
                       <button
                         onClick={handleRemoveLogo}
                         disabled={uploadingLogo}
@@ -1084,80 +993,53 @@ case 'escuro-preto':
                 )}
 
                 {/* Input de arquivo oculto */}
-                <input
-                  ref={logoInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoSelect}
-                  className="hidden"
-                />
+                <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoSelect} className="hidden" />
 
                 {/* Preview da nova logo */}
                 {logoPreviewUrl && (
                   <div className="mb-8">
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                      Pré-visualização
-                    </h4>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4"> Pré-visualização </h4>
                     <div className="relative inline-block">
-                      <img
-                        src={logoPreviewUrl}
-                        alt="Preview da nova logo"
-                        className="max-w-xs max-h-32 object-contain bg-white dark:bg-gray-700 p-4 rounded-2xl border-2 border-purple-500 shadow-xl"
-                      />
+                      <img src={logoPreviewUrl} alt="Preview da nova logo" className="max-w-xs max-h-32 object-contain bg-white dark:bg-gray-700 p-4 rounded-2xl border-2 border-purple-500 shadow-xl" />
                       <button
-                        onClick={() => {
-                          setLogoFile(null);
-                          setLogoPreviewUrl(null);
-                        }}
+                        onClick={() => { setLogoFile(null); setLogoPreviewUrl(null); }}
                         className="absolute -top-3 -right-3 bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-full transition-all duration-300 shadow-lg hover:scale-110"
-                        title="Cancelar"
+                        title="Cancelar seleção"
                       >
                         <X className="h-5 w-5" />
-                      </button>
-                    </div>
-                    
-                    {/* Botão para confirmar upload */}
-                    <div className="mt-6">
-                      <button
-                        onClick={handleUploadLogo}
-                        disabled={uploadingLogo}
-                        className="bg-gradient-to-r from-green-600 to-emerald-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-4 rounded-xl font-bold transition-all duration-300 flex items-center space-x-3 shadow-lg hover:scale-105"
-                      >
-                        {uploadingLogo ? (
-                          <>
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                            <span>Enviando...</span>
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle className="h-5 w-5" />
-                            <span>Confirmar Upload</span>
-                          </>
-                        )}
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* Upload Area */}
-                {!logoPreviewUrl && (
-                  <div 
-                    onClick={() => logoInputRef.current?.click()}
-                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-12 text-center transition-all duration-300 cursor-pointer hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/10 group"
-                  >
-                    <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                      <Upload className="h-10 w-10 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <p className="text-gray-600 dark:text-gray-400 mb-6 text-lg">
-                      Clique aqui para selecionar sua logo
-                    </p>
-                    <button 
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        logoInputRef.current?.click();
-                      }}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl text-white px-8 py-4 rounded-xl font-bold flex items-center space-x-3 mx-auto transition-all duration-300 shadow-lg hover:scale-105"
+                {/* Ações de Upload */}
+                {logoFile ? (
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <button
+                      onClick={handleUploadLogo}
+                      disabled={uploadingLogo}
+                      className="flex-1 px-8 py-4 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {uploadingLogo ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <Upload className="h-5 w-5" />
+                      )}
+                      <span>{uploadingLogo ? 'Enviando...' : 'Salvar Nova Logo'}</span>
+                    </button>
+                    <button
+                        onClick={() => { setLogoFile(null); setLogoPreviewUrl(null); }}
+                        className="flex-1 px-8 py-4 rounded-xl font-bold text-gray-600 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300 flex items-center justify-center space-x-2"
+                    >
+                        <X className="h-5 w-5" />
+                        <span>Cancelar</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-12 border-4 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl">
+                    <button
+                      onClick={() => logoInputRef.current?.click()}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-xl font-bold flex items-center space-x-3 mx-auto transition-all duration-300 shadow-lg hover:scale-105"
                     >
                       <span>Adicionar Logo</span>
                       <Upload className="h-5 w-5" />
@@ -1192,14 +1074,11 @@ case 'escuro-preto':
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
                 <div>
                   <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
-                    <ExternalLink className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-                    Domínio personalizado
+                    <ExternalLink className="h-8 w-8 text-purple-600 dark:text-purple-400" /> Domínio personalizado
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Use seu próprio domínio para suas campanhas (ex: rifaminhaloja.com)
-                  </p>
+                  <p className="text-gray-600 dark:text-gray-400"> Use seu próprio domínio para suas campanhas (ex: rifaminhaloja.com) </p>
                 </div>
-                <button 
+                <button
                   onClick={() => setShowDomainModal(true)}
                   className="bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 flex items-center space-x-2 shadow-lg hover:scale-105 whitespace-nowrap"
                 >
@@ -1209,60 +1088,46 @@ case 'escuro-preto':
               </div>
 
               <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-                  Domínios configurados
-                </h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6"> Meus Domínios </h3>
 
                 {loadingDomains ? (
-                  <div className="text-center py-16">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-purple-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400 font-medium">Carregando domínios...</p>
+                  <div className="flex justify-center items-center py-12">
+                    <Loader2 className="h-8 w-8 text-purple-600 animate-spin" />
                   </div>
                 ) : customDomains.length > 0 ? (
                   <div className="space-y-4">
                     {customDomains.map((domain) => (
-                      <div
-                        key={domain.id}
-                        className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300"
-                      >
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                          <div className="flex items-center space-x-4 flex-1 min-w-0">
-                            <div className="flex-shrink-0">
-                              {getStatusIcon(domain)}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="font-bold text-lg text-gray-900 dark:text-white truncate">
+                      <div key={domain.id} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 transition-all duration-300 hover:shadow-md">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            {getStatusIcon(domain)}
+                            <div>
+                              <p className="font-semibold text-gray-900 dark:text-white">
                                 {domain.domain_name}
-                              </div>
-                              <div className="text-sm text-gray-600 dark:text-gray-400">
-                                Status: <span className="font-semibold">{getStatusText(domain)}</span>
-                              </div>
+                              </p>
+                              <p className={`text-sm font-medium ${domain.is_verified && domain.ssl_status === 'active' ? 'text-green-600' : 'text-yellow-600 dark:text-yellow-400'}`}>
+                                Status: {getStatusText(domain)}
+                              </p>
                             </div>
                           </div>
-                          
-                          <div className="flex items-center space-x-2 flex-shrink-0">
-                            {domain.is_verified ? (
-                              <a
-                                href={`https://${domain.domain_name}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-3 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-xl transition-all duration-300 hover:scale-110"
-                                title="Abrir domínio"
-                              >
-                                <ExternalLink className="h-5 w-5" />
-                              </a>
-                            ) : (
+                          <div className="flex items-center space-x-2">
+                            {!domain.is_verified && (
                               <button
                                 onClick={() => handleVerifyDomain(domain.id)}
-                                disabled={verifyingDomain === domain.id}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-bold rounded-xl transition-all duration-300 hover:scale-105 shadow-md"
+                                disabled={verifyingDomain === domain.id || deleting}
+                                className="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 hover:bg-purple-200 dark:hover:bg-purple-800/50 flex items-center space-x-2 disabled:opacity-50"
                               >
-                                {verifyingDomain === domain.id ? 'Verificando...' : 'Verificar'}
+                                {verifyingDomain === domain.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <CheckCircle className="h-4 w-4" />
+                                )}
+                                <span>{verifyingDomain === domain.id ? 'Verificando...' : 'Verificar'}</span>
                               </button>
                             )}
-                            
                             <button
                               onClick={() => handleDeleteDomain(domain.id, domain.domain_name)}
+                              disabled={deleting}
                               className="p-3 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-all duration-300 hover:scale-110"
                               title="Remover domínio"
                             >
@@ -1270,13 +1135,12 @@ case 'escuro-preto':
                             </button>
                           </div>
                         </div>
-                        
+
                         {/* DNS Instructions */}
                         {!domain.is_verified && domain.dns_instructions && (
                           <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
                             <h4 className="text-sm font-bold text-blue-900 dark:text-blue-100 mb-3 flex items-center gap-2">
-                              <Sparkles className="h-4 w-4" />
-                              Instruções DNS
+                              <Sparkles className="h-4 w-4" /> Instruções DNS
                             </h4>
                             <div className="text-sm text-blue-800 dark:text-blue-200 space-y-2 font-mono bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg">
                               <p><strong>Tipo:</strong> CNAME</p>
@@ -1295,14 +1159,21 @@ case 'escuro-preto':
                   /* Empty State */
                   <div className="text-center py-16">
                     <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                      <ExternalLink className="w-10 h-10 text-gray-400 dark:text-gray-500" />
+                      <ExternalLink className="w-10 h-10 text-white" />
                     </div>
-                    <p className="text-gray-600 dark:text-gray-400 text-lg font-medium mb-2">
-                      Nenhum domínio configurado
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                      Nenhum domínio personalizado adicionado
                     </p>
-                    <p className="text-gray-500 dark:text-gray-500 text-sm">
-                      Adicione seu primeiro domínio personalizado
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Adicione seu primeiro domínio para usá-lo em suas campanhas.
                     </p>
+                    <button
+                      onClick={() => setShowDomainModal(true)}
+                      className="mt-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 flex items-center space-x-2 shadow-lg hover:scale-105 mx-auto"
+                    >
+                      <Plus className="h-5 w-5" />
+                      <span>Adicionar Domínio</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -1311,84 +1182,39 @@ case 'escuro-preto':
         </div>
       </main>
 
-      {/* New Domain Modal */}
-      {showDomainModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 w-full max-w-lg shadow-2xl border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                <Plus className="h-6 w-6 text-purple-600" />
-                Novo domínio
-              </h3>
-              <button
-                onClick={() => {
-                  setShowDomainModal(false);
-                  setNewDomain('');
-                }}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl"
-              >
-                <X className="h-6 w-6" />
-              </button>
+      {/* Modal para adicionar novo domínio */}
+      <ConfirmModal
+        isOpen={showDomainModal}
+        title="Adicionar Domínio Personalizado"
+        message="Digite o nome do domínio que você deseja usar (ex: rifa.com.br)"
+        inputPlaceholder="ex: rifaminhaloja.com"
+        inputValue={newDomain}
+        onInputChange={setNewDomain}
+        confirmText="Adicionar"
+        cancelText="Cancelar"
+        type="info"
+        loading={saving}
+        onConfirm={handleSaveDomain}
+        onCancel={() => {
+          setShowDomainModal(false);
+          setNewDomain('');
+        }}
+      >
+        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+          <div className="flex items-start space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Sparkles className="h-4 w-4 text-white" />
             </div>
-            
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              Adicione um novo domínio personalizado para suas campanhas
-            </p>
-
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
-                Digite seu domínio
-              </label>
-              <input
-                type="text"
-                value={newDomain}
-                onChange={(e) => setNewDomain(e.target.value)}
-                placeholder="Exemplo: rifaqui.com.br"
-                className="w-full bg-white dark:bg-gray-700 border-2 border-purple-500 focus:border-purple-600 dark:border-purple-600 dark:focus:border-purple-500 rounded-xl px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all duration-200"
-              />
-            </div>
-
-            <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
-              <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                <strong>Importante:</strong> Não use https:// ou barras (/), insira apenas o domínio.
+            <div className="flex-1">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                <strong className="block mb-1">Como funciona:</strong>
+                Após adicionar o domínio, você receberá instruções para configurar o DNS. 
+                O certificado SSL será ativado automaticamente após a verificação bem-sucedida.
               </p>
-            </div>
-
-            <button
-              onClick={handleSaveDomain}
-              disabled={!newDomain.trim() || saving}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:scale-105"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Salvando...</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="h-5 w-5" />
-                  <span>Salvar Domínio</span>
-                </>
-              )}
-            </button>
-            
-            <div className="mt-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
-              <div className="flex items-start space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm text-blue-800 dark:text-blue-200">
-                    <strong className="block mb-1">Como funciona:</strong>
-                    Após adicionar o domínio, você receberá instruções para configurar o DNS. 
-                    O certificado SSL será ativado automaticamente após a verificação bem-sucedida.
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
-      )}
+      </ConfirmModal>
 
       {/* Confirm Remove Logo Modal */}
       <ConfirmModal
