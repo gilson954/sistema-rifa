@@ -832,6 +832,7 @@ const CampaignPage = () => {
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
           cardBg: 'bg-white',
+          headerBg: 'bg-white',  // ADICIONAR esta linha
           border: 'border-gray-200',
           rifaquiText: 'text-gray-900'
         };
@@ -841,6 +842,7 @@ const CampaignPage = () => {
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-slate-800',
+          headerBg: 'bg-[#161b26]',  // ADICIONAR esta linha
           border: 'border-slate-600',
           rifaquiText: 'text-white'
         };
@@ -850,6 +852,7 @@ const CampaignPage = () => {
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
+          headerBg: 'bg-[#161b26]',  // ADICIONAR esta linha
           border: 'border-gray-700',
           rifaquiText: 'text-white'
         };
@@ -859,6 +862,7 @@ const CampaignPage = () => {
           text: 'text-white',
           textSecondary: 'text-gray-400',
           cardBg: 'bg-[#2C2C2C]',
+          headerBg: 'bg-[#2C2C2C]',  // ADICIONAR esta linha
           border: 'border-[#1f1f1f]',
           rifaquiText: 'text-white'
         };
