@@ -47,28 +47,28 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         };
       case 'escuro':
         return {
-          background: 'bg-[#0A0F1E]',
+          background: 'bg-gray-950',
           text: 'text-white',
-          textSecondary: 'text-gray-400',
-          cardBg: 'bg-[#0F1629]',
-          border: 'border-[#1A2234]'
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-900',
+          border: 'border-gray-600'
         };
       case 'escuro-preto':
         return {
           background: 'bg-black',
           text: 'text-white',
           textSecondary: 'text-gray-300',
-          cardBg: 'bg-[#0A0A0A]',
-          border: 'border-[#1A1A1A]'
+          cardBg: 'bg-gray-900',
+          border: 'border-gray-700'
         };
-      case 'escuro-cinza':
-        return {
-          background: 'bg-[#1A1A1A]',
-          text: 'text-white',
-          textSecondary: 'text-gray-400',
-          cardBg: 'bg-[#141414]',
-          border: 'border-[#1f1f1f]'
-        };
+    case 'escuro-cinza':
+      return {
+        background: 'bg-[#1A1A1A]',
+        text: 'text-white',
+        textSecondary: 'text-gray-400',
+        cardBg: 'bg-[#2C2C2C]',
+        border: 'border-[#1f1f1f]'
+      };
       default:
         return {
           background: 'bg-white',
@@ -81,13 +81,10 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   };
 
   const getQuotaStatus = (quotaNumber: number) => {
+    // Find the ticket for this quota number
     const ticket = tickets.find(t => t.quota_number === quotaNumber);
     
-    if (!ticket) {
-      // Se não tem ticket, verifica se está selecionado
-      if (selectedQuotas.includes(quotaNumber)) return 'selected';
-      return 'available';
-    }
+    if (!ticket) return 'available'; // Default if ticket not found
     
     if (ticket.status === 'comprado') return 'purchased';
     if (ticket.status === 'reservado') return 'reserved';
@@ -95,6 +92,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     return 'available';
   };
 
+  // Função para gerar gradiente customizado
   const getCustomGradientStyle = (customColorsJson: string) => {
     try {
       const colors = JSON.parse(customColorsJson);
@@ -111,8 +109,10 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     return null;
   };
 
+  // Função para obter style para cor ou gradiente
   const getColorStyle = () => {
     if (colorMode === 'gradient') {
+      // Gradiente customizado
       if (gradientClasses === 'custom' && customGradientColors) {
         const gradientStyle = getCustomGradientStyle(customGradientColors);
         if (gradientStyle) {
@@ -122,16 +122,21 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           };
         }
       }
+      // Gradiente predefinido - retorna vazio, usará className
       return {};
     }
-    return { backgroundColor: primaryColor || '#F97316' };
+    // Cor sólida
+    return { backgroundColor: primaryColor || '#3B82F6' };
   };
 
+  // Função para obter className para gradientes
   const getColorClassName = (baseClasses: string = '') => {
     if (colorMode === 'gradient') {
+      // Gradiente customizado
       if (gradientClasses === 'custom' && customGradientColors) {
         return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
       }
+      // Gradiente predefinido
       if (gradientClasses && gradientClasses !== 'custom') {
         return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
       }
@@ -157,92 +162,82 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   const handleQuotaClick = (quotaNumber: number) => {
     const status = getQuotaStatus(quotaNumber);
     
+    // Impedir clique em cotas reservadas ou compradas
     if (status === 'reserved' || status === 'purchased') {
       return;
     }
     
+    // Permitir seleção apenas no modo manual e para cotas disponíveis/selecionadas
+    // CRITICAL: Passar o quota_number real (1 a N) para o handler
     if (mode === 'manual' && (status === 'available' || status === 'selected') && onQuotaSelect) {
       onQuotaSelect(quotaNumber);
     }
   };
 
+  // Calculate grid columns based on total quotas for optimal display
   const getGridCols = () => {
     return 'grid-cols-10 sm:grid-cols-15 md:grid-cols-20';
   };
 
+  // CRITICAL FIX: Calculate padding length for quota numbers based on total quotas
+  // O quota_number no banco vai de 1 a N, mas exibimos de 00 a N-1
+  // Então o número máximo exibido é totalQuotas - 1
   const getPadLength = () => {
+    // Se totalQuotas for 0, retorna 1 para evitar problemas
     if (totalQuotas === 0) return 1;
+    
+    // Calcular baseado no maior número exibido (totalQuotas - 1)
     const maxDisplayNumber = totalQuotas - 1;
     return String(maxDisplayNumber).length;
   };
 
-  // ✨ NOVA LÓGICA: Gera array com TODAS as cotas de 1 a totalQuotas
-  const getAllQuotas = () => {
-    const allQuotas: number[] = [];
-    for (let i = 1; i <= totalQuotas; i++) {
-      allQuotas.push(i);
-    }
-    return allQuotas;
-  };
-
-  // ✨ Filtra as cotas geradas
+  // ⚠️ IMPORTANTE: Filtrar cotas APENAS da página atual (tickets carregados)
+  // Não tenta filtrar todas as cotas da campanha
   const getFilteredQuotas = () => {
-    const allQuotas = getAllQuotas();
+    // Usar apenas os tickets da página atual
+    const currentPageQuotas = tickets.map(t => t.quota_number);
     
     switch (activeFilter) {
       case 'available':
-        return allQuotas.filter(quota => {
-          const status = getQuotaStatus(quota);
-          return status === 'available';
+        return currentPageQuotas.filter(quota => {
+          const ticket = tickets.find(t => t.quota_number === quota);
+          return ticket?.status === 'disponível' && !selectedQuotas.includes(quota);
         });
       case 'reserved':
-        return allQuotas.filter(quota => {
-          const status = getQuotaStatus(quota);
-          return status === 'reserved';
+        return currentPageQuotas.filter(quota => {
+          const ticket = tickets.find(t => t.quota_number === quota);
+          return ticket?.status === 'reservado';
         });
       case 'purchased':
-        return allQuotas.filter(quota => {
-          const status = getQuotaStatus(quota);
-          return status === 'purchased';
+        return currentPageQuotas.filter(quota => {
+          const ticket = tickets.find(t => t.quota_number === quota);
+          return ticket?.status === 'comprado';
         });
       case 'my-numbers':
-        return allQuotas.filter(quota => {
+        return currentPageQuotas.filter(quota => {
           const ticket = tickets.find(t => t.quota_number === quota);
           return ticket?.is_mine || selectedQuotas.includes(quota);
         });
       case 'all':
       default:
-        return allQuotas;
+        return currentPageQuotas;
     }
   };
 
-  // ✨ Calcula contadores baseado em TODAS as cotas
+  // Calcular contadores para os filtros (baseado APENAS nos tickets da página atual)
   const getFilterCounts = () => {
-    const allQuotas = getAllQuotas();
-    
-    const availableCount = allQuotas.filter(q => {
-      const status = getQuotaStatus(q);
-      return status === 'available';
-    }).length;
-    
-    const reservedCount = allQuotas.filter(q => {
-      const status = getQuotaStatus(q);
-      return status === 'reserved';
-    }).length;
-    
-    const purchasedCount = allQuotas.filter(q => {
-      const status = getQuotaStatus(q);
-      return status === 'purchased';
-    }).length;
-    
-    const myNumbersCount = allQuotas.filter(q => {
+    const availableCount = tickets.filter(t => t.status === 'disponível').length;
+    const reservedCount = tickets.filter(t => t.status === 'reservado').length;
+    const purchasedCount = tickets.filter(t => t.status === 'comprado').length;
+    const myNumbersCount = tickets.filter(t => t.is_mine).length + selectedQuotas.filter(q => {
+      // Conta apenas seleções da página atual
       const ticket = tickets.find(t => t.quota_number === q);
-      return ticket?.is_mine || selectedQuotas.includes(q);
+      return ticket !== undefined;
     }).length;
     
     return {
-      all: totalQuotas,
-      available: availableCount,
+      all: tickets.length, // Total na página atual
+      available: Math.max(0, availableCount - selectedQuotas.length),
       reserved: reservedCount,
       purchased: purchasedCount,
       myNumbers: myNumbersCount
@@ -251,20 +246,18 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
 
   const filteredQuotas = getFilteredQuotas();
   const filterCounts = getFilterCounts();
-  const theme = getThemeClasses(campaignTheme);
 
   return (
-    <div className={`w-full rounded-2xl shadow-2xl border ${theme.border} ${theme.cardBg} overflow-hidden flex flex-col max-h-[700px]`}>
-      
-      {/* Header fixo - Filtros */}
-      <div className={`p-6 border-b ${theme.border}`}>
+    <div className="w-full">
+      {/* Filter Tabs */}
+      <div className="mb-4">
         <div className="flex items-center justify-center mb-4">
-          <div className={`flex items-center space-x-2 ${theme.textSecondary}`}>
+          <div className={`flex items-center space-x-2 ${getThemeClasses(campaignTheme).textSecondary}`}>
             <span className="text-lg">🔍</span>
             <span className="font-medium">Filtro de cota</span>
           </div>
         </div>
-        <p className={`text-center text-sm ${theme.textSecondary} mb-4`}>
+        <p className={`text-center text-sm ${getThemeClasses(campaignTheme).textSecondary} mb-4`}>
           Selecione abaixo quais cotas deseja ver
         </p>
         
@@ -274,14 +267,14 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
               activeFilter === 'all'
                 ? getColorClassName('text-white border-transparent')
-                : `${theme.text} border ${theme.border} hover:opacity-80`
+                : `${getThemeClasses(campaignTheme).text} border ${getThemeClasses(campaignTheme).border} hover:opacity-80`
             }`}
             style={activeFilter === 'all' ? getColorStyle() : {}}
           >
             Todos <span className={`ml-1 px-2 py-1 rounded text-xs ${
               activeFilter === 'all' 
                 ? 'bg-white/20 text-white' 
-                : `${theme.cardBg} ${theme.text}`
+                : `${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).text}`
             }`}>{filterCounts.all}</span>
           </button>
           
@@ -290,14 +283,14 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
               activeFilter === 'available'
                 ? getColorClassName('text-white border-transparent')
-                : `${theme.text} border ${theme.border} hover:opacity-80`
+                : `${getThemeClasses(campaignTheme).text} border ${getThemeClasses(campaignTheme).border} hover:opacity-80`
             }`}
             style={activeFilter === 'available' ? getColorStyle() : {}}
           >
             Disponíveis <span className={`ml-1 px-2 py-1 rounded text-xs ${
               activeFilter === 'available' 
                 ? 'bg-white/20 text-white' 
-                : `${theme.cardBg} ${theme.text}`
+                : `${getThemeClasses(campaignTheme).cardBg} ${getThemeClasses(campaignTheme).text}`
             }`}>{filterCounts.available}</span>
           </button>
           
@@ -336,29 +329,26 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           </button>
         </div>
         
-        <div className={`text-center text-sm ${theme.textSecondary}`}>
-          {filteredQuotas.length} cotas de {totalQuotas.toLocaleString()}
+        <div className={`text-center text-sm ${getThemeClasses(campaignTheme).textSecondary}`}>
+          {activeFilter === 'my-numbers' ? selectedQuotas.length : filteredQuotas.length} cotas na página atual
         </div>
       </div>
 
-      {/* Grid com scroll */}
-      <div className="flex-1 overflow-y-auto p-6 custom-scrollbar" style={{
-        scrollbarWidth: 'thin',
-        scrollbarColor: `${campaignTheme === 'claro' ? '#9CA3AF #E5E7EB' : '#374151 #1F2937'}`
-      }}>
-        <div className={`quota-grid grid ${getGridCols()} gap-1 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
+      {/* Quota Grid com Scroll */}
+      <div className={`quota-grid-container ${getThemeClasses(campaignTheme).cardBg} rounded-lg border ${getThemeClasses(campaignTheme).border} overflow-hidden`} style={{ maxHeight: '500px', overflowY: 'auto' }}>
+        <div className={`quota-grid grid ${getGridCols()} gap-1 p-4 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
           {loading ? (
             <div className="col-span-full flex items-center justify-center py-12">
-              <div className={`text-center ${theme.textSecondary}`}>
+              <div className={`text-center ${getThemeClasses(campaignTheme).textSecondary}`}>
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-current mx-auto mb-4"></div>
                 <p>Carregando cotas...</p>
               </div>
             </div>
           ) : filteredQuotas.length === 0 ? (
             <div className="col-span-full flex items-center justify-center py-12">
-              <div className={`text-center ${theme.textSecondary}`}>
+              <div className={`text-center ${getThemeClasses(campaignTheme).textSecondary}`}>
                 <p className="text-lg mb-2">🔍</p>
-                <p>Nenhuma cota encontrada com este filtro.</p>
+                <p>Nenhuma cota encontrada com este filtro na página atual.</p>
               </div>
             </div>
           ) : (
@@ -367,6 +357,8 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
               const padLength = getPadLength();
               const quotaStyles = getQuotaStyles(status);
               const isSelected = status === 'selected';
+              
+              // CRITICAL FIX: Exibir quota_number - 1 para o usuário
               const displayNumber = quotaNumber - 1;
               
               return (
@@ -388,6 +380,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
                     'Disponível'
                   }`}
                 >
+                  {/* CRITICAL FIX: Exibir quota_number - 1 com padding correto */}
                   {displayNumber.toString().padStart(padLength, '0')}
                 </button>
               );
@@ -397,18 +390,18 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
       </div>
 
       <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
+        .quota-grid-container::-webkit-scrollbar {
+          width: 10px;
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
+        .quota-grid-container::-webkit-scrollbar-track {
           background: ${campaignTheme === 'claro' ? '#E5E7EB' : '#1F2937'};
-          border-radius: 4px;
+          border-radius: 5px;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
+        .quota-grid-container::-webkit-scrollbar-thumb {
           background: ${campaignTheme === 'claro' ? '#9CA3AF' : '#374151'};
-          border-radius: 4px;
+          border-radius: 5px;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        .quota-grid-container::-webkit-scrollbar-thumb:hover {
           background: ${campaignTheme === 'claro' ? '#6B7280' : '#4B5563'};
         }
       `}</style>
