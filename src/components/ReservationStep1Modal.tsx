@@ -373,17 +373,26 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <motion.div 
-              className="relative overflow-hidden"
-              variants={headerVariants}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r opacity-10" style={{
-                background: `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}99 100%)`
-              }}></div>
+<motion.div 
+  className="relative overflow-hidden"
+  variants={headerVariants}
+>
+  {/* Gradiente de fundo - apenas para tema claro */}
+  {campaignTheme === 'claro' && (
+    <div className="absolute inset-0 bg-gradient-to-r opacity-10" style={{
+      background: `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}99 100%)`
+    }}></div>
+  )}
+  
+  {/* Gradiente neutro para temas escuros */}
+  {campaignTheme !== 'claro' && (
+    <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-900/30 opacity-50"></div>
+  )}
 
-              <div className={`relative flex items-center justify-between p-6 border-b ${theme.border}`}>
-                <div className="flex items-center space-x-4">
-                  <motion.div
+  <div className={`relative flex items-center justify-between p-6 border-b ${theme.border}`}>
+    {/* resto do conteúdo */}
+  </div>
+</motion.div>
                     className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg ${getColorClassName()}`}
                     style={getColorStyle()}
                     whileHover={{ scale: 1.05, rotate: 5 }}
