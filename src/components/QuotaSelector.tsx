@@ -152,21 +152,21 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           promotionText: 'text-amber-400',
           promotionTextSecondary: 'text-amber-300'
         };
-      case 'escuro-cinza':
-        return {
-          background: 'bg-[#0D1117]',
-          text: 'text-white',
-          textSecondary: 'text-gray-400',
-          cardBg: 'bg-[#161B22]',
-          border: 'border-[#21262D]',
-          inputBg: 'bg-[#0D1117]',
-          inputRing: 'ring-[#21262D]',
-          inputFocusRing: 'focus-within:ring-blue-500',
-          promotionBg: 'bg-gradient-to-r from-amber-950/30 to-orange-950/30',
-          promotionBorder: 'border-amber-700/50',
-          promotionText: 'text-amber-400',
-          promotionTextSecondary: 'text-amber-300'
-        };
+    case 'escuro-cinza':
+      return {
+        background: 'bg-[#1A1A1A]',
+        text: 'text-white',
+        textSecondary: 'text-gray-400',
+        cardBg: 'bg-[#2C2C2C]',
+        border: 'border-gray-900',
+        inputBg: 'bg-[#2C2C2C]',
+        inputRing: 'ring-gray-700',
+        inputFocusRing: 'focus-within:ring-blue-500',
+        promotionBg: 'bg-gradient-to-r from-amber-950/30 to-orange-950/30',
+        promotionBorder: 'border-amber-700/50',
+        promotionText: 'text-amber-400',
+        promotionTextSecondary: 'text-amber-300'
+      };
       default:
         return {
           background: 'bg-gray-50',
