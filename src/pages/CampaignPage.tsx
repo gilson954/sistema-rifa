@@ -874,7 +874,18 @@ const CampaignPage = () => {
     }
   };
 
-  const getCardShadow = () => {
+  const getScrollbarClass = () => {
+    switch (campaignTheme) {
+      case 'claro':
+        return 'custom-scrollbar-light';
+      case 'escuro':
+      case 'escuro-preto':
+      case 'escuro-cinza':
+        return 'custom-scrollbar-dark';
+      default:
+        return 'custom-scrollbar-light';
+    }
+  };
     return campaignTheme === 'claro'
       ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
       : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]';
@@ -917,6 +928,7 @@ const CampaignPage = () => {
     return total;
   };
 
+  // Estados de loading e error
   if (loading || ticketsLoading) {
     const loadingPrimaryColor = organizerProfile?.primary_color || '#3B82F6';
     const loadingTheme = organizerProfile?.theme || 'claro';
@@ -958,6 +970,19 @@ const CampaignPage = () => {
   const isCampaignCompleted = campaign?.status === 'completed' && winners.length > 0;
 
   const currentImageUrl = campaign?.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1';
+
+  const getScrollbarClass = () => {
+    switch (campaignTheme) {
+      case 'claro':
+        return 'custom-scrollbar-light';
+      case 'escuro':
+      case 'escuro-preto':
+      case 'escuro-cinza':
+        return 'custom-scrollbar-dark';
+      default:
+        return 'custom-scrollbar-light';
+    }
+  };
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${themeClasses.background}`}>
@@ -1123,7 +1148,7 @@ const CampaignPage = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}
+          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}
         >
           <div 
             className="relative group w-full h-[300px] sm:h-[500px] overflow-hidden"
@@ -1229,7 +1254,7 @@ const CampaignPage = () => {
         {/* Prêmios */}
         {!isCampaignCompleted && campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
           <motion.section 
-            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer`}
+            className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer transition-all duration-300`}
             onClick={() => setShowPrizesModal(true)}
             whileHover={{
               scale: [null, 1.02, 1.03],
@@ -1261,7 +1286,7 @@ const CampaignPage = () => {
         {/* Cotas Premiadas */}
         {!isCampaignCompleted && campaign?.campaign_model === 'automatic' && cotasPremiadas.length > 0 && campaign?.cotas_premiadas_visiveis && (
           <motion.section
-            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer`}
+            className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer transition-all duration-300`}
             onClick={() => setShowCotasPremiadasModal(true)}
             whileHover={{
               scale: [null, 1.02, 1.03],
@@ -1296,7 +1321,7 @@ const CampaignPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}
+          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}
         >
           {loadingOrganizer ? (
             <div className="flex items-center justify-center py-8">
@@ -1400,7 +1425,7 @@ const CampaignPage = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
-          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}
+          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}
         >
           {campaign.campaign_model === 'manual' ? (
             <div className="space-y-4">
@@ -1555,7 +1580,7 @@ const CampaignPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.7 }}
-          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}
+          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}
         >
           <div className="flex items-center justify-center gap-2 mb-3">
             <FileText className={`h-5 w-5 ${themeClasses.text}`} />
@@ -1567,7 +1592,9 @@ const CampaignPage = () => {
           {campaign.description && isValidDescription(campaign.description) ? (
             <div
               className={`${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2 ${
-                campaignTheme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
+                campaignTheme === 'claro' 
+                  ? 'custom-scrollbar-light' 
+                  : 'custom-scrollbar-dark'
               }`}
               style={{
                 maxHeight: '400px'
@@ -1587,7 +1614,7 @@ const CampaignPage = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.8 }}
-          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-4`}
+          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-4`}
         >
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
             <div className="flex items-center gap-2">
