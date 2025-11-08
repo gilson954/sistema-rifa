@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface CampaignFooterProps {
   campaignTheme?: string;
@@ -99,3 +99,14 @@ const CampaignFooter: React.FC<CampaignFooterProps> = ({ campaignTheme = 'claro'
 };
 
 export default CampaignFooter;
+```
+
+**O caminho correto é `'../contexts/ThemeContext'`** (apenas um `../`).
+
+A estrutura deve ser:
+```
+/src
+  /components
+    CampaignFooter.tsx  ← você está aqui
+  /contexts
+    ThemeContext.tsx     ← você quer importar daqui
