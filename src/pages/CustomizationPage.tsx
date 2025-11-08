@@ -1480,7 +1480,6 @@ case 'escuro-preto':
         onConfirm={confirmRemoveLogo}
         onCancel={() => setShowRemoveLogoConfirm(false)}
       />
-
       {/* Confirm Delete Domain Modal */}
       <ConfirmModal
         isOpen={showDeleteDomainConfirm}
