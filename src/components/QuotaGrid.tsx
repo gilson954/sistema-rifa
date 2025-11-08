@@ -74,6 +74,14 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           cardBg: 'bg-gray-900',
           border: 'border-gray-800'
         };
+    case 'escuro-cinza':
+      return {
+        background: 'bg-[#1A1A1A]',
+        text: 'text-white',
+        textSecondary: 'text-gray-400',
+        cardBg: 'bg-[#2C2C2C]',
+        border: 'border-gray-700'
+      };
       default:
         return {
           background: 'bg-white',
