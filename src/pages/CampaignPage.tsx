@@ -859,7 +859,7 @@ const CampaignPage = () => {
           text: 'text-white',
           textSecondary: 'text-gray-400',
           cardBg: 'bg-[#2C2C2C]',
-          border: 'border-gray-700',
+          border: 'border-gray-900',
           rifaquiText: 'text-white'
         };
       default:
