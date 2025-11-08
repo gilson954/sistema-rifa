@@ -389,7 +389,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
               {/* Gradiente apenas para tema claro */}
               {campaignTheme === 'claro' && (
                 <div className="absolute inset-0 bg-gradient-to-r opacity-10" style={{
-                  background: `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}99 100%)`
+                  background: `linear-gradient(100deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}99 100%)`
                 }}></div>
               )}
 
