@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface CampaignFooterProps {
   campaignTheme?: string;
@@ -8,10 +9,14 @@ interface CampaignFooterProps {
 
 const CampaignFooter: React.FC<CampaignFooterProps> = ({ campaignTheme = 'claro' }) => {
   const navigate = useNavigate();
+  const { getThemeStyles } = useTheme();
+  
+  // Obter estilos do tema usando o hook
+  const themeStyles = getThemeStyles(campaignTheme);
   
   // Footer sempre com fundo escuro, independente do tema
   const bgClass = campaignTheme === 'escuro-preto' ? 'bg-gray-900' : 'bg-black';
-  const borderClass = 'border-gray-800';
+  const borderClass = themeStyles.border || 'border-gray-800';
   const textClass = 'text-white';
   const mutedTextClass = 'text-gray-400';
   
@@ -81,7 +86,6 @@ const CampaignFooter: React.FC<CampaignFooterProps> = ({ campaignTheme = 'claro'
               </motion.span>
             </motion.button>
           </div>
-
           {/* Mensagem de disclaimer */}
           <div className="max-w-3xl text-center">
             <p className={`text-xs ${mutedTextClass} leading-relaxed`}>
