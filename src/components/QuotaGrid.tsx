@@ -83,7 +83,11 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   const getQuotaStatus = (quotaNumber: number) => {
     const ticket = tickets.find(t => t.quota_number === quotaNumber);
     
-    if (!ticket) return 'available';
+    if (!ticket) {
+      // Se não tem ticket, verifica se está selecionado
+      if (selectedQuotas.includes(quotaNumber)) return 'selected';
+      return 'available';
+    }
     
     if (ticket.status === 'comprado') return 'purchased';
     if (ticket.status === 'reservado') return 'reserved';
@@ -172,48 +176,73 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     return String(maxDisplayNumber).length;
   };
 
+  // ✨ NOVA LÓGICA: Gera array com TODAS as cotas de 1 a totalQuotas
+  const getAllQuotas = () => {
+    const allQuotas: number[] = [];
+    for (let i = 1; i <= totalQuotas; i++) {
+      allQuotas.push(i);
+    }
+    return allQuotas;
+  };
+
+  // ✨ Filtra as cotas geradas
   const getFilteredQuotas = () => {
-    const currentPageQuotas = tickets.map(t => t.quota_number);
+    const allQuotas = getAllQuotas();
     
     switch (activeFilter) {
       case 'available':
-        return currentPageQuotas.filter(quota => {
-          const ticket = tickets.find(t => t.quota_number === quota);
-          return ticket?.status === 'disponível' && !selectedQuotas.includes(quota);
+        return allQuotas.filter(quota => {
+          const status = getQuotaStatus(quota);
+          return status === 'available';
         });
       case 'reserved':
-        return currentPageQuotas.filter(quota => {
-          const ticket = tickets.find(t => t.quota_number === quota);
-          return ticket?.status === 'reservado';
+        return allQuotas.filter(quota => {
+          const status = getQuotaStatus(quota);
+          return status === 'reserved';
         });
       case 'purchased':
-        return currentPageQuotas.filter(quota => {
-          const ticket = tickets.find(t => t.quota_number === quota);
-          return ticket?.status === 'comprado';
+        return allQuotas.filter(quota => {
+          const status = getQuotaStatus(quota);
+          return status === 'purchased';
         });
       case 'my-numbers':
-        return currentPageQuotas.filter(quota => {
+        return allQuotas.filter(quota => {
           const ticket = tickets.find(t => t.quota_number === quota);
           return ticket?.is_mine || selectedQuotas.includes(quota);
         });
       case 'all':
       default:
-        return currentPageQuotas;
+        return allQuotas;
     }
   };
 
+  // ✨ Calcula contadores baseado em TODAS as cotas
   const getFilterCounts = () => {
-    const availableCount = tickets.filter(t => t.status === 'disponível').length;
-    const reservedCount = tickets.filter(t => t.status === 'reservado').length;
-    const purchasedCount = tickets.filter(t => t.status === 'comprado').length;
-    const myNumbersCount = tickets.filter(t => t.is_mine).length + selectedQuotas.filter(q => {
+    const allQuotas = getAllQuotas();
+    
+    const availableCount = allQuotas.filter(q => {
+      const status = getQuotaStatus(q);
+      return status === 'available';
+    }).length;
+    
+    const reservedCount = allQuotas.filter(q => {
+      const status = getQuotaStatus(q);
+      return status === 'reserved';
+    }).length;
+    
+    const purchasedCount = allQuotas.filter(q => {
+      const status = getQuotaStatus(q);
+      return status === 'purchased';
+    }).length;
+    
+    const myNumbersCount = allQuotas.filter(q => {
       const ticket = tickets.find(t => t.quota_number === q);
-      return ticket !== undefined;
+      return ticket?.is_mine || selectedQuotas.includes(q);
     }).length;
     
     return {
-      all: tickets.length,
-      available: Math.max(0, availableCount - selectedQuotas.length),
+      all: totalQuotas,
+      available: availableCount,
       reserved: reservedCount,
       purchased: purchasedCount,
       myNumbers: myNumbersCount
@@ -308,7 +337,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         </div>
         
         <div className={`text-center text-sm ${theme.textSecondary}`}>
-          {activeFilter === 'my-numbers' ? selectedQuotas.length : filteredQuotas.length} cotas {totalQuotas > 0 && `de ${totalQuotas.toLocaleString()}`}
+          {filteredQuotas.length} cotas de {totalQuotas.toLocaleString()}
         </div>
       </div>
 
