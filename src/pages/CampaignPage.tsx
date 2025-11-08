@@ -841,7 +841,7 @@ const CampaignPage = () => {
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-slate-800',
-          border: 'border-slate-700',
+          border: 'border-slate-600',
           rifaquiText: 'text-white'
         };
       case 'escuro-preto':
@@ -850,7 +850,7 @@ const CampaignPage = () => {
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
-          border: 'border-gray-800',
+          border: 'border-gray-700',
           rifaquiText: 'text-white'
         };
       case 'escuro-cinza':
