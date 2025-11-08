@@ -221,7 +221,6 @@ const OrganizerHomePage: React.FC = () => {
     case 'escuro-cinza':
       return {
         background: 'bg-[#1A1A1A]',
-        headerBg: 'bg-[#141414]',
         text: 'text-white',
         textSecondary: 'text-gray-400',
         cardBg: 'bg-[#2C2C2C]',
