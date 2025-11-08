@@ -966,7 +966,7 @@ const CampaignPage = () => {
   return (
     <div className={`min-h-screen transition-colors duration-300 ${themeClasses.background}`}>
       {/* Header */}
-      <header className={`shadow-sm border-b ${themeClasses.border} ${campaignTheme === 'escuro' ? 'bg-black' : themeClasses.cardBg}`}>
+      <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.headerBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <button
