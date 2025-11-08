@@ -208,7 +208,7 @@ const OrganizerHomePage: React.FC = () => {
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-slate-800',
-          border: 'border-slate-600'
+          border: 'border-slate-700'
         };
       case 'escuro-preto':
         return {
@@ -224,8 +224,7 @@ const OrganizerHomePage: React.FC = () => {
         text: 'text-white',
         textSecondary: 'text-gray-400',
         cardBg: 'bg-[#2C2C2C]',
-        border: 'border-gray-5
-          00'
+        border: 'border-gray-600'
       };
       default:
         return {
