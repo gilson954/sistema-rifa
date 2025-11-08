@@ -853,6 +853,15 @@ const CampaignPage = () => {
           border: 'border-gray-800',
           rifaquiText: 'text-white'
         };
+    case 'escuro-cinza':
+      return {
+        background: 'bg-[#1A1A1A]',
+        text: 'text-white',
+        textSecondary: 'text-gray-400',
+        cardBg: 'bg-[#2C2C2C]',
+        border: 'border-gray-700',
+        rifaquiText: 'text-white'
+      };
       default:
         return {
           background: 'bg-gray-50',
