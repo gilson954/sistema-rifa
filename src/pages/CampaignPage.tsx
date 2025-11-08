@@ -874,7 +874,18 @@ const CampaignPage = () => {
     }
   };
 
-  const getCardShadow = () => {
+  const getScrollbarClass = () => {
+    switch (campaignTheme) {
+      case 'claro':
+        return 'custom-scrollbar-light';
+      case 'escuro':
+      case 'escuro-preto':
+      case 'escuro-cinza':
+        return 'custom-scrollbar-dark';
+      default:
+        return 'custom-scrollbar-light';
+    }
+  };
     return campaignTheme === 'claro'
       ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
       : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]';
