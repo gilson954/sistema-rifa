@@ -101,6 +101,17 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
           iconColor: 'text-orange-400',
           closeButtonHover: 'hover:bg-gray-700',
         };
+    case 'escuro-cinza':
+      return {
+        background: 'bg-[#1A1A1A]',
+        text: 'text-white',
+        textSecondary: 'text-gray-400',
+        cardBg: 'bg-[#2C2C2C]',
+        border: 'border-gray-700',
+        iconBg: 'bg-orange-900/30',
+        iconColor: 'text-orange-400',
+        closeButtonHover: 'hover:bg-[#3C3C3C]',
+      };
       default:
         return {
           background: 'bg-white',
