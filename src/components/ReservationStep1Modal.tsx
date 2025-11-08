@@ -110,7 +110,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
         inputBg: 'bg-[#2C2C2C]',
         inputBorder: 'border-gray-700',
         inputText: 'text-white',
-        inputPlaceholder: 'placeholder-gray-400',
+        inputPlaceholder: 'placeholder-[#ab1616]',
         labelText: 'text-white',
         iconColor: 'text-gray-400',
         hoverBg: 'hover:bg-[#3C3C3C]',
