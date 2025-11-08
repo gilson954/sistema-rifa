@@ -192,7 +192,55 @@ const OrganizerHomePage: React.FC = () => {
     return baseClasses;
   };
 
-
+  const getThemeClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          headerBg: 'bg-white',
+          border: 'border-gray-200'
+        };
+      case 'escuro':
+        return {
+          background: 'bg-slate-900',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-slate-800',
+          headerBg: 'bg-[#161b26]',
+          border: 'border-gray-700'
+        };
+      case 'escuro-preto':
+        return {
+          background: 'bg-black',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-900',
+          headerBg: 'bg-[#161b26]',
+          border: 'border-gray-700'
+        };
+      case 'escuro-cinza':
+        return {
+          background: 'bg-[#1A1A1A]',
+          text: 'text-white',
+          textSecondary: 'text-gray-400',
+          cardBg: 'bg-[#2C2C2C]',
+          headerBg: 'bg-[#2C2C2C]',
+          border: 'border-[#3A3A3A]'
+        };
+      default:
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          headerBg: 'bg-white',
+          border: 'border-gray-200'
+        };
+    }
+  };
 
   const handleCampaignClick = (publicId: string | null) => {
     if (publicId) {
@@ -246,7 +294,7 @@ const OrganizerHomePage: React.FC = () => {
 
   return (
     <div className={`min-h-screen ${themeClasses.background} transition-colors duration-300`}>
-      <header className={`shadow-sm border-b ${themeClasses.border} ${organizerTheme === 'escuro' ? 'bg-black' : themeClasses.cardBg}`}>
+      <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.headerBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center">
@@ -263,7 +311,7 @@ const OrganizerHomePage: React.FC = () => {
                     alt="Rifaqui Logo"
                     className="w-10 h-10 object-contain"
                   />
-                  <span className="ml-2 text-2xl font-bold text-gray-900 dark:text-white">Rifaqui</span>
+                  <span className={`ml-2 text-2xl font-bold ${themeClasses.text}`}>Rifaqui</span>
                 </div>
               )}
             </div>
