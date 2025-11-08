@@ -64,7 +64,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
-          border: 'border-gray-800'
+          border: 'border-gray-600'
         };
       case 'escuro-preto':
         return {
@@ -72,7 +72,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
-          border: 'border-gray-800'
+          border: 'border-gray-700'
         };
     case 'escuro-cinza':
       return {
@@ -80,7 +80,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         text: 'text-white',
         textSecondary: 'text-gray-400',
         cardBg: 'bg-[#2C2C2C]',
-        border: 'border-gray-700'
+        border: 'border-gray-900'
       };
       default:
         return {
