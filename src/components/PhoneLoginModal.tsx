@@ -85,7 +85,7 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
           labelText: 'text-gray-100',
           iconColor: 'text-gray-400',
           overlayBg: 'bg-black/60',
-          borderColor: 'border-gray-700'
+          borderColor: 'border-gray-800'
         };
     case 'escuro-cinza':
       return {
@@ -99,7 +99,7 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
         labelText: 'text-white',
         iconColor: 'text-gray-400',
         overlayBg: 'bg-black/60',
-        borderColor: 'border-gray-900'
+        borderColor: 'border-gray-700'
       };
       default:
         return {
