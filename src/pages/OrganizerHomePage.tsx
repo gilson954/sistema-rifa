@@ -227,7 +227,7 @@ const OrganizerHomePage: React.FC = () => {
           text: 'text-white',
           textSecondary: 'text-gray-400',
           cardBg: 'bg-[#2C2C2C]',
-          headerBg: 'bg-[#2C2C2C]',
+          headerBg: 'bg-[#141414]',
           border: 'border-[#3A3A3A]'
         };
       default:
