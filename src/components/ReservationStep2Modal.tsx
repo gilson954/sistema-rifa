@@ -340,11 +340,21 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
               className="relative overflow-hidden"
               variants={headerVariants}
             >
-              {/* Gradiente apenas para tema claro */}
+              {/* Gradiente de fundo baseado no tema */}
               {campaignTheme === 'claro' && (
-                <div className="absolute inset-0 bg-gradient-to-r opacity-10" style={{
-                  background: `linear-gradient(135deg, ${primaryColor || '#3B82F6'} 0%, ${primaryColor || '#3B82F6'}99 100%)`
-                }}></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-[#ededed] to-[#c7c7c7]"></div>
+              )}
+              
+              {campaignTheme === 'escuro' && (
+                <div className="absolute inset-0 bg-gradient-to-r from-[#0f152b] to-[#070a14]"></div>
+              )}
+              
+              {campaignTheme === 'escuro-preto' && (
+                <div className="absolute inset-0 bg-gradient-to-r from-[#0f152b] to-[#070a14]"></div>
+              )}
+              
+              {campaignTheme === 'escuro-cinza' && (
+                <div className="absolute inset-0 bg-gradient-to-r from-[#1f1f1f]/30 to-[#000000]/30"></div>
               )}
 
               <div className={`relative flex items-center justify-between p-6 border-b ${theme.border}`}>
