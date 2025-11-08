@@ -127,7 +127,7 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
           cardBg: 'bg-gray-100/80',
-          border: 'border-gray-200',
+          border: 'border-[#1f1f1f]',
           iconBg: 'bg-orange-100',
           iconColor: 'text-orange-600',
           closeButtonHover: 'hover:bg-gray-100',
