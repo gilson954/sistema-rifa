@@ -62,7 +62,7 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
         };
       case 'escuro-cinza':
         return {
-          headerBg: 'bg-[#2C2C2C]',
+          headerBg: 'bg-[#141414]',
           borderClass: 'border-[#3A3A3A]',
           userBadgeBg: 'bg-[#1A1A1A]',
           userBadgeText: 'text-white',
