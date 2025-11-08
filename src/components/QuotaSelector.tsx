@@ -1,4 +1,297 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { Minus, Plus, TrendingUp } from 'lucide-react';
+import { calculateTotalWithPromotions } from '../utils/currency';
+
+interface PromotionInfo {
+  promotion: any;
+  originalTotal: number;
+  promotionalTotal: number;
+  savings: number;
+  discountPercentage: number;
+}
+
+interface QuotaSelectorProps {
+  ticketPrice: number;
+  minTicketsPerPurchase: number;
+  maxTicketsPerPurchase: number;
+  onQuantityChange: (quantity: number) => void;
+  initialQuantity?: number;
+  mode: 'manual' | 'automatic';
+  promotionInfo?: PromotionInfo | null;
+  promotions?: any[];
+  primaryColor?: string | null;
+  campaignTheme: string;
+  onReserve?: () => void;
+  reserving?: boolean;
+  disabled?: boolean;
+  colorMode?: string;
+  gradientClasses?: string;
+  customGradientColors?: string;
+}
+
+const QuotaSelector: React.FC<QuotaSelectorProps> = ({
+  ticketPrice,
+  minTicketsPerPurchase,
+  maxTicketsPerPurchase,
+  onQuantityChange,
+  initialQuantity = 1,
+  mode,
+  promotionInfo,
+  promotions = [],
+  primaryColor,
+  campaignTheme,
+  onReserve,
+  reserving = false,
+  disabled = false,
+  colorMode = 'solid',
+  gradientClasses,
+  customGradientColors
+}) => {
+  const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [animationDirection, setAnimationDirection] = useState<'up' | 'down' | null>(null);
+  const [promotionApplied, setPromotionApplied] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // ✅ CORREÇÃO: useRef para controlar se já foi inicializado
+  const isInitializedRef = useRef(false);
+  const lastNotifiedQuantityRef = useRef<number>(quantity);
+  const isExternalUpdateRef = useRef(false);
+
+  // ✅ Sincroniza com initialQuantity quando muda externamente (promoções)
+  useEffect(() => {
+    const validQuantity = Math.max(initialQuantity, minTicketsPerPurchase);
+    
+    // Só atualiza se a quantidade for diferente da atual
+    if (validQuantity !== quantity) {
+      isExternalUpdateRef.current = true;
+      setQuantity(validQuantity);
+      
+      // Indica visualmente que uma promoção foi aplicada
+      setPromotionApplied(true);
+      setTimeout(() => setPromotionApplied(false), 2000);
+    }
+
+    // Notifica o parent apenas se:
+    // 1. Ainda não foi inicializado (primeira montagem)
+    // 2. OU a quantidade mudou em relação à última notificação
+    if (!isInitializedRef.current || lastNotifiedQuantityRef.current !== validQuantity) {
+      // Marca como inicializado
+      isInitializedRef.current = true;
+      lastNotifiedQuantityRef.current = validQuantity;
+      
+      // Chama onQuantityChange de forma segura
+      // Usamos queueMicrotask em vez de setTimeout para ser mais eficiente
+      queueMicrotask(() => {
+        onQuantityChange(validQuantity);
+      });
+    }
+  }, [initialQuantity, minTicketsPerPurchase]); // ✅ Removido onQuantityChange das dependências
+
+  // ✅ Novo useEffect para sincronizar quantity com parent quando mudar internamente
+  useEffect(() => {
+    // Ignora notificações de mudanças externas (de promoções)
+    if (isExternalUpdateRef.current) {
+      isExternalUpdateRef.current = false;
+      return;
+    }
+    
+    // Só notifica se a quantidade mudou e já está inicializado
+    if (isInitializedRef.current && lastNotifiedQuantityRef.current !== quantity) {
+      lastNotifiedQuantityRef.current = quantity;
+      onQuantityChange(quantity);
+    }
+  }, [quantity, onQuantityChange]);
+
+  const getThemeClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
         return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200',
+          inputBg: 'bg-gray-50',
+          inputRing: 'ring-zinc-200',
+          inputFocusRing: 'focus-within:ring-blue-500',
+          promotionBg: 'bg-green-50',
+          promotionBorder: 'border-green-200',
+          promotionText: 'text-green-800',
+          promotionTextSecondary: 'text-green-700'
+        };
+      case 'escuro':
+        return {
+          background: 'bg-gray-950',
+          text: 'text-white',
+          textSecondary: 'text-gray-400',
+          cardBg: 'bg-gray-900',
+          border: 'border-gray-800',
+          inputBg: 'bg-gray-800',
+          inputRing: 'ring-zinc-800',
+          inputFocusRing: 'focus-within:ring-blue-500',
+          promotionBg: 'bg-gradient-to-r from-amber-950/30 to-orange-950/30',
+          promotionBorder: 'border-amber-700/50',
+          promotionText: 'text-amber-400',
+          promotionTextSecondary: 'text-amber-300'
+        };
+      case 'escuro-preto':
+        return {
+          background: 'bg-black',
+          text: 'text-white',
+          textSecondary: 'text-gray-400',
+          cardBg: 'bg-gray-950',
+          border: 'border-gray-800',
+          inputBg: 'bg-gray-900',
+          inputRing: 'ring-zinc-800',
+          inputFocusRing: 'focus-within:ring-blue-500',
+          promotionBg: 'bg-gradient-to-r from-amber-950/30 to-orange-950/30',
+          promotionBorder: 'border-amber-700/50',
+          promotionText: 'text-amber-400',
+          promotionTextSecondary: 'text-amber-300'
+        };
+      default:
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200',
+          inputBg: 'bg-gray-50',
+          inputRing: 'ring-zinc-200',
+          inputFocusRing: 'focus-within:ring-blue-500',
+          promotionBg: 'bg-green-50',
+          promotionBorder: 'border-green-200',
+          promotionText: 'text-green-800',
+          promotionTextSecondary: 'text-green-700'
+        };
+    }
+  };
+
+  const incrementButtons = [
+    { label: '+1', value: 1 },
+    { label: '+5', value: 5 },
+    { label: '+15', value: 15 },
+    { label: '+150', value: 150 },
+    { label: '+1000', value: 1000 },
+    { label: '+5000', value: 5000 },
+    { label: '+10000', value: 10000 },
+    { label: '+20000', value: 20000 }
+  ];
+
+  const handleUpdateQuantity = (newQuantity: number) => {
+    const adjustedQuantity = Math.max(minTicketsPerPurchase, newQuantity);
+    
+    if (adjustedQuantity > maxTicketsPerPurchase) {
+      setErrorMessage(`Máximo ${maxTicketsPerPurchase.toLocaleString('pt-BR')} bilhetes por compra`);
+      setQuantity(maxTicketsPerPurchase);
+      // onQuantityChange será chamado pelo useEffect que observa quantity
+    } else {
+      setErrorMessage('');
+      setQuantity(adjustedQuantity);
+      // onQuantityChange será chamado pelo useEffect que observa quantity
+    }
+  };
+
+  const handleIncrement = (value: number) => {
+    // Determina direção da animação
+    const direction = value > 0 ? 'up' : 'down';
+    setAnimationDirection(direction);
+    
+    // Reseta a animação após completar
+    setTimeout(() => setAnimationDirection(null), 300);
+    
+    setQuantity(prevQuantity => {
+      const newQuantity = prevQuantity + value;
+      const adjustedQuantity = Math.max(minTicketsPerPurchase, newQuantity);
+      
+      if (adjustedQuantity > maxTicketsPerPurchase) {
+        setErrorMessage(`Máximo ${maxTicketsPerPurchase.toLocaleString('pt-BR')} bilhetes por compra`);
+        return maxTicketsPerPurchase;
+      } else {
+        setErrorMessage('');
+        return adjustedQuantity;
+      }
+    });
+    // onQuantityChange será chamado pelo useEffect que observa quantity
+  };
+
+  const startIncrement = (value: number) => {
+    handleIncrement(value);
+    timeoutRef.current = setTimeout(() => {
+      intervalRef.current = setInterval(() => {
+        handleIncrement(value);
+      }, 100);
+    }, 500);
+  };
+
+  const stopIncrement = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      stopIncrement();
+    };
+  }, []);
+
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value === '') {
+      return;
+    }
+    const value = parseInt(e.target.value);
+    if (!isNaN(value)) {
+      handleUpdateQuantity(value);
+    }
+  };
+
+  const calculateTotal = () => {
+    const { total } = calculateTotalWithPromotions(
+      quantity,
+      ticketPrice,
+      promotions || []
+    );
+    return total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const formatCurrency = (value: number) => {
+    if (value === null || value === undefined || isNaN(value)) {
+      return 'R$ 0,00';
+    }
+    return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const getCustomGradientStyle = (customColorsJson: string) => {
+    try {
+      const colors = JSON.parse(customColorsJson);
+      if (Array.isArray(colors) && colors.length >= 2) {
+        if (colors.length === 2) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]})`;
+        } else if (colors.length === 3) {
+          return `linear-gradient(90deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing custom gradient colors:', error);
+    }
+    return null;
+  };
+
+  const getColorStyle = () => {
+    if (colorMode === 'gradient') {
+      if (gradientClasses === 'custom' && customGradientColors) {
+        const gradientStyle = getCustomGradientStyle(customGradientColors);
+        if (gradientStyle) {
+          return {
             background: gradientStyle,
             backgroundSize: '200% 200%'
           };
