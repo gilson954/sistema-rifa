@@ -36,46 +36,47 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
       case 'claro':
         return {
           headerBg: 'bg-white',
-          borderClass: 'border-gray-300',
+          borderClass: 'border-gray-200',
           userBadgeBg: 'bg-gray-100',
           userBadgeText: 'text-gray-900',
-          userBadgeBorder: 'border-gray-300',
-          logoText: 'text-gray-900 dark:text-white'
+          userBadgeBorder: 'border-gray-200',
+          logoText: 'text-gray-900'
         };
       case 'escuro':
         return {
           headerBg: 'bg-black',
-          borderClass: 'border-gray-800',
+          borderClass: 'border-gray-700',
           userBadgeBg: 'bg-slate-700',
           userBadgeText: 'text-white',
-          userBadgeBorder: 'border-slate-600',
+          userBadgeBorder: 'border-gray-700',
           logoText: 'text-white'
         };
       case 'escuro-preto':
         return {
           headerBg: 'bg-black',
-          borderClass: 'border-gray-800',
+          borderClass: 'border-gray-700',
           userBadgeBg: 'bg-gray-800',
           userBadgeText: 'text-white',
           userBadgeBorder: 'border-gray-700',
           logoText: 'text-white'
         };
-    case 'escuro-cinza':
-      return {
-        background: 'bg-[#1A1A1A]',
-        text: 'text-white',
-        textSecondary: 'text-gray-400',
-        cardBg: 'bg-[#2C2C2C]',
-        border: 'border-[#153cbd]'
-      };
+      case 'escuro-cinza':
+        return {
+          headerBg: 'bg-[#2C2C2C]',
+          borderClass: 'border-[#3A3A3A]',
+          userBadgeBg: 'bg-[#1A1A1A]',
+          userBadgeText: 'text-white',
+          userBadgeBorder: 'border-[#3A3A3A]',
+          logoText: 'text-white'
+        };
       default:
         return {
           headerBg: 'bg-white',
-          borderClass: 'border-gray-300',
+          borderClass: 'border-gray-200',
           userBadgeBg: 'bg-gray-100',
           userBadgeText: 'text-gray-900',
-          userBadgeBorder: 'border-gray-300',
-          logoText: 'text-gray-900 dark:text-white'
+          userBadgeBorder: 'border-gray-200',
+          logoText: 'text-gray-900'
         };
     }
   };
@@ -165,7 +166,7 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
   return (
     <header className={`shadow-sm border-b ${themeStyles.borderClass} ${themeStyles.headerBg}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           <button
             onClick={handleLogoClick}
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity duration-200"
@@ -174,10 +175,10 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
               <img
                 src={logoUrl}
                 alt="Logo do organizador"
-                className="h-16 w-auto max-w-[180px] object-contain shadow-md rounded-lg"
+                className="h-16 w-auto max-w-[200px] object-contain shadow-md rounded-lg"
               />
             ) : (
-              <>
+              <div className="flex items-center">
                 <img
                   src="/logo-chatgpt.png"
                   alt="Rifaqui Logo"
@@ -186,7 +187,7 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
                 <span className={`ml-2 text-2xl font-bold ${themeStyles.logoText}`}>
                   Rifaqui
                 </span>
-              </>
+              </div>
             )}
           </button>
 
