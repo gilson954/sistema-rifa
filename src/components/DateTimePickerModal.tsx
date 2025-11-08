@@ -12,6 +12,7 @@ interface DateTimePickerModalProps {
   onConfirm: (date: Date) => void;
   selectedDate: Date | null;
   minDate?: Date;
+  campaignTheme?: string;
 }
 
 const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
@@ -20,9 +21,102 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
   onConfirm,
   selectedDate,
   minDate = new Date(),
+  campaignTheme = 'claro',
 }) => {
   const [tempDate, setTempDate] = useState<Date | null>(selectedDate);
   const [tempTime, setTempTime] = useState<string>('');
+
+  const getThemeClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
+        return {
+          background: 'bg-white',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-gray-50',
+          border: 'border-gray-200',
+          buttonBg: 'bg-gray-100',
+          buttonHover: 'hover:bg-gray-200',
+          overlayBg: 'bg-gray-900/40',
+          calendarBg: '#f9fafb',
+          calendarBorder: '#e5e7eb',
+          calendarHeaderBg: '#f3f4f6',
+          dayColor: '#111827',
+          dayHoverBg: '#e5e7eb',
+          dayDisabledColor: '#9ca3af',
+        };
+      case 'escuro':
+        return {
+          background: 'bg-gray-900',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-800',
+          border: 'border-gray-700',
+          buttonBg: 'bg-gray-700',
+          buttonHover: 'hover:bg-gray-600',
+          overlayBg: 'bg-black/60',
+          calendarBg: '#1f2937',
+          calendarBorder: '#374151',
+          calendarHeaderBg: '#374151',
+          dayColor: '#e5e7eb',
+          dayHoverBg: '#374151',
+          dayDisabledColor: '#4b5563',
+        };
+      case 'escuro-preto':
+        return {
+          background: 'bg-gray-900',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-800',
+          border: 'border-gray-700',
+          buttonBg: 'bg-gray-700',
+          buttonHover: 'hover:bg-gray-600',
+          overlayBg: 'bg-black/60',
+          calendarBg: '#1f2937',
+          calendarBorder: '#374151',
+          calendarHeaderBg: '#374151',
+          dayColor: '#e5e7eb',
+          dayHoverBg: '#374151',
+          dayDisabledColor: '#4b5563',
+        };
+      case 'escuro-cinza':
+        return {
+          background: 'bg-[#1A1A1A]',
+          text: 'text-white',
+          textSecondary: 'text-gray-400',
+          cardBg: 'bg-[#2C2C2C]',
+          border: 'border-gray-700',
+          buttonBg: 'bg-[#2C2C2C]',
+          buttonHover: 'hover:bg-[#3C3C3C]',
+          overlayBg: 'bg-black/60',
+          calendarBg: '#2C2C2C',
+          calendarBorder: '#3C3C3C',
+          calendarHeaderBg: '#3C3C3C',
+          dayColor: '#ffffff',
+          dayHoverBg: '#3C3C3C',
+          dayDisabledColor: '#6b7280',
+        };
+      default:
+        return {
+          background: 'bg-white',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-gray-50',
+          border: 'border-gray-200',
+          buttonBg: 'bg-gray-100',
+          buttonHover: 'hover:bg-gray-200',
+          overlayBg: 'bg-gray-900/40',
+          calendarBg: '#f9fafb',
+          calendarBorder: '#e5e7eb',
+          calendarHeaderBg: '#f3f4f6',
+          dayColor: '#111827',
+          dayHoverBg: '#e5e7eb',
+          dayDisabledColor: '#9ca3af',
+        };
+    }
+  };
+
+  const themeClasses = getThemeClasses(campaignTheme);
 
   useEffect(() => {
     if (isOpen) {
@@ -103,9 +197,9 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto text-white shadow-2xl custom-scrollbar-dark">
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-700 sticky top-0 bg-gray-900 z-10">
+    <div className={`fixed inset-0 ${themeClasses.overlayBg} flex items-center justify-center z-50 p-4`}>
+      <div className={`${themeClasses.background} rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto ${themeClasses.text} shadow-2xl custom-scrollbar-dark`}>
+        <div className={`flex items-center justify-between p-4 sm:p-6 border-b ${themeClasses.border} sticky top-0 ${themeClasses.background} z-10`}>
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
               <Calendar className="w-5 h-5 text-white" />
@@ -114,9 +208,9 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
           </div>
           <button
             onClick={handleClose}
-            className="p-2 rounded-full hover:bg-gray-700 transition-colors duration-200"
+            className={`p-2 rounded-full ${themeClasses.buttonHover} transition-colors duration-200`}
           >
-            <X className="h-6 w-6 text-gray-400" />
+            <X className={`h-6 w-6 ${themeClasses.textSecondary}`} />
           </button>
         </div>
 
@@ -126,7 +220,7 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-4">
                 <Calendar className="w-5 h-5 text-blue-400" />
-                <h3 className="text-lg font-semibold text-gray-200">Calendário</h3>
+                <h3 className={`text-lg font-semibold ${themeClasses.textSecondary}`}>Calendário</h3>
               </div>
               <div className="date-picker-modal-calendar">
                 <DatePicker
@@ -135,7 +229,7 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
                   inline
                   minDate={minDate}
                   locale="pt-BR"
-                  calendarClassName="modal-calendar-dark"
+                  calendarClassName="modal-calendar-themed"
                   renderCustomHeader={({
                     date,
                     decreaseMonth,
@@ -179,9 +273,9 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-4">
                 <Clock className="w-5 h-5 text-blue-400" />
-                <h3 className="text-lg font-semibold text-gray-200">Horário</h3>
+                <h3 className={`text-lg font-semibold ${themeClasses.textSecondary}`}>Horário</h3>
               </div>
-              <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+              <div className={`${themeClasses.cardBg} rounded-xl border ${themeClasses.border} overflow-hidden`}>
                 <div className="max-h-[300px] lg:max-h-[400px] overflow-y-auto custom-scrollbar">
                   <div className="p-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2 lg:gap-1">
                     {timeSlots.map((time) => {
@@ -197,8 +291,8 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
                             isSelected
                               ? 'bg-blue-600 text-white shadow-lg border-2 border-blue-400'
                               : disabled
-                              ? 'bg-gray-700 text-gray-500 cursor-not-allowed opacity-50'
-                              : 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-2 border-transparent'
+                              ? `${themeClasses.buttonBg} ${themeClasses.textSecondary} cursor-not-allowed opacity-50`
+                              : `${themeClasses.buttonBg} ${themeClasses.text} ${themeClasses.buttonHover} border-2 border-transparent`
                           }`}
                         >
                           {time}
@@ -213,7 +307,7 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:p-6 border-t border-gray-700 bg-gray-800/50 sticky bottom-0">
+        <div className={`p-4 sm:p-6 border-t ${themeClasses.border} ${themeClasses.cardBg} sticky bottom-0`}>
           <div className="mb-4">
             <div className="text-sm">
               {tempDate && tempTime ? (
@@ -224,7 +318,7 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
                   </span>
                 </div>
               ) : (
-                <span className="text-gray-400">Selecione uma data e horário</span>
+                <span className={themeClasses.textSecondary}>Selecione uma data e horário</span>
               )}
             </div>
           </div>
@@ -240,8 +334,8 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
 
       <style>{`
         .date-picker-modal-calendar .react-datepicker {
-          background-color: #1f2937;
-          border: 1px solid #374151;
+          background-color: ${themeClasses.calendarBg};
+          border: 1px solid ${themeClasses.calendarBorder};
           border-radius: 0.75rem;
           font-family: inherit;
           width: 100%;
@@ -261,7 +355,7 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
           display: flex;
           justify-content: space-around;
           padding: 0.75rem 0.5rem;
-          background-color: #374151;
+          background-color: ${themeClasses.calendarHeaderBg};
           margin: 0;
         }
 
@@ -285,7 +379,7 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
         }
 
         .date-picker-modal-calendar .react-datepicker__day {
-          color: #e5e7eb;
+          color: ${themeClasses.dayColor};
           width: 2.5rem;
           height: 2.5rem;
           line-height: 2.5rem;
@@ -296,7 +390,7 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
         }
 
         .date-picker-modal-calendar .react-datepicker__day:hover {
-          background-color: #374151;
+          background-color: ${themeClasses.dayHoverBg};
           color: #fff;
         }
 
@@ -313,19 +407,19 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
         }
 
         .date-picker-modal-calendar .react-datepicker__day--today {
-          background-color: #374151;
+          background-color: ${themeClasses.dayHoverBg};
           color: #60a5fa;
           font-weight: 600;
         }
 
         .date-picker-modal-calendar .react-datepicker__day--disabled {
-          color: #4b5563 !important;
+          color: ${themeClasses.dayDisabledColor} !important;
           cursor: not-allowed;
           opacity: 0.5;
         }
 
         .date-picker-modal-calendar .react-datepicker__day--outside-month {
-          color: #4b5563;
+          color: ${themeClasses.dayDisabledColor};
           opacity: 0.5;
         }
 
@@ -334,7 +428,7 @@ const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
         }
 
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #1f2937;
+          background: ${themeClasses.calendarBg};
           border-radius: 4px;
         }
 
