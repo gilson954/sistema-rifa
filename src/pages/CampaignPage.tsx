@@ -874,18 +874,7 @@ const CampaignPage = () => {
     }
   };
 
-  const getScrollbarClass = () => {
-    switch (campaignTheme) {
-      case 'claro':
-        return 'custom-scrollbar-light';
-      case 'escuro':
-      case 'escuro-preto':
-      case 'escuro-cinza':
-        return 'custom-scrollbar-dark';
-      default:
-        return 'custom-scrollbar-light';
-    }
-  };
+  const getCardShadow = () => {
     return campaignTheme === 'claro'
       ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
       : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]';
@@ -1577,7 +1566,9 @@ const CampaignPage = () => {
           
           {campaign.description && isValidDescription(campaign.description) ? (
             <div
-              className={`${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2 ${getScrollbarClass()}`}
+              className={`${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2 ${
+                campaignTheme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
+              }`}
               style={{
                 maxHeight: '400px'
               }}
