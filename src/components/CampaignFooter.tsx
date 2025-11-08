@@ -9,57 +9,9 @@ interface CampaignFooterProps {
 const CampaignFooter: React.FC<CampaignFooterProps> = ({ campaignTheme = 'claro' }) => {
   const navigate = useNavigate();
   
-  // Função local para obter classes do tema (igual ao OrganizerHomePage)
-  const getThemeClasses = (theme: string) => {
-    switch (theme) {
-      case 'claro':
-        return {
-          background: 'bg-gray-50',
-          text: 'text-gray-900',
-          textSecondary: 'text-gray-600',
-          cardBg: 'bg-white',
-          border: 'border-gray-200'
-        };
-      case 'escuro':
-        return {
-          background: 'bg-slate-900',
-          text: 'text-white',
-          textSecondary: 'text-gray-300',
-          cardBg: 'bg-slate-800',
-          border: 'border-slate-700'
-        };
-      case 'escuro-preto':
-        return {
-          background: 'bg-black',
-          text: 'text-white',
-          textSecondary: 'text-gray-300',
-          cardBg: 'bg-gray-900',
-          border: 'border-gray-800'
-        };
-      case 'escuro-cinza':
-        return {
-          background: 'bg-[#1A1A1A]',
-          text: 'text-white',
-          textSecondary: 'text-gray-400',
-          cardBg: 'bg-[#2C2C2C]',
-          border: 'border-gray-700'
-        };
-      default:
-        return {
-          background: 'bg-gray-50',
-          text: 'text-gray-900',
-          textSecondary: 'text-gray-600',
-          cardBg: 'bg-white',
-          border: 'border-gray-200'
-        };
-    }
-  };
-
-  const themeClasses = getThemeClasses(campaignTheme);
-  
   // Footer sempre com fundo escuro, independente do tema
   const bgClass = campaignTheme === 'escuro-preto' ? 'bg-gray-900' : 'bg-black';
-  const borderClass = themeClasses.border;
+  const borderClass = 'border-gray-800';
   const textClass = 'text-white';
   const mutedTextClass = 'text-gray-400';
   
@@ -129,6 +81,7 @@ const CampaignFooter: React.FC<CampaignFooterProps> = ({ campaignTheme = 'claro'
               </motion.span>
             </motion.button>
           </div>
+
           {/* Mensagem de disclaimer */}
           <div className="max-w-3xl text-center">
             <p className={`text-xs ${mutedTextClass} leading-relaxed`}>
