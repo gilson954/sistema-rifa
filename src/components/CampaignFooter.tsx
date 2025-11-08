@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useTheme } from '../contexts/ThemeContext';
 
 interface CampaignFooterProps {
   campaignTheme?: string;
@@ -9,14 +8,58 @@ interface CampaignFooterProps {
 
 const CampaignFooter: React.FC<CampaignFooterProps> = ({ campaignTheme = 'claro' }) => {
   const navigate = useNavigate();
-  const { getThemeStyles } = useTheme();
   
-  // Obter estilos do tema usando o hook
-  const themeStyles = getThemeStyles(campaignTheme);
+  // Função local para obter classes do tema (igual ao OrganizerHomePage)
+  const getThemeClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200'
+        };
+      case 'escuro':
+        return {
+          background: 'bg-slate-900',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-slate-800',
+          border: 'border-slate-700'
+        };
+      case 'escuro-preto':
+        return {
+          background: 'bg-black',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-900',
+          border: 'border-gray-800'
+        };
+      case 'escuro-cinza':
+        return {
+          background: 'bg-[#1A1A1A]',
+          text: 'text-white',
+          textSecondary: 'text-gray-400',
+          cardBg: 'bg-[#2C2C2C]',
+          border: 'border-gray-700'
+        };
+      default:
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200'
+        };
+    }
+  };
+
+  const themeClasses = getThemeClasses(campaignTheme);
   
   // Footer sempre com fundo escuro, independente do tema
   const bgClass = campaignTheme === 'escuro-preto' ? 'bg-gray-900' : 'bg-black';
-  const borderClass = themeStyles.border || 'border-gray-800';
+  const borderClass = themeClasses.border;
   const textClass = 'text-white';
   const mutedTextClass = 'text-gray-400';
   
@@ -99,14 +142,3 @@ const CampaignFooter: React.FC<CampaignFooterProps> = ({ campaignTheme = 'claro'
 };
 
 export default CampaignFooter;
-```
-
-**O caminho correto é `'../contexts/ThemeContext'`** (apenas um `../`).
-
-A estrutura deve ser:
-```
-/src
-  /components
-    CampaignFooter.tsx  ← você está aqui
-  /contexts
-    ThemeContext.tsx     ← você quer importar daqui
