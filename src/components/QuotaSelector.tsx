@@ -114,11 +114,11 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           background: 'bg-gray-950',
           text: 'text-white',
           textSecondary: 'text-gray-400',
-          cardBg: 'bg-[#1a1f2e]',
-          border: 'border-gray-700/50',
-          inputBg: 'bg-[#13171f]',
-          inputRing: 'ring-gray-700/50',
-          inputFocusRing: 'focus-within:ring-purple-500',
+          cardBg: 'bg-[#2b3544]',
+          border: 'border-gray-600/30',
+          inputBg: 'bg-[#1a2332]',
+          inputRing: 'ring-gray-600/30',
+          inputFocusRing: 'focus-within:ring-orange-500',
           promotionBg: 'bg-gradient-to-r from-amber-950/30 to-orange-950/30',
           promotionBorder: 'border-amber-700/50',
           promotionText: 'text-amber-400',
@@ -129,11 +129,11 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           background: 'bg-black',
           text: 'text-white',
           textSecondary: 'text-gray-400',
-          cardBg: 'bg-[#1a1f2e]',
-          border: 'border-gray-700/50',
-          inputBg: 'bg-[#13171f]',
-          inputRing: 'ring-gray-700/50',
-          inputFocusRing: 'focus-within:ring-purple-500',
+          cardBg: 'bg-[#2b3544]',
+          border: 'border-gray-600/30',
+          inputBg: 'bg-[#1a2332]',
+          inputRing: 'ring-gray-600/30',
+          inputFocusRing: 'focus-within:ring-orange-500',
           promotionBg: 'bg-gradient-to-r from-amber-950/30 to-orange-950/30',
           promotionBorder: 'border-amber-700/50',
           promotionText: 'text-amber-400',
@@ -144,11 +144,11 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           background: 'bg-[#0D1117]',
           text: 'text-white',
           textSecondary: 'text-gray-400',
-          cardBg: 'bg-[#1a1f2e]',
-          border: 'border-gray-700/50',
-          inputBg: 'bg-[#13171f]',
-          inputRing: 'ring-gray-700/50',
-          inputFocusRing: 'focus-within:ring-purple-500',
+          cardBg: 'bg-[#2b3544]',
+          border: 'border-gray-600/30',
+          inputBg: 'bg-[#1a2332]',
+          inputRing: 'ring-gray-600/30',
+          inputFocusRing: 'focus-within:ring-orange-500',
           promotionBg: 'bg-gradient-to-r from-amber-950/30 to-orange-950/30',
           promotionBorder: 'border-amber-700/50',
           promotionText: 'text-amber-400',
@@ -296,7 +296,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       }
       return {};
     }
-    return { backgroundColor: primaryColor || '#8B5CF6' };
+    return { backgroundColor: primaryColor || '#FF6B35' };
   };
 
   const getColorClassName = (baseClasses: string = '') => {
@@ -322,7 +322,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       
       {/* Header com ícone */}
       <div className="flex items-center justify-center gap-2 mb-6">
-        <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+        <div className="p-2 rounded-lg bg-gradient-to-br from-gray-700/30 to-gray-600/30 border border-gray-600/30">
           <TrendingUp className={`w-5 h-5 ${theme.text}`} />
         </div>
         <h2 className={`text-xl font-bold ${theme.text} tracking-tight`}>
@@ -384,7 +384,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
             <input
               ref={inputRef}
               className={`
-                caret-purple-500
+                caret-orange-500
                 w-[3em] bg-transparent py-3 text-center font-[inherit] text-transparent outline-none
                 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
               `}
