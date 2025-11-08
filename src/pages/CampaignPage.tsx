@@ -895,19 +895,6 @@ const CampaignPage = () => {
     return 'hover:shadow-[0_15px_45px_-10px_rgba(0,0,0,0.3),0_8px_22px_-6px_rgba(0,0,0,0.2)]';
   };
 
-  const getScrollbarClass = () => {
-    switch (campaignTheme) {
-      case 'claro':
-        return 'custom-scrollbar-light';
-      case 'escuro':
-      case 'escuro-preto':
-      case 'escuro-cinza':
-        return 'custom-scrollbar-dark';
-      default:
-        return 'custom-scrollbar-light';
-    }
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -941,6 +928,7 @@ const CampaignPage = () => {
     return total;
   };
 
+  // Estados de loading e error
   if (loading || ticketsLoading) {
     const loadingPrimaryColor = organizerProfile?.primary_color || '#3B82F6';
     const loadingTheme = organizerProfile?.theme || 'claro';
@@ -982,6 +970,19 @@ const CampaignPage = () => {
   const isCampaignCompleted = campaign?.status === 'completed' && winners.length > 0;
 
   const currentImageUrl = campaign?.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1';
+
+  const getScrollbarClass = () => {
+    switch (campaignTheme) {
+      case 'claro':
+        return 'custom-scrollbar-light';
+      case 'escuro':
+      case 'escuro-preto':
+      case 'escuro-cinza':
+        return 'custom-scrollbar-dark';
+      default:
+        return 'custom-scrollbar-light';
+    }
+  };
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${themeClasses.background}`}>
