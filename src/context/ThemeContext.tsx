@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark';
+type Theme = 'light' | 'dark' | 'escuro-cinza';
 
 interface ThemeContextType {
   theme: Theme;
@@ -39,15 +39,27 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     localStorage.setItem('theme', theme);
     
     // Aplicar ou remover a classe 'dark' no elemento html
-    if (theme === 'dark') {
+    // Tanto 'dark' quanto 'escuro-cinza' devem adicionar a classe 'dark'
+    if (theme === 'dark' || theme === 'escuro-cinza') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+
+    // Adicionar classe específica para o tema escuro-cinza
+    if (theme === 'escuro-cinza') {
+      document.documentElement.classList.add('theme-escuro-cinza');
+    } else {
+      document.documentElement.classList.remove('theme-escuro-cinza');
+    }
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+    setTheme(prevTheme => {
+      if (prevTheme === 'light') return 'dark';
+      if (prevTheme === 'dark') return 'escuro-cinza';
+      return 'light';
+    });
   };
 
   const value = {
