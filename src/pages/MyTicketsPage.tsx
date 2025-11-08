@@ -273,6 +273,23 @@ const MyTicketsPage = () => {
           paginationButtonBg: 'bg-gray-800', paginationButtonText: 'text-gray-200',
           paginationButtonDisabledBg: 'bg-black', paginationButtonDisabledText: 'text-gray-600'
         };
+    case 'escuro-cinza':
+      return {
+        background: 'bg-[#1A1A1A]', 
+        text: 'text-white', 
+        textSecondary: 'text-gray-400', 
+        cardBg: 'bg-[#2C2C2C]', 
+        border: 'border-gray-700', 
+        headerBg: 'bg-[#1A1A1A]',
+        userBadgeBg: 'bg-[#2C2C2C]', 
+        userBadgeBorder: 'border-gray-700',
+        paginationContainerBg: 'bg-[#2C2C2C]', 
+        paginationContainerBorder: 'border-gray-700',
+        paginationButtonBg: 'bg-[#3C3C3C]', 
+        paginationButtonText: 'text-gray-200',
+        paginationButtonDisabledBg: 'bg-[#1A1A1A]', 
+        paginationButtonDisabledText: 'text-gray-600'
+      };
       default:
         return {
           background: 'bg-gray-50', text: 'text-gray-900', textSecondary: 'text-gray-600', cardBg: 'bg-white', border: 'border-gray-200', headerBg: 'bg-white',
