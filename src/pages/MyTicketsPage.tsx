@@ -259,7 +259,7 @@ const MyTicketsPage = () => {
         };
       case 'escuro':
         return {
-          background: 'bg-slate-900', text: 'text-white', textSecondary: 'text-gray-300', cardBg: 'bg-slate-800', border: 'border-slate-700', headerBg: 'bg-black',
+          background: 'bg-slate-900', text: 'text-white', textSecondary: 'text-gray-300', cardBg: 'bg-slate-800', border: 'border-slate-600', headerBg: 'bg-black',
           userBadgeBg: 'bg-slate-700', userBadgeBorder: 'border-slate-600',
           paginationContainerBg: 'bg-slate-800', paginationContainerBorder: 'border-slate-700',
           paginationButtonBg: 'bg-slate-700', paginationButtonText: 'text-gray-200',
@@ -267,7 +267,7 @@ const MyTicketsPage = () => {
         };
       case 'escuro-preto':
         return {
-          background: 'bg-black', text: 'text-white', textSecondary: 'text-gray-300', cardBg: 'bg-gray-900', border: 'border-gray-800', headerBg: 'bg-black',
+          background: 'bg-black', text: 'text-white', textSecondary: 'text-gray-300', cardBg: 'bg-gray-900', border: 'border-gray-700', headerBg: 'bg-black',
           userBadgeBg: 'bg-gray-800', userBadgeBorder: 'border-gray-700',
           paginationContainerBg: 'bg-gray-900', paginationContainerBorder: 'border-gray-800',
           paginationButtonBg: 'bg-gray-800', paginationButtonText: 'text-gray-200',
@@ -279,7 +279,7 @@ const MyTicketsPage = () => {
         text: 'text-white', 
         textSecondary: 'text-gray-400', 
         cardBg: 'bg-[#2C2C2C]', 
-        border: 'border-gray-700', 
+        border: 'border-gray-900', 
         headerBg: 'bg-[#1A1A1A]',
         userBadgeBg: 'bg-[#2C2C2C]', 
         userBadgeBorder: 'border-gray-700',
