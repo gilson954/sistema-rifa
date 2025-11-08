@@ -108,7 +108,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
         cardBg: 'bg-gradient-to-br from-[#2C2C2C] to-[#1A1A1A]',
         border: 'border-[#1f1f1f]',
         inputBg: 'bg-[#2C2C2C]',
-        inputBorder: 'border-[#ab1616]',
+        inputBorder: 'border-gray-700',
         inputText: 'text-white',
         inputPlaceholder: 'placeholder-gray-400',
         labelText: 'text-white',
