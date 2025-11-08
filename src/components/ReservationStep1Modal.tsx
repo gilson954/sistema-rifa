@@ -392,7 +392,7 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
               )}
               
               {campaignTheme === 'escuro' && (
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-800/30 to-slate-900/30"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-[#0f152b] to-[#070a14]"></div>
               )}
               
               {campaignTheme === 'escuro-preto' && (
