@@ -129,7 +129,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           textSecondary: 'text-gray-400',
           cardBg: 'bg-gray-900',
           border: 'border-gray-600',
-          inputBg: 'bg-gray-800',
+          inputBg: 'bg-gray-700',
           inputRing: 'ring-zinc-800',
           inputFocusRing: 'focus-within:ring-blue-500',
           promotionBg: 'bg-gradient-to-r from-amber-950/30 to-orange-950/30',
