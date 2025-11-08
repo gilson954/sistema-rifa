@@ -227,7 +227,7 @@ const getThemeClasses = (theme: string) => {
         text: 'text-white',
         textSecondary: 'text-gray-400',
         cardBg: 'bg-[#2C2C2C]',
-        headerBg: 'bg-[#2C2C2C]', // Adicionar esta linha
+        headerBg: 'bg-[#141414]', // Adicionar esta linha
         border: 'border-[#3A3A3A]'
       };
   }
