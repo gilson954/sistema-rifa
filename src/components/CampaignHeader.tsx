@@ -163,24 +163,11 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity duration-200"
           >
             {logoUrl ? (
-              colorMode === 'gradient' ? (
-                <div
-                  className={getColorClassName() + " p-1 rounded-lg shadow-md"}
-                  style={getColorStyle()}
-                >
-                  <img
-                    src={logoUrl}
-                    alt="Logo do organizador"
-                    className="h-14 w-auto max-w-[180px] object-contain bg-white dark:bg-gray-800 rounded-md"
-                  />
-                </div>
-              ) : (
-                <img
-                  src={logoUrl}
-                  alt="Logo do organizador"
-                  className="h-16 w-auto max-w-[180px] object-contain shadow-md rounded-lg"
-                />
-              )
+              <img
+                src={logoUrl}
+                alt="Logo do organizador"
+                className="h-16 w-auto max-w-[180px] object-contain shadow-md rounded-lg"
+              />
             ) : (
               <>
                 <img
