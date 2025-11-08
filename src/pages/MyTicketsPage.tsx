@@ -280,7 +280,7 @@ const MyTicketsPage = () => {
         textSecondary: 'text-gray-400', 
         cardBg: 'bg-[#2C2C2C]', 
         border: 'border-[#1f1f1f]', 
-        headerBg: 'bg-[#0f0f0f]',
+        headerBg: 'bg-[#141414]',
         userBadgeBg: 'bg-[#2C2C2C]', 
         userBadgeBorder: 'border-gray-700',
         paginationContainerBg: 'bg-[#2C2C2C]', 
