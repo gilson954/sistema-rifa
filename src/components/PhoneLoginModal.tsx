@@ -87,6 +87,20 @@ const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
           overlayBg: 'bg-black/60',
           borderColor: 'border-gray-800'
         };
+    case 'escuro-cinza':
+      return {
+        background: 'bg-[#1A1A1A]',
+        text: 'text-white',
+        textSecondary: 'text-gray-400',
+        inputBg: 'bg-[#2C2C2C]',
+        inputBorder: 'border-gray-700',
+        inputText: 'text-white',
+        inputPlaceholder: 'placeholder-gray-400',
+        labelText: 'text-white',
+        iconColor: 'text-gray-400',
+        overlayBg: 'bg-black/60',
+        borderColor: 'border-gray-700'
+      };
       default:
         return {
           background: 'bg-white',
