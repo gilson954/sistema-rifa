@@ -862,7 +862,7 @@ const CampaignPage = () => {
           text: 'text-white',
           textSecondary: 'text-gray-400',
           cardBg: 'bg-[#2C2C2C]',
-          headerBg: 'bg-[#2C2C2C]',  // ADICIONAR esta linha
+          headerBg: 'bg-[#141414]',  // ADICIONAR esta linha
           border: 'border-[#1f1f1f]',
           rifaquiText: 'text-white'
         };
