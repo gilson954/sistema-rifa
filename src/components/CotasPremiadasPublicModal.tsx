@@ -108,6 +108,19 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
           badgeBg: 'bg-gray-700',
           badgeText: 'text-gray-200',
         };
+    case 'escuro-cinza':
+      return {
+        background: 'bg-[#1A1A1A]',
+        text: 'text-white',
+        textSecondary: 'text-gray-400',
+        cardBg: 'bg-[#2C2C2C]/80',
+        border: 'border-gray-700',
+        iconBg: 'bg-orange-900/30',
+        iconColor: 'text-orange-400',
+        closeButtonHover: 'hover:bg-[#3C3C3C]',
+        badgeBg: 'bg-[#3C3C3C]',
+        badgeText: 'text-gray-200',
+      };
       default:
         return {
           background: 'bg-white',
