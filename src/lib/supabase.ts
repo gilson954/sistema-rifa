@@ -162,7 +162,7 @@ export type Database = {
           updated_at: string | null
           is_admin: boolean
           primary_color: string | null
-          theme: string | null
+          theme: 'light' | 'dark' | 'escuro-cinza' | null
           logo_url: string | null
           social_media_links: any | null
           payment_integrations_config: any | null
@@ -181,7 +181,7 @@ export type Database = {
           updated_at?: string | null
           is_admin?: boolean
           primary_color?: string | null
-          theme?: string | null
+          theme?: 'light' | 'dark' | 'escuro-cinza' | null
           logo_url?: string | null
           social_media_links?: any | null
           payment_integrations_config?: any | null
@@ -200,7 +200,7 @@ export type Database = {
           updated_at?: string | null
           is_admin?: boolean
           primary_color?: string | null
-          theme?: string | null
+          theme?: 'light' | 'dark' | 'escuro-cinza' | null
           logo_url?: string | null
           social_media_links?: any | null
           payment_integrations_config?: any | null
