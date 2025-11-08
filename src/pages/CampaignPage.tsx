@@ -928,7 +928,6 @@ const CampaignPage = () => {
     return total;
   };
 
-  // Estados de loading e error
   if (loading || ticketsLoading) {
     const loadingPrimaryColor = organizerProfile?.primary_color || '#3B82F6';
     const loadingTheme = organizerProfile?.theme || 'claro';
@@ -970,19 +969,6 @@ const CampaignPage = () => {
   const isCampaignCompleted = campaign?.status === 'completed' && winners.length > 0;
 
   const currentImageUrl = campaign?.prize_image_urls?.[currentImageIndex] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1';
-
-  const getScrollbarClass = () => {
-    switch (campaignTheme) {
-      case 'claro':
-        return 'custom-scrollbar-light';
-      case 'escuro':
-      case 'escuro-preto':
-      case 'escuro-cinza':
-        return 'custom-scrollbar-dark';
-      default:
-        return 'custom-scrollbar-light';
-    }
-  };
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${themeClasses.background}`}>
@@ -1591,7 +1577,9 @@ const CampaignPage = () => {
           
           {campaign.description && isValidDescription(campaign.description) ? (
             <div
-              className={`${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2 ${getScrollbarClass()}`}
+              className={`${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2 ${
+                campaignTheme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
+              }`}
               style={{
                 maxHeight: '400px'
               }}
