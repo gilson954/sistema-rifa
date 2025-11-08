@@ -104,7 +104,7 @@ const PaymentConfirmationPage = () => {
         background: 'bg-[#1A1A1A]',
         text: 'text-white',
         textSecondary: 'text-gray-400',
-        cardBg: 'bg-[#153cbd]',
+        cardBg: 'bg-[#2C2C2C]',
         border: 'border-[#1f1f1f]',
         inputBg: 'bg-[#2C2C2C]',
         idBoxBg: 'bg-[#3C3C3C]',
