@@ -192,46 +192,6 @@ const OrganizerHomePage: React.FC = () => {
     return baseClasses;
   };
 
-const getThemeClasses = (theme: string) => {
-  switch (theme) {
-    case 'claro':
-      return {
-        background: 'bg-gray-50',
-        text: 'text-gray-900',
-        textSecondary: 'text-gray-600',
-        cardBg: 'bg-white',
-        headerBg: 'bg-white', // Adicionar esta linha
-        border: 'border-gray-200'
-      };
-    case 'escuro':
-      return {
-        background: 'bg-slate-900',
-        text: 'text-white',
-        textSecondary: 'text-gray-300',
-        cardBg: 'bg-slate-800',
-        headerBg: 'bg-[#161b26]', // Adicionar esta linha
-        border: 'border-gray-700'
-      };
-    case 'escuro-preto':
-      return {
-        background: 'bg-black',
-        text: 'text-white',
-        textSecondary: 'text-gray-300',
-        cardBg: 'bg-gray-900',
-        headerBg: 'bg-[#161b26]', // Adicionar esta linha
-        border: 'border-gray-700'
-      };
-    case 'escuro-cinza':
-      return {
-        background: 'bg-[#1A1A1A]',
-        text: 'text-white',
-        textSecondary: 'text-gray-400',
-        cardBg: 'bg-[#2C2C2C]',
-        headerBg: 'bg-[#141414]', // Adicionar esta linha
-        border: 'border-[#3A3A3A]'
-      };
-  }
-};
 
   const handleCampaignClick = (publicId: string | null) => {
     if (publicId) {
@@ -285,7 +245,46 @@ const getThemeClasses = (theme: string) => {
 
   return (
     <div className={`min-h-screen ${themeClasses.background} transition-colors duration-300`}>
-      <header className={`shadow-sm border-b ${themeClasses.border} ${organizerTheme === 'escuro' ? 'bg-black' : themeClasses.cardBg}`}>
+const getThemeClasses = (theme: string) => {
+  switch (theme) {
+    case 'claro':
+      return {
+        background: 'bg-gray-50',
+        text: 'text-gray-900',
+        textSecondary: 'text-gray-600',
+        cardBg: 'bg-white',
+        headerBg: 'bg-white', // Adicionar esta linha
+        border: 'border-gray-200'
+      };
+    case 'escuro':
+      return {
+        background: 'bg-slate-900',
+        text: 'text-white',
+        textSecondary: 'text-gray-300',
+        cardBg: 'bg-slate-800',
+        headerBg: 'bg-[#161b26]', // Adicionar esta linha
+        border: 'border-gray-700'
+      };
+    case 'escuro-preto':
+      return {
+        background: 'bg-black',
+        text: 'text-white',
+        textSecondary: 'text-gray-300',
+        cardBg: 'bg-gray-900',
+        headerBg: 'bg-[#161b26]', // Adicionar esta linha
+        border: 'border-gray-700'
+      };
+    case 'escuro-cinza':
+      return {
+        background: 'bg-[#1A1A1A]',
+        text: 'text-white',
+        textSecondary: 'text-gray-400',
+        cardBg: 'bg-[#2C2C2C]',
+        headerBg: 'bg-[#141414]', // Adicionar esta linha
+        border: 'border-[#3A3A3A]'
+      };
+  }
+};
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center">
