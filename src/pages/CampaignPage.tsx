@@ -157,9 +157,8 @@ const CampaignPage = () => {
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
 
-  // Estado de paginação para QuotaGrid - DECLARADO ANTES DO useTickets
   const [currentQuotaPage, setCurrentQuotaPage] = useState(1);
-  const quotasPerPage = 100; // Mostrar 100 cotas por página
+  const quotasPerPage = 100;
 
   const {
     tickets,
@@ -335,7 +334,6 @@ const CampaignPage = () => {
     }
   }, [campaign?.user_id]);
 
-  // Atualizar título da página dinamicamente
   useEffect(() => {
     if (campaign?.title) {
       document.title = campaign.title;
@@ -343,13 +341,11 @@ const CampaignPage = () => {
       document.title = 'Campanha';
     }
 
-    // Restaurar título padrão ao desmontar
     return () => {
       document.title = 'Rifaqui - Plataforma de Rifas Online';
     };
   }, [campaign?.title]);
 
-  // Atualizar favicon dinamicamente com o logo do organizador
   useEffect(() => {
     const updateFavicon = () => {
       const faviconLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
@@ -358,7 +354,6 @@ const CampaignPage = () => {
         if (organizerProfile?.logo_url) {
           faviconLink.href = organizerProfile.logo_url;
         } else {
-          // Voltar ao favicon padrão se não houver logo do organizador
           faviconLink.href = '/logo-chatgpt.png';
         }
       }
@@ -366,7 +361,6 @@ const CampaignPage = () => {
 
     updateFavicon();
 
-    // Restaurar favicon padrão ao desmontar
     return () => {
       const faviconLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
       if (faviconLink) {
@@ -440,7 +434,6 @@ const CampaignPage = () => {
     };
   }, [campaign?.promotions, campaign?.ticket_price]);
 
-  // Nova função para lidar com cliques em promoções
   const handlePromotionClick = useCallback((promoQuantity: number) => {
     if (!campaign || !isCampaignAvailable) {
       showWarning('Esta campanha não está disponível no momento');
@@ -448,10 +441,8 @@ const CampaignPage = () => {
     }
 
     if (campaign.campaign_model === 'manual') {
-      // Para modo manual, adicionar cotas ALEATÓRIAS automaticamente
       const availableTickets = getAvailableTickets();
       
-      // Filtrar cotas que ainda não foram selecionadas
       const notSelectedYet = availableTickets.filter(
         ticket => !selectedQuotas.includes(ticket.quota_number)
       );
@@ -461,16 +452,13 @@ const CampaignPage = () => {
         return;
       }
 
-      // Embaralhar e selecionar N cotas ALEATÓRIAS
       const shuffled = [...notSelectedYet].sort(() => Math.random() - 0.5);
       const randomQuotas = shuffled
         .slice(0, promoQuantity)
         .map(ticket => ticket.quota_number);
 
-      // ADICIONAR às cotas já selecionadas (não substituir)
       const newSelection = [...selectedQuotas, ...randomQuotas];
       
-      // Verificar limite máximo
       const maxLimit = campaign.max_tickets_per_purchase || 20000;
       if (newSelection.length > maxLimit) {
         showWarning(`Máximo de ${maxLimit.toLocaleString('pt-BR')} ${maxLimit === 1 ? 'cota' : 'cotas'} por compra`);
@@ -480,7 +468,6 @@ const CampaignPage = () => {
       setSelectedQuotas(newSelection);
       showSuccess(`${promoQuantity} cotas aleatórias adicionadas! Total: ${newSelection.length}`);
     } else {
-      // Para modo automático, ADICIONAR à quantidade existente
       const currentTotal = quantity + promoQuantity;
       const availableCount = campaign.total_tickets - campaign.sold_tickets;
       
@@ -832,7 +819,7 @@ const CampaignPage = () => {
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
           cardBg: 'bg-white',
-          headerBg: 'bg-white',  // ADICIONAR esta linha
+          headerBg: 'bg-white',
           border: 'border-gray-200',
           rifaquiText: 'text-gray-900'
         };
@@ -842,7 +829,7 @@ const CampaignPage = () => {
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-slate-800',
-          headerBg: 'bg-[#161b26]',  // ADICIONAR esta linha
+          headerBg: 'bg-[#161b26]',
           border: 'border-slate-600',
           rifaquiText: 'text-white'
         };
@@ -852,7 +839,7 @@ const CampaignPage = () => {
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
-          headerBg: 'bg-[#161b26]',  // ADICIONAR esta linha
+          headerBg: 'bg-[#161b26]',
           border: 'border-gray-700',
           rifaquiText: 'text-white'
         };
@@ -862,7 +849,7 @@ const CampaignPage = () => {
           text: 'text-white',
           textSecondary: 'text-gray-400',
           cardBg: 'bg-[#2C2C2C]',
-          headerBg: 'bg-[#141414]',  // ADICIONAR esta linha
+          headerBg: 'bg-[#141414]',
           border: 'border-[#1f1f1f]',
           rifaquiText: 'text-white'
         };
@@ -872,6 +859,7 @@ const CampaignPage = () => {
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
           cardBg: 'bg-white',
+          headerBg: 'bg-white',
           border: 'border-gray-200',
           rifaquiText: 'text-gray-900'
         };
@@ -1032,7 +1020,7 @@ const CampaignPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} border ${themeClasses.border} overflow-hidden mb-6 max-w-3xl mx-auto`}
+            className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} overflow-hidden mb-6 max-w-3xl mx-auto transition-all duration-300`}
           >
             <div
               className={getColorClassName("px-6 py-4")}
@@ -1127,7 +1115,7 @@ const CampaignPage = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}
+          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto transition-all duration-300`}
         >
           <div 
             className="relative group w-full h-[300px] sm:h-[500px] overflow-hidden"
@@ -1220,10 +1208,16 @@ const CampaignPage = () => {
             )}
 
             {campaign.show_draw_date && campaign.draw_date && (
-              <div className={`flex items-center justify-center p-3 rounded-lg ${themeClasses.cardBg} border ${themeClasses.border}`}>
-                <Calendar className={`h-4 w-4 mr-2 ${themeClasses.text}`} />
-                <span className={`text-sm font-medium ${themeClasses.text}`}>
-                  Sorteio: <span className={`font-bold ${themeClasses.text}`}>{formatDate(campaign.draw_date)}</span>
+              <div 
+                className="flex items-center justify-center p-3 rounded-lg border"
+                style={{ 
+                  backgroundColor: '#141414',
+                  borderColor: themeClasses.border.replace('border-', '')
+                }}
+              >
+                <Calendar className="h-4 w-4 mr-2 text-white" />
+                <span className="text-sm font-medium text-white">
+                  Sorteio: <span className="font-bold text-white">{formatDate(campaign.draw_date)}</span>
                 </span>
               </div>
             )}
@@ -1233,7 +1227,7 @@ const CampaignPage = () => {
         {/* Prêmios */}
         {!isCampaignCompleted && campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
           <motion.section 
-            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer`}
+            className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer transition-all duration-300`}
             onClick={() => setShowPrizesModal(true)}
             whileHover={{
               scale: [null, 1.02, 1.03],
@@ -1265,7 +1259,7 @@ const CampaignPage = () => {
         {/* Cotas Premiadas */}
         {!isCampaignCompleted && campaign?.campaign_model === 'automatic' && cotasPremiadas.length > 0 && campaign?.cotas_premiadas_visiveis && (
           <motion.section
-            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer`}
+            className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer transition-all duration-300`}
             onClick={() => setShowCotasPremiadasModal(true)}
             whileHover={{
               scale: [null, 1.02, 1.03],
@@ -1294,13 +1288,13 @@ const CampaignPage = () => {
           </motion.section>
         )}
 
-        {/* Organizador - SEÇÃO REMOVIDA (links de redes sociais agora no menu flutuante) */}
+        {/* Organizador */}
         {!isCampaignCompleted && organizerProfile && (
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}
+          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto transition-all duration-300`}
         >
           {loadingOrganizer ? (
             <div className="flex items-center justify-center py-8">
@@ -1319,13 +1313,13 @@ const CampaignPage = () => {
         </motion.section>
         )}
 
-        {/* Promoções - ATUALIZADO COM BOTÕES CLICÁVEIS */}
+        {/* Promoções */}
         {!isCampaignCompleted && campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
           <motion.section
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
-            className={`${themeClasses.cardBg} rounded-xl shadow-lg border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}
+            className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto transition-all duration-300`}
           >
             <div className={`text-center px-6 pt-6 pb-4`}>
               <h2 className={`text-xl md:text-2xl font-bold ${themeClasses.text} mb-2 flex items-center justify-center gap-2`}>
@@ -1404,7 +1398,7 @@ const CampaignPage = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
-          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}
+          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto transition-all duration-300`}
         >
           {campaign.campaign_model === 'manual' ? (
             <div className="space-y-4">
@@ -1559,7 +1553,7 @@ const CampaignPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.7 }}
-          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}
+          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto transition-all duration-300`}
         >
           <div className="flex items-center justify-center gap-2 mb-3">
             <FileText className={`h-5 w-5 ${themeClasses.text}`} />
@@ -1591,7 +1585,7 @@ const CampaignPage = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.8 }}
-          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-4`}
+          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-4 transition-all duration-300`}
         >
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
             <div className="flex items-center gap-2">
