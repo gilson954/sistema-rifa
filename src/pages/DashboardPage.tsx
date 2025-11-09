@@ -26,6 +26,7 @@ import CotasPremiadasAdminModal from '../components/CotasPremiadasAdminModal';
 import MaiorMenorCotaModal from '../components/MaiorMenorCotaModal';
 import BuyerContactModal from '../components/BuyerContactModal';
 import TopBuyersModal from '../components/TopBuyersModal';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /* Helper to strip HTML tags from strings (defensive: avoids showing raw HTML) */
 const stripHtml = (input?: string) => {
@@ -164,21 +165,16 @@ const DashboardPage: React.FC = () => {
       }
 
       try {
-        // First check localStorage for quick response
         const localStorageValue = localStorage.getItem('isPaymentConfigured');
         if (localStorageValue) {
           const configured = JSON.parse(localStorageValue);
           setDisplayPaymentSetupCard(!configured);
         }
 
-        // Then verify with database for accuracy
         const { PaymentsAPI } = await import('../lib/api/payments');
         const hasIntegration = await PaymentsAPI.hasPaymentIntegration(user.id);
         
-        // Update localStorage with current status
         localStorage.setItem('isPaymentConfigured', JSON.stringify(hasIntegration));
-        
-        // Update display state
         setDisplayPaymentSetupCard(!hasIntegration);
       } catch (error) {
         console.error('Error parsing payment configuration status:', error);
@@ -204,7 +200,6 @@ const DashboardPage: React.FC = () => {
           filter: `user_id=eq.${user.id}`
         },
         () => {
-          // Refresh campaigns list when any campaign is updated
           refreshCampaigns();
         }
       )
@@ -218,8 +213,6 @@ const DashboardPage: React.FC = () => {
   const refreshCampaigns = async () => {
     setRefreshingCampaigns(true);
     try {
-      // Force refresh campaigns by reloading or re-fetching
-      // Keep simple and reliable (you can replace with a smarter refresh later)
       window.location.reload();
     } catch (error) {
       console.error('Error refreshing campaigns:', error);
@@ -249,10 +242,8 @@ const DashboardPage: React.FC = () => {
   };
 
   const handleViewCampaign = async (campaignId: string) => {
-    // Busca a campanha para obter o slug
     let campaignToView = campaigns.find(c => c.id === campaignId);
 
-    // Se public_id estiver faltando no estado local, refetch a campanha
     if (!campaignToView?.public_id) {
       const { data: fetchedCampaign, error: fetchError } = await CampaignAPI.getCampaignById(campaignId);
       if (fetchError) {
@@ -264,7 +255,6 @@ const DashboardPage: React.FC = () => {
     }
 
     if (campaignToView?.public_id) {
-      // Abre em nova aba para visualizar como usuário final
       window.open(`/c/${campaignToView.public_id}`, '_blank');
     } else {
       showError('Não foi possível encontrar o ID público da campanha.');
@@ -393,523 +383,576 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="dashboard-page min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
       <style>{`
-        /* Estilização da scrollbar para mobile */
         @media (max-width: 640px) {
           ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
           }
-
           ::-webkit-scrollbar-track {
             background: linear-gradient(to bottom, rgba(139, 92, 246, 0.05), rgba(59, 130, 246, 0.05));
             border-radius: 10px;
           }
-
           ::-webkit-scrollbar-thumb {
             background: linear-gradient(135deg, #7928CA 0%, #FF0080 50%, #007CF0 100%);
             border-radius: 10px;
             border: 2px solid transparent;
             background-clip: padding-box;
           }
-
           ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, #8b35d1 0%, #ff1a8f 50%, #0088ff 100%);
           }
-
-          ::-webkit-scrollbar-thumb:active {
-            background: linear-gradient(135deg, #6b1fb0 0%, #e00070 50%, #0065cc 100%);
-          }
-
-          /* Adiciona um efeito de brilho na scrollbar */
-          ::-webkit-scrollbar-thumb::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: shimmer 2s infinite;
-          }
-
-          @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-          }
         }
-
-        /* Estilização para desktop */
         @media (min-width: 641px) {
           ::-webkit-scrollbar {
             width: 12px;
             height: 12px;
           }
-
           ::-webkit-scrollbar-track {
             background: linear-gradient(to bottom, rgba(139, 92, 246, 0.08), rgba(59, 130, 246, 0.08));
             border-radius: 10px;
           }
-
           ::-webkit-scrollbar-thumb {
             background: linear-gradient(135deg, #7928CA 0%, #FF0080 50%, #007CF0 100%);
             border-radius: 10px;
             border: 3px solid transparent;
             background-clip: padding-box;
           }
-
           ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, #8b35d1 0%, #ff1a8f 50%, #0088ff 100%);
             box-shadow: 0 0 10px rgba(121, 40, 202, 0.5);
           }
-
-          ::-webkit-scrollbar-thumb:active {
-            background: linear-gradient(135deg, #6b1fb0 0%, #e00070 50%, #0065cc 100%);
-          }
         }
-
-        /* Firefox */
         * {
           scrollbar-width: thin;
           scrollbar-color: #7928CA rgba(139, 92, 246, 0.1);
         }
       `}</style>
+      
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: isMobile ? '12px' : '32px 24px' }}>
-        {/* Payment Setup Card */}
-        {displayPaymentSetupCard && (
-          <div style={{ marginBottom: isMobile ? '16px' : '24px' }}>
-            <div className="relative overflow-hidden w-full rounded-2xl shadow-lg border border-purple-200/30 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/80 to-blue-50/80 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm hover:shadow-xl transition-all duration-300"
-              style={{ padding: isMobile ? '16px' : '24px' }}>
-              {/* Efeito de brilho */}
-              <div className="absolute top-0 right-0 bg-gradient-to-br from-purple-400/20 to-blue-400/20 rounded-full blur-3xl"
-                style={{ width: isMobile ? '120px' : '160px', height: isMobile ? '120px' : '160px' }}></div>
-              <div className="absolute bottom-0 left-0 bg-gradient-to-tr from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"
-                style={{ width: isMobile ? '96px' : '128px', height: isMobile ? '96px' : '128px' }}></div>
-              
-              <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between"
-                style={{ gap: isMobile ? '12px' : '16px' }}>
-                <div className="flex items-start sm:items-center flex-1 min-w-0"
+        <AnimatePresence>
+          {displayPaymentSetupCard && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              style={{ marginBottom: isMobile ? '16px' : '24px' }}
+            >
+              <div className="relative overflow-hidden w-full rounded-xl sm:rounded-2xl shadow-lg border border-purple-200/30 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/80 to-blue-50/80 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm hover:shadow-xl transition-all duration-300"
+                style={{ padding: isMobile ? '16px' : '24px' }}>
+                <div className="absolute top-0 right-0 bg-gradient-to-br from-purple-400/20 to-blue-400/20 rounded-full blur-3xl"
+                  style={{ width: isMobile ? '120px' : '160px', height: isMobile ? '120px' : '160px' }}></div>
+                <div className="absolute bottom-0 left-0 bg-gradient-to-tr from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"
+                  style={{ width: isMobile ? '96px' : '128px', height: isMobile ? '96px' : '128px' }}></div>
+                
+                <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between"
                   style={{ gap: isMobile ? '12px' : '16px' }}>
-                  <div className="bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg"
-                    style={{ width: isMobile ? '40px' : '56px', height: isMobile ? '40px' : '56px' }}>
-                    <Sparkles style={{ width: isMobile ? '18px' : '24px', height: isMobile ? '18px' : '24px' }} />
+                  <div className="flex items-start sm:items-center flex-1 min-w-0"
+                    style={{ gap: isMobile ? '12px' : '16px' }}>
+                    <motion.div 
+                      className="bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg"
+                      style={{ width: isMobile ? '40px' : '56px', height: isMobile ? '40px' : '56px' }}
+                      whileHover={{ scale: 1.1, rotate: 10 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Sparkles style={{ width: isMobile ? '18px' : '24px', height: isMobile ? '18px' : '24px' }} />
+                    </motion.div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-bold text-gray-900 dark:text-white"
+                        style={{ fontSize: isMobile ? '15px' : '18px', marginBottom: isMobile ? '2px' : '4px' }}>
+                        Forma de recebimento
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300"
+                        style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                        Você ainda não configurou uma forma para receber os pagamentos na sua conta.
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-bold text-gray-900 dark:text-white"
-                      style={{ fontSize: isMobile ? '15px' : '18px', marginBottom: isMobile ? '2px' : '4px' }}>
-                      Forma de recebimento
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300"
-                      style={{ fontSize: isMobile ? '12px' : '14px' }}>
-                      Você ainda não configurou uma forma para receber os pagamentos na sua conta.
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex-shrink-0 w-full sm:w-auto">
-                  <button 
-                    onClick={handleConfigurePayment} 
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl font-semibold shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 text-white"
-                    style={{ padding: isMobile ? '10px 20px' : '12px 24px', fontSize: isMobile ? '13px' : '15px' }}
-                  >
-                    <Share2 style={{ width: isMobile ? '16px' : '20px', height: isMobile ? '16px' : '20px' }} />
-                    Configurar agora
-                  </button>
+                  <div className="flex-shrink-0 w-full sm:w-auto">
+                    <motion.button 
+                      onClick={handleConfigurePayment} 
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl font-semibold shadow-lg transition-all duration-300 hover:shadow-xl animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 text-white"
+                      style={{ padding: isMobile ? '10px 20px' : '12px 24px', fontSize: isMobile ? '13px' : '15px' }}
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Share2 style={{ width: isMobile ? '16px' : '20px', height: isMobile ? '16px' : '20px' }} />
+                      Configurar agora
+                    </motion.button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Botão Criar campanha */}
-        <div style={{ marginBottom: isMobile ? '16px' : '24px', display: 'flex', justifyContent: 'center' }}>
-          <button
+        <motion.div 
+          style={{ marginBottom: isMobile ? '16px' : '24px', display: 'flex', justifyContent: 'center' }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          <motion.button
             onClick={handleCreateCampaign}
-            className="inline-flex items-center gap-2 rounded-2xl font-bold shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white"
+            className="inline-flex items-center gap-2 rounded-2xl font-bold shadow-xl transition-all duration-300 transform hover:shadow-2xl animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white"
             style={{ padding: isMobile ? '12px 24px' : '16px 32px', fontSize: isMobile ? '15px' : '18px' }}
+            whileHover={{ scale: 1.05, y: -5 }}
+            whileTap={{ scale: 0.95 }}
           >
             <Plus style={{ width: isMobile ? '18px' : '24px', height: isMobile ? '18px' : '24px' }} />
             <span>Criar campanha</span>
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
-        {/* Campaigns header */}
-        <div className="flex items-center justify-between" style={{ marginBottom: isMobile ? '16px' : '24px' }}>
+        <motion.div 
+          className="flex items-center justify-between" 
+          style={{ marginBottom: isMobile ? '16px' : '24px' }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
           <h2 className="font-bold text-gray-900 dark:text-white"
             style={{ fontSize: isMobile ? '18px' : '24px' }}>
             Minhas Campanhas
           </h2>
-          <div className="rounded-xl bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 border border-purple-200/30 dark:border-purple-800/30"
-            style={{ padding: isMobile ? '6px 12px' : '8px 16px' }}>
+          <motion.div 
+            className="rounded-xl bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 border border-purple-200/30 dark:border-purple-800/30"
+            style={{ padding: isMobile ? '6px 12px' : '8px 16px' }}
+            whileHover={{ scale: 1.05 }}
+          >
             <span className="font-bold text-purple-900 dark:text-purple-100"
               style={{ fontSize: isMobile ? '11px' : '14px' }}>
               {campaigns ? campaigns.length : 0} campanhas
             </span>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        {/* Campaigns list */}
         {campaignsLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full border-b-2 border-purple-600"
-              style={{ width: isMobile ? '40px' : '48px', height: isMobile ? '40px' : '48px' }}></div>
-          </div>
+          <motion.div 
+            className="flex items-center justify-center py-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div 
+              className="animate-spin rounded-full border-b-2 border-purple-600"
+              style={{ width: isMobile ? '40px' : '48px', height: isMobile ? '40px' : '48px' }}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            />
+          </motion.div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '12px' : '16px' }}>
-            {paginatedCampaigns.length === 0 && (
-              <div className="rounded-2xl text-center border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50"
-                style={{ padding: isMobile ? '24px' : '40px' }}>
-                <div className="font-bold text-gray-900 dark:text-white"
-                  style={{ fontSize: isMobile ? '16px' : '20px', marginBottom: '8px' }}>
-                  Nenhuma campanha encontrada
-                </div>
-                <div className="text-gray-600 dark:text-gray-300"
-                  style={{ fontSize: isMobile ? '12px' : '14px', marginBottom: isMobile ? '16px' : '24px' }}>
-                  Crie a sua primeira campanha e comece a vender cotas.
-                </div>
-                <div className="flex justify-center">
-                  <button onClick={handleCreateCampaign}
-                    className="inline-flex items-center gap-2 rounded-xl font-bold shadow-lg transition-all duration-300 hover:-translate-y-0.5 bg-gradient-to-br from-purple-600 to-blue-600 text-white"
-                    style={{ padding: isMobile ? '10px 20px' : '12px 24px', fontSize: isMobile ? '13px' : '15px' }}>
-                    <Plus style={{ width: isMobile ? '16px' : '20px', height: isMobile ? '16px' : '20px' }} /> Criar campanha
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {paginatedCampaigns.map((campaign: Campaign) => (
-              <article
-                key={campaign.id}
-                className={`rounded-2xl border transition-all duration-300 hover:shadow-lg flex flex-col ${
-                  campaign.status === 'draft' && campaign.expires_at && getTimeRemaining(campaign.expires_at).expired
-                    ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                    : 'bg-white/70 dark:bg-gray-900/60 border-gray-200/20 dark:border-gray-700/30 backdrop-blur-sm'
-                }`}
-                style={{ padding: isMobile ? '12px' : '20px', gap: isMobile ? '12px' : '20px' }}
-              >
-                {/* Image */}
-                <img
-                  src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1'}
-                  alt={stripHtml(campaign.title) || 'Prêmio'}
-                  className="w-full object-cover rounded-xl shadow-md border border-gray-200/20 dark:border-gray-700/30"
-                  style={{ height: isMobile ? '140px' : '192px' }}
-                />
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between" style={{ marginBottom: isMobile ? '8px' : '12px' }}>
-                    <div className="min-w-0 flex-1" style={{ paddingRight: isMobile ? '8px' : '16px' }}>
-                      <h3 className="font-bold text-gray-900 dark:text-white line-clamp-2"
-                        style={{ fontSize: isMobile ? '14px' : '20px' }}>
-                        {stripHtml(campaign.title)}
-                      </h3>
-                    </div>
-
-                    <div className="flex flex-col items-end flex-shrink-0" style={{ gap: isMobile ? '6px' : '8px' }}>
-                      <div className="flex flex-wrap items-center justify-end" style={{ gap: isMobile ? '6px' : '8px' }}>
-                        {campaign.is_featured && (
-                          <span className="rounded-full font-semibold bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 flex items-center gap-1 whitespace-nowrap"
-                            style={{ padding: isMobile ? '3px 8px' : '4px 12px', fontSize: '11px' }}>
-                            <Star style={{ width: '12px', height: '12px' }} className="fill-current" />
-                            {!isMobile && 'Destaque'}
-                          </span>
-                        )}
-
-                        {campaign.status === 'draft' && !campaign.is_paid && (
-                          <span className="rounded-full font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 whitespace-nowrap"
-                            style={{ padding: isMobile ? '3px 8px' : '4px 12px', fontSize: '11px' }}>
-                            Pendente
-                          </span>
-                        )}
-
-                        {campaign.status === 'draft' && campaign.is_paid && (
-                          <span className="rounded-full font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 whitespace-nowrap"
-                            style={{ padding: isMobile ? '3px 8px' : '4px 12px', fontSize: '11px' }}>
-                            Processando
-                          </span>
-                        )}
-
-                        <span className={`rounded-full font-semibold whitespace-nowrap ${getStatusColor(campaign.status)}`}
-                          style={{ padding: isMobile ? '3px 8px' : '4px 12px', fontSize: '11px' }}>
-                          {getStatusText(campaign.status)}
-                        </span>
-                      </div>
-                    </div>
+            <AnimatePresence mode="wait">
+              {paginatedCampaigns.length === 0 && (
+                <motion.div 
+                  className="rounded-2xl text-center border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50"
+                  style={{ padding: isMobile ? '24px' : '40px' }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="font-bold text-gray-900 dark:text-white"
+                    style={{ fontSize: isMobile ? '16px' : '20px', marginBottom: '8px' }}>
+                    Nenhuma campanha encontrada
                   </div>
+                  <div className="text-gray-600 dark:text-gray-300"
+                    style={{ fontSize: isMobile ? '12px' : '14px', marginBottom: isMobile ? '16px' : '24px' }}>
+                    Crie a sua primeira campanha e comece a vender cotas.
+                  </div>
+                  <div className="flex justify-center">
+                    <motion.button 
+                      onClick={handleCreateCampaign}
+                      className="inline-flex items-center gap-2 rounded-xl font-bold shadow-lg transition-all duration-300 bg-gradient-to-br from-purple-600 to-blue-600 text-white"
+                      style={{ padding: isMobile ? '10px 20px' : '12px 24px', fontSize: isMobile ? '13px' : '15px' }}
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Plus style={{ width: isMobile ? '16px' : '20px', height: isMobile ? '16px' : '20px' }} /> Criar campanha
+                    </motion.button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-                  {/* Expiration / Payment Alerts */}
-                  {campaign.status === 'draft' && campaign.expires_at && !campaign.is_paid && (
-                    <div style={{ marginBottom: isMobile ? '8px' : '12px' }}>
-                      {(() => {
-                        const timeRemaining = getTimeRemaining(campaign.expires_at);
-                        const isUrgent = !timeRemaining.expired && campaign.expires_at &&
-                          new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000;
-                        
-                        return (
-                          <div className={`flex items-center rounded-xl font-medium ${
-                            timeRemaining.expired
-                              ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
-                              : isUrgent
-                              ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300'
-                              : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
-                          }`}
-                          style={{ padding: isMobile ? '8px' : '12px', gap: '8px', fontSize: isMobile ? '11px' : '13px' }}>
-                            <Clock style={{ width: isMobile ? '16px' : '20px', height: isMobile ? '16px' : '20px' }} className="flex-shrink-0" />
-                            <span className="line-clamp-2">
-                              {timeRemaining.expired 
-                                ? 'Campanha expirada - Faça o pagamento para reativar'
-                                : `Faça o pagamento em até ${timeRemaining.text} ou ela vai expirar`
-                              }
+            <AnimatePresence mode="popLayout">
+              {paginatedCampaigns.map((campaign: Campaign, index: number) => (
+                <motion.article
+                  key={campaign.id}
+                  className={`rounded-2xl border transition-all duration-300 hover:shadow-lg flex flex-col ${
+                    campaign.status === 'draft' && campaign.expires_at && getTimeRemaining(campaign.expires_at).expired
+                      ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                      : 'bg-white/70 dark:bg-gray-900/60 border-gray-200/20 dark:border-gray-700/30 backdrop-blur-sm'
+                  }`}
+                  style={{ padding: isMobile ? '12px' : '20px', gap: isMobile ? '12px' : '20px' }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -100 }}
+                  transition={{ 
+                    duration: 0.4, 
+                    delay: index * 0.1,
+                    ease: "easeOut"
+                  }}
+                  layout
+                  whileHover={{ 
+                    scale: 1.01,
+                    boxShadow: "0 10px 30px rgba(121, 40, 202, 0.15)"
+                  }}
+                >
+                  <motion.img
+                    src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1'}
+                    alt={stripHtml(campaign.title) || 'Prêmio'}
+                    className="w-full object-cover rounded-xl shadow-md border border-gray-200/20 dark:border-gray-700/30"
+                    style={{ height: isMobile ? '140px' : '192px' }}
+                    whileHover={{ scale: 1.03 }}
+                    transition={{ duration: 0.3 }}
+                  />
+
+                  <div className="flex-1 min-w-0">
+                    <motion.div 
+                      className="flex items-start justify-between" 
+                      style={{ marginBottom: isMobile ? '8px' : '12px' }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <div className="min-w-0 flex-1" style={{ paddingRight: isMobile ? '8px' : '16px' }}>
+                        <h3 className="font-bold text-gray-900 dark:text-white line-clamp-2"
+                          style={{ fontSize: isMobile ? '14px' : '20px' }}>
+                          {stripHtml(campaign.title)}
+                        </h3>
+                      </div>
+
+                      <div className="flex flex-col items-end flex-shrink-0" style={{ gap: isMobile ? '6px' : '8px' }}>
+                        <div className="flex flex-wrap items-center justify-end" style={{ gap: isMobile ? '6px' : '8px' }}>
+                          {campaign.is_featured && (
+                            <span className="rounded-full font-semibold bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 flex items-center gap-1 whitespace-nowrap"
+                              style={{ padding: isMobile ? '3px 8px' : '4px 12px', fontSize: '11px' }}>
+                              <Star style={{ width: '12px', height: '12px' }} className="fill-current" />
+                              {!isMobile && 'Destaque'}
                             </span>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  )}
+                          )}
 
-                  {campaign.status === 'draft' && campaign.is_paid && (
-                    <div style={{ marginBottom: isMobile ? '8px' : '12px' }}>
-                      <div className="flex items-center rounded-xl font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
-                        style={{ padding: isMobile ? '8px' : '12px', gap: '8px', fontSize: isMobile ? '11px' : '13px' }}>
-                        <CheckCircle style={{ width: isMobile ? '16px' : '20px', height: isMobile ? '16px' : '20px' }} className="flex-shrink-0" />
-                        <span className="flex-1">
-                          Taxa paga - {campaign.status === 'active' ? 'Campanha ativa!' : 'Ativando campanha...'}
+                          {campaign.status === 'draft' && !campaign.is_paid && (
+                            <span className="rounded-full font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 whitespace-nowrap"
+                              style={{ padding: isMobile ? '3px 8px' : '4px 12px', fontSize: '11px' }}>
+                              Pendente
+                            </span>
+                          )}
+
+                          {campaign.status === 'draft' && campaign.is_paid && (
+                            <span className="rounded-full font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 whitespace-nowrap"
+                              style={{ padding: isMobile ? '3px 8px' : '4px 12px', fontSize: '11px' }}>
+                              Processando
+                            </span>
+                          )}
+
+                          <span className={`rounded-full font-semibold whitespace-nowrap ${getStatusColor(campaign.status)}`}
+                            style={{ padding: isMobile ? '3px 8px' : '4px 12px', fontSize: '11px' }}>
+                            {getStatusText(campaign.status)}
+                          </span>
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {campaign.status === 'draft' && campaign.expires_at && !campaign.is_paid && (
+                      <div style={{ marginBottom: isMobile ? '8px' : '12px' }}>
+                        {(() => {
+                          const timeRemaining = getTimeRemaining(campaign.expires_at);
+                          const isUrgent = !timeRemaining.expired && campaign.expires_at &&
+                            new Date(campaign.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000;
+                          
+                          return (
+                            <div className={`flex items-center rounded-xl font-medium ${
+                              timeRemaining.expired
+                                ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
+                                : isUrgent
+                                ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300'
+                                : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
+                            }`}
+                            style={{ padding: isMobile ? '8px' : '12px', gap: '8px', fontSize: isMobile ? '11px' : '13px' }}>
+                              <Clock style={{ width: isMobile ? '16px' : '20px', height: isMobile ? '16px' : '20px' }} className="flex-shrink-0" />
+                              <span className="line-clamp-2">
+                                {timeRemaining.expired 
+                                  ? 'Campanha expirada - Faça o pagamento para reativar'
+                                  : `Faça o pagamento em até ${timeRemaining.text} ou ela vai expirar`
+                                }
+                              </span>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
+
+                    {campaign.status === 'draft' && campaign.is_paid && (
+                      <div style={{ marginBottom: isMobile ? '8px' : '12px' }}>
+                        <div className="flex items-center rounded-xl font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                          style={{ padding: isMobile ? '8px' : '12px', gap: '8px', fontSize: isMobile ? '11px' : '13px' }}>
+                          <CheckCircle style={{ width: isMobile ? '16px' : '20px', height: isMobile ? '16px' : '20px' }} className="flex-shrink-0" />
+                          <span className="flex-1">
+                            Taxa paga - {campaign.status === 'active' ? 'Campanha ativa!' : 'Ativando campanha...'}
+                          </span>
+                          {campaign.status !== 'active' && (
+                            <button
+                              onClick={refreshCampaigns}
+                              disabled={refreshingCampaigns}
+                              className="bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition flex-shrink-0"
+                              style={{ fontSize: '11px', padding: '4px 12px' }}
+                            >
+                              {refreshingCampaigns ? 'Atualizando...' : 'Atualizar'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div style={{ marginBottom: isMobile ? '12px' : '16px' }}>
+                      <div className="flex items-center justify-between" style={{ marginBottom: isMobile ? '6px' : '8px' }}>
+                        <span className="font-medium text-gray-600 dark:text-gray-400"
+                          style={{ fontSize: isMobile ? '11px' : '13px' }}>
+                          Progresso
                         </span>
-                        {campaign.status !== 'active' && (
-                          <button
-                            onClick={refreshCampaigns}
-                            disabled={refreshingCampaigns}
-                            className="bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition flex-shrink-0"
-                            style={{ fontSize: '11px', padding: '4px 12px' }}
-                          >
-                            {refreshingCampaigns ? 'Atualizando...' : 'Atualizar'}
-                          </button>
-                        )}
+                        <span className="font-bold text-gray-900 dark:text-white"
+                          style={{ fontSize: isMobile ? '11px' : '13px' }}>
+                          {calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
+                        style={{ height: isMobile ? '6px' : '10px' }}>
+                        <div className="bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 rounded-full transition-all duration-500 animate-gradient-x bg-[length:200%_200%]"
+                          style={{ 
+                            width: `${calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%`,
+                            height: isMobile ? '6px' : '10px'
+                          }} />
                       </div>
                     </div>
-                  )}
 
-                  {/* Progress */}
-                  <div style={{ marginBottom: isMobile ? '12px' : '16px' }}>
-                    <div className="flex items-center justify-between" style={{ marginBottom: isMobile ? '6px' : '8px' }}>
-                      <span className="font-medium text-gray-600 dark:text-gray-400"
-                        style={{ fontSize: isMobile ? '11px' : '13px' }}>
-                        Progresso
-                      </span>
-                      <span className="font-bold text-gray-900 dark:text-white"
-                        style={{ fontSize: isMobile ? '11px' : '13px' }}>
-                        {calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%
-                      </span>
+                    <div className="grid grid-cols-2"
+                      style={{ gap: isMobile ? '8px' : '12px', marginBottom: isMobile ? '12px' : '16px' }}>
+                      <div className="flex items-center rounded-lg bg-gray-50 dark:bg-gray-800/50"
+                        style={{ gap: isMobile ? '6px' : '8px', padding: isMobile ? '6px' : '8px' }}>
+                        <Users style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} 
+                          className="text-purple-600 dark:text-purple-400 flex-shrink-0" />
+                        <span className="font-medium text-gray-900 dark:text-white truncate"
+                          style={{ fontSize: isMobile ? '11px' : '13px' }}>
+                          {formatNumber(campaign.sold_tickets)}/{formatNumber(campaign.total_tickets)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center rounded-lg bg-gray-50 dark:bg-gray-800/50"
+                        style={{ gap: isMobile ? '6px' : '8px', padding: isMobile ? '6px' : '8px' }}>
+                        <DollarSign style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} 
+                          className="text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                        <span className="font-medium text-gray-900 dark:text-white truncate"
+                          style={{ fontSize: isMobile ? '11px' : '13px' }}>
+                          {formatCurrency(campaign.ticket_price)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center rounded-lg bg-gray-50 dark:bg-gray-800/50"
+                        style={{ gap: isMobile ? '6px' : '8px', padding: isMobile ? '6px' : '8px' }}>
+                        <Calendar style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} 
+                          className="text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+                        <span className="font-medium text-gray-900 dark:text-white truncate"
+                          style={{ fontSize: isMobile ? '11px' : '13px' }}>
+                          {formatDate(campaign.created_at)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center rounded-lg bg-green-50 dark:bg-green-900/30"
+                        style={{ gap: isMobile ? '6px' : '8px', padding: isMobile ? '6px' : '8px' }}>
+                        <DollarSign style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} 
+                          className="text-green-600 dark:text-green-400 flex-shrink-0" />
+                        <span className="text-green-600 dark:text-green-400 font-bold truncate"
+                          style={{ fontSize: isMobile ? '11px' : '13px' }}>
+                          {formatCurrency(campaign.ticket_price * campaign.sold_tickets)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
-                      style={{ height: isMobile ? '6px' : '10px' }}>
-                      <div className="bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 rounded-full transition-all duration-500 animate-gradient-x bg-[length:200%_200%]"
-                        style={{ 
-                          width: `${calculateProgressPercentage(campaign.sold_tickets, campaign.total_tickets)}%`,
-                          height: isMobile ? '6px' : '10px'
-                        }} />
-                    </div>
-                  </div>
 
-                  {/* Compact info grid */}
-                  <div className="grid grid-cols-2"
-                    style={{ gap: isMobile ? '8px' : '12px', marginBottom: isMobile ? '12px' : '16px' }}>
-                    <div className="flex items-center rounded-lg bg-gray-50 dark:bg-gray-800/50"
-                      style={{ gap: isMobile ? '6px' : '8px', padding: isMobile ? '6px' : '8px' }}>
-                      <Users style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} 
-                        className="text-purple-600 dark:text-purple-400 flex-shrink-0" />
-                      <span className="font-medium text-gray-900 dark:text-white truncate"
-                        style={{ fontSize: isMobile ? '11px' : '13px' }}>
-                        {formatNumber(campaign.sold_tickets)}/{formatNumber(campaign.total_tickets)}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center rounded-lg bg-gray-50 dark:bg-gray-800/50"
-                      style={{ gap: isMobile ? '6px' : '8px', padding: isMobile ? '6px' : '8px' }}>
-                      <DollarSign style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} 
-                        className="text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                      <span className="font-medium text-gray-900 dark:text-white truncate"
-                        style={{ fontSize: isMobile ? '11px' : '13px' }}>
-                        {formatCurrency(campaign.ticket_price)}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center rounded-lg bg-gray-50 dark:bg-gray-800/50"
-                      style={{ gap: isMobile ? '6px' : '8px', padding: isMobile ? '6px' : '8px' }}>
-                      <Calendar style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} 
-                        className="text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
-                      <span className="font-medium text-gray-900 dark:text-white truncate"
-                        style={{ fontSize: isMobile ? '11px' : '13px' }}>
-                        {formatDate(campaign.created_at)}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center rounded-lg bg-green-50 dark:bg-green-900/30"
-                      style={{ gap: isMobile ? '6px' : '8px', padding: isMobile ? '6px' : '8px' }}>
-                      <DollarSign style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} 
-                        className="text-green-600 dark:text-green-400 flex-shrink-0" />
-                      <span className="text-green-600 dark:text-green-400 font-bold truncate"
-                        style={{ fontSize: isMobile ? '11px' : '13px' }}>
-                        {formatCurrency(campaign.ticket_price * campaign.sold_tickets)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Actions: grid 2 colunas no mobile */}
-                  <div className="grid"
-                    style={{ 
-                      gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(120px, 1fr))',
-                      gap: isMobile ? '6px' : '8px'
-                    }}>
-                    <button
-                      onClick={() => handleViewCampaign(campaign.id)}
-                      className="flex items-center justify-center rounded-xl text-white font-bold shadow-md transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600"
-                      style={{ gap: isMobile ? '4px' : '6px', padding: isMobile ? '8px' : '10px 16px', fontSize: isMobile ? '11px' : '13px' }}
-                      aria-label={`Visualizar ${stripHtml(campaign.title)}`}
+                    <motion.div 
+                      className="grid"
+                      style={{ 
+                        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(120px, 1fr))',
+                        gap: isMobile ? '6px' : '8px'
+                      }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
                     >
-                      <Eye style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} />
-                      <span>Visualizar</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleViewSalesHistory(campaign.id)}
-                      className="flex items-center justify-center rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5"
-                      style={{ gap: isMobile ? '4px' : '6px', padding: isMobile ? '8px' : '10px 16px', fontSize: isMobile ? '11px' : '13px' }}
-                    >
-                      <DollarSign style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} />
-                      <span>Vendas</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleOpenRanking(campaign)}
-                      className="flex items-center justify-center rounded-xl bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 hover:shadow-lg text-white font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%]"
-                      style={{ gap: isMobile ? '4px' : '6px', padding: isMobile ? '8px' : '10px 16px', fontSize: isMobile ? '11px' : '13px' }}
-                      title="Ver ranking de compradores"
-                    >
-                      <Trophy style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} />
-                      <span>Ranking</span>
-                    </button>
-
-                    {campaign.campaign_model === 'automatic' && (
-                      <button
-                        onClick={() => handleManageCotasPremiadas(campaign)}
-                        className="flex items-center justify-center rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5"
+                      <motion.button
+                        onClick={() => handleViewCampaign(campaign.id)}
+                        className="flex items-center justify-center rounded-xl text-white font-bold shadow-md transition-all duration-300 transform animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600"
                         style={{ gap: isMobile ? '4px' : '6px', padding: isMobile ? '8px' : '10px 16px', fontSize: isMobile ? '11px' : '13px' }}
-                        title="Gerenciar cotas premiadas"
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
                       >
-                        <Award style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} />
-                        <span>{isMobile ? 'Premiadas' : 'Cotas Premiadas'}</span>
-                      </button>
-                    )}
+                        <Eye style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} />
+                        <span>Visualizar</span>
+                      </motion.button>
 
-                    {campaign.status === 'active' && (
-                      <button
-                        onClick={() => handleOpenMaiorMenorCota(campaign)}
-                        className="flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5"
+                      <motion.button
+                        onClick={() => handleViewSalesHistory(campaign.id)}
+                        className="flex items-center justify-center rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md transition-all duration-300"
                         style={{ gap: isMobile ? '4px' : '6px', padding: isMobile ? '8px' : '10px 16px', fontSize: isMobile ? '11px' : '13px' }}
-                        title="Maior e Menor Cota"
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
                       >
-                        <ArrowUpDown style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} />
-                        <span>{isMobile ? 'M/M' : 'Maior/Menor'}</span>
-                      </button>
-                    )}
+                        <DollarSign style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} />
+                        <span>Vendas</span>
+                      </motion.button>
 
-                    {(campaign.status === 'active' || campaign.status === 'completed') && (
-                      <button
-                        onClick={() => handleToggleFeatured(campaign.id, campaign.is_featured)}
-                        disabled={togglingFeatured === campaign.id}
-                        className={`flex items-center justify-center rounded-xl text-white font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 ${
-                          campaign.is_featured
-                            ? 'bg-yellow-500 hover:bg-yellow-600'
-                            : 'bg-gray-600 hover:bg-gray-700'
-                        } ${togglingFeatured === campaign.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      <motion.button
+                        onClick={() => handleOpenRanking(campaign)}
+                        className="flex items-center justify-center rounded-xl bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 hover:shadow-lg text-white font-bold shadow-md transition-all duration-300 animate-gradient-x bg-[length:200%_200%]"
                         style={{ gap: isMobile ? '4px' : '6px', padding: isMobile ? '8px' : '10px 16px', fontSize: isMobile ? '11px' : '13px' }}
-                        title={campaign.is_featured ? 'Remover destaque' : 'Destacar campanha'}
-                      >
-                        <Star style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} 
-                          className={campaign.is_featured ? 'fill-current' : ''} />
-                        <span>{isMobile ? '★' : (campaign.is_featured ? 'Destacada' : 'Destacar')}</span>
-                      </button>
-                    )}
-
-                    {campaign.status === 'active' && !campaign.drawn_at && (
-                      <button
-                        onClick={() => handleRealizarSorteio(campaign.id)}
-                        className="flex items-center justify-center rounded-xl text-white font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500"
-                        style={{ 
-                          gap: isMobile ? '4px' : '6px', 
-                          padding: isMobile ? '8px' : '10px 16px', 
-                          fontSize: isMobile ? '11px' : '13px',
-                          gridColumn: isMobile ? 'span 2' : 'auto'
-                        }}
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         <Trophy style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} />
-                        <span>Realizar sorteio</span>
-                      </button>
-                    )}
+                        <span>Ranking</span>
+                      </motion.button>
 
-                    {campaign.status === 'completed' && campaign.drawn_at && (
-                      <button
-                        onClick={() => handleVerGanhadores(campaign.id)}
-                        className="flex items-center justify-center rounded-xl text-white font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-green-500 via-emerald-600 to-teal-500"
+                      {campaign.campaign_model === 'automatic' && (
+                        <motion.button
+                          onClick={() => handleManageCotasPremiadas(campaign)}
+                          className="flex items-center justify-center rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-md transition-all duration-300"
+                          style={{ gap: isMobile ? '4px' : '6px', padding: isMobile ? '8px' : '10px 16px', fontSize: isMobile ? '11px' : '13px' }}
+                          whileHover={{ scale: 1.05, y: -2 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Award style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} />
+                          <span>{isMobile ? 'Premiadas' : 'Cotas Premiadas'}</span>
+                        </motion.button>
+                      )}
+
+                      {campaign.status === 'active' && (
+                        <motion.button
+                          onClick={() => handleOpenMaiorMenorCota(campaign)}
+                          className="flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md transition-all duration-300"
+                          style={{ gap: isMobile ? '4px' : '6px', padding: isMobile ? '8px' : '10px 16px', fontSize: isMobile ? '11px' : '13px' }}
+                          whileHover={{ scale: 1.05, y: -2 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <ArrowUpDown style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} />
+                          <span>{isMobile ? 'M/M' : 'Maior/Menor'}</span>
+                        </motion.button>
+                      )}
+
+                      {(campaign.status === 'active' || campaign.status === 'completed') && (
+                        <motion.button
+                          onClick={() => handleToggleFeatured(campaign.id, campaign.is_featured)}
+                          disabled={togglingFeatured === campaign.id}
+                          className={`flex items-center justify-center rounded-xl text-white font-bold shadow-md transition-all duration-300 ${
+                            campaign.is_featured
+                              ? 'bg-yellow-500 hover:bg-yellow-600'
+                              : 'bg-gray-600 hover:bg-gray-700'
+                          } ${togglingFeatured === campaign.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          style={{ gap: isMobile ? '4px' : '6px', padding: isMobile ? '8px' : '10px 16px', fontSize: isMobile ? '11px' : '13px' }}
+                          whileHover={{ scale: togglingFeatured === campaign.id ? 1 : 1.05, y: togglingFeatured === campaign.id ? 0 : -2 }}
+                          whileTap={{ scale: togglingFeatured === campaign.id ? 1 : 0.95 }}
+                        >
+                          <Star style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} 
+                            className={campaign.is_featured ? 'fill-current' : ''} />
+                          <span>{isMobile ? '★' : (campaign.is_featured ? 'Destacada' : 'Destacar')}</span>
+                        </motion.button>
+                      )}
+
+                      {campaign.status === 'active' && !campaign.drawn_at && (
+                        <motion.button
+                          onClick={() => handleRealizarSorteio(campaign.id)}
+                          className="flex items-center justify-center rounded-xl text-white font-bold shadow-md transition-all duration-300 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500"
+                          style={{ 
+                            gap: isMobile ? '4px' : '6px', 
+                            padding: isMobile ? '8px' : '10px 16px', 
+                            fontSize: isMobile ? '11px' : '13px',
+                            gridColumn: isMobile ? 'span 2' : 'auto'
+                          }}
+                          whileHover={{ scale: 1.05, y: -2 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Trophy style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} />
+                          <span>Realizar sorteio</span>
+                        </motion.button>
+                      )}
+
+                      {campaign.status === 'completed' && campaign.drawn_at && (
+                        <motion.button
+                          onClick={() => handleVerGanhadores(campaign.id)}
+                          className="flex items-center justify-center rounded-xl text-white font-bold shadow-md transition-all duration-300 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-green-500 via-emerald-600 to-teal-500"
+                          style={{ 
+                            gap: isMobile ? '4px' : '6px', 
+                            padding: isMobile ? '8px' : '10px 16px', 
+                            fontSize: isMobile ? '11px' : '13px',
+                            gridColumn: isMobile ? 'span 2' : 'auto'
+                          }}
+                          whileHover={{ scale: 1.05, y: -2 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Award style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} />
+                          <span>Ver ganhadores</span>
+                        </motion.button>
+                      )}
+
+                      {campaign.status === 'draft' && !campaign.is_paid && (
+                        <motion.button
+                          onClick={() => handlePublishCampaign(campaign.id)}
+                          className="flex items-center justify-center rounded-xl text-white font-bold shadow-md transition-all duration-300 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-green-500 via-emerald-600 to-green-500"
+                          style={{ 
+                            gap: isMobile ? '4px' : '6px', 
+                            padding: isMobile ? '8px' : '10px 16px', 
+                            fontSize: isMobile ? '11px' : '13px',
+                            gridColumn: isMobile ? 'span 2' : 'auto'
+                          }}
+                          whileHover={{ scale: 1.05, y: -2 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          Publicar
+                        </motion.button>
+                      )}
+
+                      <motion.button
+                        onClick={() => handleEditCampaign(campaign.id)}
+                        className="flex items-center justify-center rounded-xl text-white font-bold shadow-md transition-all duration-300 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600"
                         style={{ 
                           gap: isMobile ? '4px' : '6px', 
                           padding: isMobile ? '8px' : '10px 16px', 
                           fontSize: isMobile ? '11px' : '13px',
                           gridColumn: isMobile ? 'span 2' : 'auto'
                         }}
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
                       >
-                        <Award style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} />
-                        <span>Ver ganhadores</span>
-                      </button>
-                    )}
-
-                    {campaign.status === 'draft' && !campaign.is_paid && (
-                      <button
-                        onClick={() => handlePublishCampaign(campaign.id)}
-                        className="flex items-center justify-center rounded-xl text-white font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-green-500 via-emerald-600 to-green-500"
-                        style={{ 
-                          gap: isMobile ? '4px' : '6px', 
-                          padding: isMobile ? '8px' : '10px 16px', 
-                          fontSize: isMobile ? '11px' : '13px',
-                          gridColumn: isMobile ? 'span 2' : 'auto'
-                        }}
-                      >
-                        Publicar
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => handleEditCampaign(campaign.id)}
-                      className="flex items-center justify-center rounded-xl text-white font-bold shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600"
-                      style={{ 
-                        gap: isMobile ? '4px' : '6px', 
-                        padding: isMobile ? '8px' : '10px 16px', 
-                        fontSize: isMobile ? '11px' : '13px',
-                        gridColumn: isMobile ? 'span 2' : 'auto'
-                      }}
-                    >
-                      <Edit style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} />
-                      <span>Editar</span>
-                    </button>
+                        <Edit style={{ width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }} />
+                        <span>Editar</span>
+                      </motion.button>
+                    </motion.div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </motion.article>
+              ))}
+            </AnimatePresence>
 
-            {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between rounded-xl bg-white/60 dark:bg-gray-900/50 border border-gray-200/20 dark:border-gray-800/30 backdrop-blur-sm"
+              <motion.div 
+                className="flex flex-col sm:flex-row items-center justify-between rounded-xl bg-white/60 dark:bg-gray-900/50 border border-gray-200/20 dark:border-gray-800/30 backdrop-blur-sm"
                 style={{ 
                   marginTop: isMobile ? '20px' : '32px',
                   gap: isMobile ? '12px' : '16px',
                   padding: isMobile ? '12px' : '16px'
-                }}>
+                }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+              >
                 <div className="font-medium text-gray-700 dark:text-gray-300 text-center sm:text-left"
                   style={{ fontSize: isMobile ? '11px' : '13px' }}>
                   Mostrando <span className="font-bold text-purple-600 dark:text-purple-400">{((currentPage - 1) * pageSize) + 1}</span> a <span className="font-bold text-purple-600 dark:text-purple-400">{Math.min(currentPage * pageSize, campaigns.length)}</span> de <span className="font-bold text-purple-600 dark:text-purple-400">{campaigns.length}</span>
                 </div>
                 <div className="flex items-center"
                   style={{ gap: isMobile ? '8px' : '12px' }}>
-                  <button 
+                  <motion.button 
                     onClick={() => handlePageChange(currentPage - 1)} 
                     disabled={currentPage === 1} 
                     className="rounded-lg bg-white dark:bg-gray-800 border border-gray-200/20 dark:border-gray-700/30 font-semibold transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-gray-800"
@@ -917,17 +960,22 @@ const DashboardPage: React.FC = () => {
                       padding: isMobile ? '6px 12px' : '8px 16px',
                       fontSize: isMobile ? '11px' : '13px'
                     }}
+                    whileHover={currentPage !== 1 ? { scale: 1.05 } : {}}
+                    whileTap={currentPage !== 1 ? { scale: 0.95 } : {}}
                   >
                     Anterior
-                  </button>
-                  <div className="rounded-lg font-bold bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-900 dark:text-purple-100 border border-purple-200/30 dark:border-purple-800/30"
+                  </motion.button>
+                  <motion.div 
+                    className="rounded-lg font-bold bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-900 dark:text-purple-100 border border-purple-200/30 dark:border-purple-800/30"
                     style={{ 
                       padding: isMobile ? '6px 12px' : '8px 20px',
                       fontSize: isMobile ? '11px' : '13px'
-                    }}>
+                    }}
+                    whileHover={{ scale: 1.05 }}
+                  >
                     {currentPage} de {totalPages}
-                  </div>
-                  <button 
+                  </motion.div>
+                  <motion.button 
                     onClick={() => handlePageChange(currentPage + 1)} 
                     disabled={currentPage === totalPages} 
                     className="rounded-lg bg-white dark:bg-gray-800 border border-gray-200/20 dark:border-gray-700/30 font-semibold transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-gray-800"
@@ -935,11 +983,13 @@ const DashboardPage: React.FC = () => {
                       padding: isMobile ? '6px 12px' : '8px 16px',
                       fontSize: isMobile ? '11px' : '13px'
                     }}
+                    whileHover={currentPage !== totalPages ? { scale: 1.05 } : {}}
+                    whileTap={currentPage !== totalPages ? { scale: 0.95 } : {}}
                   >
                     Próximo
-                  </button>
+                  </motion.button>
                 </div>
-              </div>
+              </motion.div>
             )}
           </div>
         )}
