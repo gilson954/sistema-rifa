@@ -45,7 +45,7 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
       case 'escuro':
         return {
           headerBg: 'bg-black',
-          borderClass: 'border-gray-700',
+          borderClass: 'border-[#101625]',
           userBadgeBg: 'bg-slate-700',
           userBadgeText: 'text-white',
           userBadgeBorder: 'border-gray-700',
