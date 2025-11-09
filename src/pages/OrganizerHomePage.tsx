@@ -297,7 +297,7 @@ const OrganizerHomePage: React.FC = () => {
       <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.headerBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
-            <div className="flex items-center">
+            <button onClick={() => navigate(`/org/${userId}`)} className="flex items-center hover:opacity-80 transition-opacity duration-200">
               {organizerProfile?.logo_url ? (
                 <img
                   src={organizerProfile.logo_url}
@@ -306,19 +306,17 @@ const OrganizerHomePage: React.FC = () => {
                 />
               ) : (
                 <div className="flex items-center">
-                  <img
-                    src="/logo-chatgpt.png"
-                    alt="Rifaqui Logo"
-                    className="w-8 sm:w-10 h-8 sm:h-10 object-contain"
-                  />
-                  <span className={`ml-2 text-lg sm:text-2xl font-bold ${themeClasses.text}`}>Rifaqui</span>
+                  <Ticket className="h-6 sm:h-8 w-6 sm:w-8 text-blue-600" />
+                  <span className={`ml-2 text-lg sm:text-xl font-bold ${themeClasses.text}`}>Rifaqui</span>
                 </div>
               )}
-            </div>
-            <div className="flex items-center">
-              <button
+            </button>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleMyTicketsClick}
-                className={getColorClassName("text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-1.5 sm:space-x-2 shadow-md hover:shadow-lg hover:scale-105")}
+                className={getColorClassName("flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 text-white rounded-lg font-medium text-sm transition-all duration-200 shadow-md")}
                 style={getColorStyle(true, false)}
               >
                 <Ticket className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
@@ -326,7 +324,7 @@ const OrganizerHomePage: React.FC = () => {
                   {isPhoneAuthenticated ? 'Minhas Cotas' : 'Ver Minhas Cotas'}
                 </span>
                 <span className="sm:hidden">Cotas</span>
-              </button>
+              </motion.button>
             </div>
           </div>
         </div>
