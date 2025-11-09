@@ -39,8 +39,6 @@ const countries: Country[] = [
   { code: 'PT', name: 'Portugal', dialCode: '+351', flag: '🇵🇹' },
 ];
 
-const [isMobile, setIsMobile] = useState(false);
-
 const AccountPage: React.FC = () => {
   const { user, signOut } = useAuth();
   const { orders, getCompletedOrders } = useStripe();
@@ -65,16 +63,6 @@ const AccountPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [sendingResetLink, setSendingResetLink] = useState(false);
   const [resetLinkSent, setResetLinkSent] = useState(false);
-
-  // Detecção real de mobile via JavaScript
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Fetch user profile data
   useEffect(() => {
@@ -355,20 +343,10 @@ const AccountPage: React.FC = () => {
   if (loading) {
     return (
       <div className="bg-transparent">
-        <div 
-          className="mx-auto px-4 py-6 sm:px-6 lg:px-8 sm:py-8"
-          style={{
-            maxWidth: isMobile ? '100%' : '56rem'
-          }}
-        >
-          <div 
-            className="rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40"
-            style={{
-              padding: isMobile ? '12px' : undefined
-            }}
-          >
-            <div className="flex items-center justify-center py-8 sm:py-12">
-              <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-purple-600" />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="rounded-2xl p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
             </div>
           </div>
         </div>
@@ -384,156 +362,36 @@ const AccountPage: React.FC = () => {
   };
 
   return (
-    <div 
-      className="bg-transparent min-h-screen"
-      style={{
-        // Barra de rolagem customizada elegante
-        scrollbarColor: isMobile ? '#a855f7 rgba(139, 92, 246, 0.1)' : undefined,
-        scrollbarWidth: isMobile ? 'thin' : undefined,
-      }}
-    >
-      <style>
-        {`
-          /* Scrollbar para mobile (mais fina e discreta) */
-          @media (max-width: 640px) {
-            ::-webkit-scrollbar {
-              width: 8px;
-            }
-            
-            ::-webkit-scrollbar-track {
-              background: linear-gradient(to bottom, rgba(139, 92, 246, 0.05), rgba(219, 39, 119, 0.05));
-              border-radius: 10px;
-            }
-            
-            ::-webkit-scrollbar-thumb {
-              background: linear-gradient(to bottom, #a855f7, #ec4899, #3b82f6);
-              border-radius: 10px;
-            }
-            
-            ::-webkit-scrollbar-thumb:hover {
-              background: linear-gradient(to bottom, #c084fc, #f472b6);
-            }
-            
-            ::-webkit-scrollbar-thumb:active {
-              background: linear-gradient(to bottom, #7c3aed, #db2777);
-            }
-          }
-          
-          /* Scrollbar para desktop (mais robusta) */
-          @media (min-width: 641px) {
-            ::-webkit-scrollbar {
-              width: 12px;
-            }
-            
-            ::-webkit-scrollbar-track {
-              background: linear-gradient(to bottom, rgba(139, 92, 246, 0.05), rgba(219, 39, 119, 0.05));
-              border-radius: 10px;
-            }
-            
-            ::-webkit-scrollbar-thumb {
-              background: linear-gradient(to bottom, #a855f7, #ec4899, #3b82f6);
-              border-radius: 10px;
-              box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
-            }
-            
-            ::-webkit-scrollbar-thumb:hover {
-              background: linear-gradient(to bottom, #c084fc, #f472b6);
-              box-shadow: 0 0 15px rgba(192, 132, 252, 0.6);
-            }
-          }
-        `}
-      </style>
-      <main 
-        className="mx-auto px-4 py-6 sm:px-6 lg:px-8 sm:py-8"
-        style={{
-          maxWidth: isMobile ? '100%' : '56rem',
-          padding: isMobile ? '16px 12px' : undefined
-        }}
-      >
+    <div className="bg-transparent min-h-screen">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Card wrapper */}
-        <div 
-          className="rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40"
-          style={{
-            padding: isMobile ? '12px' : undefined
-          }}
-        >
+        <div className="rounded-2xl p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
           {/* Top header of card */}
-          <div 
-            className="flex items-start justify-between mb-4 sm:mb-6"
-            style={{
-              marginBottom: isMobile ? '12px' : undefined,
-              gap: isMobile ? '8px' : undefined
-            }}
-          >
+          <div className="flex items-start justify-between mb-6">
             <div>
-              <h1 
-                className="font-semibold text-gray-900 dark:text-white"
-                style={{
-                  fontSize: isMobile ? '15px' : '1.25rem'
-                }}
-              >
-                Minha conta
-              </h1>
-              <p 
-                className="text-gray-500 dark:text-gray-400 mt-1"
-                style={{
-                  fontSize: isMobile ? '11px' : '0.875rem',
-                  marginTop: isMobile ? '4px' : undefined
-                }}
-              >
-                Gerencie seus dados pessoais, redefina senha ou exclua sua conta.
-              </p>
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Minha conta</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Gerencie seus dados pessoais, redefina senha ou exclua sua conta.</p>
             </div>
 
-            <div 
-              className="flex items-center"
-              style={{
-                gap: isMobile ? '6px' : '12px'
-              }}
-            >
+            <div className="flex items-center space-x-3">
+              {/* Removed "Alterar foto" button as requested */}
+
               {/* Small edit icon */}
               <button
                 onClick={handleEditData}
                 title="Editar"
-                className="rounded-lg bg-gray-800/40 hover:bg-gray-800/30 transition"
-                style={{
-                  padding: isMobile ? '6px' : '8px'
-                }}
+                className="p-2 rounded-lg bg-gray-800/40 hover:bg-gray-800/30 transition"
               >
-                <Pencil 
-                  className="text-white"
-                  style={{
-                    width: isMobile ? '14px' : '16px',
-                    height: isMobile ? '14px' : '16px'
-                  }}
-                />
+                <Pencil className="h-4 w-4 text-white" />
               </button>
             </div>
           </div>
 
           {/* Content grid */}
-          <div 
-            className="grid grid-cols-1 md:grid-cols-3"
-            style={{
-              gap: isMobile ? '8px' : '24px'
-            }}
-          >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Avatar / basic info */}
-            <div 
-              className="col-span-1 flex items-center rounded-xl bg-white/3 dark:bg-black/10"
-              style={{
-                gap: isMobile ? '8px' : '16px',
-                padding: isMobile ? '8px' : '16px'
-              }}
-            >
-              <div 
-                className="rounded-full bg-gradient-to-br from-purple-600 to-blue-400 flex items-center justify-center text-white font-semibold shadow overflow-hidden"
-                style={{
-                  width: isMobile ? '48px' : '64px',
-                  height: isMobile ? '48px' : '64px',
-                  fontSize: isMobile ? '16px' : '18px'
-                }}
-              >
+            <div className="col-span-1 flex items-center gap-4 p-4 rounded-xl bg-white/3 dark:bg-black/10">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-400 flex items-center justify-center text-white text-lg font-semibold shadow overflow-hidden">
                 {profileImageUrl ? (
                   <img src={profileImageUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
                 ) : (
@@ -541,195 +399,61 @@ const AccountPage: React.FC = () => {
                 )}
               </div>
               <div>
-                <div 
-                  className="text-gray-400"
-                  style={{
-                    fontSize: isMobile ? '11px' : '0.875rem'
-                  }}
-                >
-                  Usuário
-                </div>
-                <div 
-                  className="font-medium text-gray-900 dark:text-white"
-                  style={{
-                    fontSize: isMobile ? '13px' : '1rem'
-                  }}
-                >
-                  {userData.name || '-'}
-                </div>
-                <div 
-                  className="text-gray-500 dark:text-gray-400"
-                  style={{
-                    fontSize: isMobile ? '11px' : '0.875rem',
-                    marginTop: isMobile ? '2px' : '4px'
-                  }}
-                >
-                  {userData.email || '-'}
-                </div>
+                <div className="text-sm text-gray-400">Usuário</div>
+                <div className="font-medium text-gray-900 dark:text-white">{userData.name || '-'}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">{userData.email || '-'}</div>
               </div>
             </div>
 
             {/* Main fields */}
-            <div 
-              className="col-span-2 rounded-xl bg-white/3 dark:bg-black/10"
-              style={{
-                padding: isMobile ? '8px' : '16px'
-              }}
-            >
-              <div 
-                className="grid grid-cols-1 md:grid-cols-2"
-                style={{
-                  gap: isMobile ? '8px' : '16px'
-                }}
-              >
+            <div className="col-span-2 p-4 rounded-xl bg-white/3 dark:bg-black/10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label 
-                    className="block text-gray-400"
-                    style={{
-                      fontSize: isMobile ? '11px' : '0.875rem'
-                    }}
-                  >
-                    Nome
-                  </label>
-                  <div 
-                    className="font-medium text-gray-900 dark:text-white"
-                    style={{
-                      marginTop: isMobile ? '2px' : '4px',
-                      fontSize: isMobile ? '13px' : '1rem'
-                    }}
-                  >
-                    {userData.name || '-'}
-                  </div>
+                  <label className="block text-sm text-gray-400">Nome</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.name || '-'}</div>
                 </div>
                 <div>
-                  <label 
-                    className="block text-gray-400"
-                    style={{
-                      fontSize: isMobile ? '11px' : '0.875rem'
-                    }}
-                  >
-                    Email
-                  </label>
-                  <div 
-                    className="font-medium text-gray-900 dark:text-white"
-                    style={{
-                      marginTop: isMobile ? '2px' : '4px',
-                      fontSize: isMobile ? '13px' : '1rem'
-                    }}
-                  >
-                    {userData.email || '-'}
-                  </div>
+                  <label className="block text-sm text-gray-400">Email</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.email || '-'}</div>
                 </div>
                 <div>
-                  <label 
-                    className="block text-gray-400"
-                    style={{
-                      fontSize: isMobile ? '11px' : '0.875rem'
-                    }}
-                  >
-                    CPF
-                  </label>
-                  <div 
-                    className="font-medium text-gray-900 dark:text-white"
-                    style={{
-                      marginTop: isMobile ? '2px' : '4px',
-                      fontSize: isMobile ? '13px' : '1rem'
-                    }}
-                  >
-                    {userData.cpf || '-'}
-                  </div>
+                  <label className="block text-sm text-gray-400">CPF</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">{userData.cpf || '-'}</div>
                 </div>
                 <div>
-                  <label 
-                    className="block text-gray-400"
-                    style={{
-                      fontSize: isMobile ? '11px' : '0.875rem'
-                    }}
-                  >
-                    Telefone
-                  </label>
-                  <div 
-                    className="font-medium text-gray-900 dark:text-white"
-                    style={{
-                      marginTop: isMobile ? '2px' : '4px',
-                      fontSize: isMobile ? '13px' : '1rem'
-                    }}
-                  >
+                  <label className="block text-sm text-gray-400">Telefone</label>
+                  <div className="mt-1 font-medium text-gray-900 dark:text-white">
                     {userData.phoneNumber ? `${selectedCountry.dialCode} ${userData.phoneNumber}` : '-'}
                   </div>
                 </div>
               </div>
 
               {/* Reset password */}
-              <div 
-                style={{
-                  marginTop: isMobile ? '12px' : '24px'
-                }}
-              >
-                <h3 
-                  className="font-semibold text-gray-900 dark:text-white"
-                  style={{
-                    fontSize: isMobile ? '13px' : '1rem'
-                  }}
-                >
-                  Resetar senha
-                </h3>
-                <p 
-                  className="text-gray-500 dark:text-gray-400"
-                  style={{
-                    fontSize: isMobile ? '11px' : '0.875rem',
-                    marginTop: isMobile ? '4px' : '4px'
-                  }}
-                >
-                  Você receberá um link via e-mail para redefinir a sua senha.
-                </p>
+              <div className="mt-6">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">Resetar senha</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Você receberá um link via e-mail para redefinir a sua senha.</p>
 
-                <div 
-                  style={{
-                    marginTop: isMobile ? '8px' : '16px'
-                  }}
-                >
+                <div className="mt-4">
                   <button
                     onClick={handleSendResetLink}
                     disabled={sendingResetLink}
-                    className="w-full inline-flex items-center justify-center rounded-lg font-semibold text-white transition transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+                    className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
                                animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-pink-500 to-indigo-600"
-                    style={{
-                      gap: isMobile ? '6px' : '8px',
-                      padding: isMobile ? '8px 16px' : '12px 24px',
-                      fontSize: isMobile ? '11px' : '0.875rem'
-                    }}
                   >
                     {sendingResetLink ? (
                       <>
-                        <div 
-                          className="animate-spin rounded-full border-b-2 border-white"
-                          style={{
-                            width: isMobile ? '12px' : '16px',
-                            height: isMobile ? '12px' : '16px'
-                          }}
-                        />
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                         <span>Enviando...</span>
                       </>
                     ) : resetLinkSent ? (
                       <>
                         <span>Link enviado!</span>
-                        <CheckCircle 
-                          style={{
-                            width: isMobile ? '12px' : '16px',
-                            height: isMobile ? '12px' : '16px'
-                          }}
-                        />
+                        <CheckCircle className="h-4 w-4" />
                       </>
                     ) : (
                       <>
                         <span>Enviar link</span>
-                        <Link 
-                          style={{
-                            width: isMobile ? '12px' : '16px',
-                            height: isMobile ? '12px' : '16px'
-                          }}
-                        />
+                        <Link className="h-4 w-4" />
                       </>
                     )}
                   </button>
@@ -737,51 +461,20 @@ const AccountPage: React.FC = () => {
               </div>
 
               {/* Delete account */}
-              <div 
-                style={{
-                  marginTop: isMobile ? '12px' : '24px'
-                }}
-              >
-                <h3 
-                  className="font-semibold text-gray-900 dark:text-white"
-                  style={{
-                    fontSize: isMobile ? '13px' : '1rem'
-                  }}
-                >
-                  Excluir minha conta
-                </h3>
-                <p 
-                  className="text-gray-500 dark:text-gray-400 leading-relaxed"
-                  style={{
-                    fontSize: isMobile ? '11px' : '0.875rem',
-                    marginTop: isMobile ? '4px' : '4px'
-                  }}
-                >
+              <div className="mt-6">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">Excluir minha conta</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
                   Lembre-se de que esta ação é irreversível e removerá permanentemente todas as suas informações e dados pessoais de nossa plataforma; você não pode ter rifas em andamento.
                 </p>
 
-                <div 
-                  style={{
-                    marginTop: isMobile ? '8px' : '16px'
-                  }}
-                >
+                <div className="mt-4">
                   <button
                     onClick={handleDeleteAccount}
                     disabled={deleting}
-                    className="inline-flex items-center rounded-lg bg-gradient-to-r from-red-600 to-rose-500 text-white font-medium hover:opacity-95 transition disabled:opacity-50"
-                    style={{
-                      gap: isMobile ? '6px' : '8px',
-                      padding: isMobile ? '6px 12px' : '8px 16px',
-                      fontSize: isMobile ? '11px' : '0.875rem'
-                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-rose-500 text-white font-medium hover:opacity-95 transition disabled:opacity-50"
                   >
                     <span>{deleting ? 'Excluindo...' : 'Quero excluir'}</span>
-                    <Trash2 
-                      style={{
-                        width: isMobile ? '12px' : '16px',
-                        height: isMobile ? '12px' : '16px'
-                      }}
-                    />
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -790,70 +483,18 @@ const AccountPage: React.FC = () => {
 
           {/* Optional purchase history (kept smaller / below) */}
           {getCompletedOrders().length > 0 && (
-            <div 
-              style={{
-                marginTop: isMobile ? '12px' : '24px'
-              }}
-            >
-              <h4 
-                className="font-semibold text-gray-400"
-                style={{
-                  fontSize: isMobile ? '11px' : '0.875rem',
-                  marginBottom: isMobile ? '8px' : '12px'
-                }}
-              >
-                Histórico de Compras recentes
-              </h4>
-              <div 
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: isMobile ? '6px' : '12px'
-                }}
-              >
+            <div className="mt-6">
+              <h4 className="text-sm font-semibold text-gray-400 mb-3">Histórico de Compras recentes</h4>
+              <div className="space-y-3">
                 {getCompletedOrders().slice(0, 3).map((order) => (
-                  <div 
-                    key={order.id} 
-                    className="flex items-center justify-between rounded-lg bg-white/3 dark:bg-black/10"
-                    style={{
-                      padding: isMobile ? '8px' : '12px'
-                    }}
-                  >
+                  <div key={order.id} className="flex items-center justify-between p-3 rounded-lg bg-white/3 dark:bg-black/10">
                     <div>
-                      <div 
-                        className="font-medium text-gray-900 dark:text-white"
-                        style={{
-                          fontSize: isMobile ? '12px' : '1rem'
-                        }}
-                      >
-                        Rifaqui - Taxa de Publicação
-                      </div>
-                      <div 
-                        className="text-gray-500 dark:text-gray-400"
-                        style={{
-                          fontSize: isMobile ? '10px' : '0.875rem'
-                        }}
-                      >
-                        {new Date(order.created_at).toLocaleDateString('pt-BR')}
-                      </div>
+                      <div className="font-medium text-gray-900 dark:text-white">Rifaqui - Taxa de Publicação</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{new Date(order.created_at).toLocaleDateString('pt-BR')}</div>
                     </div>
                     <div className="text-right">
-                      <div 
-                        className="font-medium text-gray-900 dark:text-white"
-                        style={{
-                          fontSize: isMobile ? '12px' : '1rem'
-                        }}
-                      >
-                        R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}
-                      </div>
-                      <div 
-                        className="text-green-600 dark:text-green-400"
-                        style={{
-                          fontSize: isMobile ? '10px' : '0.875rem'
-                        }}
-                      >
-                        Pago
-                      </div>
+                      <div className="font-medium text-gray-900 dark:text-white">R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}</div>
+                      <div className="text-sm text-green-600 dark:text-green-400">Pago</div>
                     </div>
                   </div>
                 ))}
@@ -866,160 +507,53 @@ const AccountPage: React.FC = () => {
       {/* Edit Data Modal */}
       {showEditModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div 
-            className="w-full rounded-lg bg-white dark:bg-gray-800"
-            style={{
-              maxWidth: isMobile ? '100%' : '28rem',
-              padding: isMobile ? '16px' : '24px'
-            }}
-          >
-            <div 
-              className="flex items-center justify-between"
-              style={{
-                marginBottom: isMobile ? '12px' : '16px'
-              }}
-            >
-              <h2 
-                className="font-semibold text-gray-900 dark:text-white"
-                style={{
-                  fontSize: isMobile ? '15px' : '18px'
-                }}
-              >
-                Editar dados pessoais
-              </h2>
-              <button 
-                onClick={() => setShowEditModal(false)} 
-                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-              >
-                <X 
-                  className="text-gray-400"
-                  style={{
-                    width: isMobile ? '18px' : '20px',
-                    height: isMobile ? '18px' : '20px'
-                  }}
-                />
+          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Editar dados pessoais</h2>
+              <button onClick={() => setShowEditModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                <X className="h-5 w-5 text-gray-400" />
               </button>
             </div>
 
-            <p 
-              className="text-gray-500 dark:text-gray-400"
-              style={{
-                fontSize: isMobile ? '11px' : '0.875rem',
-                marginBottom: isMobile ? '12px' : '16px'
-              }}
-            >
-              Preencha os campos abaixo para editar seus dados pessoais.
-            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Preencha os campos abaixo para editar seus dados pessoais.</p>
 
-            <div 
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: isMobile ? '12px' : '16px'
-              }}
-            >
+            <div className="space-y-4">
               <div>
-                <label 
-                  className="block text-gray-700 dark:text-gray-300"
-                  style={{
-                    fontSize: isMobile ? '11px' : '0.875rem',
-                    marginBottom: isMobile ? '4px' : '8px'
-                  }}
-                >
-                  Nome completo
-                </label>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Nome completo</label>
                 <input
                   type="text"
                   value={userData.name}
                   onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-                  className="w-full rounded-lg bg-white dark:bg-gray-700 border border-purple-500 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  style={{
-                    padding: isMobile ? '8px 12px' : '12px 16px',
-                    fontSize: isMobile ? '13px' : '1rem'
-                  }}
+                  className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border border-purple-500 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
-                {errors.name && (
-                  <p 
-                    className="text-red-500"
-                    style={{
-                      fontSize: isMobile ? '10px' : '0.875rem',
-                      marginTop: '4px'
-                    }}
-                  >
-                    {errors.name}
-                  </p>
-                )}
+                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
               </div>
 
               <div>
-                <label 
-                  className="block text-gray-700 dark:text-gray-300"
-                  style={{
-                    fontSize: isMobile ? '11px' : '0.875rem',
-                    marginBottom: isMobile ? '4px' : '8px'
-                  }}
-                >
-                  Email
-                </label>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Email</label>
                 <input
                   type="email"
                   value={userData.email}
                   onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                  className={`w-full rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                  className={`w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                     errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
-                  style={{
-                    padding: isMobile ? '8px 12px' : '12px 16px',
-                    fontSize: isMobile ? '13px' : '1rem'
-                  }}
                 />
-                {errors.email && (
-                  <p 
-                    className="text-red-500"
-                    style={{
-                      fontSize: isMobile ? '10px' : '0.875rem',
-                      marginTop: '4px'
-                    }}
-                  >
-                    {errors.email}
-                  </p>
-                )}
+                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
               </div>
 
               <div>
-                <label 
-                  className="block text-gray-700 dark:text-gray-300"
-                  style={{
-                    fontSize: isMobile ? '11px' : '0.875rem',
-                    marginBottom: isMobile ? '4px' : '8px'
-                  }}
-                >
-                  CPF (opcional)
-                </label>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">CPF (opcional)</label>
                 <input
                   type="text"
                   value={userData.cpf}
                   onChange={handleCPFChange}
                   placeholder="000.000.000-00"
-                  className={`w-full rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                  className={`w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                     errors.cpf ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
-                  style={{
-                    padding: isMobile ? '8px 12px' : '12px 16px',
-                    fontSize: isMobile ? '13px' : '1rem'
-                  }}
                 />
-                {errors.cpf && (
-                  <p 
-                    className="text-red-500"
-                    style={{
-                      fontSize: isMobile ? '10px' : '0.875rem',
-                      marginTop: '4px'
-                    }}
-                  >
-                    {errors.cpf}
-                  </p>
-                )}
+                {errors.cpf && <p className="text-red-500 text-sm mt-1">{errors.cpf}</p>}
               </div>
 
               <div>
@@ -1035,20 +569,10 @@ const AccountPage: React.FC = () => {
 
               <button
                 onClick={handleSaveData}
-                className="w-full inline-flex items-center justify-center rounded-lg bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white font-semibold"
-                style={{
-                  gap: isMobile ? '6px' : '8px',
-                  padding: isMobile ? '10px 16px' : '12px 16px',
-                  fontSize: isMobile ? '13px' : '1rem'
-                }}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white font-semibold"
               >
                 <span>Salvar</span>
-                <ArrowRight 
-                  style={{
-                    width: isMobile ? '14px' : '16px',
-                    height: isMobile ? '14px' : '16px'
-                  }}
-                />
+                <ArrowRight className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -1058,86 +582,28 @@ const AccountPage: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div 
-            className="w-full rounded-lg bg-white dark:bg-gray-800"
-            style={{
-              maxWidth: isMobile ? '100%' : '28rem',
-              padding: isMobile ? '16px' : '24px'
-            }}
-          >
-            <div 
-              className="flex items-center justify-between"
-              style={{
-                marginBottom: isMobile ? '12px' : '16px'
-              }}
-            >
-              <h2 
-                className="font-semibold text-gray-900 dark:text-white"
-                style={{
-                  fontSize: isMobile ? '15px' : '18px'
-                }}
-              >
-                Excluir
-              </h2>
-              <button 
-                onClick={() => setShowDeleteConfirmModal(false)} 
-                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-              >
-                <X 
-                  className="text-gray-400"
-                  style={{
-                    width: isMobile ? '18px' : '20px',
-                    height: isMobile ? '18px' : '20px'
-                  }}
-                />
+          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Excluir</h2>
+              <button onClick={() => setShowDeleteConfirmModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                <X className="h-5 w-5 text-gray-400" />
               </button>
             </div>
 
-            <div 
-              style={{
-                marginBottom: isMobile ? '16px' : '24px'
-              }}
-            >
-              <div 
-                className="flex items-start"
-                style={{
-                  gap: isMobile ? '8px' : '12px',
-                  marginBottom: isMobile ? '12px' : '16px'
-                }}
-              >
-                <AlertTriangle 
-                  className="text-red-500 flex-shrink-0"
-                  style={{
-                    width: isMobile ? '20px' : '24px',
-                    height: isMobile ? '20px' : '24px',
-                    marginTop: '2px'
-                  }}
-                />
-                <p 
-                  className="text-gray-700 dark:text-gray-300 leading-relaxed"
-                  style={{
-                    fontSize: isMobile ? '12px' : '1rem'
-                  }}
-                >
+            <div className="mb-6">
+              <div className="flex items-start space-x-3 mb-4">
+                <AlertTriangle className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" />
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                   Você tem certeza de que quer excluir sua conta de forma permanente? Essa ação não pode ser desfeita e seu e-mail não poderá ser reutilizado.
                 </p>
               </div>
             </div>
 
-            <div 
-              className="flex"
-              style={{
-                gap: isMobile ? '8px' : '12px'
-              }}
-            >
+            <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirmModal(false)}
                 disabled={deleting}
-                className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 text-gray-900 dark:text-white rounded-lg font-medium transition"
-                style={{
-                  padding: isMobile ? '8px' : '12px',
-                  fontSize: isMobile ? '12px' : '1rem'
-                }}
+                className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 text-gray-900 dark:text-white py-3 rounded-lg font-medium transition"
               >
                 Cancelar
               </button>
@@ -1145,20 +611,10 @@ const AccountPage: React.FC = () => {
               <button
                 onClick={confirmDeleteAccount}
                 disabled={deleting}
-                className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg font-medium transition"
-                style={{
-                  padding: isMobile ? '8px' : '12px',
-                  fontSize: isMobile ? '12px' : '1rem'
-                }}
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-3 rounded-lg font-medium transition"
               >
                 {deleting ? (
-                  <div 
-                    className="animate-spin rounded-full border-b-2 border-white mx-auto"
-                    style={{
-                      width: isMobile ? '14px' : '16px',
-                      height: isMobile ? '14px' : '16px'
-                    }}
-                  />
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                 ) : (
                   <span>Confirmar</span>
                 )}
