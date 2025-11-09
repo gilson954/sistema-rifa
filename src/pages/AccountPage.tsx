@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   CheckCircle
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { supabase } from '../lib/supabase';
@@ -25,7 +26,6 @@ interface Country {
   flag: string;
 }
 
-// Add countries array at the top of the file (after imports)
 const countries: Country[] = [
   { code: 'BR', name: 'Brasil', dialCode: '+55', flag: '🇧🇷' },
   { code: 'US', name: 'Estados Unidos', dialCode: '+1', flag: '🇺🇸' },
@@ -64,7 +64,6 @@ const AccountPage: React.FC = () => {
   const [sendingResetLink, setSendingResetLink] = useState(false);
   const [resetLinkSent, setResetLinkSent] = useState(false);
 
-  // Fetch user profile data
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!user) {
@@ -324,13 +323,106 @@ const AccountPage: React.FC = () => {
     }
   };
 
+  // Variantes de animação
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { duration: 0.4, ease: "easeOut" }
+    }
+  };
+
+  const avatarVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.5, ease: "easeOut" }
+    },
+    hover: {
+      scale: 1.1,
+      rotate: 360,
+      transition: { duration: 0.5 }
+    }
+  };
+
+  const buttonVariants = {
+    hover: { scale: 1.05, transition: { duration: 0.2 } },
+    tap: { scale: 0.95 }
+  };
+
+  const modalOverlayVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { duration: 0.2 }
+    },
+    exit: { 
+      opacity: 0,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const modalContentVariants = {
+    hidden: { 
+      opacity: 0, 
+      scale: 0.9,
+      y: 20
+    },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      y: 0,
+      transition: { 
+        duration: 0.3,
+        ease: "easeOut"
+      }
+    },
+    exit: { 
+      opacity: 0,
+      scale: 0.9,
+      y: 20,
+      transition: { 
+        duration: 0.2
+      }
+    }
+  };
+
+  const historyItemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: (i: number) => ({
+      opacity: 1,
+      x: 0,
+      transition: {
+        delay: i * 0.1,
+        duration: 0.3
+      }
+    })
+  };
+
   if (loading) {
     return (
       <div className="bg-transparent">
         <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
             <div className="flex items-center justify-center py-8 sm:py-12">
-              <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-purple-600" />
+              <motion.div 
+                className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-purple-600"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              />
             </div>
           </div>
         </div>
@@ -389,41 +481,62 @@ const AccountPage: React.FC = () => {
         `}
       </style>
       <main className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
-          <div className="flex items-start justify-between mb-4 sm:mb-6 gap-2 sm:gap-3">
+        <motion.div 
+          className="rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div 
+            className="flex items-start justify-between mb-4 sm:mb-6 gap-2 sm:gap-3"
+            variants={cardVariants}
+          >
             <div>
               <h1 className="text-base sm:text-xl font-semibold text-gray-900 dark:text-white">Minha conta</h1>
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">Gerencie seus dados pessoais, redefina senha ou exclua sua conta.</p>
             </div>
 
             <div className="flex items-center space-x-2 sm:space-x-3">
-              <button
+              <motion.button
                 onClick={handleEditData}
                 title="Editar"
                 className="p-1.5 sm:p-2 rounded-lg bg-gray-800/40 hover:bg-gray-800/30 transition"
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
               >
                 <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-6">
-            <div className="col-span-1 flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-white/3 dark:bg-black/10">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-400 flex items-center justify-center text-white text-base sm:text-lg font-semibold shadow overflow-hidden">
+            <motion.div 
+              className="col-span-1 flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-white/3 dark:bg-black/10"
+              variants={cardVariants}
+            >
+              <motion.div 
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-400 flex items-center justify-center text-white text-base sm:text-lg font-semibold shadow overflow-hidden"
+                variants={avatarVariants}
+                whileHover="hover"
+              >
                 {profileImageUrl ? (
                   <img src={profileImageUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
                 ) : (
                   <span>{avatarInitial(userData.name || user?.email)}</span>
                 )}
-              </div>
+              </motion.div>
               <div>
                 <div className="text-xs sm:text-sm text-gray-400">Usuário</div>
                 <div className="text-sm sm:text-base font-medium text-gray-900 dark:text-white">{userData.name || '-'}</div>
                 <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">{userData.email || '-'}</div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="col-span-2 p-3 sm:p-4 rounded-xl bg-white/3 dark:bg-black/10">
+            <motion.div 
+              className="col-span-2 p-3 sm:p-4 rounded-xl bg-white/3 dark:bg-black/10"
+              variants={cardVariants}
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs sm:text-sm text-gray-400">Nome</label>
@@ -445,26 +558,43 @@ const AccountPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-4 sm:mt-6">
+              <motion.div 
+                className="mt-4 sm:mt-6"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
                 <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">Resetar senha</h3>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">Você receberá um link via e-mail para redefinir a sua senha.</p>
 
                 <div className="mt-3 sm:mt-4">
-                  <button
+                  <motion.button
                     onClick={handleSendResetLink}
                     disabled={sendingResetLink}
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold text-white transition transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
-                               animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-pink-500 to-indigo-600"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold text-white transition disabled:opacity-50 disabled:cursor-not-allowed animate-gradient-x bg-[length:200%_200%] bg-gradient-to-br from-purple-600 via-pink-500 to-indigo-600"
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
                   >
                     {sendingResetLink ? (
                       <>
-                        <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white"></div>
+                        <motion.div 
+                          className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        />
                         <span>Enviando...</span>
                       </>
                     ) : resetLinkSent ? (
                       <>
                         <span>Link enviado!</span>
-                        <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 200 }}
+                        >
+                          <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </motion.div>
                       </>
                     ) : (
                       <>
@@ -472,169 +602,311 @@ const AccountPage: React.FC = () => {
                         <Link className="h-3 w-3 sm:h-4 sm:w-4" />
                       </>
                     )}
-                  </button>
+                  </motion.button>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="mt-4 sm:mt-6">
+              <motion.div 
+                className="mt-4 sm:mt-6"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
                 <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">Excluir minha conta</h3>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
                   Lembre-se de que esta ação é irreversível e removerá permanentemente todas as suas informações e dados pessoais de nossa plataforma; você não pode ter rifas em andamento.
                 </p>
 
                 <div className="mt-3 sm:mt-4">
-                  <button
+                  <motion.button
                     onClick={handleDeleteAccount}
                     disabled={deleting}
                     className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg bg-gradient-to-r from-red-600 to-rose-500 text-white font-medium hover:opacity-95 transition disabled:opacity-50"
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
                   >
                     <span>{deleting ? 'Excluindo...' : 'Quero excluir'}</span>
                     <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                  </button>
+                  </motion.button>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
 
           {getCompletedOrders().length > 0 && (
-            <div className="mt-4 sm:mt-6">
+            <motion.div 
+              className="mt-4 sm:mt-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
               <h4 className="text-xs sm:text-sm font-semibold text-gray-400 mb-2 sm:mb-3">Histórico de Compras recentes</h4>
               <div className="space-y-2 sm:space-y-3">
-                {getCompletedOrders().slice(0, 3).map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-white/3 dark:bg-black/10">
+                {getCompletedOrders().slice(0, 3).map((order, index) => (
+                  <motion.div 
+                    key={order.id} 
+                    className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-white/3 dark:bg-black/10"
+                    custom={index}
+                    variants={historyItemVariants}
+                    initial="hidden"
+                    animate="visible"
+                    whileHover={{ scale: 1.02, x: 4 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     <div>
                       <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">Rifaqui - Taxa de Publicação</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">{new Date(order.created_at).toLocaleDateString('pt-BR')}</div>
                     </div>
                     <div className="text-right">
                       <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">R$ {(order.amount_total / 100).toFixed(2).replace('.', ',')}</div>
-                      <div className="text-xs text-green-600 dark:text-green-400">Pago</div>
+                      <motion.div 
+                        className="text-xs text-green-600 dark:text-green-400"
+                        animate={{ opacity: [0.7, 1, 0.7] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        Pago
+                      </motion.div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       </main>
 
-      {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Editar dados pessoais</h2>
-              <button onClick={() => setShowEditModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-              </button>
-            </div>
-
-            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-3 sm:mb-4">Preencha os campos abaixo para editar seus dados pessoais.</p>
-
-            <div className="space-y-3 sm:space-y-4">
-              <div>
-                <label className="block text-xs sm:text-sm text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">Nome completo</label>
-                <input
-                  type="text"
-                  value={userData.name}
-                  onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm rounded-lg bg-white dark:bg-gray-700 border border-purple-500 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                {errors.name && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.name}</p>}
+      <AnimatePresence>
+        {showEditModal && (
+          <motion.div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            variants={modalOverlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            onClick={() => setShowEditModal(false)}
+          >
+            <motion.div 
+              className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6"
+              variants={modalContentVariants}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <motion.h2 
+                  className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  Editar dados pessoais
+                </motion.h2>
+                <motion.button 
+                  onClick={() => setShowEditModal(false)} 
+                  className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                </motion.button>
               </div>
 
-              <div>
-                <label className="block text-xs sm:text-sm text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">Email</label>
-                <input
-                  type="email"
-                  value={userData.email}
-                  onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                  className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                    errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  }`}
-                />
-                {errors.email && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.email}</p>}
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">CPF (opcional)</label>
-                <input
-                  type="text"
-                  value={userData.cpf}
-                  onChange={handleCPFChange}
-                  placeholder="000.000.000-00"
-                  className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                    errors.cpf ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  }`}
-                />
-                {errors.cpf && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.cpf}</p>}
-              </div>
-
-              <div>
-                <CountryPhoneSelect
-                  selectedCountry={selectedCountry}
-                  onCountryChange={(c: Country) => setSelectedCountry(c)}
-                  phoneNumber={userData.phoneNumber}
-                  onPhoneChange={(value: string) => setUserData({ ...userData, phoneNumber: value })}
-                  placeholder="Número de telefone"
-                  error={errors.phoneNumber}
-                />
-              </div>
-
-              <button
-                onClick={handleSaveData}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 sm:py-3 text-xs sm:text-sm rounded-lg bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white font-semibold"
+              <motion.p 
+                className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-3 sm:mb-4"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
               >
-                <span>Salvar</span>
-                <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                Preencha os campos abaixo para editar seus dados pessoais.
+              </motion.p>
 
-      {showDeleteConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Excluir</h2>
-              <button onClick={() => setShowDeleteConfirmModal(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-              </button>
-            </div>
+              <div className="space-y-3 sm:space-y-4">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <label className="block text-xs sm:text-sm text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">Nome completo</label>
+                  <motion.input
+                    type="text"
+                    value={userData.name}
+                    onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm rounded-lg bg-white dark:bg-gray-700 border border-purple-500 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    whileFocus={{ scale: 1.01 }}
+                  />
+                  {errors.name && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.name}</p>}
+                </motion.div>
 
-            <div className="mb-4 sm:mb-6">
-              <div className="flex items-start space-x-2 sm:space-x-3 mb-3 sm:mb-4">
-                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-red-500 flex-shrink-0 mt-0.5" />
-                <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                  Você tem certeza de que quer excluir sua conta de forma permanente? Essa ação não pode ser desfeita e seu e-mail não poderá ser reutilizado.
-                </p>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.25 }}
+                >
+                  <label className="block text-xs sm:text-sm text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">Email</label>
+                  <motion.input
+                    type="email"
+                    value={userData.email}
+                    onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+                    className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                      errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                    whileFocus={{ scale: 1.01 }}
+                  />
+                  {errors.email && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.email}</p>}
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <label className="block text-xs sm:text-sm text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">CPF (opcional)</label>
+                  <motion.input
+                    type="text"
+                    value={userData.cpf}
+                    onChange={handleCPFChange}
+                    placeholder="000.000.000-00"
+                    className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm rounded-lg bg-white dark:bg-gray-700 border text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                      errors.cpf ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                    whileFocus={{ scale: 1.01 }}
+                  />
+                  {errors.cpf && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.cpf}</p>}
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.35 }}
+                >
+                  <CountryPhoneSelect
+                    selectedCountry={selectedCountry}
+                    onCountryChange={(c: Country) => setSelectedCountry(c)}
+                    phoneNumber={userData.phoneNumber}
+                    onPhoneChange={(value: string) => setUserData({ ...userData, phoneNumber: value })}
+                    placeholder="Número de telefone"
+                    error={errors.phoneNumber}
+                  />
+                </motion.div>
+
+                <motion.button
+                  onClick={handleSaveData}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 sm:py-3 text-xs sm:text-sm rounded-lg bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 text-white font-semibold"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <span>Salvar</span>
+                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-            <div className="flex gap-2 sm:gap-3">
-              <button
-                onClick={() => setShowDeleteConfirmModal(false)}
-                disabled={deleting}
-                className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 text-gray-900 dark:text-white py-2 sm:py-3 text-xs sm:text-sm rounded-lg font-medium transition"
-              >
-                Cancelar
-              </button>
+      <AnimatePresence>
+        {showDeleteConfirmModal && (
+          <motion.div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            variants={modalOverlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            onClick={() => setShowDeleteConfirmModal(false)}
+          >
+            <motion.div 
+              className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6"
+              variants={modalContentVariants}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <motion.h2 
+                  className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  Excluir
+                </motion.h2>
+                <motion.button 
+                  onClick={() => setShowDeleteConfirmModal(false)} 
+                  className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                </motion.button>
+              </div>
 
-              <button
-                onClick={confirmDeleteAccount}
-                disabled={deleting}
-                className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-2 sm:py-3 text-xs sm:text-sm rounded-lg font-medium transition"
+              <motion.div 
+                className="mb-4 sm:mb-6"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
               >
-                {deleting ? (
-                  <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white mx-auto" />
-                ) : (
-                  <span>Confirmar</span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                <div className="flex items-start space-x-2 sm:space-x-3 mb-3 sm:mb-4">
+                  <motion.div
+                    animate={{ 
+                      scale: [1, 1.2, 1],
+                      rotate: [0, 10, -10, 0]
+                    }}
+                    transition={{ 
+                      duration: 2, 
+                      repeat: Infinity,
+                      repeatDelay: 1
+                    }}
+                  >
+                    <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-red-500 flex-shrink-0 mt-0.5" />
+                  </motion.div>
+                  <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    Você tem certeza de que quer excluir sua conta de forma permanente? Essa ação não pode ser desfeita e seu e-mail não poderá ser reutilizado.
+                  </p>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                className="flex gap-2 sm:gap-3"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <motion.button
+                  onClick={() => setShowDeleteConfirmModal(false)}
+                  disabled={deleting}
+                  className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 text-gray-900 dark:text-white py-2 sm:py-3 text-xs sm:text-sm rounded-lg font-medium transition"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  Cancelar
+                </motion.button>
+
+                <motion.button
+                  onClick={confirmDeleteAccount}
+                  disabled={deleting}
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-2 sm:py-3 text-xs sm:text-sm rounded-lg font-medium transition"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  {deleting ? (
+                    <motion.div 
+                      className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white mx-auto"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                  ) : (
+                    <span>Confirmar</span>
+                  )}
+                </motion.button>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
