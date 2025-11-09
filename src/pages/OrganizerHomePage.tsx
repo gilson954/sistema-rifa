@@ -209,7 +209,7 @@ const OrganizerHomePage: React.FC = () => {
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-slate-800',
-          headerBg: 'bg-[#161b26]',
+          headerBg: 'bg-black',
           border: 'border-gray-700'
         };
       case 'escuro-preto':
