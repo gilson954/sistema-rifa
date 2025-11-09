@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { LogOut, Ticket } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -166,34 +167,30 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
   return (
     <header className={`shadow-sm border-b ${themeStyles.borderClass} ${themeStyles.headerBg}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16 sm:h-20">
           <button
             onClick={handleLogoClick}
-            className="flex items-center space-x-2 hover:opacity-80 transition-opacity duration-200"
+            className="flex items-center hover:opacity-80 transition-opacity duration-200"
           >
             {logoUrl ? (
               <img
                 src={logoUrl}
                 alt="Logo do organizador"
-                className="h-16 w-auto max-w-[200px] object-contain shadow-md rounded-lg"
+                className="h-10 sm:h-14 w-auto max-w-[150px] sm:max-w-[200px] object-contain"
               />
             ) : (
               <div className="flex items-center">
-                <img
-                  src="/logo-chatgpt.png"
-                  alt="Rifaqui Logo"
-                  className="w-10 h-10 object-contain"
-                />
-                <span className={`ml-2 text-2xl font-bold ${themeStyles.logoText}`}>
+                <Ticket className="h-6 sm:h-8 w-6 sm:w-8 text-blue-600" />
+                <span className={`ml-2 text-lg sm:text-xl font-bold ${themeStyles.logoText}`}>
                   Rifaqui
                 </span>
               </div>
             )}
           </button>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {isPhoneAuthenticated && phoneUser && (
-              <div className={`hidden md:flex items-center space-x-2 px-4 py-2 rounded-lg border ${themeStyles.userBadgeBg} ${themeStyles.userBadgeText} ${themeStyles.userBadgeBorder}`}>
+              <div className={`hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg border ${themeStyles.userBadgeBg} ${themeStyles.userBadgeText} ${themeStyles.userBadgeBorder}`}>
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                 <span className="text-sm font-medium">
                   {phoneUser.name}
@@ -202,36 +199,42 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
             )}
             {!hideMyTicketsButton && (
               <>
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleMyTicketsClick}
-                  className={`text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105 ${getColorClassName()}`}
+                  className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 text-white rounded-lg font-medium text-sm transition-all duration-200 shadow-md ${getColorClassName()}`}
                   style={getColorStyle()}
                 >
-                  <Ticket className="h-4 w-4" />
+                  <Ticket className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   <span className="hidden sm:inline">
                     {isPhoneAuthenticated ? 'Minhas Cotas' : 'Ver Minhas Cotas'}
                   </span>
                   <span className="sm:hidden">Cotas</span>
-                </button>
+                </motion.button>
                 {isPhoneAuthenticated && (
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={handleLogout}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg"
+                    className="flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm transition-all duration-200 shadow-md"
                   >
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     <span className="hidden sm:inline">Sair</span>
-                  </button>
+                  </motion.button>
                 )}
               </>
             )}
             {hideMyTicketsButton && isPhoneAuthenticated && (
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg"
+                className="flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm transition-all duration-200 shadow-md"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                 <span className="hidden sm:inline">Sair</span>
-              </button>
+              </motion.button>
             )}
           </div>
         </div>
