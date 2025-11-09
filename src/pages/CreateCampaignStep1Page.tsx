@@ -519,3 +519,33 @@ const CreateCampaignStep1Page = () => {
             type="submit"
             disabled={loading}
             className="w-full py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-lg shadow-xl transition-all duration-300 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-white flex items-center justify-center space-x-2 sm:space-x-3"
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-b-2 border-white"></div>
+                <span>Criando campanha...</span>
+              </>
+            ) : (
+              <>
+                <span>Continuar para próxima etapa</span>
+                <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6" />
+              </>
+            )}
+          </motion.button>
+
+          <p className="text-center text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+            Na próxima etapa você poderá adicionar fotos, descrição e outros detalhes
+          </p>
+        </form>
+      </main>
+
+      {/* Publication Fees Modal */}
+      <PublicationFeesModal
+        isOpen={showFeesModal}
+        onClose={() => setShowFeesModal(false)}
+      />
+    </div>
+  );
+};
+
+export default CreateCampaignStep1Page;
