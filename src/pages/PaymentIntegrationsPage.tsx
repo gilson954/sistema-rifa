@@ -11,35 +11,29 @@ const PaymentIntegrationsPage = () => {
   const { user } = useAuth();
   const { showSuccess, showError, showWarning } = useNotification();
 
-  // Modal states
   const [showFluxsisModal, setShowFluxsisModal] = useState(false);
   const [showPay2mModal, setShowPay2mModal] = useState(false);
   const [showPaggueModal, setShowPaggueModal] = useState(false);
   const [showEfiBankModal, setShowEfiBankModal] = useState(false);
 
-  // Configuration states
   const [fluxsisConfig, setFluxsisConfig] = useState({ api_key: '', secret_key: '', webhook_url: '' });
   const [pay2mConfig, setPay2mConfig] = useState({ api_key: '', secret_key: '', webhook_url: '' });
   const [paggueConfig, setPaggueConfig] = useState({ api_key: '', secret_key: '', webhook_url: '' });
   const [efiBankConfig, setEfiBankConfig] = useState({ client_id: '', client_secret: '', webhook_url: '' });
 
-  // Status states
   const [isFluxsisConfigured, setIsFluxsisConfigured] = useState(false);
   const [isPay2mConfigured, setIsPay2mConfigured] = useState(false);
   const [isPaggueConfigured, setIsPaggueConfigured] = useState(false);
   const [isEfiBankConfigured, setIsEfiBankConfigured] = useState(false);
 
-  // Loading states
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Confirm modal states
   const [showDeleteFluxsisConfirm, setShowDeleteFluxsisConfirm] = useState(false);
   const [showDeletePay2mConfirm, setShowDeletePay2mConfirm] = useState(false);
   const [showDeletePaggueConfirm, setShowDeletePaggueConfirm] = useState(false);
   const [showDeleteEfiBankConfirm, setShowDeleteEfiBankConfirm] = useState(false);
 
-  // Load payment configurations when component mounts
   useEffect(() => {
     const loadPaymentConfig = async () => {
       if (!user) return;
@@ -101,7 +95,6 @@ const PaymentIntegrationsPage = () => {
     navigate('/dashboard');
   };
 
-  // Fluxsis handlers
   const handleFluxsisConfig = () => {
     setShowFluxsisModal(true);
   };
@@ -178,7 +171,6 @@ const PaymentIntegrationsPage = () => {
     }
   };
 
-  // Pay2m handlers
   const handlePay2mConfig = () => {
     setShowPay2mModal(true);
   };
@@ -255,7 +247,6 @@ const PaymentIntegrationsPage = () => {
     }
   };
 
-  // Paggue handlers
   const handlePaggueConfig = () => {
     setShowPaggueModal(true);
   };
@@ -332,7 +323,6 @@ const PaymentIntegrationsPage = () => {
     }
   };
 
-  // Efi Bank handlers
   const handleEfiBankConfig = () => {
     setShowEfiBankModal(true);
   };
@@ -446,52 +436,91 @@ const PaymentIntegrationsPage = () => {
 
   return (
     <div className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+      <style>
+        {`
+          @media (max-width: 640px) {
+            ::-webkit-scrollbar {
+              width: 8px;
+            }
+            ::-webkit-scrollbar-track {
+              background: linear-gradient(to bottom, rgba(139, 92, 246, 0.05), rgba(219, 39, 119, 0.05));
+              border-radius: 10px;
+            }
+            ::-webkit-scrollbar-thumb {
+              background: linear-gradient(to bottom, #a855f7, #ec4899, #3b82f6);
+              border-radius: 10px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+              background: linear-gradient(to bottom, #c084fc, #f472b6);
+            }
+            ::-webkit-scrollbar-thumb:active {
+              background: linear-gradient(to bottom, #7c3aed, #db2777);
+            }
+          }
+          
+          @media (min-width: 641px) {
+            ::-webkit-scrollbar {
+              width: 12px;
+            }
+            ::-webkit-scrollbar-track {
+              background: linear-gradient(to bottom, rgba(139, 92, 246, 0.05), rgba(219, 39, 119, 0.05));
+              border-radius: 10px;
+            }
+            ::-webkit-scrollbar-thumb {
+              background: linear-gradient(to bottom, #a855f7, #ec4899, #3b82f6);
+              border-radius: 10px;
+              box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+            }
+            ::-webkit-scrollbar-thumb:hover {
+              background: linear-gradient(to bottom, #c084fc, #f472b6);
+              box-shadow: 0 0 15px rgba(192, 132, 252, 0.6);
+            }
+          }
+        `}
+      </style>
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
           <button
             onClick={handleGoBack}
-            className="p-2 hover:bg-white/10 dark:hover:bg-gray-800/50 rounded-lg transition-colors duration-200"
+            className="p-1.5 sm:p-2 hover:bg-white/10 dark:hover:bg-gray-800/50 rounded-lg transition-colors duration-200"
           >
-            <ArrowLeft className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+            <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700 dark:text-gray-300" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               Métodos de Pagamento
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
               Configure suas integrações para receber pagamentos
             </p>
           </div>
         </div>
 
-        {/* Info Card */}
-        <div className="mb-6 rounded-2xl p-4 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/20 dark:border-blue-800/30">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Zap className="h-5 w-5 text-white" />
+        <div className="mb-4 sm:mb-6 rounded-xl sm:rounded-2xl p-3 sm:p-4 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/20 dark:border-blue-800/30">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+              <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
+              <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-1">
                 Receba pagamentos automaticamente
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                 Configure pelo menos um método de pagamento para começar a vender suas cotas. Todos os pagamentos são processados de forma segura e automática.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Payment Methods Grid */}
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
           {paymentMethods.map((method) => (
             <article
               key={method.id}
-              className="rounded-2xl p-6 border transition-all duration-200 bg-white/60 dark:bg-gray-900/40 border-gray-200/20 dark:border-gray-700/20 hover:border-purple-500/30 hover:shadow-lg"
+              className="rounded-xl sm:rounded-2xl p-4 sm:p-6 border transition-all duration-200 bg-white/60 dark:bg-gray-900/40 border-gray-200/20 dark:border-gray-700/20 hover:border-purple-500/30 hover:shadow-lg"
             >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-4 flex-1 min-w-0">
-                  <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm border border-gray-200/20 dark:border-gray-700/20 p-2">
+              <div className="flex items-start justify-between gap-3 sm:gap-4">
+                <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm border border-gray-200/20 dark:border-gray-700/20 p-2">
                     <img 
                       src={method.logo} 
                       alt={`${method.name} Logo`} 
@@ -499,22 +528,22 @@ const PaymentIntegrationsPage = () => {
                     />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-1">
                       {method.name}
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 sm:mb-3">
                       {method.description}
                     </p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
                       {method.isConfigured ? (
                         <>
-                          <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                          <span className="text-sm font-medium text-green-600 dark:text-green-400">Conectado</span>
+                          <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
+                          <span className="text-xs sm:text-sm font-medium text-green-600 dark:text-green-400">Conectado</span>
                         </>
                       ) : (
                         <>
-                          <AlertCircle className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                          <span className="text-sm text-gray-500 dark:text-gray-400">Não conectado</span>
+                          <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 flex-shrink-0" />
+                          <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Não conectado</span>
                         </>
                       )}
                     </div>
@@ -524,39 +553,38 @@ const PaymentIntegrationsPage = () => {
               
               <button
                 onClick={method.onConfigure}
-                className="w-full mt-4 inline-flex items-center justify-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white px-4 py-3 rounded-xl font-semibold shadow-md transition transform hover:-translate-y-0.5"
+                className="w-full mt-3 sm:mt-4 inline-flex items-center justify-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold shadow-md transition transform hover:-translate-y-0.5"
               >
                 <span>Configurar</span>
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </button>
             </article>
           ))}
         </div>
       </main>
 
-      {/* Fluxsis Modal */}
       {showFluxsisModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                 Configurar Fluxsis
               </h2>
               <button
                 onClick={() => setShowFluxsisModal(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
               >
-                <X className="h-5 w-5 text-gray-400" />
+                <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
               </button>
             </div>
             
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
               Configure sua integração com o Fluxsis para receber pagamentos automáticos
             </p>
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   API Key *
                 </label>
                 <input
@@ -564,12 +592,12 @@ const PaymentIntegrationsPage = () => {
                   value={fluxsisConfig.api_key}
                   onChange={(e) => setFluxsisConfig({ ...fluxsisConfig, api_key: e.target.value })}
                   placeholder="Sua API Key do Fluxsis"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Secret Key *
                 </label>
                 <input
@@ -577,12 +605,12 @@ const PaymentIntegrationsPage = () => {
                   value={fluxsisConfig.secret_key}
                   onChange={(e) => setFluxsisConfig({ ...fluxsisConfig, secret_key: e.target.value })}
                   placeholder="Sua Secret Key do Fluxsis"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Webhook URL
                 </label>
                 <input
@@ -590,23 +618,23 @@ const PaymentIntegrationsPage = () => {
                   value={fluxsisConfig.webhook_url}
                   onChange={(e) => setFluxsisConfig({ ...fluxsisConfig, webhook_url: e.target.value })}
                   placeholder="https://seusite.com/webhook/fluxsis"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
                 />
               </div>
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-2 sm:gap-3 mt-4 sm:mt-6">
               {isFluxsisConfigured && (
                 <button
                   onClick={handleDeleteFluxsisConfig}
                   disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md"
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md"
                 >
                   {deleting ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
                   ) : (
                     <>
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       <span>Excluir</span>
                     </>
                   )}
@@ -616,16 +644,16 @@ const PaymentIntegrationsPage = () => {
               <button
                 onClick={handleSaveFluxsisConfig}
                 disabled={loading || deleting}
-                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md ${
+                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md ${
                   isFluxsisConfigured ? 'flex-1' : 'w-full'
                 }`}
               >
                 {loading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
                 ) : (
                   <>
                     <span>Salvar</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </>
                 )}
               </button>
@@ -634,29 +662,28 @@ const PaymentIntegrationsPage = () => {
         </div>
       )}
 
-      {/* Pay2m Modal */}
       {showPay2mModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                 Configurar Pay2m
               </h2>
               <button
                 onClick={() => setShowPay2mModal(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
               >
-                <X className="h-5 w-5 text-gray-400" />
+                <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
               </button>
             </div>
             
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
               Configure sua integração com o Pay2m para receber pagamentos automáticos
             </p>
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   API Key *
                 </label>
                 <input
@@ -664,12 +691,12 @@ const PaymentIntegrationsPage = () => {
                   value={pay2mConfig.api_key}
                   onChange={(e) => setPay2mConfig({ ...pay2mConfig, api_key: e.target.value })}
                   placeholder="Sua API Key do Pay2m"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Secret Key *
                 </label>
                 <input
@@ -677,12 +704,12 @@ const PaymentIntegrationsPage = () => {
                   value={pay2mConfig.secret_key}
                   onChange={(e) => setPay2mConfig({ ...pay2mConfig, secret_key: e.target.value })}
                   placeholder="Sua Secret Key do Pay2m"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Webhook URL
                 </label>
                 <input
@@ -690,23 +717,23 @@ const PaymentIntegrationsPage = () => {
                   value={pay2mConfig.webhook_url}
                   onChange={(e) => setPay2mConfig({ ...pay2mConfig, webhook_url: e.target.value })}
                   placeholder="https://seusite.com/webhook/pay2m"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
                 />
               </div>
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-2 sm:gap-3 mt-4 sm:mt-6">
               {isPay2mConfigured && (
                 <button
                   onClick={handleDeletePay2mConfig}
                   disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md"
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md"
                 >
                   {deleting ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
                   ) : (
                     <>
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       <span>Excluir</span>
                     </>
                   )}
@@ -716,16 +743,16 @@ const PaymentIntegrationsPage = () => {
               <button
                 onClick={handleSavePay2mConfig}
                 disabled={loading || deleting}
-                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md ${
+                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md ${
                   isPay2mConfigured ? 'flex-1' : 'w-full'
                 }`}
               >
                 {loading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
                 ) : (
                   <>
                     <span>Salvar</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </>
                 )}
               </button>
@@ -734,29 +761,28 @@ const PaymentIntegrationsPage = () => {
         </div>
       )}
 
-      {/* Paggue Modal */}
       {showPaggueModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                 Configurar Paggue
               </h2>
               <button
                 onClick={() => setShowPaggueModal(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
               >
-                <X className="h-5 w-5 text-gray-400" />
+                <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
               </button>
             </div>
             
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
               Configure sua integração com o Paggue para receber pagamentos automáticos
             </p>
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   API Key *
                 </label>
                 <input
@@ -764,12 +790,12 @@ const PaymentIntegrationsPage = () => {
                   value={paggueConfig.api_key}
                   onChange={(e) => setPaggueConfig({ ...paggueConfig, api_key: e.target.value })}
                   placeholder="Sua API Key do Paggue"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Secret Key *
                 </label>
                 <input
@@ -777,12 +803,12 @@ const PaymentIntegrationsPage = () => {
                   value={paggueConfig.secret_key}
                   onChange={(e) => setPaggueConfig({ ...paggueConfig, secret_key: e.target.value })}
                   placeholder="Sua Secret Key do Paggue"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Webhook URL
                 </label>
                 <input
@@ -790,23 +816,23 @@ const PaymentIntegrationsPage = () => {
                   value={paggueConfig.webhook_url}
                   onChange={(e) => setPaggueConfig({ ...paggueConfig, webhook_url: e.target.value })}
                   placeholder="https://seusite.com/webhook/paggue"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
                 />
               </div>
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-2 sm:gap-3 mt-4 sm:mt-6">
               {isPaggueConfigured && (
                 <button
                   onClick={handleDeletePaggueConfig}
                   disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md"
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md"
                 >
                   {deleting ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
                   ) : (
                     <>
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       <span>Excluir</span>
                     </>
                   )}
@@ -816,16 +842,16 @@ const PaymentIntegrationsPage = () => {
               <button
                 onClick={handleSavePaggueConfig}
                 disabled={loading || deleting}
-                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md ${
+                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md ${
                   isPaggueConfigured ? 'flex-1' : 'w-full'
                 }`}
               >
                 {loading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
                 ) : (
                   <>
                     <span>Salvar</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </>
                 )}
               </button>
@@ -834,29 +860,28 @@ const PaymentIntegrationsPage = () => {
         </div>
       )}
 
-      {/* Efi Bank Modal */}
       {showEfiBankModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                 Configurar Efi Bank
               </h2>
               <button
                 onClick={() => setShowEfiBankModal(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
               >
-                <X className="h-5 w-5 text-gray-400" />
+                <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
               </button>
             </div>
             
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
               Configure sua integração com o Efi Bank para receber pagamentos automáticos
             </p>
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Client ID *
                 </label>
                 <input
@@ -864,12 +889,12 @@ const PaymentIntegrationsPage = () => {
                   value={efiBankConfig.client_id}
                   onChange={(e) => setEfiBankConfig({ ...efiBankConfig, client_id: e.target.value })}
                   placeholder="Seu Client ID do Efi Bank"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Client Secret *
                 </label>
                 <input
@@ -877,12 +902,12 @@ const PaymentIntegrationsPage = () => {
                   value={efiBankConfig.client_secret}
                   onChange={(e) => setEfiBankConfig({ ...efiBankConfig, client_secret: e.target.value })}
                   placeholder="Seu Client Secret do Efi Bank"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Webhook URL
                 </label>
                 <input
@@ -890,23 +915,23 @@ const PaymentIntegrationsPage = () => {
                   value={efiBankConfig.webhook_url}
                   onChange={(e) => setEfiBankConfig({ ...efiBankConfig, webhook_url: e.target.value })}
                   placeholder="https://seusite.com/webhook/efibank"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
                 />
               </div>
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-2 sm:gap-3 mt-4 sm:mt-6">
               {isEfiBankConfigured && (
                 <button
                   onClick={handleDeleteEfiBankConfig}
                   disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md"
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md"
                 >
                   {deleting ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
                   ) : (
                     <>
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       <span>Excluir</span>
                     </>
                   )}
@@ -916,16 +941,16 @@ const PaymentIntegrationsPage = () => {
               <button
                 onClick={handleSaveEfiBankConfig}
                 disabled={loading || deleting}
-                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md ${
+                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md ${
                   isEfiBankConfigured ? 'flex-1' : 'w-full'
                 }`}
               >
                 {loading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
                 ) : (
                   <>
                     <span>Salvar</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </>
                 )}
               </button>
@@ -934,7 +959,6 @@ const PaymentIntegrationsPage = () => {
         </div>
       )}
 
-      {/* Confirm Delete Modals */}
       <ConfirmModal
         isOpen={showDeleteFluxsisConfirm}
         title="Remover Configuração"
