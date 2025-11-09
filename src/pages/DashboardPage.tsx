@@ -392,6 +392,87 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="dashboard-page min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
+      <style>{`
+        /* Estilização da scrollbar para mobile */
+        @media (max-width: 640px) {
+          ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+          }
+
+          ::-webkit-scrollbar-track {
+            background: linear-gradient(to bottom, rgba(139, 92, 246, 0.05), rgba(59, 130, 246, 0.05));
+            border-radius: 10px;
+          }
+
+          ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #7928CA 0%, #FF0080 50%, #007CF0 100%);
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+          }
+
+          ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #8b35d1 0%, #ff1a8f 50%, #0088ff 100%);
+          }
+
+          ::-webkit-scrollbar-thumb:active {
+            background: linear-gradient(135deg, #6b1fb0 0%, #e00070 50%, #0065cc 100%);
+          }
+
+          /* Adiciona um efeito de brilho na scrollbar */
+          ::-webkit-scrollbar-thumb::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+          }
+
+          @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+          }
+        }
+
+        /* Estilização para desktop */
+        @media (min-width: 641px) {
+          ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+          }
+
+          ::-webkit-scrollbar-track {
+            background: linear-gradient(to bottom, rgba(139, 92, 246, 0.08), rgba(59, 130, 246, 0.08));
+            border-radius: 10px;
+          }
+
+          ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #7928CA 0%, #FF0080 50%, #007CF0 100%);
+            border-radius: 10px;
+            border: 3px solid transparent;
+            background-clip: padding-box;
+          }
+
+          ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #8b35d1 0%, #ff1a8f 50%, #0088ff 100%);
+            box-shadow: 0 0 10px rgba(121, 40, 202, 0.5);
+          }
+
+          ::-webkit-scrollbar-thumb:active {
+            background: linear-gradient(135deg, #6b1fb0 0%, #e00070 50%, #0065cc 100%);
+          }
+        }
+
+        /* Firefox */
+        * {
+          scrollbar-width: thin;
+          scrollbar-color: #7928CA rgba(139, 92, 246, 0.1);
+        }
+      `}</style>
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: isMobile ? '12px' : '32px 24px' }}>
         {/* Payment Setup Card */}
         {displayPaymentSetupCard && (
