@@ -296,32 +296,32 @@ const OrganizerHomePage: React.FC = () => {
     <div className={`min-h-screen ${themeClasses.background} transition-colors duration-300`}>
       <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.headerBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-16 sm:h-20">
             <div className="flex items-center">
               {organizerProfile?.logo_url ? (
                 <img
                   src={organizerProfile.logo_url}
                   alt="Logo do organizador"
-                  className="h-16 w-auto max-w-[200px] object-contain shadow-md rounded-lg"
+                  className="h-10 sm:h-14 w-auto max-w-[150px] sm:max-w-[200px] object-contain"
                 />
               ) : (
                 <div className="flex items-center">
                   <img
                     src="/logo-chatgpt.png"
                     alt="Rifaqui Logo"
-                    className="w-10 h-10 object-contain"
+                    className="w-8 sm:w-10 h-8 sm:h-10 object-contain"
                   />
-                  <span className={`ml-2 text-2xl font-bold ${themeClasses.text}`}>Rifaqui</span>
+                  <span className={`ml-2 text-lg sm:text-2xl font-bold ${themeClasses.text}`}>Rifaqui</span>
                 </div>
               )}
             </div>
             <div className="flex items-center">
               <button
                 onClick={handleMyTicketsClick}
-                className={getColorClassName("text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105")}
+                className={getColorClassName("text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-1.5 sm:space-x-2 shadow-md hover:shadow-lg hover:scale-105")}
                 style={getColorStyle(true, false)}
               >
-                <Ticket className="h-4 w-4" />
+                <Ticket className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                 <span className="hidden sm:inline">
                   {isPhoneAuthenticated ? 'Minhas Cotas' : 'Ver Minhas Cotas'}
                 </span>
