@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, Plus, ArrowRight, X, Loader2, Trash2, ExternalLink, CheckCircle, AlertCircle, Clock, Sparkles, Palette, Eye } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
@@ -464,7 +463,7 @@ const CustomizationPage = () => {
   };
 
   return (
-    <motion.div className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} transition={{ duration: 0.35 }}>
+    <div className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
       <style>
         {`
           @media (max-width: 640px) {
@@ -550,11 +549,8 @@ const CustomizationPage = () => {
         {/* Tab Content */}
         <div className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-4 sm:p-8 shadow-lg">
           {/* Cores e tema Tab */}
-          {
-            <AnimatePresence mode='wait'>
-              {activeTab === 'cores-tema' && (
-                <motion.div key='cores-tema' initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
-                  <div className="space-y-6 sm:space-y-8">
+          {activeTab === 'cores-tema' && (
+            <div className="space-y-6 sm:space-y-8">
               {/* Theme Selection */}
               <div>
                 <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2">
@@ -1107,17 +1103,11 @@ const CustomizationPage = () => {
                 )}
               </button>
             </div>
-                </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          )}
 
           {/* Logo Tab */}
-          {
-            <AnimatePresence mode='wait'>
-              {activeTab === 'sua-logo' && (
-                <motion.div key='sua-logo' initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
-                  <div>
+          {activeTab === 'sua-logo' && (
+            <div>
               <h2 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
                 <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 dark:text-purple-400" />
                 Sua logo
@@ -1253,17 +1243,11 @@ const CustomizationPage = () => {
                 </div>
               </div>
             </div>
-                </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          )}
 
           {/* Domains Tab */}
-          {
-            <AnimatePresence mode='wait'>
-              {activeTab === 'dominios' && (
-                <motion.div key='dominios' initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
-                  <div>
+          {activeTab === 'dominios' && (
+            <div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-3 sm:gap-4">
                 <div>
                   <h2 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
@@ -1380,10 +1364,7 @@ const CustomizationPage = () => {
                 )}
               </div>
             </div>
-                </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          )}
         </div>
       </main>
 
@@ -1493,7 +1474,7 @@ const CustomizationPage = () => {
           setSelectedDomainToDelete(null);
         }}
       />
-    </motion.div>
+    </div>
   );
 };
 
