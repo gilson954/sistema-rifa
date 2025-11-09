@@ -1,24 +1,10 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, Plus, ArrowRight, X, Loader2, Trash2, ExternalLink, CheckCircle, AlertCircle, Clock, Sparkles, Palette, Eye } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { supabase } from '../lib/supabase';
 import { CustomDomainsAPI, CustomDomain } from '../lib/api/customDomains';
 import ConfirmModal from '../components/ConfirmModal';
-
-const containerVariants = {
-  hidden: { opacity: 0, y: 8 },
-  visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.03, duration: 0.35 } },
-  exit: { opacity: 0, y: 8, transition: { duration: 0.2 } }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 6 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.28 } },
-  exit: { opacity: 0, y: 6, transition: { duration: 0.18 } }
-};
-
 
 const CustomizationPage = () => {
   const { user } = useAuth();
@@ -477,7 +463,7 @@ const CustomizationPage = () => {
   };
 
   return (
-    <motion.div initial="hidden" animate="visible" exit="exit" variants={containerVariants} className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
+    <div className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
       <style>
         {`
           @media (max-width: 640px) {
@@ -520,7 +506,7 @@ const CustomizationPage = () => {
           }
         `}
       </style>
-      <motion.main variants={itemVariants} className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-6 sm:mb-8 relative overflow-hidden rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-xl border border-purple-200/30 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/80 to-blue-50/80 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm">
           <div className="absolute top-0 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-gradient-to-br from-purple-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
@@ -543,10 +529,9 @@ const CustomizationPage = () => {
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
-                <motion.button
+                <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  layout whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                   className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl transition-all duration-300 ${
                     activeTab === tab.id
                       ? 'bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-white shadow-lg animate-gradient-x bg-[length:200%_200%]'
@@ -565,7 +550,6 @@ const CustomizationPage = () => {
         <div className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-4 sm:p-8 shadow-lg">
           {/* Cores e tema Tab */}
           {activeTab === 'cores-tema' && (
-            <motion.div layout initial="hidden" animate="visible" exit="exit" variants={itemVariants}>
             <div className="space-y-6 sm:space-y-8">
               {/* Theme Selection */}
               <div>
@@ -897,9 +881,9 @@ const CustomizationPage = () => {
                   {!isCustomGradient && colorMode === 'gradient' && (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
                       {gradients.map((gradient) => (
-                        <motion.button
+                        <button
                           key={gradient.id}
-                          onClick={() => colorMode === 'gradient' && setSelectedGradient(gradient.classes)} layout whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                          onClick={() => colorMode === 'gradient' && setSelectedGradient(gradient.classes)}
                           disabled={colorMode === 'solid'}
                           className={`group relative overflow-hidden rounded-xl sm:rounded-2xl transition-all duration-300 ${
                             selectedGradient === gradient.classes && !isCustomGradient
@@ -1101,8 +1085,8 @@ const CustomizationPage = () => {
               </div>
 
               {/* Save Button */}
-              <motion.button 
-                onClick={handleSaveChanges} layout whileTap={{ scale: 0.995 }}
+              <button 
+                onClick={handleSaveChanges}
                 disabled={saving}
                 className="w-full sm:w-auto bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 shadow-lg hover:scale-105 animate-gradient-x bg-[length:200%_200%]"
               >
@@ -1119,12 +1103,10 @@ const CustomizationPage = () => {
                 )}
               </button>
             </div>
-            </motion.div>
           )}
 
           {/* Logo Tab */}
           {activeTab === 'sua-logo' && (
-            <motion.div layout initial="hidden" animate="visible" exit="exit" variants={itemVariants}>
             <div>
               <h2 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
                 <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 dark:text-purple-400" />
@@ -1219,9 +1201,8 @@ const CustomizationPage = () => {
                 )}
 
                 {!logoPreviewUrl && (
-                  <motion.div 
+                  <div 
                     onClick={() => logoInputRef.current?.click()}
-                    layout whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.995 }}
                     className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-2xl p-8 sm:p-12 text-center transition-all duration-300 cursor-pointer hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/10 group"
                   >
                     <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
@@ -1266,7 +1247,6 @@ const CustomizationPage = () => {
 
           {/* Domains Tab */}
           {activeTab === 'dominios' && (
-            <motion.div layout initial="hidden" animate="visible" exit="exit" variants={itemVariants}>
             <div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-3 sm:gap-4">
                 <div>
