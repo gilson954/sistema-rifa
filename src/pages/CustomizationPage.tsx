@@ -571,16 +571,16 @@ const CustomizationPage = () => {
                         : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
                     }`}
                   >
-                    <div className={`w-full h-32 sm:h-40 ${getThemeClasses('claro').background} rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 ${getThemeClasses('claro').border} border-2 shadow-inner`}>
-                      <div className="space-y-1.5 sm:space-y-2">
-                        <div className={`text-xs sm:text-sm font-bold ${getThemeClasses('claro').text}`}>
+                    <div className={`w-full h-36 sm:h-40 ${getThemeClasses('claro').background} rounded-lg sm:rounded-xl p-2.5 sm:p-4 mb-3 sm:mb-4 ${getThemeClasses('claro').border} border-2 shadow-inner`}>
+                      <div className="space-y-1 sm:space-y-2">
+                        <div className={`text-[10px] sm:text-sm font-bold ${getThemeClasses('claro').text} leading-tight`}>
                           Rifa do iPhone 15
                         </div>
-                        <div className={`text-xs ${getThemeClasses('claro').textSecondary}`}>
+                        <div className={`text-[9px] sm:text-xs ${getThemeClasses('claro').textSecondary} leading-tight`}>
                           R$ 5,00 por bilhete
                         </div>
-                        <div className={`${getThemeClasses('claro').cardBg} rounded-md sm:rounded-lg p-2 sm:p-3 space-y-1.5 sm:space-y-2`}>
-                          <div className={`text-xs font-medium ${getThemeClasses('claro').textSecondary}`}>
+                        <div className={`${getThemeClasses('claro').cardBg} rounded-md sm:rounded-lg p-1.5 sm:p-3 space-y-1 sm:space-y-2`}>
+                          <div className={`text-[9px] sm:text-xs font-medium ${getThemeClasses('claro').textSecondary} leading-tight`}>
                             Progresso
                           </div>
                           <div className="bg-gray-200 rounded-full h-1.5 sm:h-2">
@@ -591,7 +591,7 @@ const CustomizationPage = () => {
                           </div>
                         </div>
                         <div 
-                          className={`text-white text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                          className={`text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md leading-tight ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
                           style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
                         >
                           Participar
@@ -610,16 +610,16 @@ const CustomizationPage = () => {
                         : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
                     }`}
                   >
-                    <div className={`w-full h-32 sm:h-40 ${getThemeClasses('escuro').background} rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 border-2 ${getThemeClasses('escuro').border} shadow-inner`}>
-                      <div className="space-y-1.5 sm:space-y-2">
-                        <div className={`text-xs sm:text-sm font-bold ${getThemeClasses('escuro').text}`}>
+                    <div className={`w-full h-36 sm:h-40 ${getThemeClasses('escuro').background} rounded-lg sm:rounded-xl p-2.5 sm:p-4 mb-3 sm:mb-4 border-2 ${getThemeClasses('escuro').border} shadow-inner`}>
+                      <div className="space-y-1 sm:space-y-2">
+                        <div className={`text-[10px] sm:text-sm font-bold ${getThemeClasses('escuro').text} leading-tight`}>
                           Rifa do iPhone 15
                         </div>
-                        <div className={`text-xs ${getThemeClasses('escuro').textSecondary}`}>
+                        <div className={`text-[9px] sm:text-xs ${getThemeClasses('escuro').textSecondary} leading-tight`}>
                           R$ 5,00 por bilhete
                         </div>
-                        <div className={`${getThemeClasses('escuro').cardBg} rounded-md sm:rounded-lg p-2 sm:p-3 space-y-1.5 sm:space-y-2`}>
-                          <div className={`text-xs font-medium ${getThemeClasses('escuro').textSecondary}`}>
+                        <div className={`${getThemeClasses('escuro').cardBg} rounded-md sm:rounded-lg p-1.5 sm:p-3 space-y-1 sm:space-y-2`}>
+                          <div className={`text-[9px] sm:text-xs font-medium ${getThemeClasses('escuro').textSecondary} leading-tight`}>
                             Progresso
                           </div>
                           <div className="bg-gray-600 rounded-full h-1.5 sm:h-2">
@@ -630,7 +630,7 @@ const CustomizationPage = () => {
                           </div>
                         </div>
                         <div 
-                          className={`text-white text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                          className={`text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md leading-tight ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
                           style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
                         >
                           Participar
@@ -649,16 +649,16 @@ const CustomizationPage = () => {
                         : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
                     }`}
                   >
-                    <div className={`w-full h-32 sm:h-40 ${getThemeClasses('escuro-preto').background} rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 border-2 ${getThemeClasses('escuro-preto').border} shadow-inner`}>
-                      <div className="space-y-1.5 sm:space-y-2">
-                        <div className={`text-xs sm:text-sm font-bold ${getThemeClasses('escuro-preto').text}`}>
+                    <div className={`w-full h-36 sm:h-40 ${getThemeClasses('escuro-preto').background} rounded-lg sm:rounded-xl p-2.5 sm:p-4 mb-3 sm:mb-4 border-2 ${getThemeClasses('escuro-preto').border} shadow-inner`}>
+                      <div className="space-y-1 sm:space-y-2">
+                        <div className={`text-[10px] sm:text-sm font-bold ${getThemeClasses('escuro-preto').text} leading-tight`}>
                           Rifa do iPhone 15
                         </div>
-                        <div className={`text-xs ${getThemeClasses('escuro-preto').textSecondary}`}>
+                        <div className={`text-[9px] sm:text-xs ${getThemeClasses('escuro-preto').textSecondary} leading-tight`}>
                           R$ 5,00 por bilhete
                         </div>
-                        <div className={`${getThemeClasses('escuro-preto').cardBg} rounded-md sm:rounded-lg p-2 sm:p-3 space-y-1.5 sm:space-y-2`}>
-                          <div className={`text-xs font-medium ${getThemeClasses('escuro-preto').textSecondary}`}>
+                        <div className={`${getThemeClasses('escuro-preto').cardBg} rounded-md sm:rounded-lg p-1.5 sm:p-3 space-y-1 sm:space-y-2`}>
+                          <div className={`text-[9px] sm:text-xs font-medium ${getThemeClasses('escuro-preto').textSecondary} leading-tight`}>
                             Progresso
                           </div>
                           <div className="bg-gray-700 rounded-full h-1.5 sm:h-2">
@@ -669,7 +669,7 @@ const CustomizationPage = () => {
                           </div>
                         </div>
                         <div 
-                          className={`text-white text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                          className={`text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md leading-tight ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
                           style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
                         >
                           Participar
@@ -688,16 +688,16 @@ const CustomizationPage = () => {
                         : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
                     }`}
                   >
-                    <div className={`w-full h-32 sm:h-40 ${getThemeClasses('escuro-cinza').background} rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 border-2 ${getThemeClasses('escuro-cinza').border} shadow-inner`}>
-                      <div className="space-y-1.5 sm:space-y-2">
-                        <div className={`text-xs sm:text-sm font-bold ${getThemeClasses('escuro-cinza').text}`}>
+                    <div className={`w-full h-36 sm:h-40 ${getThemeClasses('escuro-cinza').background} rounded-lg sm:rounded-xl p-2.5 sm:p-4 mb-3 sm:mb-4 border-2 ${getThemeClasses('escuro-cinza').border} shadow-inner`}>
+                      <div className="space-y-1 sm:space-y-2">
+                        <div className={`text-[10px] sm:text-sm font-bold ${getThemeClasses('escuro-cinza').text} leading-tight`}>
                           Rifa do iPhone 15
                         </div>
-                        <div className={`text-xs ${getThemeClasses('escuro-cinza').textSecondary}`}>
+                        <div className={`text-[9px] sm:text-xs ${getThemeClasses('escuro-cinza').textSecondary} leading-tight`}>
                           R$ 5,00 por bilhete
                         </div>
-                        <div className={`${getThemeClasses('escuro-cinza').cardBg} rounded-md sm:rounded-lg p-2 sm:p-3 space-y-1.5 sm:space-y-2`}>
-                          <div className={`text-xs font-medium ${getThemeClasses('escuro-cinza').textSecondary}`}>
+                        <div className={`${getThemeClasses('escuro-cinza').cardBg} rounded-md sm:rounded-lg p-1.5 sm:p-3 space-y-1 sm:space-y-2`}>
+                          <div className={`text-[9px] sm:text-xs font-medium ${getThemeClasses('escuro-cinza').textSecondary} leading-tight`}>
                             Progresso
                           </div>
                           <div className="bg-[#404040] rounded-full h-1.5 sm:h-2">
@@ -708,7 +708,7 @@ const CustomizationPage = () => {
                           </div>
                         </div>
                         <div 
-                          className={`text-white text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                          className={`text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md leading-tight ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
                           style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
                         >
                           Participar
