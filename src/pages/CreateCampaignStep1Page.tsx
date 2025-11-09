@@ -315,25 +315,27 @@ const CreateCampaignStep1Page = () => {
                   <label className="block text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
                     Quantidade de cotas *
                   </label>
-                  <div className="relative">
+                  <div className="relative group">
                     <select
                       value={formData.ticketQuantity}
                       onChange={handleQuantityChange}
-                      className={`w-full appearance-none px-3 sm:px-4 py-2.5 sm:py-3.5 text-xs sm:text-base border-2 rounded-lg sm:rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-4 transition-all duration-200 ${
+                      className={`w-full appearance-none px-3 sm:px-4 py-2.5 sm:py-3.5 text-xs sm:text-base border-2 rounded-lg sm:rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-4 transition-all duration-300 cursor-pointer hover:border-purple-400 dark:hover:border-purple-600 ${
                         errors.ticketQuantity 
                           ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
                           : 'border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-purple-500/20'
                       }`}
                       required
                     >
-                      <option value="">Selecione a quantidade</option>
+                      <option value="" className="text-gray-400">Selecione a quantidade</option>
                       {ticketQuantityOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
+                        <option key={option.value} value={option.value} className="text-gray-900 dark:text-white bg-white dark:bg-gray-800 py-2">
                           {option.label}
                         </option>
                       ))}
                     </select>
-                    <ChevronDown className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 pointer-events-none" />
+                    <div className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none transition-all duration-300 group-hover:text-purple-500">
+                      <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors duration-300" />
+                    </div>
                   </div>
                   {errors.ticketQuantity && (
                     <p className="text-red-500 text-xs sm:text-sm mt-1 sm:mt-2 font-medium">{errors.ticketQuantity}</p>
@@ -379,25 +381,27 @@ const CreateCampaignStep1Page = () => {
                 <label className="block text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
                   Método de sorteio *
                 </label>
-                <div className="relative">
+                <div className="relative group">
                   <select
                     value={formData.drawMethod}
                     onChange={(e) => setFormData({ ...formData, drawMethod: e.target.value })}
-                    className={`w-full appearance-none px-3 sm:px-4 py-2.5 sm:py-3.5 text-xs sm:text-base border-2 rounded-lg sm:rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-4 transition-all duration-200 ${
+                    className={`w-full appearance-none px-3 sm:px-4 py-2.5 sm:py-3.5 text-xs sm:text-base border-2 rounded-lg sm:rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-4 transition-all duration-300 cursor-pointer hover:border-purple-400 dark:hover:border-purple-600 ${
                       errors.drawMethod 
                         ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
                         : 'border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-purple-500/20'
                     }`}
                     required
                   >
-                    <option value="">Selecione o método</option>
+                    <option value="" className="text-gray-400">Selecione o método</option>
                     {drawMethods.map((method) => (
-                      <option key={method} value={method}>
+                      <option key={method} value={method} className="text-gray-900 dark:text-white bg-white dark:bg-gray-800 py-2">
                         {method}
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 pointer-events-none" />
+                  <div className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none transition-all duration-300">
+                    <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors duration-300" />
+                  </div>
                 </div>
                 {errors.drawMethod && (
                   <p className="text-red-500 text-xs sm:text-sm mt-1 sm:mt-2 font-medium">{errors.drawMethod}</p>
