@@ -555,7 +555,7 @@ const CustomizationPage = () => {
                 >
                   <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span className="hidden sm:inline">{tab.label}</span>
-                </motion.button>
+                </button>
               );
             })}
           </div>
@@ -916,7 +916,7 @@ const CustomizationPage = () => {
                           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 sm:p-3">
                             <p className="text-white text-xs font-semibold text-center">{gradient.name}</p>
                           </div>
-                        </motion.button>
+                        </button>
                       ))}
                     </div>
                   )}
@@ -1117,7 +1117,7 @@ const CustomizationPage = () => {
                     <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
                   </>
                 )}
-              </motion.button>
+              </button>
             </div>
             </motion.div>
           )}
