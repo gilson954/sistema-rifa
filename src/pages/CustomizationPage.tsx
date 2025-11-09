@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, Plus, ArrowRight, X, Loader2, Trash2, ExternalLink, CheckCircle, AlertCircle, Clock, Sparkles, Palette, Eye } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
@@ -7,21 +6,6 @@ import { supabase } from '../lib/supabase';
 import { CustomDomainsAPI, CustomDomain } from '../lib/api/customDomains';
 import ConfirmModal from '../components/ConfirmModal';
 
-
-const containerVariants = {
-  hidden: { opacity: 0, y: 8 },
-  enter: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: 8 }
-};
-
-const cardHover = {
-  scale: 1.03
-};
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0 }
-};
 const CustomizationPage = () => {
   const { user } = useAuth();
   const { showSuccess, showError, showWarning } = useNotification();
@@ -479,12 +463,7 @@ const CustomizationPage = () => {
   };
 
   return (
-    <motion.div className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300"
-      initial="hidden"
-      animate="enter"
-      exit="exit"
-      variants={containerVariants}
-    >
+    <div className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
       <style>
         {`
           @media (max-width: 640px) {
@@ -527,11 +506,7 @@ const CustomizationPage = () => {
           }
         `}
       </style>
-      <motion.main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8"
-        initial="hidden"
-        animate="enter"
-        variants={containerVariants}
-      >
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-6 sm:mb-8 relative overflow-hidden rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-xl border border-purple-200/30 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/80 to-blue-50/80 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm">
           <div className="absolute top-0 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-gradient-to-br from-purple-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
@@ -554,9 +529,9 @@ const CustomizationPage = () => {
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
-                <motion.button
+                <button
                   key={tab.id}
-                  onClick={() = whileHover={cardHover} whileTap={{ scale: 0.98 }} > setActiveTab(tab.id)}
+                  onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl transition-all duration-300 ${
                     activeTab === tab.id
                       ? 'bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-white shadow-lg animate-gradient-x bg-[length:200%_200%]'
@@ -574,9 +549,7 @@ const CustomizationPage = () => {
         {/* Tab Content */}
         <div className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-4 sm:p-8 shadow-lg">
           {/* Cores e tema Tab */}
-          <AnimatePresence initial={{false}}>
-            {activeTab === 'cores-tema' && (
-              <motion.div key="cores-tema" initial="hidden" animate="enter" exit="exit" variants={{hidden: { opacity: 0, y: 8 }, enter: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 8 }}}>
+          {activeTab === 'cores-tema' && (
             <div className="space-y-6 sm:space-y-8">
               {/* Theme Selection */}
               <div>
@@ -758,8 +731,8 @@ const CustomizationPage = () => {
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
-                  <motion.button
-                    onClick={() = whileHover={cardHover} whileTap={{ scale: 0.98 }} > setColorMode('solid')}
+                  <button
+                    onClick={() => setColorMode('solid')}
                     className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 ${
                       colorMode === 'solid'
                         ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-lg'
@@ -773,8 +746,8 @@ const CustomizationPage = () => {
                     <div className="w-full h-6 sm:h-8 rounded-lg shadow-md" style={{ backgroundColor: selectedColor }}></div>
                   </button>
 
-                  <motion.button
-                    onClick={() = whileHover={cardHover} whileTap={{ scale: 0.98 }} > setColorMode('gradient')}
+                  <button
+                    onClick={() => setColorMode('gradient')}
                     className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 ${
                       colorMode === 'gradient'
                         ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-lg'
@@ -804,9 +777,7 @@ const CustomizationPage = () => {
                       <span className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 px-2 sm:px-3 py-1 rounded-full">
                         Desabilitado
                       </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                    )}
                   </div>
                   <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
                     {colorMode === 'gradient'
@@ -817,9 +788,9 @@ const CustomizationPage = () => {
 
                   <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6">
                     {solidColors.map((color) => (
-                      <motion.button
+                      <button
                         key={color}
-                        onClick={() = whileHover={cardHover} whileTap={{ scale: 0.98 }} > colorMode === 'solid' && setSelectedColor(color)}
+                        onClick={() => colorMode === 'solid' && setSelectedColor(color)}
                         disabled={colorMode === 'gradient'}
                         className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl transition-all duration-300 shadow-md hover:shadow-xl ${
                           selectedColor === color && colorMode === 'solid'
@@ -883,8 +854,8 @@ const CustomizationPage = () => {
                   </p>
 
                   <div className="flex gap-2 sm:gap-3 mb-4 sm:mb-6">
-                    <motion.button
-                      onClick={() = whileHover={cardHover} whileTap={{ scale: 0.98 }} > colorMode === 'gradient' && setIsCustomGradient(false)}
+                    <button
+                      onClick={() => colorMode === 'gradient' && setIsCustomGradient(false)}
                       disabled={colorMode === 'solid'}
                       className={`flex-1 px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm rounded-lg sm:rounded-xl font-semibold transition-all duration-300 ${
                         !isCustomGradient && colorMode === 'gradient'
@@ -894,8 +865,8 @@ const CustomizationPage = () => {
                     >
                       Predefinidos
                     </button>
-                    <motion.button
-                      onClick={() = whileHover={cardHover} whileTap={{ scale: 0.98 }} > colorMode === 'gradient' && setIsCustomGradient(true)}
+                    <button
+                      onClick={() => colorMode === 'gradient' && setIsCustomGradient(true)}
                       disabled={colorMode === 'solid'}
                       className={`flex-1 px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm rounded-lg sm:rounded-xl font-semibold transition-all duration-300 ${
                         isCustomGradient && colorMode === 'gradient'
@@ -910,9 +881,9 @@ const CustomizationPage = () => {
                   {!isCustomGradient && colorMode === 'gradient' && (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
                       {gradients.map((gradient) => (
-                        <motion.button
+                        <button
                           key={gradient.id}
-                          onClick={() = whileHover={cardHover} whileTap={{ scale: 0.98 }} > colorMode === 'gradient' && setSelectedGradient(gradient.classes)}
+                          onClick={() => colorMode === 'gradient' && setSelectedGradient(gradient.classes)}
                           disabled={colorMode === 'solid'}
                           className={`group relative overflow-hidden rounded-xl sm:rounded-2xl transition-all duration-300 ${
                             selectedGradient === gradient.classes && !isCustomGradient
@@ -941,13 +912,13 @@ const CustomizationPage = () => {
                           <h3 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
                             Suas cores personalizadas
                           </h3>
-                          <motion.button
+                          <button
                             onClick={colorMode === 'gradient' ? handleRandomGradient : undefined}
                             disabled={colorMode === 'solid'}
                             className={`px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-lg text-white rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 sm:gap-2 hover:scale-105 ${
                               colorMode === 'solid' ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
-                           whileHover={cardHover} whileTap={{ scale: 0.98 }} >
+                          >
                             <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
                             Random
                           </button>
@@ -985,8 +956,8 @@ const CustomizationPage = () => {
                               </div>
 
                               {customGradientColors.length > 2 && (
-                                <motion.button
-                                  onClick={() = whileHover={cardHover} whileTap={{ scale: 0.98 }} > handleRemoveCustomColor(index)}
+                                <button
+                                  onClick={() => handleRemoveCustomColor(index)}
                                   className="flex-shrink-0 p-1.5 sm:p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg sm:rounded-xl transition-all duration-300"
                                   title="Remover cor"
                                 >
@@ -998,10 +969,10 @@ const CustomizationPage = () => {
                         </div>
 
                         {customGradientColors.length < 3 && (
-                          <motion.button
+                          <button
                             onClick={handleAddCustomColor}
                             className="mt-3 sm:mt-4 w-full py-2 sm:py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 font-semibold"
-                           whileHover={cardHover} whileTap={{ scale: 0.98 }} >
+                          >
                             <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                             Adicionar cor (máx. 3)
                           </button>
@@ -1114,11 +1085,11 @@ const CustomizationPage = () => {
               </div>
 
               {/* Save Button */}
-              <motion.button 
+              <button 
                 onClick={handleSaveChanges}
                 disabled={saving}
                 className="w-full sm:w-auto bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 shadow-lg hover:scale-105 animate-gradient-x bg-[length:200%_200%]"
-               whileHover={cardHover} whileTap={{ scale: 0.98 }} >
+              >
                 {saving ? (
                   <>
                     <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
@@ -1135,9 +1106,7 @@ const CustomizationPage = () => {
           )}
 
           {/* Logo Tab */}
-          <AnimatePresence initial={{false}}>
-            {activeTab === 'sua-logo' && (
-              <motion.div key="sua-logo" initial="hidden" animate="enter" exit="exit" variants={{hidden: { opacity: 0, y: 8 }, enter: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 8 }}}>
+          {activeTab === 'sua-logo' && (
             <div>
               <h2 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
                 <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 dark:text-purple-400" />
@@ -1166,19 +1135,17 @@ const CustomizationPage = () => {
                         alt="Logo atual"
                         className="max-w-[200px] sm:max-w-xs max-h-24 sm:max-h-32 object-contain bg-white dark:bg-gray-700 p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-gray-300 dark:border-gray-600 shadow-lg"
                       />
-                      <motion.button
+                      <button
                         onClick={handleRemoveLogo}
                         disabled={uploadingLogo}
                         className="absolute -top-2 sm:-top-3 -right-2 sm:-right-3 bg-red-500 hover:bg-red-600 disabled:bg-red-400 text-white p-1.5 sm:p-2 rounded-full transition-all duration-300 shadow-lg hover:scale-110"
                         title="Remover logo"
-                       whileHover={cardHover} whileTap={{ scale: 0.98 }} >
+                      >
                         <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                       </button>
                     </div>
                   </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                )}
 
                 <input
                   ref={logoInputRef}
@@ -1199,8 +1166,8 @@ const CustomizationPage = () => {
                         alt="Preview da nova logo"
                         className="max-w-[200px] sm:max-w-xs max-h-24 sm:max-h-32 object-contain bg-white dark:bg-gray-700 p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-purple-500 shadow-xl"
                       />
-                      <motion.button
-                        onClick={() = whileHover={cardHover} whileTap={{ scale: 0.98 }} > {
+                      <button
+                        onClick={() => {
                           setLogoFile(null);
                           setLogoPreviewUrl(null);
                         }}
@@ -1212,11 +1179,11 @@ const CustomizationPage = () => {
                     </div>
                     
                     <div className="mt-4 sm:mt-6">
-                      <motion.button
+                      <button
                         onClick={handleUploadLogo}
                         disabled={uploadingLogo}
                         className="bg-gradient-to-r from-green-600 to-emerald-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center space-x-2 sm:space-x-3 shadow-lg hover:scale-105"
-                       whileHover={cardHover} whileTap={{ scale: 0.98 }} >
+                      >
                         {uploadingLogo ? (
                           <>
                             <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
@@ -1244,9 +1211,9 @@ const CustomizationPage = () => {
                     <p className="text-gray-600 dark:text-gray-400 mb-4 sm:mb-6 text-sm sm:text-lg">
                       Clique aqui para selecionar sua logo
                     </p>
-                    <motion.button 
+                    <button 
                       type="button"
-                      onClick={(e) = whileHover={cardHover} whileTap={{ scale: 0.98 }} > {
+                      onClick={(e) => {
                         e.stopPropagation();
                         logoInputRef.current?.click();
                       }}
@@ -1279,9 +1246,7 @@ const CustomizationPage = () => {
           )}
 
           {/* Domains Tab */}
-          <AnimatePresence initial={{false}}>
-            {activeTab === 'dominios' && (
-              <motion.div key="dominios" initial="hidden" animate="enter" exit="exit" variants={{hidden: { opacity: 0, y: 8 }, enter: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 8 }}}>
+          {activeTab === 'dominios' && (
             <div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-3 sm:gap-4">
                 <div>
@@ -1293,8 +1258,8 @@ const CustomizationPage = () => {
                     Use seu próprio domínio para suas campanhas (ex: rifaminhaloja.com)
                   </p>
                 </div>
-                <motion.button 
-                  onClick={() = whileHover={cardHover} whileTap={{ scale: 0.98 }} > setShowDomainModal(true)}
+                <button 
+                  onClick={() => setShowDomainModal(true)}
                   className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center space-x-1.5 sm:space-x-2 shadow-lg hover:scale-105 whitespace-nowrap"
                 >
                   <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -1346,19 +1311,17 @@ const CustomizationPage = () => {
                                 <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
                               </a>
                             ) : (
-                              <motion.button
-                                onClick={() = whileHover={cardHover} whileTap={{ scale: 0.98 }} > handleVerifyDomain(domain.id)}
+                              <button
+                                onClick={() => handleVerifyDomain(domain.id)}
                                 disabled={verifyingDomain === domain.id}
                                 className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-105 shadow-md"
                               >
                                 {verifyingDomain === domain.id ? 'Verificando...' : 'Verificar'}
                               </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                            )}
                             
-                            <motion.button
-                              onClick={() = whileHover={cardHover} whileTap={{ scale: 0.98 }} > handleDeleteDomain(domain.id, domain.domain_name)}
+                            <button
+                              onClick={() => handleDeleteDomain(domain.id, domain.domain_name)}
                               className="p-2 sm:p-3 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-110"
                               title="Remover domínio"
                             >
@@ -1403,7 +1366,7 @@ const CustomizationPage = () => {
             </div>
           )}
         </div>
-      </motion.main>
+      </main>
 
       {/* Domain Modal */}
       {showDomainModal && (
@@ -1414,8 +1377,8 @@ const CustomizationPage = () => {
                 <Plus className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
                 Novo domínio
               </h3>
-              <motion.button
-                onClick={() = whileHover={cardHover} whileTap={{ scale: 0.98 }} > {
+              <button
+                onClick={() => {
                   setShowDomainModal(false);
                   setNewDomain('');
                 }}
@@ -1448,11 +1411,11 @@ const CustomizationPage = () => {
               </p>
             </div>
 
-            <motion.button
+            <button
               onClick={handleSaveDomain}
               disabled={!newDomain.trim() || saving}
               className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 shadow-lg hover:scale-105"
-             whileHover={cardHover} whileTap={{ scale: 0.98 }} >
+            >
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
