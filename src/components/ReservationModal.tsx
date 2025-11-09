@@ -165,7 +165,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gradient-to-br from-gray-800 to-gray-900',
-          border: 'border-gray-700/50',
+          border: 'border-[#101625]',
           inputBg: 'bg-gray-800',
           inputBorder: 'border-gray-600',
           inputText: 'text-white',
