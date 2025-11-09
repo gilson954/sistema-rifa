@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Plus, X, ArrowRight, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
@@ -176,6 +177,82 @@ const SocialMediaPage = () => {
     setLinkInput("");
   };
 
+  // Variantes de animação para os cards
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        delay: i * 0.05,
+        duration: 0.4,
+        ease: "easeOut"
+      }
+    }),
+    hover: {
+      scale: 1.03,
+      y: -4,
+      transition: { duration: 0.2, ease: "easeInOut" }
+    },
+    tap: { scale: 0.98 }
+  };
+
+  // Variantes para o modal
+  const modalOverlayVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { duration: 0.2 }
+    },
+    exit: { 
+      opacity: 0,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const modalContentVariants = {
+    hidden: { 
+      opacity: 0, 
+      scale: 0.9,
+      y: 20
+    },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      y: 0,
+      transition: { 
+        duration: 0.3,
+        ease: "easeOut"
+      }
+    },
+    exit: { 
+      opacity: 0,
+      scale: 0.9,
+      y: 20,
+      transition: { 
+        duration: 0.2,
+        ease: "easeIn"
+      }
+    }
+  };
+
+  // Variantes para o título
+  const titleVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      transition: { duration: 0.5, ease: "easeOut" }
+    }
+  };
+
+  // Variantes para os botões
+  const buttonVariants = {
+    hover: { scale: 1.05, transition: { duration: 0.2 } },
+    tap: { scale: 0.95 }
+  };
+
   return (
     <div className="bg-transparent min-h-screen">
       <style>
@@ -221,120 +298,197 @@ const SocialMediaPage = () => {
         `}
       </style>
       <div className="p-3 sm:p-6">
-        <h2 className="text-lg sm:text-2xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">
+        <motion.h2 
+          className="text-lg sm:text-2xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6"
+          variants={titleVariants}
+          initial="hidden"
+          animate="visible"
+        >
           Conexões com redes sociais
-        </h2>
+        </motion.h2>
 
         <div className="grid gap-3 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {socialNetworks.map((network) => {
+          {socialNetworks.map((network, index) => {
             const config = socialMediaConfig[network.id as keyof typeof socialMediaConfig];
             const IconComponent = config?.icon;
 
             return (
-              <div
+              <motion.div
                 key={network.id}
+                custom={index}
+                variants={cardVariants}
+                initial="hidden"
+                animate="visible"
+                whileHover="hover"
+                whileTap="tap"
                 className="p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-gray-200/20 dark:border-gray-800/30
                            bg-white/70 dark:bg-gray-900/50 shadow-sm backdrop-blur-sm
-                           hover:shadow-md transition-all duration-300 flex items-center justify-between"
+                           transition-shadow duration-300 flex items-center justify-between cursor-pointer"
               >
                 <div className="flex items-center space-x-2 sm:space-x-3">
-                  <div
+                  <motion.div
                     className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full text-white flex-shrink-0"
                     style={{ backgroundColor: config?.color || "#6B7280" }}
+                    whileHover={{ rotate: 360 }}
+                    transition={{ duration: 0.5 }}
                   >
                     {IconComponent && <IconComponent size={16} className="sm:w-[18px] sm:h-[18px]" />}
-                  </div>
+                  </motion.div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-base font-medium text-gray-900 dark:text-white truncate">
                       {network.name}
                     </p>
-                    <p
+                    <motion.p
                       className={`text-xs sm:text-sm ${
                         network.connected ? "text-green-500" : "text-gray-400"
                       }`}
+                      animate={{ 
+                        opacity: network.connected ? [0.7, 1, 0.7] : 1 
+                      }}
+                      transition={{ 
+                        duration: 2, 
+                        repeat: network.connected ? Infinity : 0 
+                      }}
                     >
                       {network.connected ? "Conectado" : "Não conectado"}
-                    </p>
+                    </motion.p>
                   </div>
                 </div>
 
-                <button
+                <motion.button
                   onClick={() => handleAddSocialNetwork(network)}
                   className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 flex-shrink-0"
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
                 >
                   <Plus className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 dark:text-gray-400" />
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             );
           })}
         </div>
       </div>
 
-      {showModal && selectedNetwork && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-md shadow-lg">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                {selectedNetwork.connected ? "Gerenciar" : "Adicionar"} {selectedNetwork.name}
-              </h2>
-              <button
-                onClick={handleCloseModal}
-                className="p-1 sm:p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors duration-200"
-              >
-                <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-              </button>
-            </div>
-
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-              Cole o link da sua rede social abaixo
-            </p>
-
-            <input
-              type="url"
-              value={linkInput}
-              onChange={(e) => setLinkInput(e.target.value)}
-              placeholder="https://..."
-              className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 mb-4 sm:mb-6 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-
-            <div className="flex gap-2 sm:gap-3">
-              {selectedNetwork.connected && (
-                <button
-                  onClick={handleDeleteLink}
-                  disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors duration-200 flex items-center justify-center gap-1.5 sm:gap-2"
+      <AnimatePresence>
+        {showModal && selectedNetwork && (
+          <motion.div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4"
+            variants={modalOverlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            onClick={handleCloseModal}
+          >
+            <motion.div 
+              className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-md shadow-lg"
+              variants={modalContentVariants}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <motion.h2 
+                  className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
                 >
-                  {deleting ? (
-                    <div className="animate-spin rounded-full h-3.5 w-3.5 sm:h-4 sm:w-4 border-b-2 border-white"></div>
+                  {selectedNetwork.connected ? "Gerenciar" : "Adicionar"} {selectedNetwork.name}
+                </motion.h2>
+                <motion.button
+                  onClick={handleCloseModal}
+                  className="p-1 sm:p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors duration-200"
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                </motion.button>
+              </div>
+
+              <motion.p 
+                className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+              >
+                Cole o link da sua rede social abaixo
+              </motion.p>
+
+              <motion.input
+                type="url"
+                value={linkInput}
+                onChange={(e) => setLinkInput(e.target.value)}
+                placeholder="https://..."
+                className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 mb-4 sm:mb-6 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                whileFocus={{ scale: 1.02 }}
+              />
+
+              <motion.div 
+                className="flex gap-2 sm:gap-3"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+              >
+                {selectedNetwork.connected && (
+                  <motion.button
+                    onClick={handleDeleteLink}
+                    disabled={deleting || loading}
+                    className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors duration-200 flex items-center justify-center gap-1.5 sm:gap-2"
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    {deleting ? (
+                      <motion.div 
+                        className="animate-spin rounded-full h-3.5 w-3.5 sm:h-4 sm:w-4 border-b-2 border-white"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      />
+                    ) : (
+                      <>
+                        <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        <span>Excluir</span>
+                      </>
+                    )}
+                  </motion.button>
+                )}
+
+                <motion.button
+                  onClick={handleSaveLink}
+                  disabled={!linkInput.trim() || loading || deleting}
+                  className={`bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors duration-200 flex items-center justify-center gap-1.5 sm:gap-2 ${
+                    selectedNetwork.connected ? "flex-1" : "w-full"
+                  }`}
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: selectedNetwork.connected ? 0.3 : 0.25 }}
+                >
+                  {loading ? (
+                    <motion.div 
+                      className="animate-spin rounded-full h-3.5 w-3.5 sm:h-4 sm:w-4 border-b-2 border-white"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
                   ) : (
                     <>
-                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      <span>Excluir</span>
+                      <span>Salvar</span>
+                      <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </>
                   )}
-                </button>
-              )}
-
-              <button
-                onClick={handleSaveLink}
-                disabled={!linkInput.trim() || loading || deleting}
-                className={`bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors duration-200 flex items-center justify-center gap-1.5 sm:gap-2 ${
-                  selectedNetwork.connected ? "flex-1" : "w-full"
-                }`}
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-3.5 w-3.5 sm:h-4 sm:w-4 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <span>Salvar</span>
-                    <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                </motion.button>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
