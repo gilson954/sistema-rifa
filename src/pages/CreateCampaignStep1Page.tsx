@@ -234,35 +234,6 @@ const CreateCampaignStep1Page = () => {
               box-shadow: 0 0 15px rgba(192, 132, 252, 0.6);
             }
           }
-          
-          /* Custom Select Dropdown Styling */
-          select {
-            background-image: none !important;
-          }
-          
-          select option {
-            padding: 12px 16px;
-            background-color: #1f2937;
-            color: #ffffff;
-            border-radius: 8px;
-            margin: 4px 0;
-          }
-          
-          select option:hover,
-          select option:focus,
-          select option:checked {
-            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%) !important;
-            color: white !important;
-          }
-          
-          .dark select option {
-            background-color: #1f2937;
-            color: #ffffff;
-          }
-          
-          select option:first-child {
-            color: #9ca3af;
-          }
         `}
       </style>
       <main className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -344,31 +315,25 @@ const CreateCampaignStep1Page = () => {
                   <label className="block text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
                     Quantidade de cotas *
                   </label>
-                  <div className="relative group">
+                  <div className="relative">
                     <select
                       value={formData.ticketQuantity}
                       onChange={handleQuantityChange}
-                      className={`w-full appearance-none px-3 sm:px-4 py-2.5 sm:py-3.5 text-xs sm:text-base border-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-purple-500/30 transition-all duration-300 cursor-pointer hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 font-medium ${
+                      className={`w-full appearance-none px-3 sm:px-4 py-2.5 sm:py-3.5 text-xs sm:text-base border-2 rounded-lg sm:rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-4 transition-all duration-200 ${
                         errors.ticketQuantity 
                           ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
-                          : 'border-gray-300 dark:border-gray-600 focus:border-purple-500 dark:focus:border-purple-400'
+                          : 'border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-purple-500/20'
                       }`}
                       required
                     >
-                      <option value="" disabled className="text-gray-400 dark:text-gray-500">Selecione a quantidade</option>
+                      <option value="">Selecione a quantidade</option>
                       {ticketQuantityOptions.map((option) => (
-                        <option 
-                          key={option.value} 
-                          value={option.value} 
-                          className="text-gray-900 dark:text-white bg-white dark:bg-gray-800 py-3 px-4 hover:bg-purple-500 hover:text-white"
-                        >
+                        <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
                       ))}
                     </select>
-                    <div className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none transition-all duration-300 group-hover:translate-y-[-45%]">
-                      <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-all duration-300 group-hover:scale-110" />
-                    </div>
+                    <ChevronDown className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 pointer-events-none" />
                   </div>
                   {errors.ticketQuantity && (
                     <p className="text-red-500 text-xs sm:text-sm mt-1 sm:mt-2 font-medium">{errors.ticketQuantity}</p>
@@ -414,31 +379,25 @@ const CreateCampaignStep1Page = () => {
                 <label className="block text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
                   Método de sorteio *
                 </label>
-                <div className="relative group">
+                <div className="relative">
                   <select
                     value={formData.drawMethod}
                     onChange={(e) => setFormData({ ...formData, drawMethod: e.target.value })}
-                    className={`w-full appearance-none px-3 sm:px-4 py-2.5 sm:py-3.5 text-xs sm:text-base border-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-purple-500/30 transition-all duration-300 cursor-pointer hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 font-medium ${
+                    className={`w-full appearance-none px-3 sm:px-4 py-2.5 sm:py-3.5 text-xs sm:text-base border-2 rounded-lg sm:rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-4 transition-all duration-200 ${
                       errors.drawMethod 
                         ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
-                        : 'border-gray-300 dark:border-gray-600 focus:border-purple-500 dark:focus:border-purple-400'
+                        : 'border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-purple-500/20'
                     }`}
                     required
                   >
-                    <option value="" disabled className="text-gray-400 dark:text-gray-500">Selecione o método</option>
+                    <option value="">Selecione o método</option>
                     {drawMethods.map((method) => (
-                      <option 
-                        key={method} 
-                        value={method} 
-                        className="text-gray-900 dark:text-white bg-white dark:bg-gray-800 py-3 px-4 hover:bg-purple-500 hover:text-white"
-                      >
+                      <option key={method} value={method}>
                         {method}
                       </option>
                     ))}
                   </select>
-                  <div className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none transition-all duration-300 group-hover:translate-y-[-45%]">
-                    <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-all duration-300 group-hover:scale-110" />
-                  </div>
+                  <ChevronDown className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 pointer-events-none" />
                 </div>
                 {errors.drawMethod && (
                   <p className="text-red-500 text-xs sm:text-sm mt-1 sm:mt-2 font-medium">{errors.drawMethod}</p>
