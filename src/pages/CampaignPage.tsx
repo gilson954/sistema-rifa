@@ -834,7 +834,7 @@ const CampaignPage = () => {
           headerBg: 'bg-black',
           border: 'border-slate-600',
           rifaquiText: 'text-white',
-          calendarBg: '#141414',
+          calendarBg: '##101625',
           calendarBorder: '#101625'
         };
       case 'escuro-preto':
