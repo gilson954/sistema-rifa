@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, X, ArrowRight, Trash2, AlertCircle, CheckCircle, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
@@ -434,6 +435,223 @@ const PaymentIntegrationsPage = () => {
     }
   ];
 
+  // Variantes de animação
+  const headerVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut" }
+    }
+  };
+
+  const infoCardVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      transition: { duration: 0.4, delay: 0.2 }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        delay: 0.3 + (i * 0.1),
+        duration: 0.4,
+        ease: "easeOut"
+      }
+    }),
+    hover: {
+      y: -8,
+      scale: 1.02,
+      transition: { duration: 0.3 }
+    }
+  };
+
+  const modalOverlayVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { duration: 0.2 }
+    },
+    exit: { 
+      opacity: 0,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const modalContentVariants = {
+    hidden: { 
+      opacity: 0, 
+      scale: 0.9,
+      y: 20
+    },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      y: 0,
+      transition: { 
+        duration: 0.3,
+        ease: "easeOut"
+      }
+    },
+    exit: { 
+      opacity: 0,
+      scale: 0.9,
+      y: 20,
+      transition: { 
+        duration: 0.2
+      }
+    }
+  };
+
+  const buttonVariants = {
+    hover: { scale: 1.05, transition: { duration: 0.2 } },
+    tap: { scale: 0.95 }
+  };
+
+  const ConfigModal = ({ 
+    show, 
+    onClose, 
+    title, 
+    config, 
+    setConfig, 
+    onSave, 
+    onDelete, 
+    isConfigured,
+    fields
+  }: any) => (
+    <AnimatePresence>
+      {show && (
+        <motion.div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4"
+          variants={modalOverlayVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          onClick={onClose}
+        >
+          <motion.div 
+            className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20"
+            variants={modalContentVariants}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <motion.h2 
+                className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                {title}
+              </motion.h2>
+              <motion.button
+                onClick={onClose}
+                className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+              </motion.button>
+            </div>
+            
+            <motion.p 
+              className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+            >
+              Configure sua integração para receber pagamentos automáticos
+            </motion.p>
+
+            <div className="space-y-3 sm:space-y-4">
+              {fields.map((field: any, index: number) => (
+                <motion.div
+                  key={field.name}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 + (index * 0.05) }}
+                >
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                    {field.label} {field.required && '*'}
+                  </label>
+                  <motion.input
+                    type={field.type}
+                    value={config[field.name]}
+                    onChange={(e) => setConfig({ ...config, [field.name]: e.target.value })}
+                    placeholder={field.placeholder}
+                    className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+                    whileFocus={{ scale: 1.01 }}
+                  />
+                </motion.div>
+              ))}
+            </div>
+
+            <motion.div 
+              className="flex gap-2 sm:gap-3 mt-4 sm:mt-6"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              {isConfigured && (
+                <motion.button
+                  onClick={onDelete}
+                  disabled={deleting || loading}
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  {deleting ? (
+                    <motion.div 
+                      className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                  ) : (
+                    <>
+                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span>Excluir</span>
+                    </>
+                  )}
+                </motion.button>
+              )}
+              
+              <motion.button
+                onClick={onSave}
+                disabled={loading || deleting}
+                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md ${
+                  isConfigured ? 'flex-1' : 'w-full'
+                }`}
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                {loading ? (
+                  <motion.div 
+                    className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  />
+                ) : (
+                  <>
+                    <span>Salvar</span>
+                    <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  </>
+                )}
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
   return (
     <div className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
       <style>
@@ -479,13 +697,20 @@ const PaymentIntegrationsPage = () => {
         `}
       </style>
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <button
+        <motion.div 
+          className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8"
+          variants={headerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.button
             onClick={handleGoBack}
             className="p-1.5 sm:p-2 hover:bg-white/10 dark:hover:bg-gray-800/50 rounded-lg transition-colors duration-200"
+            whileHover={{ scale: 1.1, x: -4 }}
+            whileTap={{ scale: 0.9 }}
           >
             <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700 dark:text-gray-300" />
-          </button>
+          </motion.button>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               Métodos de Pagamento
@@ -494,13 +719,22 @@ const PaymentIntegrationsPage = () => {
               Configure suas integrações para receber pagamentos
             </p>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="mb-4 sm:mb-6 rounded-xl sm:rounded-2xl p-3 sm:p-4 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/20 dark:border-blue-800/30">
+        <motion.div 
+          className="mb-4 sm:mb-6 rounded-xl sm:rounded-2xl p-3 sm:p-4 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/20 dark:border-blue-800/30"
+          variants={infoCardVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <div className="flex items-start gap-2 sm:gap-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+            <motion.div 
+              className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0"
+              whileHover={{ rotate: 360, scale: 1.1 }}
+              transition={{ duration: 0.5 }}
+            >
               <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-            </div>
+            </motion.div>
             <div>
               <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-1">
                 Receba pagamentos automaticamente
@@ -510,23 +744,32 @@ const PaymentIntegrationsPage = () => {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
-          {paymentMethods.map((method) => (
-            <article
+          {paymentMethods.map((method, index) => (
+            <motion.article
               key={method.id}
-              className="rounded-xl sm:rounded-2xl p-4 sm:p-6 border transition-all duration-200 bg-white/60 dark:bg-gray-900/40 border-gray-200/20 dark:border-gray-700/20 hover:border-purple-500/30 hover:shadow-lg"
+              custom={index}
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              whileHover="hover"
+              className="rounded-xl sm:rounded-2xl p-4 sm:p-6 border transition-all duration-200 bg-white/60 dark:bg-gray-900/40 border-gray-200/20 dark:border-gray-700/20 hover:border-purple-500/30 hover:shadow-lg cursor-pointer"
             >
               <div className="flex items-start justify-between gap-3 sm:gap-4">
                 <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm border border-gray-200/20 dark:border-gray-700/20 p-2">
+                  <motion.div 
+                    className="w-12 h-12 sm:w-16 sm:h-16 bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm border border-gray-200/20 dark:border-gray-700/20 p-2"
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    transition={{ duration: 0.3 }}
+                  >
                     <img 
                       src={method.logo} 
                       alt={`${method.name} Logo`} 
                       className="w-full h-full object-contain"
                     />
-                  </div>
+                  </motion.div>
                   <div className="min-w-0 flex-1">
                     <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-1">
                       {method.name}
@@ -537,7 +780,18 @@ const PaymentIntegrationsPage = () => {
                     <div className="flex items-center gap-1.5 sm:gap-2">
                       {method.isConfigured ? (
                         <>
-                          <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
+                          <motion.div
+                            animate={{ 
+                              scale: [1, 1.2, 1],
+                              opacity: [0.7, 1, 0.7]
+                            }}
+                            transition={{ 
+                              duration: 2, 
+                              repeat: Infinity 
+                            }}
+                          >
+                            <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
+                          </motion.div>
                           <span className="text-xs sm:text-sm font-medium text-green-600 dark:text-green-400">Conectado</span>
                         </>
                       ) : (
@@ -551,413 +805,88 @@ const PaymentIntegrationsPage = () => {
                 </div>
               </div>
               
-              <button
+              <motion.button
                 onClick={method.onConfigure}
-                className="w-full mt-3 sm:mt-4 inline-flex items-center justify-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold shadow-md transition transform hover:-translate-y-0.5"
+                className="w-full mt-3 sm:mt-4 inline-flex items-center justify-center gap-2 animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-[#7928CA] via-[#FF0080] via-[#007CF0] to-[#FF8C00] text-white px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold shadow-md transition transform"
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <span>Configurar</span>
-                <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              </button>
-            </article>
+                <motion.div
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                </motion.div>
+              </motion.button>
+            </motion.article>
           ))}
         </div>
       </main>
 
-      {showFluxsisModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                Configurar Fluxsis
-              </h2>
-              <button
-                onClick={() => setShowFluxsisModal(false)}
-                className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
-              >
-                <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-              </button>
-            </div>
-            
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-              Configure sua integração com o Fluxsis para receber pagamentos automáticos
-            </p>
+      <ConfigModal
+        show={showFluxsisModal}
+        onClose={() => setShowFluxsisModal(false)}
+        title="Configurar Fluxsis"
+        config={fluxsisConfig}
+        setConfig={setFluxsisConfig}
+        onSave={handleSaveFluxsisConfig}
+        onDelete={handleDeleteFluxsisConfig}
+        isConfigured={isFluxsisConfigured}
+        fields={[
+          { name: 'api_key', label: 'API Key', type: 'text', placeholder: 'Sua API Key do Fluxsis', required: true },
+          { name: 'secret_key', label: 'Secret Key', type: 'password', placeholder: 'Sua Secret Key do Fluxsis', required: true },
+          { name: 'webhook_url', label: 'Webhook URL', type: 'url', placeholder: 'https://seusite.com/webhook/fluxsis', required: false }
+        ]}
+      />
 
-            <div className="space-y-3 sm:space-y-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  API Key *
-                </label>
-                <input
-                  type="text"
-                  value={fluxsisConfig.api_key}
-                  onChange={(e) => setFluxsisConfig({ ...fluxsisConfig, api_key: e.target.value })}
-                  placeholder="Sua API Key do Fluxsis"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
+      <ConfigModal
+        show={showPay2mModal}
+        onClose={() => setShowPay2mModal(false)}
+        title="Configurar Pay2m"
+        config={pay2mConfig}
+        setConfig={setPay2mConfig}
+        onSave={handleSavePay2mConfig}
+        onDelete={handleDeletePay2mConfig}
+        isConfigured={isPay2mConfigured}
+        fields={[
+          { name: 'api_key', label: 'API Key', type: 'text', placeholder: 'Sua API Key do Pay2m', required: true },
+          { name: 'secret_key', label: 'Secret Key', type: 'password', placeholder: 'Sua Secret Key do Pay2m', required: true },
+          { name: 'webhook_url', label: 'Webhook URL', type: 'url', placeholder: 'https://seusite.com/webhook/pay2m', required: false }
+        ]}
+      />
 
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Secret Key *
-                </label>
-                <input
-                  type="password"
-                  value={fluxsisConfig.secret_key}
-                  onChange={(e) => setFluxsisConfig({ ...fluxsisConfig, secret_key: e.target.value })}
-                  placeholder="Sua Secret Key do Fluxsis"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
+      <ConfigModal
+        show={showPaggueModal}
+        onClose={() => setShowPaggueModal(false)}
+        title="Configurar Paggue"
+        config={paggueConfig}
+        setConfig={setPaggueConfig}
+        onSave={handleSavePaggueConfig}
+        onDelete={handleDeletePaggueConfig}
+        isConfigured={isPaggueConfigured}
+        fields={[
+          { name: 'api_key', label: 'API Key', type: 'text', placeholder: 'Sua API Key do Paggue', required: true },
+          { name: 'secret_key', label: 'Secret Key', type: 'password', placeholder: 'Sua Secret Key do Paggue', required: true },
+          { name: 'webhook_url', label: 'Webhook URL', type: 'url', placeholder: 'https://seusite.com/webhook/paggue', required: false }
+        ]}
+      />
 
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Webhook URL
-                </label>
-                <input
-                  type="url"
-                  value={fluxsisConfig.webhook_url}
-                  onChange={(e) => setFluxsisConfig({ ...fluxsisConfig, webhook_url: e.target.value })}
-                  placeholder="https://seusite.com/webhook/fluxsis"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2 sm:gap-3 mt-4 sm:mt-6">
-              {isFluxsisConfigured && (
-                <button
-                  onClick={handleDeleteFluxsisConfig}
-                  disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md"
-                >
-                  {deleting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
-                  ) : (
-                    <>
-                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      <span>Excluir</span>
-                    </>
-                  )}
-                </button>
-              )}
-              
-              <button
-                onClick={handleSaveFluxsisConfig}
-                disabled={loading || deleting}
-                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md ${
-                  isFluxsisConfigured ? 'flex-1' : 'w-full'
-                }`}
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <span>Salvar</span>
-                    <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showPay2mModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                Configurar Pay2m
-              </h2>
-              <button
-                onClick={() => setShowPay2mModal(false)}
-                className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
-              >
-                <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-              </button>
-            </div>
-            
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-              Configure sua integração com o Pay2m para receber pagamentos automáticos
-            </p>
-
-            <div className="space-y-3 sm:space-y-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  API Key *
-                </label>
-                <input
-                  type="text"
-                  value={pay2mConfig.api_key}
-                  onChange={(e) => setPay2mConfig({ ...pay2mConfig, api_key: e.target.value })}
-                  placeholder="Sua API Key do Pay2m"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Secret Key *
-                </label>
-                <input
-                  type="password"
-                  value={pay2mConfig.secret_key}
-                  onChange={(e) => setPay2mConfig({ ...pay2mConfig, secret_key: e.target.value })}
-                  placeholder="Sua Secret Key do Pay2m"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Webhook URL
-                </label>
-                <input
-                  type="url"
-                  value={pay2mConfig.webhook_url}
-                  onChange={(e) => setPay2mConfig({ ...pay2mConfig, webhook_url: e.target.value })}
-                  placeholder="https://seusite.com/webhook/pay2m"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2 sm:gap-3 mt-4 sm:mt-6">
-              {isPay2mConfigured && (
-                <button
-                  onClick={handleDeletePay2mConfig}
-                  disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md"
-                >
-                  {deleting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
-                  ) : (
-                    <>
-                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      <span>Excluir</span>
-                    </>
-                  )}
-                </button>
-              )}
-              
-              <button
-                onClick={handleSavePay2mConfig}
-                disabled={loading || deleting}
-                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md ${
-                  isPay2mConfigured ? 'flex-1' : 'w-full'
-                }`}
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <span>Salvar</span>
-                    <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showPaggueModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                Configurar Paggue
-              </h2>
-              <button
-                onClick={() => setShowPaggueModal(false)}
-                className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
-              >
-                <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-              </button>
-            </div>
-            
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-              Configure sua integração com o Paggue para receber pagamentos automáticos
-            </p>
-
-            <div className="space-y-3 sm:space-y-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  API Key *
-                </label>
-                <input
-                  type="text"
-                  value={paggueConfig.api_key}
-                  onChange={(e) => setPaggueConfig({ ...paggueConfig, api_key: e.target.value })}
-                  placeholder="Sua API Key do Paggue"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Secret Key *
-                </label>
-                <input
-                  type="password"
-                  value={paggueConfig.secret_key}
-                  onChange={(e) => setPaggueConfig({ ...paggueConfig, secret_key: e.target.value })}
-                  placeholder="Sua Secret Key do Paggue"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Webhook URL
-                </label>
-                <input
-                  type="url"
-                  value={paggueConfig.webhook_url}
-                  onChange={(e) => setPaggueConfig({ ...paggueConfig, webhook_url: e.target.value })}
-                  placeholder="https://seusite.com/webhook/paggue"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2 sm:gap-3 mt-4 sm:mt-6">
-              {isPaggueConfigured && (
-                <button
-                  onClick={handleDeletePaggueConfig}
-                  disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md"
-                >
-                  {deleting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
-                  ) : (
-                    <>
-                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      <span>Excluir</span>
-                    </>
-                  )}
-                </button>
-              )}
-              
-              <button
-                onClick={handleSavePaggueConfig}
-                disabled={loading || deleting}
-                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md ${
-                  isPaggueConfigured ? 'flex-1' : 'w-full'
-                }`}
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <span>Salvar</span>
-                    <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showEfiBankModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-md shadow-2xl border border-gray-200/20 dark:border-gray-700/20">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                Configurar Efi Bank
-              </h2>
-              <button
-                onClick={() => setShowEfiBankModal(false)}
-                className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
-              >
-                <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-              </button>
-            </div>
-            
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-              Configure sua integração com o Efi Bank para receber pagamentos automáticos
-            </p>
-
-            <div className="space-y-3 sm:space-y-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Client ID *
-                </label>
-                <input
-                  type="text"
-                  value={efiBankConfig.client_id}
-                  onChange={(e) => setEfiBankConfig({ ...efiBankConfig, client_id: e.target.value })}
-                  placeholder="Seu Client ID do Efi Bank"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Client Secret *
-                </label>
-                <input
-                  type="password"
-                  value={efiBankConfig.client_secret}
-                  onChange={(e) => setEfiBankConfig({ ...efiBankConfig, client_secret: e.target.value })}
-                  placeholder="Seu Client Secret do Efi Bank"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Webhook URL
-                </label>
-                <input
-                  type="url"
-                  value={efiBankConfig.webhook_url}
-                  onChange={(e) => setEfiBankConfig({ ...efiBankConfig, webhook_url: e.target.value })}
-                  placeholder="https://seusite.com/webhook/efibank"
-                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2 sm:gap-3 mt-4 sm:mt-6">
-              {isEfiBankConfigured && (
-                <button
-                  onClick={handleDeleteEfiBankConfig}
-                  disabled={deleting || loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md"
-                >
-                  {deleting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
-                  ) : (
-                    <>
-                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      <span>Excluir</span>
-                    </>
-                  )}
-                </button>
-              )}
-              
-              <button
-                onClick={handleSaveEfiBankConfig}
-                disabled={loading || deleting}
-                className={`animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 shadow-md ${
-                  isEfiBankConfigured ? 'flex-1' : 'w-full'
-                }`}
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <span>Salvar</span>
-                    <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfigModal
+        show={showEfiBankModal}
+        onClose={() => setShowEfiBankModal(false)}
+        title="Configurar Efi Bank"
+        config={efiBankConfig}
+        setConfig={setEfiBankConfig}
+        onSave={handleSaveEfiBankConfig}
+        onDelete={handleDeleteEfiBankConfig}
+        isConfigured={isEfiBankConfigured}
+        fields={[
+          { name: 'client_id', label: 'Client ID', type: 'text', placeholder: 'Seu Client ID do Efi Bank', required: true },
+          { name: 'client_secret', label: 'Client Secret', type: 'password', placeholder: 'Seu Client Secret do Efi Bank', required: true },
+          { name: 'webhook_url', label: 'Webhook URL', type: 'url', placeholder: 'https://seusite.com/webhook/efibank', required: false }
+        ]}
+      />
 
       <ConfirmModal
         isOpen={showDeleteFluxsisConfirm}
