@@ -835,7 +835,7 @@ const CampaignPage = () => {
           border: 'border-slate-600',
           rifaquiText: 'text-white',
           calendarBg: '#141414',
-          calendarBorder: '#475569'
+          calendarBorder: '#c71212'
         };
       case 'escuro-preto':
         return {
