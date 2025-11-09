@@ -96,7 +96,7 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-800',
-          border: 'border-gray-700',
+          border: 'border-[#101625]',
           iconBg: 'bg-orange-900/30',
           iconColor: 'text-orange-400',
           closeButtonHover: 'hover:bg-gray-700',
