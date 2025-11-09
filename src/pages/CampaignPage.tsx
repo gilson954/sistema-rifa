@@ -821,7 +821,9 @@ const CampaignPage = () => {
           cardBg: 'bg-white',
           headerBg: 'bg-white',
           border: 'border-gray-200',
-          rifaquiText: 'text-gray-900'
+          rifaquiText: 'text-gray-900',
+          calendarBg: '#FFFFFF',
+          calendarBorder: '#E5E7EB'
         };
       case 'escuro':
         return {
@@ -831,7 +833,9 @@ const CampaignPage = () => {
           cardBg: 'bg-slate-800',
           headerBg: 'bg-[#161b26]',
           border: 'border-slate-600',
-          rifaquiText: 'text-white'
+          rifaquiText: 'text-white',
+          calendarBg: '#141414',
+          calendarBorder: '#475569'
         };
       case 'escuro-preto':
         return {
@@ -841,7 +845,9 @@ const CampaignPage = () => {
           cardBg: 'bg-gray-900',
           headerBg: 'bg-[#161b26]',
           border: 'border-gray-700',
-          rifaquiText: 'text-white'
+          rifaquiText: 'text-white',
+          calendarBg: '#141414',
+          calendarBorder: '#374151'
         };
       case 'escuro-cinza':
         return {
@@ -851,7 +857,9 @@ const CampaignPage = () => {
           cardBg: 'bg-[#2C2C2C]',
           headerBg: 'bg-[#141414]',
           border: 'border-[#1f1f1f]',
-          rifaquiText: 'text-white'
+          rifaquiText: 'text-white',
+          calendarBg: '#141414',
+          calendarBorder: '#1f1f1f'
         };
       default:
         return {
@@ -861,7 +869,9 @@ const CampaignPage = () => {
           cardBg: 'bg-white',
           headerBg: 'bg-white',
           border: 'border-gray-200',
-          rifaquiText: 'text-gray-900'
+          rifaquiText: 'text-gray-900',
+          calendarBg: '#FFFFFF',
+          calendarBorder: '#E5E7EB'
         };
     }
   };
@@ -956,7 +966,7 @@ const CampaignPage = () => {
       {/* Header */}
       <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.headerBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-16">
             <button
               onClick={() => campaign?.user_id && navigate(`/org/${campaign.user_id}`)}
               className="flex items-center space-x-2 hover:opacity-80 transition-opacity duration-200"
@@ -965,16 +975,16 @@ const CampaignPage = () => {
                 <img
                   src={organizerProfile.logo_url}
                   alt="Logo do organizador"
-                  className="h-16 w-auto max-w-[200px] object-contain"
+                  className="h-12 w-auto max-w-[180px] object-contain"
                 />
               ) : (
                 <>
                   <img
                     src="/logo-chatgpt.png"
                     alt="Rifaqui Logo"
-                    className="w-10 h-10 object-contain"
+                    className="w-8 h-8 object-contain"
                   />
-                  <span className={`ml-2 text-2xl font-bold ${themeClasses.rifaquiText}`}>Rifaqui</span>
+                  <span className={`ml-2 text-xl font-bold ${themeClasses.rifaquiText}`}>Rifaqui</span>
                 </>
               )}
             </button>
@@ -992,7 +1002,7 @@ const CampaignPage = () => {
                   setShowPhoneLoginModal(true);
                 }
               }}
-              className={`text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105 ${getColorClassName()}`}
+              className={`text-white px-3 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105 text-sm ${getColorClassName()}`}
               style={getColorStyle(true, false)}
             >
               <Ticket className="h-4 w-4" />
@@ -1211,8 +1221,8 @@ const CampaignPage = () => {
               <div 
                 className="flex items-center justify-center p-3 rounded-lg border"
                 style={{ 
-                  backgroundColor: '#141414',
-                  borderColor: themeClasses.border.replace('border-', '')
+                  backgroundColor: themeClasses.calendarBg,
+                  borderColor: themeClasses.calendarBorder
                 }}
               >
                 <Calendar className="h-4 w-4 mr-2 text-white" />
