@@ -844,7 +844,7 @@ const CampaignPage = () => {
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
           headerBg: 'bg-[#161b26]',
-          border: 'border-gray-700',
+          border: 'border-[#101625]',
           rifaquiText: 'text-white',
           calendarBg: '#090E1A',
           calendarBorder: '#090E1A'
