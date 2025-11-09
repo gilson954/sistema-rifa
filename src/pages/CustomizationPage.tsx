@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Upload, Plus, ArrowRight, X, Loader2, Trash2, ExternalLink, CheckCircle, AlertCircle, Clock, Sparkles, Palette, Eye } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { supabase } from '../lib/supabase';
@@ -548,23 +547,10 @@ const CustomizationPage = () => {
         </div>
 
         {/* Tab Content */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-4 sm:p-8 shadow-lg"
-        >
-          <AnimatePresence mode="wait">
-            {/* Cores e tema Tab */}
-            {activeTab === 'cores-tema' && (
-              <motion.div
-                key="cores-tema"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-6 sm:space-y-8"
-              >
+        <div className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-4 sm:p-8 shadow-lg">
+          {/* Cores e tema Tab */}
+          {activeTab === 'cores-tema' && (
+            <div className="space-y-6 sm:space-y-8">
               {/* Theme Selection */}
               <div>
                 <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2">
@@ -921,14 +907,8 @@ const CustomizationPage = () => {
 
                   {isCustomGradient && colorMode === 'gradient' && (
                     <>
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl p-4 sm:p-8 border border-gray-200/50 dark:border-gray-700/50 mb-4 sm:mb-6"
-                      >
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+                      <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl p-4 sm:p-8 border border-gray-200/50 dark:border-gray-700/50 mb-4 sm:mb-6">
+                        <div className="flex items-center justify-between mb-4 sm:mb-6">
                           <h3 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
                             Suas cores personalizadas
                           </h3>
@@ -945,81 +925,61 @@ const CustomizationPage = () => {
                         </div>
 
                         <div className="space-y-3 sm:space-y-4">
-                          <AnimatePresence>
-                            {customGradientColors.map((color, index) => (
-                              <motion.div
-                                key={index}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                transition={{ duration: 0.2, delay: index * 0.1 }}
-                                className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4"
-                              >
-                                <div className="flex items-center gap-2 sm:gap-4 w-full">
-                                  <div className="flex-shrink-0 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 w-12 sm:w-16">
-                                    Cor {index + 1}
-                                  </div>
-                                  
-                                  <div className="relative flex-1">
-                                    <input
-                                      type="color"
-                                      value={color}
-                                      onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
-                                      className="w-full h-10 sm:h-12 rounded-lg sm:rounded-xl border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
-                                      style={{ backgroundColor: color }}
-                                    />
-                                  </div>
+                          {customGradientColors.map((color, index) => (
+                            <div key={index} className="flex items-center gap-2 sm:gap-4">
+                              <div className="flex-shrink-0 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 w-12 sm:w-16">
+                                Cor {index + 1}
+                              </div>
+                              
+                              <div className="relative flex-1">
+                                <input
+                                  type="color"
+                                  value={color}
+                                  onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
+                                  className="w-full h-10 sm:h-12 rounded-lg sm:rounded-xl border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
+                                  style={{ backgroundColor: color }}
+                                />
+                              </div>
 
-                                  <div className="flex items-center gap-2 sm:gap-3 flex-1">
-                                    <div 
-                                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl shadow-lg border-2 border-white dark:border-gray-700 flex-shrink-0"
-                                      style={{ backgroundColor: color }}
-                                    ></div>
-                                    <input
-                                      type="text"
-                                      value={color.toUpperCase()}
-                                      onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
-                                      className="flex-1 min-w-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                      placeholder="#000000"
-                                    />
-                                  </div>
+                              <div className="flex items-center gap-2 sm:gap-3 flex-1">
+                                <div 
+                                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl shadow-lg border-2 border-white dark:border-gray-700"
+                                  style={{ backgroundColor: color }}
+                                ></div>
+                                <input
+                                  type="text"
+                                  value={color.toUpperCase()}
+                                  onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
+                                  className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                  placeholder="#000000"
+                                />
+                              </div>
 
-                                  {customGradientColors.length > 2 && (
-                                    <motion.button
-                                      whileHover={{ scale: 1.1 }}
-                                      whileTap={{ scale: 0.9 }}
-                                      onClick={() => handleRemoveCustomColor(index)}
-                                      className="flex-shrink-0 p-1.5 sm:p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg sm:rounded-xl transition-all duration-300"
-                                      title="Remover cor"
-                                    >
-                                      <X className="h-4 w-4 sm:h-5 sm:w-5" />
-                                    </motion.button>
-                                  )}
-                                </div>
-                              </motion.div>
-                            ))}
-                          </AnimatePresence>
+                              {customGradientColors.length > 2 && (
+                                <button
+                                  onClick={() => handleRemoveCustomColor(index)}
+                                  className="flex-shrink-0 p-1.5 sm:p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg sm:rounded-xl transition-all duration-300"
+                                  title="Remover cor"
+                                >
+                                  <X className="h-4 w-4 sm:h-5 sm:w-5" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
                         </div>
 
                         {customGradientColors.length < 3 && (
-                          <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                          <button
                             onClick={handleAddCustomColor}
                             className="mt-3 sm:mt-4 w-full py-2 sm:py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 font-semibold"
                           >
                             <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                             Adicionar cor (máx. 3)
-                          </motion.button>
+                          </button>
                         )}
-                      </motion.div>
+                      </div>
 
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                        className="mb-4 sm:mb-6 p-3 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-700/50"
-                      >
+                      <div className="mb-4 sm:mb-6 p-3 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
                         <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Gradiente personalizado:</p>
                         <div 
                           className="w-full h-16 sm:h-20 rounded-xl sm:rounded-2xl shadow-xl animate-gradient-x bg-[length:200%_200%]"
@@ -1028,7 +988,7 @@ const CustomizationPage = () => {
                             backgroundSize: '200% 200%'
                           }}
                         ></div>
-                      </motion.div>
+                      </div>
                     </>
                   )}
 
@@ -1125,12 +1085,10 @@ const CustomizationPage = () => {
               </div>
 
               {/* Save Button */}
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <button 
                 onClick={handleSaveChanges}
                 disabled={saving}
-                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 shadow-lg animate-gradient-x bg-[length:200%_200%]"
+                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 shadow-lg hover:scale-105 animate-gradient-x bg-[length:200%_200%]"
               >
                 {saving ? (
                   <>
@@ -1143,19 +1101,13 @@ const CustomizationPage = () => {
                     <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
                   </>
                 )}
-              </motion.button>
-            </motion.div>
+              </button>
+            </div>
           )}
 
           {/* Logo Tab */}
           {activeTab === 'sua-logo' && (
-            <motion.div
-              key="sua-logo"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-            >
+            <div>
               <h2 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
                 <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 dark:text-purple-400" />
                 Sua logo
@@ -1290,18 +1242,12 @@ const CustomizationPage = () => {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* Domains Tab */}
           {activeTab === 'dominios' && (
-            <motion.div
-              key="dominios"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-            >
+            <div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-3 sm:gap-4">
                 <div>
                   <h2 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
@@ -1333,16 +1279,11 @@ const CustomizationPage = () => {
                   </div>
                 ) : customDomains.length > 0 ? (
                   <div className="space-y-3 sm:space-y-4">
-                    <AnimatePresence>
-                      {customDomains.map((domain, index) => (
-                        <motion.div
-                          key={domain.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          transition={{ duration: 0.3, delay: index * 0.1 }}
-                          className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300"
-                        >
+                    {customDomains.map((domain) => (
+                      <div
+                        key={domain.id}
+                        className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300"
+                      >
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                           <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
                             <div className="flex-shrink-0">
@@ -1501,10 +1442,10 @@ const CustomizationPage = () => {
                   </p>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Confirm Modals */}
       <ConfirmModal
