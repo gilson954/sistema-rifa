@@ -1,80 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Lightbulb, Bug, Zap, MessageSquare, AlertTriangle, CheckCircle, User, Mail, FileText, Upload, X, File } from 'lucide-react';
+import { Send, Lightbulb, Bug, Zap, MessageSquare, AlertTriangle, CheckCircle, User, Mail, FileText, Upload, X, File, Image } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { SuggestionsAPI, CreateSuggestionInput } from '../lib/api/suggestions';
 import { supabase } from '../lib/supabase';
-
-// Variantes de animação
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15
-    }
-  }
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15
-    }
-  }
-};
-
-const buttonVariants = {
-  hover: {
-    scale: 1.05,
-    transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 10
-    }
-  },
-  tap: { scale: 0.95 }
-};
-
-const filePreviewVariants = {
-  hidden: { opacity: 0, scale: 0.8, y: -20 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 200,
-      damping: 20
-    }
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.8,
-    y: -20,
-    transition: { duration: 0.2 }
-  }
-};
 
 const SuggestionsPage = () => {
   const { user } = useAuth();
@@ -96,6 +25,7 @@ const SuggestionsPage = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
 
+  // Carregar dados do usuário
   useEffect(() => {
     const loadUserData = async () => {
       if (!user) return;
@@ -178,6 +108,7 @@ const SuggestionsPage = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -303,288 +234,178 @@ const SuggestionsPage = () => {
   if (loading) {
     return (
       <div className="bg-transparent">
-        <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/60 dark:bg-gray-900/40"
-          >
-            <div className="flex items-center justify-center py-8 sm:py-12">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-purple-600"
-              />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="rounded-2xl p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     );
   }
 
+  const selectedType = feedbackTypes.find(type => type.value === formData.type);
+
   return (
     <div className="bg-transparent min-h-screen">
-      <style>
-        {`
-          @media (max-width: 640px) {
-            ::-webkit-scrollbar {
-              width: 8px;
-            }
-            ::-webkit-scrollbar-track {
-              background: linear-gradient(to bottom, rgba(139, 92, 246, 0.05), rgba(219, 39, 119, 0.05));
-              border-radius: 10px;
-            }
-            ::-webkit-scrollbar-thumb {
-              background: linear-gradient(to bottom, #a855f7, #ec4899, #3b82f6);
-              border-radius: 10px;
-            }
-            ::-webkit-scrollbar-thumb:hover {
-              background: linear-gradient(to bottom, #c084fc, #f472b6);
-            }
-            ::-webkit-scrollbar-thumb:active {
-              background: linear-gradient(to bottom, #7c3aed, #db2777);
-            }
-          }
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8 relative overflow-hidden rounded-2xl p-8 shadow-xl border border-purple-200/30 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/80 to-blue-50/80 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
           
-          @media (min-width: 641px) {
-            ::-webkit-scrollbar {
-              width: 12px;
-            }
-            ::-webkit-scrollbar-track {
-              background: linear-gradient(to bottom, rgba(139, 92, 246, 0.05), rgba(219, 39, 119, 0.05));
-              border-radius: 10px;
-            }
-            ::-webkit-scrollbar-thumb {
-              background: linear-gradient(to bottom, #a855f7, #ec4899, #3b82f6);
-              border-radius: 10px;
-              box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
-            }
-            ::-webkit-scrollbar-thumb:hover {
-              background: linear-gradient(to bottom, #c084fc, #f472b6);
-              box-shadow: 0 0 15px rgba(192, 132, 252, 0.6);
-            }
-          }
-        `}
-      </style>
-      
-      <motion.main
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8"
-      >
-        <motion.div
-          variants={itemVariants}
-          className="mb-6 sm:mb-8 relative overflow-hidden rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-xl border border-purple-200/30 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/80 to-blue-50/80 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm"
-        >
-          <div className="absolute top-0 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-gradient-to-br from-purple-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-tr from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
-          
-          <div className="relative flex items-center space-x-3 sm:space-x-4">
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
-              className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg"
-            >
-              <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8" />
-            </motion.div>
+          <div className="relative flex items-center space-x-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+              <MessageSquare className="h-8 w-8" />
+            </div>
             <div>
-              <motion.h1
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2"
-              >
-                Enviar Sugestão
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-xs sm:text-base text-gray-600 dark:text-gray-300"
-              >
-                Sua opinião é importante para nós! Ajude-nos a melhorar o sistema.
-              </motion.p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Enviar Sugestão</h1>
+              <p className="text-gray-600 dark:text-gray-300">Sua opinião é importante para nós! Ajude-nos a melhorar o sistema.</p>
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          variants={cardVariants}
-          className="rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/60 dark:bg-gray-900/40"
-        >
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        {/* Form */}
+        <div className="rounded-2xl p-6 shadow-sm border border-gray-200/10 dark:border-gray-800/20 bg-white/6 dark:bg-gray-900/40">
+          <form onSubmit={handleSubmit} className="space-y-6">
             
-            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            {/* Dados do Usuário */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Seu Nome Completo *
                 </label>
                 <div className="relative">
-                  <User className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="text"
                     name="user_name"
                     value={formData.user_name}
                     onChange={handleInputChange}
                     placeholder="Digite seu nome completo"
-                    className={`w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-3 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
                       errors.user_name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                     required
                   />
                 </div>
-                <AnimatePresence>
-                  {errors.user_name && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1"
-                    >
-                      <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4" />
-                      {errors.user_name}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
+                {errors.user_name && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                    <AlertTriangle className="h-4 w-4" />
+                    {errors.user_name}
+                  </p>
+                )}
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Seu Email *
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="email"
                     name="user_email"
                     value={formData.user_email}
                     onChange={handleInputChange}
                     placeholder="seu@email.com"
-                    className={`w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-3 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
                       errors.user_email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                     required
                   />
                 </div>
-                <AnimatePresence>
-                  {errors.user_email && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1"
-                    >
-                      <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4" />
-                      {errors.user_email}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
+                {errors.user_email && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                    <AlertTriangle className="h-4 w-4" />
+                    {errors.user_email}
+                  </p>
+                )}
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div variants={itemVariants}>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
+            {/* Assunto */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Assunto da Sugestão *
               </label>
               <div className="relative">
-                <FileText className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
                   name="subject"
                   value={formData.subject}
                   onChange={handleInputChange}
                   placeholder="Resumo da sua sugestão"
-                  className={`w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-3 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
                     errors.subject ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                   required
                 />
               </div>
-              <AnimatePresence>
-                {errors.subject && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1"
-                  >
-                    <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4" />
-                    {errors.subject}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            </motion.div>
+              {errors.subject && (
+                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                  <AlertTriangle className="h-4 w-4" />
+                  {errors.subject}
+                </p>
+              )}
+            </div>
 
-            <motion.div variants={itemVariants}>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 sm:mb-4">
+            {/* Tipo de Feedback */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
                 Tipo de Feedback *
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
-                {feedbackTypes.map((type, index) => {
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {feedbackTypes.map((type) => {
                   const IconComponent = type.icon;
                   const isSelected = formData.type === type.value;
                   
                   return (
-                    <motion.button
+                    <button
                       key={type.value}
                       type="button"
                       onClick={() => handleTypeChange(type.value)}
-                      variants={buttonVariants}
-                      whileHover="hover"
-                      whileTap="tap"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.1 }}
-                      className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200 text-left ${
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 text-left hover:scale-105 ${
                         isSelected
                           ? `${type.bgColor} ${type.borderColor} shadow-lg`
                           : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                       }`}
                     >
-                      <div className="flex items-center space-x-2 sm:space-x-3">
-                        <motion.div
-                          animate={isSelected ? { scale: [1, 1.2, 1] } : {}}
-                          transition={{ duration: 0.3 }}
-                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center ${
-                            isSelected ? type.bgColor : 'bg-gray-100 dark:bg-gray-700'
-                          }`}
-                        >
-                          <IconComponent className={`h-4 w-4 sm:h-5 sm:w-5 ${isSelected ? type.color : 'text-gray-500 dark:text-gray-400'}`} />
-                        </motion.div>
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                          isSelected ? type.bgColor : 'bg-gray-100 dark:bg-gray-700'
+                        }`}>
+                          <IconComponent className={`h-5 w-5 ${isSelected ? type.color : 'text-gray-500 dark:text-gray-400'}`} />
+                        </div>
                         <div>
-                          <div className={`text-xs sm:text-sm font-semibold ${isSelected ? type.color : 'text-gray-900 dark:text-white'}`}>
+                          <div className={`font-semibold ${isSelected ? type.color : 'text-gray-900 dark:text-white'}`}>
                             {type.label}
                           </div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
                             {type.description}
                           </div>
                         </div>
                       </div>
-                    </motion.button>
+                    </button>
                   );
                 })}
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div variants={itemVariants}>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 sm:mb-4">
+            {/* Prioridade */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
                 Nível de Urgência *
               </label>
-              <div className="flex flex-wrap gap-2 sm:gap-4">
-                {priorityOptions.map((option, index) => (
-                  <motion.button
+              <div className="flex flex-wrap gap-4">
+                {priorityOptions.map((option) => (
+                  <button
                     key={option.value}
                     type="button"
                     onClick={() => handlePriorityChange(option.value)}
-                    variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className={`px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm rounded-lg border-2 font-medium transition-all duration-200 ${
+                    className={`px-6 py-3 rounded-lg border-2 font-medium transition-all duration-200 hover:scale-105 ${
                       formData.priority === option.value
                         ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 shadow-lg'
                         : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
@@ -593,280 +414,176 @@ const SuggestionsPage = () => {
                     <span className={formData.priority === option.value ? option.color : ''}>
                       {option.label}
                     </span>
-                  </motion.button>
+                  </button>
                 ))}
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div variants={itemVariants}>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
+            {/* Mensagem */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Detalhes da Sugestão *
               </label>
               <textarea
                 name="message"
                 value={formData.message}
                 onChange={handleInputChange}
-                rows={5}
+                rows={6}
                 placeholder="Descreva sua sugestão em detalhes..."
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 resize-none ${
+                className={`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 resize-none ${
                   errors.message ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                 }`}
                 required
               />
               <div className="flex justify-between items-center mt-2">
-                <AnimatePresence>
-                  {errors.message ? (
-                    <motion.p
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -10 }}
-                      className="text-red-500 text-xs sm:text-sm flex items-center gap-1"
-                    >
-                      <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4" />
-                      {errors.message}
-                    </motion.p>
-                  ) : (
-                    <div></div>
-                  )}
-                </AnimatePresence>
-                <motion.p
-                  key={formData.message.length}
-                  initial={{ scale: 1.1 }}
-                  animate={{ scale: 1 }}
-                  className="text-xs text-gray-500 dark:text-gray-400"
-                >
+                {errors.message ? (
+                  <p className="text-red-500 text-sm flex items-center gap-1">
+                    <AlertTriangle className="h-4 w-4" />
+                    {errors.message}
+                  </p>
+                ) : (
+                  <div></div>
+                )}
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   {formData.message.length}/5000 caracteres
-                </motion.p>
+                </p>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div variants={itemVariants}>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
+            {/* File Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Anexar Arquivo (Opcional)
+              </label>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
                 Anexe capturas de tela ou documentos (PNG, JPG, GIF, PDF - máx. 10MB)
               </p>
 
-              <AnimatePresence mode="wait">
-                {!selectedFile ? (
-                  <motion.div
-                    key="upload"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="relative"
+              {!selectedFile ? (
+                <div className="relative">
+                  <input
+                    type="file"
+                    id="file-upload"
+                    accept="image/png,image/jpeg,image/jpg,image/gif,application/pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/10 ${
+                      errors.attachment ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50'
+                    }`}
                   >
-                    <input
-                      type="file"
-                      id="file-upload"
-                      accept="image/png,image/jpeg,image/jpg,image/gif,application/pdf"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                    <motion.label
-                      htmlFor="file-upload"
-                      whileHover={{ scale: 1.02, borderColor: 'rgb(168, 85, 247)' }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`flex flex-col items-center justify-center w-full h-24 sm:h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
-                        errors.attachment ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50'
-                      }`}
-                    >
-                      <motion.div
-                        animate={{ y: [0, -5, 0] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                      >
-                        <Upload className={`h-6 w-6 sm:h-8 sm:w-8 mb-1 sm:mb-2 ${errors.attachment ? 'text-red-500' : 'text-gray-400'}`} />
-                      </motion.div>
-                      <p className={`text-xs sm:text-sm font-medium ${errors.attachment ? 'text-red-600' : 'text-gray-600 dark:text-gray-400'}`}>
-                        Clique para selecionar ou arraste o arquivo aqui
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                        PNG, JPG, GIF, PDF (máx. 10MB)
-                      </p>
-                    </motion.label>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="preview"
-                    variants={filePreviewVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 sm:p-4 bg-white dark:bg-gray-800"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                        {filePreview ? (
-                          <motion.img
-                            initial={{ scale: 0, rotate: -180 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            transition={{ type: "spring", stiffness: 200 }}
-                            src={filePreview}
-                            alt="Preview"
-                            className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
-                          />
-                        ) : (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: "spring", stiffness: 200 }}
-                            className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center"
-                          >
-                            <File className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
-                          </motion.div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <motion.p
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate"
-                          >
-                            {selectedFile.name}
-                          </motion.p>
-                          <motion.p
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="text-xs text-gray-500 dark:text-gray-400"
-                          >
-                            {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                          </motion.p>
+                    <Upload className={`h-8 w-8 mb-2 ${errors.attachment ? 'text-red-500' : 'text-gray-400'}`} />
+                    <p className={`text-sm font-medium ${errors.attachment ? 'text-red-600' : 'text-gray-600 dark:text-gray-400'}`}>
+                      Clique para selecionar ou arraste o arquivo aqui
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      PNG, JPG, GIF, PDF (máx. 10MB)
+                    </p>
+                  </label>
+                </div>
+              ) : (
+                <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-800">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      {filePreview ? (
+                        <img
+                          src={filePreview}
+                          alt="Preview"
+                          className="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                          <File className="h-8 w-8 text-gray-400" />
                         </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          {selectedFile.name}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
                       </div>
-                      <motion.button
-                        type="button"
-                        onClick={handleRemoveFile}
-                        whileHover={{ scale: 1.1, rotate: 90 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="p-1.5 sm:p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors duration-200"
-                        title="Remover arquivo"
-                      >
-                        <X className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </motion.button>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <button
+                      type="button"
+                      onClick={handleRemoveFile}
+                      className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors duration-200"
+                      title="Remover arquivo"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              )}
 
-              <AnimatePresence>
-                {errors.attachment && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="text-red-500 text-xs sm:text-sm mt-2 flex items-center gap-1"
-                  >
-                    <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4" />
-                    {errors.attachment}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            </motion.div>
+              {errors.attachment && (
+                <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                  <AlertTriangle className="h-4 w-4" />
+                  {errors.attachment}
+                </p>
+              )}
+            </div>
 
-            <motion.div variants={itemVariants} className="pt-3 sm:pt-4">
-              <motion.button
+            {/* Botão de Envio */}
+            <div className="pt-4">
+              <button
                 type="submit"
                 disabled={submitting}
-                variants={buttonVariants}
-                whileHover={submitting ? {} : "hover"}
-                whileTap={submitting ? {} : "tap"}
-                className="w-full py-3 sm:py-4 rounded-lg sm:rounded-xl text-sm sm:text-lg font-bold shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-white flex items-center justify-center space-x-2 sm:space-x-3"
+                className="w-full py-4 rounded-xl font-bold text-lg shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none animate-gradient-x bg-[length:200%_200%] bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-white flex items-center justify-center space-x-3"
               >
                 {submitting ? (
                   <>
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="rounded-full h-4 w-4 sm:h-6 sm:w-6 border-b-2 border-white"
-                    />
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
                     <span>Enviando sugestão...</span>
                   </>
                 ) : (
                   <>
-                    <motion.div
-                      animate={{ x: [0, 5, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                      <Send className="h-4 w-4 sm:h-6 sm:w-6" />
-                    </motion.div>
+                    <Send className="h-6 w-6" />
                     <span>Enviar Sugestão</span>
                   </>
                 )}
-              </motion.button>
-            </motion.div>
+              </button>
+            </div>
 
-            <motion.p
-              variants={itemVariants}
-              className="text-center text-xs sm:text-sm text-gray-500 dark:text-gray-400"
-            >
+            <p className="text-center text-sm text-gray-500 dark:text-gray-400">
               * Campos obrigatórios
-            </motion.p>
+            </p>
           </form>
-        </motion.div>
+        </div>
 
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: 0.5 }}
-          className="mt-6 sm:mt-8 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-blue-200/30 dark:border-blue-800/30 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 dark:from-blue-900/20 dark:to-indigo-900/20 backdrop-blur-sm"
-        >
-          <div className="flex items-start space-x-3 sm:space-x-4">
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.6 }}
-              className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg"
-            >
-              <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-            </motion.div>
+        {/* Info Card */}
+        <div className="mt-8 rounded-2xl p-6 border border-blue-200/30 dark:border-blue-800/30 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 dark:from-blue-900/20 dark:to-indigo-900/20 backdrop-blur-sm">
+          <div className="flex items-start space-x-4">
+            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+              <CheckCircle className="h-6 w-6 text-white" />
+            </div>
             <div>
-              <motion.h3
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-                className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white mb-1 sm:mb-2"
-              >
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 Como suas sugestões nos ajudam
-              </motion.h3>
-              <motion.ul
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
-                className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300"
-              >
-                {[
-                  'Identificamos problemas que podem ter passado despercebidos',
-                  'Priorizamos funcionalidades baseadas no feedback dos usuários',
-                  'Melhoramos a experiência geral da plataforma'
-                ].map((item, index) => (
-                  <motion.li
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.9 + index * 0.1 }}
-                    className="flex items-start space-x-2"
-                  >
-                    <motion.span
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 2, repeat: Infinity, delay: index * 0.3 }}
-                      className="text-blue-600 dark:text-blue-400 font-bold mt-0.5"
-                    >
-                      •
-                    </motion.span>
-                    <span>{item}</span>
-                  </motion.li>
-                ))}
-              </motion.ul>
+              </h3>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                <li className="flex items-start space-x-2">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold mt-0.5">•</span>
+                  <span>Identificamos problemas que podem ter passado despercebidos</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold mt-0.5">•</span>
+                  <span>Priorizamos funcionalidades baseadas no feedback dos usuários</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold mt-0.5">•</span>
+                  <span>Melhoramos a experiência geral da plataforma</span>
+                </li>
+              </ul>
             </div>
           </div>
-        </motion.div>
-      </motion.main>
+        </div>
+      </main>
     </div>
   );
 };
 
-export default SuggestionsPage;ar Arquivo (Opcional)
-              </label>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 sm:mb-3">
-                Anex
+export default SuggestionsPage;
