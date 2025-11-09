@@ -26,7 +26,6 @@ import CotasPremiadasAdminModal from '../components/CotasPremiadasAdminModal';
 import MaiorMenorCotaModal from '../components/MaiorMenorCotaModal';
 import BuyerContactModal from '../components/BuyerContactModal';
 import TopBuyersModal from '../components/TopBuyersModal';
-import { motion, AnimatePresence } from 'framer-motion';
 
 /* Helper to strip HTML tags from strings (defensive: avoids showing raw HTML) */
 const stripHtml = (input?: string) => {
@@ -550,78 +549,43 @@ const DashboardPage: React.FC = () => {
 
         {/* Campaigns list */}
         {campaignsLoading ? (
-          <motion.div 
-            className="flex items-center justify-center py-12"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div 
-              className="animate-spin rounded-full border-b-2 border-purple-600"
-              style={{ width: isMobile ? '40px' : '48px', height: isMobile ? '40px' : '48px' }}
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            />
-          </motion.div>
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full border-b-2 border-purple-600"
+              style={{ width: isMobile ? '40px' : '48px', height: isMobile ? '40px' : '48px' }}></div>
+          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '12px' : '16px' }}>
-            <AnimatePresence mode="wait">
-              {paginatedCampaigns.length === 0 && (
-                <motion.div 
-                  className="rounded-2xl text-center border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50"
-                  style={{ padding: isMobile ? '24px' : '40px' }}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="font-bold text-gray-900 dark:text-white"
-                    style={{ fontSize: isMobile ? '16px' : '20px', marginBottom: '8px' }}>
-                    Nenhuma campanha encontrada
-                  </div>
-                  <div className="text-gray-600 dark:text-gray-300"
-                    style={{ fontSize: isMobile ? '12px' : '14px', marginBottom: isMobile ? '16px' : '24px' }}>
-                    Crie a sua primeira campanha e comece a vender cotas.
-                  </div>
-                  <div className="flex justify-center">
-                    <motion.button 
-                      onClick={handleCreateCampaign}
-                      className="inline-flex items-center gap-2 rounded-xl font-bold shadow-lg transition-all duration-300 bg-gradient-to-br from-purple-600 to-blue-600 text-white"
-                      style={{ padding: isMobile ? '10px 20px' : '12px 24px', fontSize: isMobile ? '13px' : '15px' }}
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Plus style={{ width: isMobile ? '16px' : '20px', height: isMobile ? '16px' : '20px' }} /> Criar campanha
-                    </motion.button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {paginatedCampaigns.length === 0 && (
+              <div className="rounded-2xl text-center border border-gray-200/20 dark:border-gray-800/30 bg-white/60 dark:bg-gray-900/50"
+                style={{ padding: isMobile ? '24px' : '40px' }}>
+                <div className="font-bold text-gray-900 dark:text-white"
+                  style={{ fontSize: isMobile ? '16px' : '20px', marginBottom: '8px' }}>
+                  Nenhuma campanha encontrada
+                </div>
+                <div className="text-gray-600 dark:text-gray-300"
+                  style={{ fontSize: isMobile ? '12px' : '14px', marginBottom: isMobile ? '16px' : '24px' }}>
+                  Crie a sua primeira campanha e comece a vender cotas.
+                </div>
+                <div className="flex justify-center">
+                  <button onClick={handleCreateCampaign}
+                    className="inline-flex items-center gap-2 rounded-xl font-bold shadow-lg transition-all duration-300 hover:-translate-y-0.5 bg-gradient-to-br from-purple-600 to-blue-600 text-white"
+                    style={{ padding: isMobile ? '10px 20px' : '12px 24px', fontSize: isMobile ? '13px' : '15px' }}>
+                    <Plus style={{ width: isMobile ? '16px' : '20px', height: isMobile ? '16px' : '20px' }} /> Criar campanha
+                  </button>
+                </div>
+              </div>
+            )}
 
-            <AnimatePresence mode="popLayout">
-              {paginatedCampaigns.map((campaign: Campaign, index: number) => (
-                <motion.article
-                  key={campaign.id}
-                  className={`rounded-2xl border transition-all duration-300 hover:shadow-lg flex flex-col ${
-                    campaign.status === 'draft' && campaign.expires_at && getTimeRemaining(campaign.expires_at).expired
-                      ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                      : 'bg-white/70 dark:bg-gray-900/60 border-gray-200/20 dark:border-gray-700/30 backdrop-blur-sm'
-                  }`}
-                  style={{ padding: isMobile ? '12px' : '20px', gap: isMobile ? '12px' : '20px' }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -100 }}
-                  transition={{ 
-                    duration: 0.4, 
-                    delay: index * 0.1,
-                    ease: "easeOut"
-                  }}
-                  layout
-                  whileHover={{ 
-                    scale: 1.01,
-                    boxShadow: "0 10px 30px rgba(121, 40, 202, 0.15)"
-                  }}
-                >
+            {paginatedCampaigns.map((campaign: Campaign) => (
+              <article
+                key={campaign.id}
+                className={`rounded-2xl border transition-all duration-300 hover:shadow-lg flex flex-col ${
+                  campaign.status === 'draft' && campaign.expires_at && getTimeRemaining(campaign.expires_at).expired
+                    ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                    : 'bg-white/70 dark:bg-gray-900/60 border-gray-200/20 dark:border-gray-700/30 backdrop-blur-sm'
+                }`}
+                style={{ padding: isMobile ? '12px' : '20px', gap: isMobile ? '12px' : '20px' }}
+              >
                 {/* Image */}
                 <img
                   src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1'}
@@ -931,26 +895,21 @@ const DashboardPage: React.FC = () => {
               </article>
             ))}
 
-            {/* Pagination - Animada */}
+            {/* Pagination */}
             {totalPages > 1 && (
-              <motion.div 
-                className="flex flex-col sm:flex-row items-center justify-between rounded-xl bg-white/60 dark:bg-gray-900/50 border border-gray-200/20 dark:border-gray-800/30 backdrop-blur-sm"
+              <div className="flex flex-col sm:flex-row items-center justify-between rounded-xl bg-white/60 dark:bg-gray-900/50 border border-gray-200/20 dark:border-gray-800/30 backdrop-blur-sm"
                 style={{ 
                   marginTop: isMobile ? '20px' : '32px',
                   gap: isMobile ? '12px' : '16px',
                   padding: isMobile ? '12px' : '16px'
-                }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-              >
+                }}>
                 <div className="font-medium text-gray-700 dark:text-gray-300 text-center sm:text-left"
                   style={{ fontSize: isMobile ? '11px' : '13px' }}>
                   Mostrando <span className="font-bold text-purple-600 dark:text-purple-400">{((currentPage - 1) * pageSize) + 1}</span> a <span className="font-bold text-purple-600 dark:text-purple-400">{Math.min(currentPage * pageSize, campaigns.length)}</span> de <span className="font-bold text-purple-600 dark:text-purple-400">{campaigns.length}</span>
                 </div>
                 <div className="flex items-center"
                   style={{ gap: isMobile ? '8px' : '12px' }}>
-                  <motion.button 
+                  <button 
                     onClick={() => handlePageChange(currentPage - 1)} 
                     disabled={currentPage === 1} 
                     className="rounded-lg bg-white dark:bg-gray-800 border border-gray-200/20 dark:border-gray-700/30 font-semibold transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-gray-800"
@@ -958,22 +917,17 @@ const DashboardPage: React.FC = () => {
                       padding: isMobile ? '6px 12px' : '8px 16px',
                       fontSize: isMobile ? '11px' : '13px'
                     }}
-                    whileHover={currentPage !== 1 ? { scale: 1.05 } : {}}
-                    whileTap={currentPage !== 1 ? { scale: 0.95 } : {}}
                   >
                     Anterior
-                  </motion.button>
-                  <motion.div 
-                    className="rounded-lg font-bold bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-900 dark:text-purple-100 border border-purple-200/30 dark:border-purple-800/30"
+                  </button>
+                  <div className="rounded-lg font-bold bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-900 dark:text-purple-100 border border-purple-200/30 dark:border-purple-800/30"
                     style={{ 
                       padding: isMobile ? '6px 12px' : '8px 20px',
                       fontSize: isMobile ? '11px' : '13px'
-                    }}
-                    whileHover={{ scale: 1.05 }}
-                  >
+                    }}>
                     {currentPage} de {totalPages}
-                  </motion.div>
-                  <motion.button 
+                  </div>
+                  <button 
                     onClick={() => handlePageChange(currentPage + 1)} 
                     disabled={currentPage === totalPages} 
                     className="rounded-lg bg-white dark:bg-gray-800 border border-gray-200/20 dark:border-gray-700/30 font-semibold transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-gray-800"
@@ -981,13 +935,11 @@ const DashboardPage: React.FC = () => {
                       padding: isMobile ? '6px 12px' : '8px 16px',
                       fontSize: isMobile ? '11px' : '13px'
                     }}
-                    whileHover={currentPage !== totalPages ? { scale: 1.05 } : {}}
-                    whileTap={currentPage !== totalPages ? { scale: 0.95 } : {}}
                   >
                     Próximo
-                  </motion.button>
+                  </button>
                 </div>
-              </motion.div>
+              </div>
             )}
           </div>
         )}
