@@ -1,4 +1,1043 @@
-import React, { useState } from 'react';
+<motion.div variants={staggerContainer}>
+                  <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
+                    Estilo de cor
+                  </h2>
+                  <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
+                    Escolha entre cor sólida ou gradiente animado
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
+                    {['solid', 'gradient'].map((mode, index) => (
+                      <motion.button
+                        key={mode}
+                        variants={fadeInUp}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setColorMode(mode as 'solid' | 'gradient')}
+                        className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 ${
+                          colorMode === mode
+                            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-lg'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2 sm:mb-3">
+                          <span className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
+                            {mode === 'solid' ? 'Cor Sólida' : 'Gradiente Animado'}
+                          </span>
+                          <AnimatePresence>
+                            {colorMode === mode && (
+                              <motion.div
+                                initial={{ scale: 0, rotate: -180 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                exit={{ scale: 0, rotate: 180 }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                              >
+                                <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                        {mode === 'solid' ? (
+                          <motion.div 
+                            className="w-full h-6 sm:h-8 rounded-lg shadow-md" 
+                            style={{ backgroundColor: selectedColor }}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: index * 0.1 }}
+                          />
+                        ) : (
+                          <motion.div 
+                            className={`w-full h-6 sm:h-8 rounded-lg shadow-md ${isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`}`}
+                            style={isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {}}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: index * 0.1 }}
+                          />
+                        )}
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* Solid Colors */}
+                <AnimatePresence>
+                  {colorMode === 'solid' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="flex items-center justify-between mb-1 sm:mb-2">
+                        <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                          Cor principal
+                        </h2>
+                      </div>
+                      <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
+                        A cor selecionada será aplicada aos elementos principais da sua campanha
+                      </p>
+
+                      <motion.div 
+                        variants={staggerContainer}
+                        className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6"
+                      >
+                        {solidColors.map((color, index) => (
+                          <motion.button
+                            key={color}
+                            variants={scaleIn}
+                            custom={index}
+                            whileHover={{ scale: 1.15, rotate: 5 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setSelectedColor(color)}
+                            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl transition-all duration-300 shadow-md hover:shadow-xl ${
+                              selectedColor === color
+                                ? 'ring-2 sm:ring-4 ring-purple-500 ring-offset-2 ring-offset-white dark:ring-offset-gray-900'
+                                : ''
+                            }`}
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+
+                        <motion.div 
+                          variants={scaleIn}
+                          className="relative"
+                        >
+                          <input
+                            type="color"
+                            value={selectedColor}
+                            onChange={(e) => setSelectedColor(e.target.value)}
+                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl border-2 border-gray-300 dark:border-gray-600 opacity-0 absolute inset-0 cursor-pointer"
+                          />
+                          <motion.div 
+                            whileHover={{ scale: 1.15, rotate: 5 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-300 shadow-md"
+                          >
+                            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md sm:rounded-lg bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500"></div>
+                          </motion.div>
+                        </motion.div>
+                      </motion.div>
+
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-4 sm:mb-6 p-3 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-700/50"
+                      >
+                        <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Cor selecionada:</p>
+                        <div className="flex items-center space-x-3 sm:space-x-4">
+                          <motion.div
+                            className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl shadow-lg border-4 border-white dark:border-gray-700"
+                            style={{ backgroundColor: selectedColor }}
+                            animate={{ 
+                              backgroundColor: selectedColor,
+                              scale: [1, 1.05, 1]
+                            }}
+                            transition={{ duration: 0.3 }}
+                          />
+                          <div>
+                            <span className="text-gray-900 dark:text-white font-mono text-base sm:text-lg font-bold">{selectedColor.toUpperCase()}</span>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Código hexadecimal</p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Gradients */}
+                <AnimatePresence>
+                  {colorMode === 'gradient' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="flex items-center justify-between mb-1 sm:mb-2">
+                        <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                          Gradientes animados
+                        </h2>
+                      </div>
+                      <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
+                        Escolha um gradiente pré-definido ou crie o seu próprio com até 3 cores
+                      </p>
+
+                      <motion.div 
+                        variants={staggerContainer}
+                        className="flex gap-2 sm:gap-3 mb-4 sm:mb-6"
+                      >
+                        {['predefinidos', 'personalizado'].map((type, index) => (
+                          <motion.button
+                            key={type}
+                            variants={fadeInUp}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setIsCustomGradient(type === 'personalizado')}
+                            className={`flex-1 px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm rounded-lg sm:rounded-xl font-semibold transition-all duration-300 ${
+                              (type === 'predefinidos' && !isCustomGradient) || (type === 'personalizado' && isCustomGradient)
+                                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
+                                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                            }`}
+                          >
+                            {type === 'predefinidos' ? 'Predefinidos' : 'Personalizado'}
+                          </motion.button>
+                        ))}
+                      </motion.div>
+
+                      <AnimatePresence mode="wait">
+                        {!isCustomGradient ? (
+                          <motion.div
+                            key="predefined"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            transition={{ duration: 0.3 }}
+                            variants={staggerContainer}
+                            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6"
+                          >
+                            {gradients.map((gradient, index) => (
+                              <motion.button
+                                key={gradient.id}
+                                variants={scaleIn}
+                                custom={index}
+                                whileHover={{ scale: 1.05, y: -5 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => setSelectedGradient(gradient.classes)}
+                                className={`group relative overflow-hidden rounded-xl sm:rounded-2xl transition-all duration-300 ${
+                                  selectedGradient === gradient.classes && !isCustomGradient
+                                    ? 'ring-2 sm:ring-4 ring-purple-500 shadow-2xl'
+                                    : 'hover:shadow-xl'
+                                }`}
+                              >
+                                <div className={`h-20 sm:h-24 bg-gradient-to-r ${gradient.classes} animate-gradient-x bg-[length:200%_200%]`}></div>
+                                <AnimatePresence>
+                                  {selectedGradient === gradient.classes && !isCustomGradient && (
+                                    <motion.div
+                                      initial={{ scale: 0, rotate: -180 }}
+                                      animate={{ scale: 1, rotate: 0 }}
+                                      exit={{ scale: 0, rotate: 180 }}
+                                      className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2 bg-white dark:bg-gray-900 rounded-full p-1 shadow-lg"
+                                    >
+                                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 sm:p-3">
+                                  <p className="text-white text-xs font-semibold text-center">{gradient.name}</p>
+                                </div>
+                              </motion.button>
+                            ))}
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="custom"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl p-4 sm:p-8 border border-gray-200/50 dark:border-gray-700/50 mb-4 sm:mb-6">
+                              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                                <h3 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
+                                  Suas cores personalizadas
+                                </h3>
+                                <motion.button
+                                  whileHover={{ scale: 1.05, rotate: 5 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  onClick={handleRandomGradient}
+                                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-lg text-white rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 sm:gap-2"
+                                >
+                                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
+                                  Random
+                                </motion.button>
+                              </div>
+
+                              <motion.div 
+                                variants={staggerContainer}
+                                className="space-y-3 sm:space-y-4"
+                              >
+                                {customGradientColors.map((color, index) => (
+                                  <motion.div 
+                                    key={index}
+                                    variants={fadeInUp}
+                                    className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3"
+                                  >
+                                    <div className="flex-shrink-0 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 w-full sm:w-16 text-center sm:text-left">
+                                      Cor {index + 1}
+                                    </div>
+                                    
+                                    <div className="flex-1 flex items-center gap-2 sm:gap-3">
+                                      <div className="relative flex-1">
+                                        <input
+                                          type="color"
+                                          value={color}
+                                          onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
+                                          className="w-full h-12 sm:h-12 rounded-lg sm:rounded-xl border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
+                                          style={{ backgroundColor: color }}
+                                        />
+                                      </div>
+
+                                      <motion.div 
+                                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl shadow-lg border-2 border-white dark:border-gray-700 flex-shrink-0"
+                                        style={{ backgroundColor: color }}
+                                        animate={{ backgroundColor: color }}
+                                        transition={{ duration: 0.3 }}
+                                      />
+                                      
+                                      <input
+                                        type="text"
+                                        value={color.toUpperCase()}
+                                        onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
+                                        className="w-24 sm:w-28 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md sm:rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        placeholder="#000000"
+                                      />
+
+                                      {customGradientColors.length > 2 && (
+                                        <motion.button
+                                          whileHover={{ scale: 1.1 }}
+                                          whileTap={{ scale: 0.9 }}
+                                          onClick={() => handleRemoveCustomColor(index)}
+                                          className="flex-shrink-0 p-1.5 sm:p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg sm:rounded-xl transition-all duration-300"
+                                          title="Remover cor"
+                                        >
+                                          <X className="h-4 w-4 sm:h-5 sm:w-5" />
+                                        </motion.button>
+                                      )}
+                                    </div>
+                                  </motion.div>
+                                ))}
+                              </motion.div>
+
+                              {customGradientColors.length < 3 && (
+                                <motion.button
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
+                                  onClick={handleAddCustomColor}
+                                  className="mt-3 sm:mt-4 w-full py-2 sm:py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 font-semibold"
+                                >
+                                  <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+                                  Adicionar cor (máx. 3)
+                                </motion.button>
+                              )}
+                            </div>
+
+                            <motion.div 
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              className="mb-4 sm:mb-6 p-3 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-700/50"
+                            >
+                              <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Gradiente personalizado:</p>
+                              <motion.div 
+                                className="w-full h-16 sm:h-20 rounded-xl sm:rounded-2xl shadow-xl animate-gradient-x bg-[length:200%_200%]"
+                                style={{ 
+                                  background: getCustomGradientStyle(),
+                                  backgroundSize: '200% 200%'
+                                }}
+                                animate={{ 
+                                  background: getCustomGradientStyle()
+                                }}
+                                transition={{ duration: 0.5 }}
+                              />
+                            </motion.div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {!isCustomGradient && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="mb-4 sm:mb-6 p-3 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-700/50"
+                        >
+                          <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Gradiente selecionado:</p>
+                          <div className={`w-full h-16 sm:h-20 rounded-xl sm:rounded-2xl shadow-xl bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`}></div>
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Preview */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="mb-6 sm:mb-8"
+                >
+                  <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2">
+                    <Eye className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
+                    Pré-visualização
+                  </h3>
+                  <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
+                    Veja como sua campanha ficará para os visitantes
+                  </p>
+                  <motion.div 
+                    whileHover={{ scale: 1.01 }}
+                    className={`${getThemeClasses(selectedTheme).background} rounded-xl sm:rounded-2xl p-4 sm:p-8 ${getThemeClasses(selectedTheme).border} border-2 transition-all duration-300 shadow-xl`}
+                  >
+                    <div className="space-y-3 sm:space-y-5">
+                      <motion.h4 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className={`text-lg sm:text-2xl font-bold ${getThemeClasses(selectedTheme).text}`}
+                      >
+                        Rifa do iPhone 15 Pro Max
+                      </motion.h4>
+                      
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.1 }}
+                        className={`${getThemeClasses(selectedTheme).cardBg} rounded-lg sm:rounded-xl p-3 sm:p-4 inline-flex items-center space-x-2 sm:space-x-3 shadow-md`}
+                      >
+                        <motion.div 
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-lg ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                        >
+                          G
+                        </motion.div>
+                        <div>
+                          <div className={`text-xs ${getThemeClasses(selectedTheme).textSecondary}`}>
+                            Organizado por:
+                          </div>
+                          <div className={`text-sm sm:text-base font-bold ${getThemeClasses(selectedTheme).text}`}>
+                            João Silva
+                          </div>
+                        </div>
+                      </motion.div>
+                      
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className={`${getThemeClasses(selectedTheme).cardBg} rounded-lg sm:rounded-xl p-3 sm:p-5 shadow-md`}
+                      >
+                        <div className={`text-xs sm:text-sm font-semibold ${getThemeClasses(selectedTheme).textSecondary} mb-2 sm:mb-3`}>
+                          Progresso da campanha
+                        </div>
+                        <div className="bg-gray-300 dark:bg-gray-600 rounded-full h-3 sm:h-4 mb-2 sm:mb-3 shadow-inner overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: '75%' }}
+                            transition={{ duration: 1, delay: 0.4, ease: 'easeOut' }}
+                            className={`h-3 sm:h-4 rounded-full shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                            style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                          />
+                        </div>
+                        <motion.div 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.6 }}
+                          className={`text-sm sm:text-base font-bold ${getThemeClasses(selectedTheme).text}`}
+                        >
+                          750/1000 bilhetes vendidos
+                        </motion.div>
+                      </motion.div>
+                      
+                      <motion.button 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-300 shadow-lg ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                        style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                      >
+                        Participar da Rifa
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="mt-3 sm:mt-4 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl"
+                  >
+                    <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-200 text-center">
+                      Esta é uma prévia de como sua campanha aparecerá para os visitantes
+                    </p>
+                  </motion.div>
+                </motion.div>
+
+                {/* Tip */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="mb-4 sm:mb-6 p-3 sm:p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl sm:rounded-2xl shadow-md"
+                >
+                  <div className="flex items-start space-x-3 sm:space-x-4">
+                    <motion.div 
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: 'spring', delay: 0.5 }}
+                      className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg"
+                    >
+                      <Sparkles className="text-white h-4 w-4 sm:h-5 sm:w-5" />
+                    </motion.div>
+                    <div>
+                      <p className="text-blue-900 dark:text-blue-100 text-sm sm:text-base font-bold mb-1 sm:mb-2">
+                        Dica de Design
+                      </p>
+                      <p className="text-blue-800 dark:text-blue-200 text-xs sm:text-sm">
+                        {colorMode === 'solid' 
+                          ? 'Para melhor legibilidade, escolha cores mais escuras como cor principal. Cores muito claras podem dificultar a leitura do texto branco nos botões.'
+                          : 'Gradientes animados criam um efeito visual impressionante e moderno. Eles são perfeitos para destacar botões e elementos importantes da sua campanha.'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Save Button */}
+                <motion.button 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleSaveChanges}
+                  disabled={saving}
+                  className="w-full sm:w-auto bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 shadow-lg animate-gradient-x bg-[length:200%_200%]"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                      <span>Salvando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Salvar alterações</span>
+                      <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </>
+                  )}
+                </motion.button>
+              </motion.div>
+            )}
+
+            {/* Logo Tab */}
+            {activeTab === 'sua-logo' && (
+              <motion.div
+                key="sua-logo"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={fadeInUp}
+              >
+                <h2 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
+                  <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 dark:text-purple-400" />
+                  Sua logo
+                </h2>
+                <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-6 sm:mb-8">
+                  Adicione sua logo e deixe suas campanhas com a identidade da sua marca
+                </p>
+
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl p-4 sm:p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-lg"
+                >
+                  <h3 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
+                    Logo da empresa
+                  </h3>
+                  <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
+                    Dimensões recomendadas: <span className="text-purple-600 dark:text-purple-400 font-bold">100x50px</span> (proporção 2:1)
+                  </p>
+
+                  <AnimatePresence>
+                    {currentLogoUrl && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="mb-6 sm:mb-8"
+                      >
+                        <h4 className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+                          Logo atual
+                        </h4>
+                        <div className="relative inline-block group">
+                          <motion.img
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            whileHover={{ scale: 1.05 }}
+                            src={currentLogoUrl}
+                            alt="Logo atual"
+                            className="max-w-[200px] sm:max-w-xs max-h-24 sm:max-h-32 object-contain bg-white dark:bg-gray-700 p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-gray-300 dark:border-gray-600 shadow-lg"
+                          />
+                          <motion.button
+                            whileHover={{ scale: 1.1, rotate: 5 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={handleRemoveLogo}
+                            disabled={uploadingLogo}
+                            className="absolute -top-2 sm:-top-3 -right-2 sm:-right-3 bg-red-500 hover:bg-red-600 disabled:bg-red-400 text-white p-1.5 sm:p-2 rounded-full transition-all duration-300 shadow-lg"
+                            title="Remover logo"
+                          >
+                            <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoSelect}
+                    className="hidden"
+                  />
+
+                  <AnimatePresence>
+                    {logoPreviewUrl && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mb-6 sm:mb-8"
+                      >
+                        <h4 className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+                          Pré-visualização
+                        </h4>
+                        <div className="relative inline-block">
+                          <motion.img
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            whileHover={{ scale: 1.05 }}
+                            src={logoPreviewUrl}
+                            alt="Preview da nova logo"
+                            className="max-w-[200px] sm:max-w-xs max-h-24 sm:max-h-32 object-contain bg-white dark:bg-gray-700 p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-purple-500 shadow-xl"
+                          />
+                          <motion.button
+                            whileHover={{ scale: 1.1, rotate: 5 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => {
+                              setLogoFile(null);
+                              setLogoPreviewUrl(null);
+                            }}
+                            className="absolute -top-2 sm:-top-3 -right-2 sm:-right-3 bg-gray-500 hover:bg-gray-600 text-white p-1.5 sm:p-2 rounded-full transition-all duration-300 shadow-lg"
+                            title="Cancelar"
+                          >
+                            <X className="h-4 w-4 sm:h-5 sm:w-5" />
+                          </motion.button>
+                        </div>
+                        
+                        <div className="mt-4 sm:mt-6">
+                          <motion.button
+                            whileHover={{ scale: 1.02, y: -2 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={handleUploadLogo}
+                            disabled={uploadingLogo}
+                            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center space-x-2 sm:space-x-3 shadow-lg"
+                          >
+                            {uploadingLogo ? (
+                              <>
+                                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                                <span>Enviando...</span>
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                                <span>Confirmar Upload</span>
+                              </>
+                            )}
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {!logoPreviewUrl && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      whileHover={{ scale: 1.01, borderColor: 'rgb(168, 85, 247)' }}
+                      onClick={() => logoInputRef.current?.click()}
+                      className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-2xl p-8 sm:p-12 text-center transition-all duration-300 cursor-pointer hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/10 group"
+                    >
+                      <motion.div 
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg"
+                      >
+                        <Upload className="h-8 w-8 sm:h-10 sm:w-10 text-purple-600 dark:text-purple-400" />
+                      </motion.div>
+                      <p className="text-gray-600 dark:text-gray-400 mb-4 sm:mb-6 text-sm sm:text-lg">
+                        Clique aqui para selecionar sua logo
+                      </p>
+                      <motion.button 
+                        type="button"
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          logoInputRef.current?.click();
+                        }}
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base flex items-center space-x-2 sm:space-x-3 mx-auto transition-all duration-300 shadow-lg"
+                      >
+                        <span>Adicionar Logo</span>
+                        <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
+                      </motion.button>
+                    </motion.div>
+                  )}
+
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="mt-4 sm:mt-6 p-3 sm:p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl"
+                  >
+                    <div className="flex items-start space-x-2 sm:space-x-3">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                          <strong className="block mb-1 sm:mb-2">Especificações técnicas:</strong>
+                          • Formatos aceitos: JPG, PNG, WebP<br />
+                          • Tamanho máximo: 5MB<br />
+                          • Dimensões recomendadas: 100x50px (proporção 2:1)<br />
+                          • Fundo transparente recomendado para melhor resultado
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              </motion.div>
+            )}
+
+            {/* Domains Tab */}
+            {activeTab === 'dominios' && (
+              <motion.div
+                key="dominios"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={fadeInUp}
+              >
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-3 sm:gap-4">
+                  <div>
+                    <h2 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
+                      <ExternalLink className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 dark:text-purple-400" />
+                      Domínio personalizado
+                    </h2>
+                    <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400">
+                      Use seu próprio domínio para suas campanhas (ex: rifaminhaloja.com)
+                    </p>
+                  </div>
+                  <motion.button 
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowDomainModal(true)}
+                    className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center space-x-1.5 sm:space-x-2 shadow-lg whitespace-nowrap"
+                  >
+                    <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span>Adicionar Domínio</span>
+                  </motion.button>
+                </div>
+
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl p-4 sm:p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-lg"
+                >
+                  <h3 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
+                    Domínios configurados
+                  </h3>
+
+                  {loadingDomains ? (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center py-12 sm:py-16"
+                    >
+                      <motion.div 
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        className="rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-4 border-purple-600 mx-auto mb-3 sm:mb-4"
+                      />
+                      <p className="text-gray-600 dark:text-gray-400 font-medium text-sm sm:text-base">Carregando domínios...</p>
+                    </motion.div>
+                  ) : customDomains.length > 0 ? (
+                    <motion.div 
+                      variants={staggerContainer}
+                      className="space-y-3 sm:space-y-4"
+                    >
+                      {customDomains.map((domain, index) => (
+                        <motion.div
+                          key={domain.id}
+                          variants={fadeInUp}
+                          custom={index}
+                          whileHover={{ scale: 1.01, y: -2 }}
+                          className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300"
+                        >
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                            <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
+                              <motion.div 
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: index * 0.1 }}
+                                className="flex-shrink-0"
+                              >
+                                {getStatusIcon(domain)}
+                              </motion.div>
+                              <div className="min-w-0 flex-1">
+                                <div className="font-bold text-base sm:text-lg text-gray-900 dark:text-white truncate">
+                                  {domain.domain_name}
+                                </div>
+                                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                  Status: <span className="font-semibold">{getStatusText(domain)}</span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0 w-full sm:w-auto">
+                              {domain.is_verified ? (
+                                <motion.a
+                                  whileHover={{ scale: 1.1, rotate: 5 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  href={`https://${domain.domain_name}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-2 sm:p-3 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg sm:rounded-xl transition-all duration-300"
+                                  title="Abrir domínio"
+                                >
+                                  <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
+                                </motion.a>
+                              ) : (
+                                <motion.button
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  onClick={() => handleVerifyDomain(domain.id)}
+                                  disabled={verifyingDomain === domain.id}
+                                  className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl transition-all duration-300 shadow-md"
+                                >
+                                  {verifyingDomain === domain.id ? (
+                                    <span className="flex items-center gap-2">
+                                      <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                                      Verificando...
+                                    </span>
+                                  ) : 'Verificar'}
+                                </motion.button>
+                              )}
+                              
+                              <motion.button
+                                whileHover={{ scale: 1.1, rotate: 5 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => handleDeleteDomain(domain.id, domain.domain_name)}
+                                className="p-2 sm:p-3 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg sm:rounded-xl transition-all duration-300"
+                                title="Remover domínio"
+                              >
+                                <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                              </motion.button>
+                            </div>
+                          </div>
+                          
+                          <AnimatePresence>
+                            {!domain.is_verified && domain.dns_instructions && (
+                              <motion.div 
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="mt-3 sm:mt-4 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl overflow-hidden"
+                              >
+                                <h4 className="text-xs sm:text-sm font-bold text-blue-900 dark:text-blue-100 mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2">
+                                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
+                                  Instruções DNS
+                                </h4>
+                                <div className="text-xs sm:text-sm text-blue-800 dark:text-blue-200 space-y-1.5 sm:space-y-2 font-mono bg-blue-100 dark:bg-blue-900/30 p-2 sm:p-3 rounded-md sm:rounded-lg">
+                                  <p><strong>Tipo:</strong> CNAME</p>
+                                  <p className="break-all"><strong>Nome:</strong> {domain.domain_name}</p>
+                                  <p><strong>Valor:</strong> meuapp.com</p>
+                                </div>
+                                <div className="mt-2 sm:mt-3 text-xs text-blue-700 dark:text-blue-300">
+                                  Após configurar o DNS, clique em "Verificar" para ativar o domínio.
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  ) : (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="text-center py-12 sm:py-16"
+                    >
+                      <motion.div 
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: 'spring' }}
+                        className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg"
+                      >
+                        <ExternalLink className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 dark:text-gray-500" />
+                      </motion.div>
+                      <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg font-medium mb-1 sm:mb-2">
+                        Nenhum domínio configurado
+                      </p>
+                      <p className="text-gray-500 dark:text-gray-500 text-xs sm:text-sm">
+                        Adicione seu primeiro domínio personalizado
+                      </p>
+                    </motion.div>
+                  )}
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </main>
+
+      {/* Domain Modal */}
+      <AnimatePresence>
+        {showDomainModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4"
+            onClick={() => {
+              setShowDomainModal(false);
+              setNewDomain('');
+            }}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', damping: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-6 sm:p-8 w-full max-w-lg shadow-2xl border border-gray-200 dark:border-gray-700"
+            >
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
+                  <Plus className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+                  Novo domínio
+                </h3>
+                <motion.button
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => {
+                    setShowDomainModal(false);
+                    setNewDomain('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg sm:rounded-xl"
+                >
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
+                </motion.button>
+              </div>
+              
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
+                Adicione um novo domínio personalizado para suas campanhas
+              </p>
+
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
+                  Digite seu domínio
+                </label>
+                <motion.input
+                  initial={{ x: -10, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                  type="text"
+                  value={newDomain}
+                  onChange={(e) => setNewDomain(e.target.value)}
+                  placeholder="Exemplo: rifaqui.com.br"
+                  className="w-full bg-white dark:bg-gray-700 border-2 border-purple-500 focus:border-purple-600 dark:border-purple-600 dark:focus:border-purple-500 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all duration-200"
+                />
+              </div>
+
+              <motion.div 
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="mb-4 sm:mb-6 p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg sm:rounded-xl"
+              >
+                <p className="text-xs sm:text-sm text-yellow-800 dark:text-yellow-200">
+                  <strong>Importante:</strong> Não use https:// ou barras (/), insira apenas o domínio.
+                </p>
+              </motion.div>
+
+              <motion.button
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleSaveDomain}
+                disabled={!newDomain.trim() || saving}
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 shadow-lg"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                    <span>Salvando...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span>Salvar Domínio</span>
+                  </>
+                )}
+              </motion.button>
+              
+              <motion.div 
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="mt-4 sm:mt-6 p-3 sm:p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl"
+              >
+                <div className="flex items-start space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-200">
+                      <strong className="block mb-1">Como funciona:</strong>
+                      Após adicionar o domínio, você receberá instruções para configurar o DNS. 
+                      O certificado SSL será ativado automaticamente após a verificação bem-sucedida.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Confirm Modals */}
+      <ConfirmModal
+        isOpen={showRemoveLogoConfirm}
+        title="Remover Logo"
+        message="Tem certeza que deseja remover sua logo? Esta ação não pode ser desfeita."
+        confirmText="Remover"
+        cancelText="Cancelar"
+        type="danger"
+        loading={uploadingLogo}
+        onConfirm={confirmRemoveLogo}
+        onCancel={() => setShowRemoveLogoConfirm(false)}
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteDomainConfirm}
+        title="Remover Domínio"
+        message={`Tem certeza que deseja remover o domínio ${selectedDomainToDelete?.name}? Esta ação não pode ser desfeita.`}
+        confirmText="Remover"
+        cancelText="Cancelar"
+        type="danger"
+        loading={deleting}
+        onConfirm={confirmDeleteDomain}
+        onCancel={() => {
+          setShowDeleteDomainConfirm(false);
+          setSelectedDomainToDelete(null);
+        }}
+      />
+    </div>
+  );
+};
+
+export default CustomizationPage;import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, Plus, ArrowRight, X, Loader2, Trash2, ExternalLink, CheckCircle, AlertCircle, Clock, Sparkles, Palette, Eye } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
@@ -58,6 +1097,41 @@ const CustomizationPage = () => {
     { id: 'sua-logo', label: 'Sua logo', icon: Upload },
     { id: 'dominios', label: 'Domínios', icon: ExternalLink }
   ];
+
+  // Animation variants
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.4, ease: 'easeOut' }
+    },
+    exit: { 
+      opacity: 0, 
+      y: -20,
+      transition: { duration: 0.3 }
+    }
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  const scaleIn = {
+    hidden: { scale: 0.8, opacity: 0 },
+    visible: { 
+      scale: 1, 
+      opacity: 1,
+      transition: { type: 'spring', stiffness: 300, damping: 20 }
+    }
+  };
 
   React.useEffect(() => {
     const loadUserSettings = async () => {
@@ -508,974 +1582,149 @@ const CustomizationPage = () => {
       </style>
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
-        <div className="mb-6 sm:mb-8 relative overflow-hidden rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-xl border border-purple-200/30 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/80 to-blue-50/80 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm">
+        <motion.div 
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUp}
+          className="mb-6 sm:mb-8 relative overflow-hidden rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-xl border border-purple-200/30 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/80 to-blue-50/80 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm"
+        >
           <div className="absolute top-0 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-gradient-to-br from-purple-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-tr from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
           
           <div className="relative flex items-center space-x-3 sm:space-x-4">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+            <motion.div 
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
+              className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg"
+            >
               <Sparkles className="h-6 w-6 sm:h-8 sm:w-8" />
-            </div>
+            </motion.div>
             <div>
               <h1 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">Personalização</h1>
               <p className="text-xs sm:text-base text-gray-600 dark:text-gray-300">Personalize a aparência das suas campanhas e configure domínios customizados</p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Tabs */}
-        <div className="mb-4 sm:mb-6 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-1.5 sm:p-2 shadow-lg">
+        <motion.div 
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUp}
+          className="mb-4 sm:mb-6 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-1.5 sm:p-2 shadow-lg"
+        >
           <div className="flex space-x-1.5 sm:space-x-2">
-            {tabs.map((tab) => {
+            {tabs.map((tab, index) => {
               const Icon = tab.icon;
               return (
-                <button
+                <motion.button
                   key={tab.id}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl transition-all duration-300 ${
                     activeTab === tab.id
                       ? 'bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-white shadow-lg animate-gradient-x bg-[length:200%_200%]'
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50'
                   }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span className="hidden sm:inline">{tab.label}</span>
-                </button>
+                </motion.button>
               );
             })}
           </div>
-        </div>
+        </motion.div>
 
         {/* Tab Content */}
-        <div className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-4 sm:p-8 shadow-lg">
-          {/* Cores e tema Tab */}
-          {activeTab === 'cores-tema' && (
-            <div className="space-y-6 sm:space-y-8">
-              {/* Theme Selection */}
-              <div>
-                <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2">
-                  <Palette className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
-                  Tema visual
-                </h2>
-                <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-                  Escolha o tema que melhor combina com sua marca
-                </p>
-
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-                  {/* Light Theme */}
-                  <div
-                    onClick={() => setSelectedTheme('claro')}
-                    className={`cursor-pointer rounded-xl sm:rounded-2xl p-3 sm:p-5 transition-all duration-300 hover:scale-105 ${
-                      selectedTheme === 'claro'
-                        ? 'ring-2 sm:ring-4 ring-purple-500 shadow-xl'
-                        : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
-                    }`}
-                  >
-                    <div className={`w-full h-36 sm:h-40 ${getThemeClasses('claro').background} rounded-lg sm:rounded-xl p-2.5 sm:p-4 mb-3 sm:mb-4 ${getThemeClasses('claro').border} border-2 shadow-inner`}>
-                      <div className="space-y-1 sm:space-y-2">
-                        <div className={`text-[10px] sm:text-sm font-bold ${getThemeClasses('claro').text} leading-tight`}>
-                          Rifa do iPhone 15
-                        </div>
-                        <div className={`text-[9px] sm:text-xs ${getThemeClasses('claro').textSecondary} leading-tight`}>
-                          R$ 5,00 por bilhete
-                        </div>
-                        <div className={`${getThemeClasses('claro').cardBg} rounded-md sm:rounded-lg p-1.5 sm:p-3 space-y-1 sm:space-y-2`}>
-                          <div className={`text-[9px] sm:text-xs font-medium ${getThemeClasses('claro').textSecondary} leading-tight`}>
-                            Progresso
-                          </div>
-                          <div className="bg-gray-200 rounded-full h-1.5 sm:h-2">
-                            <div 
-                              className={`h-1.5 sm:h-2 rounded-full w-2/3 ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                              style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                            ></div>
-                          </div>
-                        </div>
-                        <div 
-                          className={`text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md leading-tight ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                        >
-                          Participar
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-center text-sm sm:text-base font-bold text-gray-900 dark:text-white">Claro</p>
-                  </div>
-
-                  {/* Dark Theme */}
-                  <div
-                    onClick={() => setSelectedTheme('escuro')}
-                    className={`cursor-pointer rounded-xl sm:rounded-2xl p-3 sm:p-5 transition-all duration-300 hover:scale-105 ${
-                      selectedTheme === 'escuro'
-                        ? 'ring-2 sm:ring-4 ring-purple-500 shadow-xl'
-                        : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
-                    }`}
-                  >
-                    <div className={`w-full h-36 sm:h-40 ${getThemeClasses('escuro').background} rounded-lg sm:rounded-xl p-2.5 sm:p-4 mb-3 sm:mb-4 border-2 ${getThemeClasses('escuro').border} shadow-inner`}>
-                      <div className="space-y-1 sm:space-y-2">
-                        <div className={`text-[10px] sm:text-sm font-bold ${getThemeClasses('escuro').text} leading-tight`}>
-                          Rifa do iPhone 15
-                        </div>
-                        <div className={`text-[9px] sm:text-xs ${getThemeClasses('escuro').textSecondary} leading-tight`}>
-                          R$ 5,00 por bilhete
-                        </div>
-                        <div className={`${getThemeClasses('escuro').cardBg} rounded-md sm:rounded-lg p-1.5 sm:p-3 space-y-1 sm:space-y-2`}>
-                          <div className={`text-[9px] sm:text-xs font-medium ${getThemeClasses('escuro').textSecondary} leading-tight`}>
-                            Progresso
-                          </div>
-                          <div className="bg-gray-600 rounded-full h-1.5 sm:h-2">
-                            <div 
-                              className={`h-1.5 sm:h-2 rounded-full w-2/3 ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                              style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                            ></div>
-                          </div>
-                        </div>
-                        <div 
-                          className={`text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md leading-tight ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                        >
-                          Participar
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-center text-sm sm:text-base font-bold text-gray-900 dark:text-white">Escuro</p>
-                  </div>
-
-                  {/* Dark Black Theme */}
-                  <div
-                    onClick={() => setSelectedTheme('escuro-preto')}
-                    className={`cursor-pointer rounded-xl sm:rounded-2xl p-3 sm:p-5 transition-all duration-300 hover:scale-105 ${
-                      selectedTheme === 'escuro-preto'
-                        ? 'ring-2 sm:ring-4 ring-purple-500 shadow-xl'
-                        : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
-                    }`}
-                  >
-                    <div className={`w-full h-36 sm:h-40 ${getThemeClasses('escuro-preto').background} rounded-lg sm:rounded-xl p-2.5 sm:p-4 mb-3 sm:mb-4 border-2 ${getThemeClasses('escuro-preto').border} shadow-inner`}>
-                      <div className="space-y-1 sm:space-y-2">
-                        <div className={`text-[10px] sm:text-sm font-bold ${getThemeClasses('escuro-preto').text} leading-tight`}>
-                          Rifa do iPhone 15
-                        </div>
-                        <div className={`text-[9px] sm:text-xs ${getThemeClasses('escuro-preto').textSecondary} leading-tight`}>
-                          R$ 5,00 por bilhete
-                        </div>
-                        <div className={`${getThemeClasses('escuro-preto').cardBg} rounded-md sm:rounded-lg p-1.5 sm:p-3 space-y-1 sm:space-y-2`}>
-                          <div className={`text-[9px] sm:text-xs font-medium ${getThemeClasses('escuro-preto').textSecondary} leading-tight`}>
-                            Progresso
-                          </div>
-                          <div className="bg-gray-700 rounded-full h-1.5 sm:h-2">
-                            <div 
-                              className={`h-1.5 sm:h-2 rounded-full w-2/3 ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                              style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                            ></div>
-                          </div>
-                        </div>
-                        <div 
-                          className={`text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md leading-tight ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                        >
-                          Participar
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-center text-sm sm:text-base font-bold text-gray-900 dark:text-white">Escuro Preto</p>
-                  </div>
-
-                  {/* Dark Gray Theme */}
-                  <div
-                    onClick={() => setSelectedTheme('escuro-cinza')}
-                    className={`cursor-pointer rounded-xl sm:rounded-2xl p-3 sm:p-5 transition-all duration-300 hover:scale-105 ${
-                      selectedTheme === 'escuro-cinza'
-                        ? 'ring-2 sm:ring-4 ring-purple-500 shadow-xl'
-                        : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
-                    }`}
-                  >
-                    <div className={`w-full h-36 sm:h-40 ${getThemeClasses('escuro-cinza').background} rounded-lg sm:rounded-xl p-2.5 sm:p-4 mb-3 sm:mb-4 border-2 ${getThemeClasses('escuro-cinza').border} shadow-inner`}>
-                      <div className="space-y-1 sm:space-y-2">
-                        <div className={`text-[10px] sm:text-sm font-bold ${getThemeClasses('escuro-cinza').text} leading-tight`}>
-                          Rifa do iPhone 15
-                        </div>
-                        <div className={`text-[9px] sm:text-xs ${getThemeClasses('escuro-cinza').textSecondary} leading-tight`}>
-                          R$ 5,00 por bilhete
-                        </div>
-                        <div className={`${getThemeClasses('escuro-cinza').cardBg} rounded-md sm:rounded-lg p-1.5 sm:p-3 space-y-1 sm:space-y-2`}>
-                          <div className={`text-[9px] sm:text-xs font-medium ${getThemeClasses('escuro-cinza').textSecondary} leading-tight`}>
-                            Progresso
-                          </div>
-                          <div className="bg-[#404040] rounded-full h-1.5 sm:h-2">
-                            <div 
-                              className={`h-1.5 sm:h-2 rounded-full w-2/3 ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                              style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                            ></div>
-                          </div>
-                        </div>
-                        <div 
-                          className={`text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md leading-tight ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                        >
-                          Participar
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-center text-sm sm:text-base font-bold text-gray-900 dark:text-white">Escuro Cinza</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Color Mode Selection */}
-              <div>
-                <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
-                  Estilo de cor
-                </h2>
-                <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-                  Escolha entre cor sólida ou gradiente animado
-                </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
-                  <button
-                    onClick={() => setColorMode('solid')}
-                    className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 ${
-                      colorMode === 'solid'
-                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-lg'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2 sm:mb-3">
-                      <span className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">Cor Sólida</span>
-                      {colorMode === 'solid' && <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />}
-                    </div>
-                    <div className="w-full h-6 sm:h-8 rounded-lg shadow-md" style={{ backgroundColor: selectedColor }}></div>
-                  </button>
-
-                  <button
-                    onClick={() => setColorMode('gradient')}
-                    className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 ${
-                      colorMode === 'gradient'
-                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-lg'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2 sm:mb-3">
-                      <span className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">Gradiente Animado</span>
-                      {colorMode === 'gradient' && <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />}
-                    </div>
-                    <div 
-                      className={`w-full h-6 sm:h-8 rounded-lg shadow-md ${isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`}`}
-                      style={isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {}}
-                    ></div>
-                  </button>
-                </div>
-              </div>
-
-              {/* Solid Colors */}
-              <div className={colorMode === 'gradient' ? 'opacity-40 pointer-events-none' : ''}>
-                <div>
-                  <div className="flex items-center justify-between mb-1 sm:mb-2">
-                    <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
-                      Cor principal
-                    </h2>
-                    {colorMode === 'gradient' && (
-                      <span className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 px-2 sm:px-3 py-1 rounded-full">
-                        Desabilitado
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-                    {colorMode === 'gradient'
-                      ? 'As cores sólidas estão desabilitadas porque o Gradiente Animado está ativo'
-                      : 'A cor selecionada será aplicada aos elementos principais da sua campanha'
-                    }
-                  </p>
-
-                  <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6">
-                    {solidColors.map((color) => (
-                      <button
-                        key={color}
-                        onClick={() => colorMode === 'solid' && setSelectedColor(color)}
-                        disabled={colorMode === 'gradient'}
-                        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl transition-all duration-300 shadow-md hover:shadow-xl ${
-                          selectedColor === color && colorMode === 'solid'
-                            ? 'ring-2 sm:ring-4 ring-purple-500 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 scale-110'
-                            : 'hover:scale-105'
-                        } ${colorMode === 'gradient' ? 'cursor-not-allowed' : ''}`}
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-
-                    <div className="relative">
-                      <input
-                        type="color"
-                        value={selectedColor}
-                        onChange={(e) => colorMode === 'solid' && setSelectedColor(e.target.value)}
-                        disabled={colorMode === 'gradient'}
-                        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl border-2 border-gray-300 dark:border-gray-600 opacity-0 absolute inset-0 ${
-                          colorMode === 'solid' ? 'cursor-pointer' : 'cursor-not-allowed'
-                        }`}
-                      />
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-300 shadow-md">
-                        <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md sm:rounded-lg bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-4 sm:mb-6 p-3 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-                    <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Cor selecionada:</p>
-                    <div className="flex items-center space-x-3 sm:space-x-4">
-                      <div
-                        className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl shadow-lg border-4 border-white dark:border-gray-700"
-                        style={{ backgroundColor: selectedColor }}
-                      ></div>
-                      <div>
-                        <span className="text-gray-900 dark:text-white font-mono text-base sm:text-lg font-bold">{selectedColor.toUpperCase()}</span>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Código hexadecimal</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Gradients */}
-              <div className={colorMode === 'solid' ? 'opacity-40 pointer-events-none' : ''}>
-                <div>
-                  <div className="flex items-center justify-between mb-1 sm:mb-2">
-                    <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
-                      Gradientes animados
-                    </h2>
-                    {colorMode === 'solid' && (
-                      <span className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 px-2 sm:px-3 py-1 rounded-full">
-                        Desabilitado
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-                    {colorMode === 'solid'
-                      ? 'Os gradientes estão desabilitados porque a Cor Sólida está ativa'
-                      : 'Escolha um gradiente pré-definido ou crie o seu próprio com até 3 cores'
-                    }
-                  </p>
-
-                  <div className="flex gap-2 sm:gap-3 mb-4 sm:mb-6">
-                    <button
-                      onClick={() => colorMode === 'gradient' && setIsCustomGradient(false)}
-                      disabled={colorMode === 'solid'}
-                      className={`flex-1 px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm rounded-lg sm:rounded-xl font-semibold transition-all duration-300 ${
-                        !isCustomGradient && colorMode === 'gradient'
-                          ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      } ${colorMode === 'solid' ? 'cursor-not-allowed' : ''}`}
-                    >
-                      Predefinidos
-                    </button>
-                    <button
-                      onClick={() => colorMode === 'gradient' && setIsCustomGradient(true)}
-                      disabled={colorMode === 'solid'}
-                      className={`flex-1 px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm rounded-lg sm:rounded-xl font-semibold transition-all duration-300 ${
-                        isCustomGradient && colorMode === 'gradient'
-                          ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      } ${colorMode === 'solid' ? 'cursor-not-allowed' : ''}`}
-                    >
-                      Personalizado
-                    </button>
-                  </div>
-
-                  {!isCustomGradient && colorMode === 'gradient' && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-                      {gradients.map((gradient) => (
-                        <button
-                          key={gradient.id}
-                          onClick={() => colorMode === 'gradient' && setSelectedGradient(gradient.classes)}
-                          disabled={colorMode === 'solid'}
-                          className={`group relative overflow-hidden rounded-xl sm:rounded-2xl transition-all duration-300 ${
-                            selectedGradient === gradient.classes && !isCustomGradient
-                              ? 'ring-2 sm:ring-4 ring-purple-500 shadow-2xl scale-105'
-                              : 'hover:scale-105 hover:shadow-xl'
-                          } ${colorMode === 'solid' ? 'cursor-not-allowed' : ''}`}
-                        >
-                          <div className={`h-20 sm:h-24 bg-gradient-to-r ${gradient.classes} animate-gradient-x bg-[length:200%_200%]`}></div>
-                          {selectedGradient === gradient.classes && !isCustomGradient && (
-                            <div className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2 bg-white dark:bg-gray-900 rounded-full p-1 shadow-lg">
-                              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
-                            </div>
-                          )}
-                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 sm:p-3">
-                            <p className="text-white text-xs font-semibold text-center">{gradient.name}</p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {isCustomGradient && colorMode === 'gradient' && (
-                    <>
-                      <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl p-4 sm:p-8 border border-gray-200/50 dark:border-gray-700/50 mb-4 sm:mb-6">
-                        <div className="flex items-center justify-between mb-4 sm:mb-6">
-                          <h3 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
-                            Suas cores personalizadas
-                          </h3>
-                          <button
-                            onClick={colorMode === 'gradient' ? handleRandomGradient : undefined}
-                            disabled={colorMode === 'solid'}
-                            className={`px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-lg text-white rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 sm:gap-2 hover:scale-105 ${
-                              colorMode === 'solid' ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                          >
-                            <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
-                            Random
-                          </button>
-                        </div>
-
-                        <div className="space-y-3 sm:space-y-4">
-                          {customGradientColors.map((color, index) => (
-                            <div key={index} className="flex items-center gap-2 sm:gap-4">
-                              <div className="flex-shrink-0 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 w-12 sm:w-16">
-                                Cor {index + 1}
-                              </div>
-                              
-                              <div className="relative flex-1">
-                                <input
-                                  type="color"
-                                  value={color}
-                                  onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
-                                  className="w-full h-10 sm:h-12 rounded-lg sm:rounded-xl border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
-                                  style={{ backgroundColor: color }}
-                                />
-                              </div>
-
-                              <div className="flex items-center gap-2 sm:gap-3 flex-1">
-                                <div 
-                                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl shadow-lg border-2 border-white dark:border-gray-700"
-                                  style={{ backgroundColor: color }}
-                                ></div>
-                                <input
-                                  type="text"
-                                  value={color.toUpperCase()}
-                                  onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
-                                  className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                  placeholder="#000000"
-                                />
-                              </div>
-
-                              {customGradientColors.length > 2 && (
-                                <button
-                                  onClick={() => handleRemoveCustomColor(index)}
-                                  className="flex-shrink-0 p-1.5 sm:p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg sm:rounded-xl transition-all duration-300"
-                                  title="Remover cor"
-                                >
-                                  <X className="h-4 w-4 sm:h-5 sm:w-5" />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-
-                        {customGradientColors.length < 3 && (
-                          <button
-                            onClick={handleAddCustomColor}
-                            className="mt-3 sm:mt-4 w-full py-2 sm:py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 font-semibold"
-                          >
-                            <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-                            Adicionar cor (máx. 3)
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="mb-4 sm:mb-6 p-3 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-                        <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Gradiente personalizado:</p>
-                        <div 
-                          className="w-full h-16 sm:h-20 rounded-xl sm:rounded-2xl shadow-xl animate-gradient-x bg-[length:200%_200%]"
-                          style={{ 
-                            background: getCustomGradientStyle(),
-                            backgroundSize: '200% 200%'
-                          }}
-                        ></div>
-                      </div>
-                    </>
-                  )}
-
-                  {!isCustomGradient && colorMode === 'gradient' && (
-                    <div className="mb-4 sm:mb-6 p-3 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-                      <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Gradiente selecionado:</p>
-                      <div className={`w-full h-16 sm:h-20 rounded-xl sm:rounded-2xl shadow-xl bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`}></div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Preview */}
-              <div className="mb-6 sm:mb-8">
-                <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2">
-                  <Eye className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
-                  Pré-visualização
-                </h3>
-                <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-                  Veja como sua campanha ficará para os visitantes
-                </p>
-                <div className={`${getThemeClasses(selectedTheme).background} rounded-xl sm:rounded-2xl p-4 sm:p-8 ${getThemeClasses(selectedTheme).border} border-2 transition-all duration-300 shadow-xl`}>
-                  <div className="space-y-3 sm:space-y-5">
-                    <h4 className={`text-lg sm:text-2xl font-bold ${getThemeClasses(selectedTheme).text}`}>
-                      Rifa do iPhone 15 Pro Max
-                    </h4>
-                    
-                    <div className={`${getThemeClasses(selectedTheme).cardBg} rounded-lg sm:rounded-xl p-3 sm:p-4 inline-flex items-center space-x-2 sm:space-x-3 shadow-md`}>
-                      <div 
-                        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-lg ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                        style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                      >
-                        G
-                      </div>
-                      <div>
-                        <div className={`text-xs ${getThemeClasses(selectedTheme).textSecondary}`}>
-                          Organizado por:
-                        </div>
-                        <div className={`text-sm sm:text-base font-bold ${getThemeClasses(selectedTheme).text}`}>
-                          João Silva
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className={`${getThemeClasses(selectedTheme).cardBg} rounded-lg sm:rounded-xl p-3 sm:p-5 shadow-md`}>
-                      <div className={`text-xs sm:text-sm font-semibold ${getThemeClasses(selectedTheme).textSecondary} mb-2 sm:mb-3`}>
-                        Progresso da campanha
-                      </div>
-                      <div className="bg-gray-300 dark:bg-gray-600 rounded-full h-3 sm:h-4 mb-2 sm:mb-3 shadow-inner">
-                        <div 
-                          className={`h-3 sm:h-4 rounded-full w-3/4 transition-all duration-300 shadow-md ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                          style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                        ></div>
-                      </div>
-                      <div className={`text-sm sm:text-base font-bold ${getThemeClasses(selectedTheme).text}`}>
-                        750/1000 bilhetes vendidos
-                      </div>
-                    </div>
-                    
-                    <button 
-                      className={`text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl shadow-lg ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                      style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                    >
-                      Participar da Rifa
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl">
-                  <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-200 text-center">
-                    Esta é uma prévia de como sua campanha aparecerá para os visitantes
-                  </p>
-                </div>
-              </div>
-
-              {/* Tip */}
-              <div className="mb-4 sm:mb-6 p-3 sm:p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl sm:rounded-2xl shadow-md">
-                <div className="flex items-start space-x-3 sm:space-x-4">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <Sparkles className="text-white h-4 w-4 sm:h-5 sm:w-5" />
-                  </div>
-                  <div>
-                    <p className="text-blue-900 dark:text-blue-100 text-sm sm:text-base font-bold mb-1 sm:mb-2">
-                      Dica de Design
-                    </p>
-                    <p className="text-blue-800 dark:text-blue-200 text-xs sm:text-sm">
-                      {colorMode === 'solid' 
-                        ? 'Para melhor legibilidade, escolha cores mais escuras como cor principal. Cores muito claras podem dificultar a leitura do texto branco nos botões.'
-                        : 'Gradientes animados criam um efeito visual impressionante e moderno. Eles são perfeitos para destacar botões e elementos importantes da sua campanha.'
-                      }
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Save Button */}
-              <button 
-                onClick={handleSaveChanges}
-                disabled={saving}
-                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 shadow-lg hover:scale-105 animate-gradient-x bg-[length:200%_200%]"
+        <motion.div 
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUp}
+          className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-4 sm:p-8 shadow-lg"
+        >
+          <AnimatePresence mode="wait">
+            {/* Cores e tema Tab */}
+            {activeTab === 'cores-tema' && (
+              <motion.div
+                key="cores-tema"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={fadeInUp}
+                className="space-y-6 sm:space-y-8"
               >
-                {saving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                    <span>Salvando...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Salvar alterações</span>
-                    <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-
-          {/* Logo Tab */}
-          {activeTab === 'sua-logo' && (
-            <div>
-              <h2 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
-                <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 dark:text-purple-400" />
-                Sua logo
-              </h2>
-              <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-6 sm:mb-8">
-                Adicione sua logo e deixe suas campanhas com a identidade da sua marca
-              </p>
-
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl p-4 sm:p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
-                <h3 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
-                  Logo da empresa
-                </h3>
-                <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-                  Dimensões recomendadas: <span className="text-purple-600 dark:text-purple-400 font-bold">100x50px</span> (proporção 2:1)
-                </p>
-
-                {currentLogoUrl && (
-                  <div className="mb-6 sm:mb-8">
-                    <h4 className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
-                      Logo atual
-                    </h4>
-                    <div className="relative inline-block group">
-                      <img
-                        src={currentLogoUrl}
-                        alt="Logo atual"
-                        className="max-w-[200px] sm:max-w-xs max-h-24 sm:max-h-32 object-contain bg-white dark:bg-gray-700 p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-gray-300 dark:border-gray-600 shadow-lg"
-                      />
-                      <button
-                        onClick={handleRemoveLogo}
-                        disabled={uploadingLogo}
-                        className="absolute -top-2 sm:-top-3 -right-2 sm:-right-3 bg-red-500 hover:bg-red-600 disabled:bg-red-400 text-white p-1.5 sm:p-2 rounded-full transition-all duration-300 shadow-lg hover:scale-110"
-                        title="Remover logo"
-                      >
-                        <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <input
-                  ref={logoInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoSelect}
-                  className="hidden"
-                />
-
-                {logoPreviewUrl && (
-                  <div className="mb-6 sm:mb-8">
-                    <h4 className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
-                      Pré-visualização
-                    </h4>
-                    <div className="relative inline-block">
-                      <img
-                        src={logoPreviewUrl}
-                        alt="Preview da nova logo"
-                        className="max-w-[200px] sm:max-w-xs max-h-24 sm:max-h-32 object-contain bg-white dark:bg-gray-700 p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-purple-500 shadow-xl"
-                      />
-                      <button
-                        onClick={() => {
-                          setLogoFile(null);
-                          setLogoPreviewUrl(null);
-                        }}
-                        className="absolute -top-2 sm:-top-3 -right-2 sm:-right-3 bg-gray-500 hover:bg-gray-600 text-white p-1.5 sm:p-2 rounded-full transition-all duration-300 shadow-lg hover:scale-110"
-                        title="Cancelar"
-                      >
-                        <X className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </button>
-                    </div>
-                    
-                    <div className="mt-4 sm:mt-6">
-                      <button
-                        onClick={handleUploadLogo}
-                        disabled={uploadingLogo}
-                        className="bg-gradient-to-r from-green-600 to-emerald-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center space-x-2 sm:space-x-3 shadow-lg hover:scale-105"
-                      >
-                        {uploadingLogo ? (
-                          <>
-                            <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                            <span>Enviando...</span>
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-                            <span>Confirmar Upload</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {!logoPreviewUrl && (
-                  <div 
-                    onClick={() => logoInputRef.current?.click()}
-                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-2xl p-8 sm:p-12 text-center transition-all duration-300 cursor-pointer hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/10 group"
-                  >
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                      <Upload className="h-8 w-8 sm:h-10 sm:w-10 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4 sm:mb-6 text-sm sm:text-lg">
-                      Clique aqui para selecionar sua logo
-                    </p>
-                    <button 
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        logoInputRef.current?.click();
-                      }}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base flex items-center space-x-2 sm:space-x-3 mx-auto transition-all duration-300 shadow-lg hover:scale-105"
-                    >
-                      <span>Adicionar Logo</span>
-                      <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </button>
-                  </div>
-                )}
-
-                <div className="mt-4 sm:mt-6 p-3 sm:p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl">
-                  <div className="flex items-start space-x-2 sm:space-x-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                      <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                        <strong className="block mb-1 sm:mb-2">Especificações técnicas:</strong>
-                        • Formatos aceitos: JPG, PNG, WebP<br />
-                        • Tamanho máximo: 5MB<br />
-                        • Dimensões recomendadas: 100x50px (proporção 2:1)<br />
-                        • Fundo transparente recomendado para melhor resultado
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Domains Tab */}
-          {activeTab === 'dominios' && (
-            <div>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-3 sm:gap-4">
-                <div>
-                  <h2 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
-                    <ExternalLink className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 dark:text-purple-400" />
-                    Domínio personalizado
+                {/* Theme Selection */}
+                <motion.div variants={staggerContainer}>
+                  <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2">
+                    <Palette className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
+                    Tema visual
                   </h2>
-                  <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400">
-                    Use seu próprio domínio para suas campanhas (ex: rifaminhaloja.com)
+                  <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
+                    Escolha o tema que melhor combina com sua marca
                   </p>
-                </div>
-                <button 
-                  onClick={() => setShowDomainModal(true)}
-                  className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center space-x-1.5 sm:space-x-2 shadow-lg hover:scale-105 whitespace-nowrap"
-                >
-                  <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Adicionar Domínio</span>
-                </button>
-              </div>
 
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl p-4 sm:p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
-                <h3 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
-                  Domínios configurados
-                </h3>
-
-                {loadingDomains ? (
-                  <div className="text-center py-12 sm:py-16">
-                    <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-4 border-purple-600 mx-auto mb-3 sm:mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400 font-medium text-sm sm:text-base">Carregando domínios...</p>
-                  </div>
-                ) : customDomains.length > 0 ? (
-                  <div className="space-y-3 sm:space-y-4">
-                    {customDomains.map((domain) => (
-                      <div
-                        key={domain.id}
-                        className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300"
-                      >
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-                          <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
-                            <div className="flex-shrink-0">
-                              {getStatusIcon(domain)}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="font-bold text-base sm:text-lg text-gray-900 dark:text-white truncate">
-                                {domain.domain_name}
+                  <motion.div 
+                    variants={staggerContainer}
+                    className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8"
+                  >
+                    {['claro', 'escuro', 'escuro-preto', 'escuro-cinza'].map((theme, index) => {
+                      const themeClasses = getThemeClasses(theme);
+                      const themeNames: Record<string, string> = {
+                        'claro': 'Claro',
+                        'escuro': 'Escuro',
+                        'escuro-preto': 'Escuro Preto',
+                        'escuro-cinza': 'Escuro Cinza'
+                      };
+                      
+                      return (
+                        <motion.div
+                          key={theme}
+                          variants={fadeInUp}
+                          whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setSelectedTheme(theme)}
+                          className={`cursor-pointer rounded-xl sm:rounded-2xl p-3 sm:p-5 transition-all duration-300 ${
+                            selectedTheme === theme
+                              ? 'ring-2 sm:ring-4 ring-purple-500 shadow-xl'
+                              : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
+                          }`}
+                        >
+                          <div className={`w-full h-36 sm:h-40 ${themeClasses.background} rounded-lg sm:rounded-xl p-2.5 sm:p-4 mb-3 sm:mb-4 ${themeClasses.border} border-2 shadow-inner`}>
+                            <div className="space-y-1 sm:space-y-2">
+                              <div className={`text-[10px] sm:text-sm font-bold ${themeClasses.text} leading-tight`}>
+                                Rifa do iPhone 15
                               </div>
-                              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                                Status: <span className="font-semibold">{getStatusText(domain)}</span>
+                              <div className={`text-[9px] sm:text-xs ${themeClasses.textSecondary} leading-tight`}>
+                                R$ 5,00 por bilhete
                               </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0 w-full sm:w-auto">
-                            {domain.is_verified ? (
-                              <a
-                                href={`https://${domain.domain_name}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 sm:p-3 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-110"
-                                title="Abrir domínio"
+                              <div className={`${themeClasses.cardBg} rounded-md sm:rounded-lg p-1.5 sm:p-3 space-y-1 sm:space-y-2`}>
+                                <div className={`text-[9px] sm:text-xs font-medium ${themeClasses.textSecondary} leading-tight`}>
+                                  Progresso
+                                </div>
+                                <div className="bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 sm:h-2">
+                                  <motion.div 
+                                    initial={{ width: 0 }}
+                                    animate={{ width: '66%' }}
+                                    transition={{ duration: 1, delay: index * 0.1 + 0.3 }}
+                                    className={`h-1.5 sm:h-2 rounded-full ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                                    style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
+                                  ></motion.div>
+                                </div>
+                              </div>
+                              <motion.div 
+                                whileHover={{ scale: 1.05 }}
+                                className={`text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md leading-tight ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
+                                style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
                               >
-                                <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
-                              </a>
-                            ) : (
-                              <button
-                                onClick={() => handleVerifyDomain(domain.id)}
-                                disabled={verifyingDomain === domain.id}
-                                className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-105 shadow-md"
-                              >
-                                {verifyingDomain === domain.id ? 'Verificando...' : 'Verificar'}
-                              </button>
-                            )}
-                            
-                            <button
-                              onClick={() => handleDeleteDomain(domain.id, domain.domain_name)}
-                              className="p-2 sm:p-3 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-110"
-                              title="Remover domínio"
-                            >
-                              <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                            </button>
-                          </div>
-                        </div>
-                        
-                        {!domain.is_verified && domain.dns_instructions && (
-                          <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl">
-                            <h4 className="text-xs sm:text-sm font-bold text-blue-900 dark:text-blue-100 mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2">
-                              <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
-                              Instruções DNS
-                            </h4>
-                            <div className="text-xs sm:text-sm text-blue-800 dark:text-blue-200 space-y-1.5 sm:space-y-2 font-mono bg-blue-100 dark:bg-blue-900/30 p-2 sm:p-3 rounded-md sm:rounded-lg">
-                              <p><strong>Tipo:</strong> CNAME</p>
-                              <p><strong>Nome:</strong> {domain.domain_name}</p>
-                              <p><strong>Valor:</strong> meuapp.com</p>
-                            </div>
-                            <div className="mt-2 sm:mt-3 text-xs text-blue-700 dark:text-blue-300">
-                              Após configurar o DNS, clique em "Verificar" para ativar o domínio.
+                                Participar
+                              </motion.div>
                             </div>
                           </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 sm:py-16">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
-                      <ExternalLink className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 dark:text-gray-500" />
-                    </div>
-                    <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg font-medium mb-1 sm:mb-2">
-                      Nenhum domínio configurado
-                    </p>
-                    <p className="text-gray-500 dark:text-gray-500 text-xs sm:text-sm">
-                      Adicione seu primeiro domínio personalizado
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </main>
-
-      {/* Domain Modal */}
-      {showDomainModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-6 sm:p-8 w-full max-w-lg shadow-2xl border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
-                <Plus className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
-                Novo domínio
-              </h3>
-              <button
-                onClick={() => {
-                  setShowDomainModal(false);
-                  setNewDomain('');
-                }}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg sm:rounded-xl"
-              >
-                <X className="h-5 w-5 sm:h-6 sm:w-6" />
-              </button>
-            </div>
-            
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-              Adicione um novo domínio personalizado para suas campanhas
-            </p>
-
-            <div className="mb-4 sm:mb-6">
-              <label className="block text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
-                Digite seu domínio
-              </label>
-              <input
-                type="text"
-                value={newDomain}
-                onChange={(e) => setNewDomain(e.target.value)}
-                placeholder="Exemplo: rifaqui.com.br"
-                className="w-full bg-white dark:bg-gray-700 border-2 border-purple-500 focus:border-purple-600 dark:border-purple-600 dark:focus:border-purple-500 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all duration-200"
-              />
-            </div>
-
-            <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg sm:rounded-xl">
-              <p className="text-xs sm:text-sm text-yellow-800 dark:text-yellow-200">
-                <strong>Importante:</strong> Não use https:// ou barras (/), insira apenas o domínio.
-              </p>
-            </div>
-
-            <button
-              onClick={handleSaveDomain}
-              disabled={!newDomain.trim() || saving}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 shadow-lg hover:scale-105"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                  <span>Salvando...</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Salvar Domínio</span>
-                </>
-              )}
-            </button>
-            
-            <div className="mt-4 sm:mt-6 p-3 sm:p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl">
-              <div className="flex items-start space-x-2 sm:space-x-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-200">
-                    <strong className="block mb-1">Como funciona:</strong>
-                    Após adicionar o domínio, você receberá instruções para configurar o DNS. 
-                    O certificado SSL será ativado automaticamente após a verificação bem-sucedida.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Confirm Modals */}
-      <ConfirmModal
-        isOpen={showRemoveLogoConfirm}
-        title="Remover Logo"
-        message="Tem certeza que deseja remover sua logo? Esta ação não pode ser desfeita."
-        confirmText="Remover"
-        cancelText="Cancelar"
-        type="danger"
-        loading={uploadingLogo}
-        onConfirm={confirmRemoveLogo}
-        onCancel={() => setShowRemoveLogoConfirm(false)}
-      />
-
-      <ConfirmModal
-        isOpen={showDeleteDomainConfirm}
-        title="Remover Domínio"
-        message={`Tem certeza que deseja remover o domínio ${selectedDomainToDelete?.name}? Esta ação não pode ser desfeita.`}
-        confirmText="Remover"
-        cancelText="Cancelar"
-        type="danger"
-        loading={deleting}
-        onConfirm={confirmDeleteDomain}
-        onCancel={() => {
-          setShowDeleteDomainConfirm(false);
-          setSelectedDomainToDelete(null);
-        }}
-      />
-    </div>
-  );
-};
-
-export default CustomizationPage;
+                          <p className="text-center text-sm sm:text-base font-bold text-gray-900 dark:text-white">{themeNames[theme]}</p>
+                        </motion.div>
+                      );
