@@ -267,7 +267,7 @@ const MyTicketsPage = () => {
         };
       case 'escuro-preto':
         return {
-          background: 'bg-black', text: 'text-white', textSecondary: 'text-gray-300', cardBg: 'bg-gray-900', border: 'border-gray-700', headerBg: 'bg-[#161b26]',
+          background: 'bg-black', text: 'text-white', textSecondary: 'text-gray-300', cardBg: 'bg-gray-900', border: 'border-[#101625]', headerBg: 'bg-[#161b26]',
           userBadgeBg: 'bg-gray-800', userBadgeBorder: 'border-gray-700',
           paginationContainerBg: 'bg-gray-900', paginationContainerBorder: 'border-gray-800',
           paginationButtonBg: 'bg-gray-800', paginationButtonText: 'text-gray-200',
