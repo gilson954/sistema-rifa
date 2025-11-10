@@ -823,7 +823,8 @@ const CampaignPage = () => {
           border: 'border-gray-200',
           rifaquiText: 'text-gray-900',
           calendarBg: '#dbdbdb',
-          calendarBorder: '#dbdbdb'
+          calendarBorder: '#dbdbdb',
+          calendarText: 'text-gray-900'
         };
       case 'escuro':
         return {
@@ -835,7 +836,8 @@ const CampaignPage = () => {
           border: 'border-[#101625]',
           rifaquiText: 'text-white',
           calendarBg: '#101625',
-          calendarBorder: '#101625'
+          calendarBorder: '#101625',
+          calendarText: 'text-white'
         };
       case 'escuro-preto':
         return {
@@ -847,7 +849,8 @@ const CampaignPage = () => {
           border: 'border-[#101625]',
           rifaquiText: 'text-white',
           calendarBg: '#090E1A',
-          calendarBorder: '#090E1A'
+          calendarBorder: '#090E1A',
+          calendarText: 'text-white'
         };
       case 'escuro-cinza':
         return {
@@ -859,7 +862,8 @@ const CampaignPage = () => {
           border: 'border-[#1f1f1f]',
           rifaquiText: 'text-white',
           calendarBg: '#141414',
-          calendarBorder: '#1f1f1f'
+          calendarBorder: '#1f1f1f',
+          calendarText: 'text-white'
         };
       default:
         return {
@@ -871,7 +875,8 @@ const CampaignPage = () => {
           border: 'border-gray-200',
           rifaquiText: 'text-gray-900',
           calendarBg: '#FFFFFF',
-          calendarBorder: '#E5E7EB'
+          calendarBorder: '#E5E7EB',
+          calendarText: 'text-gray-900'
         };
     }
   };
@@ -1225,9 +1230,9 @@ const CampaignPage = () => {
                   borderColor: themeClasses.calendarBorder
                 }}
               >
-                <Calendar className="h-4 w-4 mr-2 text-white" />
-                <span className="text-sm font-medium text-white">
-                  Sorteio: <span className="font-bold text-white">{formatDate(campaign.draw_date)}</span>
+                <Calendar className={`h-4 w-4 mr-2 ${themeClasses.calendarText}`} />
+                <span className={`text-sm font-medium ${themeClasses.calendarText}`}>
+                  Sorteio: <span className={`font-bold ${themeClasses.calendarText}`}>{formatDate(campaign.draw_date)}</span>
                 </span>
               </div>
             )}
