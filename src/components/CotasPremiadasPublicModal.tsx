@@ -364,7 +364,7 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.3 }}
               >
-                Cotas premiadas do sorteio <span className="font-semibold">{campaignTitle}</span>:
+                Cotas premiadas do sorteio: <span className="font-semibold">{campaignTitle}</span>:
               </motion.p>
 
               {cotasPremiadas && cotasPremiadas.length > 0 ? (
