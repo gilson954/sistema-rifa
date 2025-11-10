@@ -127,18 +127,7 @@ const PaymentConfirmationPage = () => {
         };
     }
   };
-
-  const getShadowClasses = (isHover: boolean = false) => {
-    if (campaignTheme === 'claro') {
-      return isHover 
-        ? 'shadow-[0_15px_45px_-10px_rgba(0,0,0,0.3),0_8px_22px_-6px_rgba(0,0,0,0.2)]'
-        : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]';
-    }
-    return isHover
-      ? 'shadow-[0_15px_45px_-10px_rgba(0,0,0,0.7),0_8px_22px_-6px_rgba(0,0,0,0.5)]'
-      : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]';
-  };
-
+  
   const themeClasses = getThemeClasses(campaignTheme);
 
   const getCustomGradientStyle = (customColorsJson: string) => {
