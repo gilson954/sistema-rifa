@@ -792,22 +792,36 @@
 @keyframes number-slide-up {
   0% {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(40%) scale(0.9);
+    filter: brightness(1.2) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-10%) scale(1.05);
+    filter: brightness(1.4) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+    filter: brightness(1) drop-shadow(0 0 0 rgba(0, 0, 0, 0));
   }
 }
 
 @keyframes number-slide-down {
   0% {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-40%) scale(0.9);
+    filter: brightness(1.2) drop-shadow(0 -2px 4px rgba(0, 0, 0, 0.25));
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(10%) scale(1.05);
+    filter: brightness(1.4) drop-shadow(0 -4px 6px rgba(0, 0, 0, 0.3));
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+    filter: brightness(1) drop-shadow(0 0 0 rgba(0, 0, 0, 0));
   }
 }
 
