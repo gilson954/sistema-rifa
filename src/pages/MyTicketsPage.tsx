@@ -298,12 +298,12 @@ const MyTicketsPage = () => {
   const getShadowClasses = (isHover: boolean = false) => {
     if (campaignTheme === 'claro') {
       return isHover 
-        ? 'shadow-[0_15px_45px_-10px_rgba(0,0,0,0.3),0_8px_22px_-6px_rgba(0,0,0,0.2)]'
-        : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]';
+        ? 'shadow-[0_75px_225px_-50px_rgba(0,0,0,0.6),0_40px_110px_-30px_rgba(0,0,0,0.4)]'
+        : 'shadow-[0_40px_150px_-40px_rgba(0,0,0,0.5),0_20px_75px_-20px_rgba(0,0,0,0.3)]';
     }
     return isHover
-      ? 'shadow-[0_15px_45px_-10px_rgba(0,0,0,0.7),0_8px_22px_-6px_rgba(0,0,0,0.5)]'
-      : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]';
+      ? 'shadow-[0_75px_225px_-50px_rgba(0,0,0,0.9),0_40px_110px_-30px_rgba(0,0,0,0.7)]'
+      : 'shadow-[0_40px_150px_-40px_rgba(0,0,0,0.8),0_20px_75px_-20px_rgba(0,0,0,0.6)]';
   };
 
   if (authLoading || loading) {
