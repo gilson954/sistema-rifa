@@ -52,9 +52,7 @@ export default function Header() {
   }
 
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-      theme === 'dark' ? 'bg-black/50' : 'bg-white/90'
-    } backdrop-blur-md`}>
+    <header className="fixed top-0 left-0 w-full z-50 transition-all duration-300 bg-black/50 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -69,11 +67,7 @@ export default function Header() {
                 alt="Rifaqui Logo"
                 className="w-14 h-14 object-contain"
               />
-              <span className={`ml-2 text-2xl font-bold ${
-                theme === 'dark' ? 'text-white' : 'text-black'
-              }`}>
-                Rifaqui
-              </span>
+              <span className="ml-2 text-2xl font-bold text-white">Rifaqui</span>
             </button>
           </div>
 
@@ -82,25 +76,19 @@ export default function Header() {
             <nav className="hidden md:flex space-x-8">
               <button
                 onClick={() => scrollToSection('como-funciona')}
-                className={`${
-                  theme === 'dark' ? 'text-white hover:text-purple-400' : 'text-black hover:text-purple-600'
-                } transition-colors duration-300 font-medium`}
+                className="text-white hover:text-purple-400 transition-colors duration-300 font-medium"
               >
                 Como Funciona
               </button>
               <button
                 onClick={() => scrollToSection('funcionalidades')}
-                className={`${
-                  theme === 'dark' ? 'text-white hover:text-purple-400' : 'text-black hover:text-purple-600'
-                } transition-colors duration-300 font-medium`}
+                className="text-white hover:text-purple-400 transition-colors duration-300 font-medium"
               >
                 Funcionalidades
               </button>
               <button
                 onClick={() => scrollToSection('duvidas')}
-                className={`${
-                  theme === 'dark' ? 'text-white hover:text-purple-400' : 'text-black hover:text-purple-600'
-                } transition-colors duration-300 font-medium`}
+                className="text-white hover:text-purple-400 transition-colors duration-300 font-medium"
               >
                 Dúvidas
               </button>
@@ -111,9 +99,7 @@ export default function Header() {
           <div className="hidden md:flex items-center space-x-4">
             <button
               onClick={toggleTheme}
-              className={`p-2 ${
-                theme === 'dark' ? 'text-white hover:text-purple-400' : 'text-black hover:text-purple-600'
-              } transition-colors duration-200 rounded-lg`}
+              className="p-2 text-white hover:text-purple-400 transition-colors duration-200 rounded-lg"
               aria-label="Alternar tema"
             >
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
@@ -124,9 +110,7 @@ export default function Header() {
               <>
                 <button
                   onClick={handleRegisterClick}
-                  className={`${
-                    theme === 'dark' ? 'text-white hover:text-purple-400' : 'text-black hover:text-purple-600'
-                  } px-4 py-2 rounded-lg font-medium transition-colors duration-200 hover:bg-purple-600 hover:text-white`}
+                  className="text-white hover:text-purple-400 px-4 py-2 rounded-lg font-medium transition-colors duration-200 hover:bg-purple-600"
                 >
                   Criar conta
                 </button>
@@ -149,9 +133,7 @@ export default function Header() {
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className={`${
-                  theme === 'dark' ? 'text-white hover:text-purple-400' : 'text-black hover:text-purple-600'
-                } transition-colors duration-200`}
+                className="text-white hover:text-purple-400 transition-colors duration-200"
                 aria-label={isMenuOpen ? 'Fechar menu' : 'Abrir menu'}
               >
                 {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -162,43 +144,31 @@ export default function Header() {
 
         {/* Mobile Navigation */}
         {!user && isMenuOpen && (
-          <div className={`md:hidden py-4 border-t ${
-            theme === 'dark' ? 'border-white/10' : 'border-black/10'
-          }`}>
+          <div className="md:hidden py-4 border-t border-gray-100 dark:border-gray-800">
             <div className="flex flex-col space-y-4">
               <button
                 onClick={() => scrollToSection('como-funciona')}
-                className={`${
-                  theme === 'dark' ? 'text-white hover:text-purple-400' : 'text-black hover:text-purple-600'
-                } transition-colors duration-200 font-medium text-left`}
+                className="text-white hover:text-purple-400 transition-colors duration-200 font-medium text-left"
               >
                 Como Funciona
               </button>
               <button
                 onClick={() => scrollToSection('funcionalidades')}
-                className={`${
-                  theme === 'dark' ? 'text-white hover:text-purple-400' : 'text-black hover:text-purple-600'
-                } transition-colors duration-200 font-medium text-left`}
+                className="text-white hover:text-purple-400 transition-colors duration-200 font-medium text-left"
               >
                 Funcionalidades
               </button>
               <button
                 onClick={() => scrollToSection('duvidas')}
-                className={`${
-                  theme === 'dark' ? 'text-white hover:text-purple-400' : 'text-black hover:text-purple-600'
-                } transition-colors duration-200 font-medium text-left`}
+                className="text-white hover:text-purple-400 transition-colors duration-200 font-medium text-left"
               >
                 Dúvidas
               </button>
-              <div className={`flex flex-col space-y-2 pt-4 border-t ${
-                theme === 'dark' ? 'border-white/10' : 'border-black/10'
-              }`}>
+              <div className="flex flex-col space-y-2 pt-4 border-t border-gray-100 dark:border-gray-800">
                 <div className="flex items-center justify-between">
                   <button
                     onClick={toggleTheme}
-                    className={`p-2 ${
-                      theme === 'dark' ? 'text-white hover:text-purple-400' : 'text-black hover:text-purple-600'
-                    } transition-colors duration-200 rounded-lg`}
+                    className="p-2 text-white hover:text-purple-400 transition-colors duration-200 rounded-lg"
                     aria-label="Alternar tema"
                   >
                     {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
@@ -209,17 +179,13 @@ export default function Header() {
                     navigate('/my-tickets');
                     setIsMenuOpen(false);
                   }}
-                  className={`${
-                    theme === 'dark' ? 'text-white hover:text-purple-400 hover:bg-white/10' : 'text-black hover:text-purple-600 hover:bg-black/5'
-                  } px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-left`}
+                  className="text-white hover:text-purple-400 px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-left hover:bg-gray-800"
                 >
                   Minhas cotas
                 </button>
                 <button
                   onClick={handleRegisterClick}
-                  className={`${
-                    theme === 'dark' ? 'text-white hover:text-purple-400' : 'text-black hover:text-purple-600'
-                  } px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-left hover:bg-purple-600 hover:text-white`}
+                  className="text-white hover:text-purple-400 px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-left hover:bg-purple-600"
                 >
                   Criar conta
                 </button>
