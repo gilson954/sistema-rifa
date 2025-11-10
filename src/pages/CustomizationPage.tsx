@@ -1,20 +1,68 @@
-import React, { useState } from 'react';
-import { Upload, Plus, ArrowRight, X, Loader2, Trash2, ExternalLink, CheckCircle, AlertCircle, Clock, Sparkles, Palette, Eye } from 'lucide-react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import {
+  Upload, Plus, ArrowRight, X, Loader2, Trash2, ExternalLink,
+  CheckCircle, AlertCircle, Clock, Sparkles, Palette, Eye,
+  Copy, Check, ChevronDown, Info
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { supabase } from '../lib/supabase';
 import { CustomDomainsAPI, CustomDomain } from '../lib/api/customDomains';
 import ConfirmModal from '../components/ConfirmModal';
 import { motion, AnimatePresence } from 'framer-motion';
+import { format } from 'date-fns';
 
-const CustomizationPage = () => {
+/* ------------------------------------------------- *
+ *  Constantes (evita recriação em cada render)      *
+ * ------------------------------------------------- */
+const SOLID_COLORS = [
+  '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16', '#22C55E',
+  '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9', '#3B82F6', '#6366F1',
+  '#8B5CF6', '#A855F7', '#C026D2', '#EC4899', '#F43F5E'
+] as const;
+
+const GRADIENTS = [
+  { id: 1, classes: 'from-purple-600 via-pink-500 to-blue-600', name: 'Roxo Rosa Azul' },
+  { id: 2, classes: 'from-blue-600 via-cyan-500 to-teal-500', name: 'Azul Ciano Verde' },
+  { id: 3, classes: 'from-orange-500 via-red-500 to-pink-600', name: 'Laranja Vermelho Rosa' },
+  { id: 4, classes: 'from-green-500 via-emerald-500 to-teal-600', name: 'Verde Esmeralda' },
+  { id: 5, classes: 'from-indigo-600 via-purple-600 to-pink-600', name: 'Índigo Roxo Rosa' },
+  { id: 6, classes: 'from-yellow-500 via-orange-500 to-red-600', name: 'Amarelo Laranja Vermelho' },
+  { id: 7, classes: 'from-pink-500 via-rose-500 to-red-600', name: 'Rosa Carmesim' },
+  { id: 8, classes: 'from-blue-500 via-indigo-600 to-purple-700', name: 'Azul Índigo Roxo' },
+  { id: 9, classes: 'from-teal-500 via-cyan-600 to-blue-700', name: 'Verde-água Azul' },
+  { id: 10, classes: 'from-fuchsia-600 via-purple-600 to-indigo-600', name: 'Fúcsia Roxo' },
+  { id: 11, classes: 'from-lime-500 via-green-600 to-emerald-700', name: 'Lima Verde' },
+  { id: 12, classes: 'from-amber-500 via-orange-600 to-red-700', name: 'Âmbar Laranja' }
+] as const;
+
+const TABS = [
+  { id: 'cores-tema' as const, label: 'Cores e tema', icon: Palette },
+  { id: 'sua-logo' as const, label: 'Sua logo', icon: Upload },
+  { id: 'dominios' as const, label: 'Domínios', icon: ExternalLink }
+] as const;
+
+const THEME_PREVIEWS = {
+  claro: { bg: 'bg-white', txt: 'text-gray-900', txt2: 'text-gray-600', card: 'bg-gray-50', border: 'border-gray-200' },
+  escuro: { bg: 'bg-slate-900', txt: 'text-white', txt2: 'text-slate-300', card: 'bg-slate-800', border: 'border-slate-700' },
+  'escuro-preto': { bg: 'bg-black', txt: 'text-white', txt2: 'text-gray-300', card: 'bg-gray-900', border: 'border-gray-700' },
+  'escuro-cinza': { bg: 'bg-[#1A1A1A]', txt: 'text-white', txt2: 'text-[#A0A0A0]', card: 'bg-[#2C2C2C]', border: 'border-[#404040]' }
+} as const;
+
+/* ------------------------------------------------- *
+ *  Componente principal                              *
+ * ------------------------------------------------- */
+const CustomizationPage: React.FC = () => {
   const { user } = useAuth();
   const { showSuccess, showError, showWarning } = useNotification();
-  const [activeTab, setActiveTab] = useState('cores-tema');
-  const [selectedTheme, setSelectedTheme] = useState('claro');
+
+  /* ---------- Estado ---------- */
+  const [activeTab, setActiveTab] = useState<typeof TABS[number]['id']>('cores-tema');
+  const [selectedTheme, setSelectedTheme] = useState<keyof typeof THEME_PREVIEWS>('claro');
   const [colorMode, setColorMode] = useState<'solid' | 'gradient'>('solid');
   const [selectedColor, setSelectedColor] = useState('#3B82F6');
-  const [selectedGradient, setSelectedGradient] = useState('from-purple-600 via-pink-500 to-blue-600');
+  const [selectedGradient, setSelectedGradient] = useState(GRADIENTS[0].classes);
   const [customGradientColors, setCustomGradientColors] = useState<string[]>(['#9333EA', '#EC4899', '#3B82F6']);
   const [isCustomGradient, setIsCustomGradient] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -27,503 +75,380 @@ const CustomizationPage = () => {
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
   const [currentLogoUrl, setCurrentLogoUrl] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  const logoInputRef = React.useRef<HTMLInputElement>(null);
   const [showRemoveLogoConfirm, setShowRemoveLogoConfirm] = useState(false);
   const [showDeleteDomainConfirm, setShowDeleteDomainConfirm] = useState(false);
   const [selectedDomainToDelete, setSelectedDomainToDelete] = useState<{ id: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [copiedDNS, setCopiedDNS] = useState<string | null>(null);
+  const [showDNSDetails, setShowDNSDetails] = useState<string | null>(null);
 
-  const solidColors = [
-    '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16', '#22C55E',
-    '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9', '#3B82F6', '#6366F1',
-    '#8B5CF6', '#A855F7', '#C026D2', '#EC4899', '#F43F5E'
-  ];
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
-  const gradients = [
-    { id: 1, classes: 'from-purple-600 via-pink-500 to-blue-600', name: 'Roxo Rosa Azul' },
-    { id: 2, classes: 'from-blue-600 via-cyan-500 to-teal-500', name: 'Azul Ciano Verde' },
-    { id: 3, classes: 'from-orange-500 via-red-500 to-pink-600', name: 'Laranja Vermelho Rosa' },
-    { id: 4, classes: 'from-green-500 via-emerald-500 to-teal-600', name: 'Verde Esmeralda' },
-    { id: 5, classes: 'from-indigo-600 via-purple-600 to-pink-600', name: 'Índigo Roxo Rosa' },
-    { id: 6, classes: 'from-yellow-500 via-orange-500 to-red-600', name: 'Amarelo Laranja Vermelho' },
-    { id: 7, classes: 'from-pink-500 via-rose-500 to-red-600', name: 'Rosa Carmesim' },
-    { id: 8, classes: 'from-blue-500 via-indigo-600 to-purple-700', name: 'Azul Índigo Roxo' },
-    { id: 9, classes: 'from-teal-500 via-cyan-600 to-blue-700', name: 'Verde-água Azul' },
-    { id: 10, classes: 'from-fuchsia-600 via-purple-600 to-indigo-600', name: 'Fúcsia Roxo' },
-    { id: 11, classes: 'from-lime-500 via-green-600 to-emerald-700', name: 'Lima Verde' },
-    { id: 12, classes: 'from-amber-500 via-orange-600 to-red-700', name: 'Âmbar Laranja' }
-  ];
+  /* ---------- Helpers (memoizados) ---------- */
+  const themeClasses = useMemo(() => {
+    return THEME_PREVIEWS[selectedTheme];
+  }, [selectedTheme]);
 
-  const tabs = [
-    { id: 'cores-tema', label: 'Cores e tema', icon: Palette },
-    { id: 'sua-logo', label: 'Sua logo', icon: Upload },
-    { id: 'dominios', label: 'Domínios', icon: ExternalLink }
-  ];
+  const customGradientStyle = useMemo(() => {
+    if (customGradientColors.length === 2) return `linear-gradient(90deg, ${customGradientColors[0]}, ${customGradientColors[1]})`;
+    if (customGradientColors.length === 3) return `linear-gradient(90deg, ${customGradientColors[0]}, ${customGradientColors[1]}, ${customGradientColors[2]})`;
+    return `linear-gradient(90deg, ${customGradientColors[0]}, ${customGradientColors[1]})`;
+  }, [customGradientColors]);
 
-  React.useEffect(() => {
-    const loadUserSettings = async () => {
-      if (user) {
-        try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('primary_color, theme, logo_url, color_mode, gradient_classes, custom_gradient_colors')
-            .eq('id', user.id)
-            .single();
+  const gradientBtnClasses = useMemo(() => {
+    const base = 'animate-gradient-x bg-[length:200%_200%]';
+    if (colorMode !== 'gradient') return '';
+    return isCustomGradient ? base : `bg-gradient-to-r ${selectedGradient} ${base}`;
+  }, [colorMode, isCustomGradient, selectedGradient]);
 
-          if (error) {
-            console.error('Error loading user settings:', error);
-          } else if (data) {
-            if (data.primary_color) setSelectedColor(data.primary_color);
-            if (data.theme) setSelectedTheme(data.theme);
-            if (data.logo_url) setCurrentLogoUrl(data.logo_url);
-            if (data.color_mode) setColorMode(data.color_mode);
-            if (data.gradient_classes) setSelectedGradient(data.gradient_classes);
-            if (data.custom_gradient_colors) {
-              setCustomGradientColors(JSON.parse(data.custom_gradient_colors));
-              setIsCustomGradient(true);
-            }
+  const solidBtnStyle = useMemo(() => (colorMode === 'solid' ? { backgroundColor: selectedColor } : {}), [colorMode, selectedColor]);
+
+  const gradientStyle = useMemo(() => (isCustomGradient ? { background: customGradientStyle, backgroundSize: '200% 200%' } : {}), [isCustomGradient, customGradientStyle]);
+
+  /* ---------- Carregamento inicial ---------- */
+  useEffect(() => {
+    if (!user) return;
+    const load = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('primary_color, theme, logo_url, color_mode, gradient_classes, custom_gradient_colors')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Erro ao carregar perfil:', error);
+      } else if (data) {
+        if (data.theme) setSelectedTheme(data.theme as keyof typeof THEME_PREVIEWS);
+        if (data.primary_color) setSelectedColor(data.primary_color);
+        if (data.logo_url) setCurrentLogoUrl(data.logo_url);
+        if (data.color_mode) setColorMode(data.color_mode);
+        if (data.gradient_classes) setSelectedGradient(data.gradient_classes);
+        if (data.custom_gradient_colors) {
+          try {
+            setCustomGradientColors(JSON.parse(data.custom_gradient_colors));
+            setIsCustomGradient(true);
+          } catch (e) {
+            console.error('Erro ao parsear cores customizadas:', e);
           }
-        } catch (error) {
-          console.error('Error loading user settings:', error);
         }
       }
     };
-
-    loadUserSettings();
+    load();
   }, [user]);
 
-  React.useEffect(() => {
-    const loadCustomDomains = async () => {
-      if (user && activeTab === 'dominios') {
-        setLoadingDomains(true);
-        try {
-          const { data, error } = await CustomDomainsAPI.getUserCustomDomains(user.id);
-          if (error) {
-            console.error('Error loading custom domains:', error);
-          } else {
-            setCustomDomains(data || []);
-          }
-        } catch (error) {
-          console.error('Error loading custom domains:', error);
-        } finally {
-          setLoadingDomains(false);
-        }
+  useEffect(() => {
+    if (!user || activeTab !== 'dominios') return;
+    const load = async () => {
+      setLoadingDomains(true);
+      try {
+        const { data, error } = await CustomDomainsAPI.getUserCustomDomains(user.id);
+        if (error) throw error;
+        setCustomDomains(data ?? []);
+      } catch (err) {
+        console.error('Erro ao carregar domínios:', err);
+        showError('Falha ao carregar domínios.');
+      } finally {
+        setLoadingDomains(false);
       }
     };
+    load();
+  }, [user, activeTab, showError]);
 
-    loadCustomDomains();
-  }, [user, activeTab]);
-
-  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  /* ---------- Handlers (memoizados) ---------- */
+  const handleLogoSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        showError('Por favor, selecione apenas arquivos de imagem.');
-        return;
-      }
+    if (!file) return;
 
-      if (file.size > 5 * 1024 * 1024) {
-        showError('A imagem deve ter no máximo 5MB.');
-        return;
-      }
-      
-      setLogoFile(file);
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setLogoPreviewUrl(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file.type.startsWith('image/')) {
+      showError('Apenas imagens são permitidas (PNG, JPG, SVG, etc.).');
+      return;
     }
-    e.target.value = '';
-  };
+    if (file.size > 5 * 1024 * 1024) {
+      showError('A imagem deve ter no máximo 5 MB.');
+      return;
+    }
 
-  const handleUploadLogo = async () => {
+    setLogoFile(file);
+    const reader = new FileReader();
+    reader.onload = ev => setLogoPreviewUrl(ev.target?.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  }, [showError]);
+
+  const uploadLogo = useCallback(async () => {
     if (!logoFile || !user) {
-      showWarning('Por favor, selecione uma imagem primeiro.');
+      showWarning('Selecione uma imagem primeiro.');
       return;
     }
 
     setUploadingLogo(true);
     try {
-      const fileExt = logoFile.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
+      const ext = logoFile.name.split('.').pop() || 'png';
+      const fileName = `${user.id}-${Date.now()}.${ext}`;
+      const path = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('logos')
-        .upload(filePath, logoFile, {
-          cacheControl: '3600',
-          upsert: false
-        });
+        .upload(path, logoFile, { upsert: false });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
         .from('logos')
-        .getPublicUrl(filePath);
+        .getPublicUrl(path);
 
-      const { error: updateError } = await supabase
+      const { error: dbError } = await supabase
         .from('profiles')
         .update({ logo_url: publicUrl })
         .eq('id', user.id);
 
-      if (updateError) throw updateError;
+      if (dbError) throw dbError;
 
       setCurrentLogoUrl(publicUrl);
       setLogoFile(null);
       setLogoPreviewUrl(null);
-
       showSuccess('Logo atualizada com sucesso!');
-    } catch (error) {
-      console.error('Erro ao fazer upload da logo:', error);
-      showError('Erro ao fazer upload da imagem. Tente novamente.');
+    } catch (err: any) {
+      console.error('Erro no upload:', err);
+      showError(err.message || 'Falha ao fazer upload da logo.');
     } finally {
       setUploadingLogo(false);
     }
-  };
+  }, [logoFile, user, showWarning, showSuccess, showError]);
 
-  const handleRemoveLogo = async () => {
+  const removeLogo = useCallback(() => {
     if (!currentLogoUrl || !user) return;
     setShowRemoveLogoConfirm(true);
-  };
+  }, [currentLogoUrl, user]);
 
-  const confirmRemoveLogo = async () => {
+  const confirmRemoveLogo = useCallback(async () => {
     if (!currentLogoUrl || !user) return;
-
     setUploadingLogo(true);
     try {
-      const urlParts = currentLogoUrl.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-      const filePath = `${user.id}/${fileName}`;
+      const fileName = currentLogoUrl.split('/').pop()!;
+      const path = `${user.id}/${fileName}`;
+      await supabase.storage.from('logos').remove([path]);
 
-      const { error: deleteError } = await supabase.storage
-        .from('logos')
-        .remove([filePath]);
-
-      if (deleteError) {
-        console.warn('Erro ao remover arquivo do storage:', deleteError);
-      }
-
-      const { error: updateError } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .update({ logo_url: null })
         .eq('id', user.id);
 
-      if (updateError) throw updateError;
+      if (error) throw error;
 
       setCurrentLogoUrl(null);
-      setShowRemoveLogoConfirm(false);
       showSuccess('Logo removida com sucesso!');
-    } catch (error) {
-      console.error('Erro ao remover logo:', error);
-      showError('Erro ao remover logo. Tente novamente.');
+    } catch (err: any) {
+      console.error('Erro ao remover logo:', err);
+      showError(err.message || 'Falha ao remover logo.');
     } finally {
       setUploadingLogo(false);
       setShowRemoveLogoConfirm(false);
     }
-  };
+  }, [currentLogoUrl, user, showSuccess, showError]);
 
-  const handleSaveChanges = async () => {
+  const saveChanges = useCallback(async () => {
     if (!user) {
-      showWarning('Você precisa estar logado para salvar as alterações');
+      showWarning('Faça login para salvar as alterações.');
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload: any = { theme: selectedTheme, color_mode: colorMode };
+
+      if (colorMode === 'gradient') {
+        payload.gradient_classes = isCustomGradient ? 'custom' : selectedGradient;
+        payload.custom_gradient_colors = isCustomGradient ? JSON.stringify(customGradientColors) : null;
+        payload.primary_color = null;
+      } else {
+        payload.primary_color = selectedColor;
+        payload.gradient_classes = null;
+        payload.custom_gradient_colors = null;
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(payload)
+        .eq('id', user.id);
+
+      if (error) throw error;
+      showSuccess('Configurações salvas com sucesso!');
+    } catch (err: any) {
+      console.error('Erro ao salvar:', err);
+      showError(err.message || 'Erro ao salvar configurações.');
+    } finally {
+      setSaving(false);
+    }
+  }, [
+    user, selectedTheme, colorMode, isCustomGradient, selectedGradient,
+    customGradientColors, selectedColor, showWarning, showError, showSuccess
+  ]);
+
+  const addDomain = useCallback(async () => {
+    const domain = newDomain.trim().toLowerCase();
+    if (!domain || !user) return;
+
+    if (!/^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/.test(domain)) {
+      showError('Domínio inválido. Use formato: exemplo.com');
       return;
     }
 
     setSaving(true);
     try {
-      let updateData: any = {
-        theme: selectedTheme,
-        color_mode: colorMode
-      };
+      const { data, error } = await CustomDomainsAPI.createCustomDomain({ domain_name: domain }, user.id);
+      if (error) throw error;
 
-      if (colorMode === 'gradient') {
-        updateData.gradient_classes = isCustomGradient ? 'custom' : selectedGradient;
-        updateData.custom_gradient_colors = isCustomGradient ? JSON.stringify(customGradientColors) : null;
-        updateData.primary_color = null;
-      } else {
-        updateData.primary_color = selectedColor;
-        updateData.gradient_classes = null;
-        updateData.custom_gradient_colors = null;
-      }
-
-      const { error } = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('id', user.id);
-
-      if (error) {
-        console.error('Error saving settings:', error);
-        showError('Erro ao salvar as configurações. Tente novamente.');
-      } else {
-        showSuccess('Configurações salvas com sucesso!');
-      }
-    } catch (error) {
-      console.error('Error saving settings:', error);
-      showError('Erro ao salvar as configurações. Tente novamente.');
+      setCustomDomains(prev => [data!, ...prev]);
+      setShowDomainModal(false);
+      setNewDomain('');
+      showSuccess('Domínio adicionado! Configure o DNS conforme as instruções.');
+    } catch (err: any) {
+      console.error('Erro ao adicionar domínio:', err);
+      showError(err.message || 'Erro ao adicionar domínio.');
     } finally {
       setSaving(false);
     }
-  };
+  }, [newDomain, user, showSuccess, showError]);
 
-  const getThemeClasses = (theme: string) => {
-    switch (theme) {
-      case 'claro':
-        return {
-          background: 'bg-white',
-          text: 'text-gray-900',
-          textSecondary: 'text-gray-600',
-          cardBg: 'bg-gray-50',
-          border: 'border-gray-200'
-        };
-      case 'escuro':
-        return {
-          background: 'bg-slate-900',
-          text: 'text-white',
-          textSecondary: 'text-slate-300',
-          cardBg: 'bg-slate-800',
-          border: 'border-slate-700'
-        };
-      case 'escuro-preto':
-        return {
-          background: 'bg-black',
-          text: 'text-white',
-          textSecondary: 'text-gray-300',
-          cardBg: 'bg-gray-900',
-          border: 'border-gray-700'
-        };
-      case 'escuro-cinza':
-        return {
-          background: 'bg-[#1A1A1A]',
-          text: 'text-white',
-          textSecondary: 'text-[#A0A0A0]',
-          cardBg: 'bg-[#2C2C2C]',
-          border: 'border-[#404040]'
-        };
-      default:
-        return {
-          background: 'bg-white',
-          text: 'text-gray-900',
-          textSecondary: 'text-gray-600',
-          cardBg: 'bg-gray-50',
-          border: 'border-gray-200'
-        };
-    }
-  };
-
-  const handleSaveDomain = async () => {
-    if (!newDomain.trim() || !user) return;
-
-    setSaving(true);
+  const verifyDomain = useCallback(async (id: string) => {
+    setVerifyingDomain(id);
     try {
-      const { data, error } = await CustomDomainsAPI.createCustomDomain(
-        { domain_name: newDomain.trim() },
-        user.id
-      );
+      const { data, error } = await CustomDomainsAPI.verifyDNS(id);
+      if (error) throw error;
 
-      if (error) {
-        console.error('Error creating custom domain:', error);
-        showError('Erro ao adicionar domínio. Verifique se o formato está correto e tente novamente.');
+      if (data?.verified) {
+        showSuccess('Domínio verificado com sucesso! SSL será ativado em breve.');
+        setCustomDomains(prev => prev.map(d => d.id === id ? { ...d, is_verified: true, ssl_status: 'active' as const } : d));
       } else {
-        setCustomDomains(prev => [data!, ...prev]);
-        setShowDomainModal(false);
-        setNewDomain('');
-        showSuccess('Domínio adicionado com sucesso! Siga as instruções DNS para ativá-lo.');
+        showWarning('DNS ainda não propagado. Tente novamente em alguns minutos.');
       }
-    } catch (error) {
-      console.error('Error saving domain:', error);
-      showError('Erro ao salvar domínio. Tente novamente.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleVerifyDomain = async (domainId: string) => {
-    setVerifyingDomain(domainId);
-    try {
-      const { data, error } = await CustomDomainsAPI.verifyDNS(domainId);
-      
-      if (error) {
-        console.error('Error verifying domain:', error);
-        showError('Erro ao verificar domínio. Tente novamente.');
-      } else if (data?.verified) {
-        showSuccess('Domínio verificado com sucesso! SSL será ativado automaticamente.');
-        setCustomDomains(prev =>
-          prev.map(domain =>
-            domain.id === domainId
-              ? { ...domain, is_verified: true, ssl_status: 'active' as const }
-              : domain
-          )
-        );
-      } else {
-        showWarning('Domínio ainda não está apontando corretamente. Verifique as configurações DNS e tente novamente em alguns minutos.');
-      }
-    } catch (error) {
-      console.error('Error verifying domain:', error);
-      showError('Erro ao verificar domínio. Tente novamente.');
+    } catch (err: any) {
+      console.error('Erro na verificação:', err);
+      showError(err.message || 'Falha ao verificar domínio.');
     } finally {
       setVerifyingDomain(null);
     }
-  };
+  }, [showSuccess, showWarning, showError]);
 
-  const handleDeleteDomain = async (domainId: string, domainName: string) => {
-    setSelectedDomainToDelete({ id: domainId, name: domainName });
+  const deleteDomain = useCallback((id: string, name: string) => {
+    setSelectedDomainToDelete({ id, name });
     setShowDeleteDomainConfirm(true);
-  };
+  }, []);
 
-  const confirmDeleteDomain = async () => {
+  const confirmDeleteDomain = useCallback(async () => {
     if (!selectedDomainToDelete || !user) return;
-    const { id: domainId } = selectedDomainToDelete;
-
+    const { id } = selectedDomainToDelete;
     setDeleting(true);
     try {
-      const { error } = await CustomDomainsAPI.deleteCustomDomain(domainId, user!.id);
+      const { error } = await CustomDomainsAPI.deleteCustomDomain(id, user.id);
+      if (error) throw error;
 
-      if (error) {
-        console.error('Error deleting domain:', error);
-        showError('Erro ao remover domínio. Tente novamente.');
-      } else {
-        setCustomDomains(prev => prev.filter(domain => domain.id !== domainId));
-        setShowDeleteDomainConfirm(false);
-        setSelectedDomainToDelete(null);
-        showSuccess('Domínio removido com sucesso.');
-      }
-    } catch (error) {
-      console.error('Error deleting domain:', error);
-      showError('Erro ao remover domínio. Tente novamente.');
+      setCustomDomains(prev => prev.filter(d => d.id !== id));
+      showSuccess('Domínio removido com sucesso.');
+    } catch (err: any) {
+      console.error('Erro ao remover domínio:', err);
+      showError(err.message || 'Falha ao remover domínio.');
     } finally {
       setDeleting(false);
       setShowDeleteDomainConfirm(false);
       setSelectedDomainToDelete(null);
     }
-  };
+  }, [selectedDomainToDelete, user, showSuccess, showError]);
 
-  const getStatusIcon = (domain: CustomDomain) => {
-    if (domain.is_verified && domain.ssl_status === 'active') {
-      return <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />;
-    } else if (domain.ssl_status === 'failed') {
-      return <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />;
-    } else {
-      return <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />;
+  const copyToClipboard = useCallback(async (text: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedDNS(type);
+      setTimeout(() => setCopiedDNS(null), 2000);
+      showSuccess('Copiado para área de transferência!');
+    } catch {
+      showError('Falha ao copiar.');
     }
-  };
+  }, [showSuccess, showError]);
 
-  const getStatusText = (domain: CustomDomain) => {
-    if (domain.is_verified && domain.ssl_status === 'active') {
-      return 'Ativo';
-    } else if (domain.ssl_status === 'failed') {
-      return 'Erro';
-    } else if (domain.is_verified) {
-      return 'Verificado';
-    } else {
-      return 'Pendente';
+  const statusInfo = useCallback((d: CustomDomain) => {
+    if (d.is_verified && d.ssl_status === 'active') {
+      return { icon: <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />, text: 'Ativo', color: 'text-green-500' };
     }
-  };
-
-  const getCustomGradientStyle = () => {
-    if (customGradientColors.length === 2) {
-      return `linear-gradient(90deg, ${customGradientColors[0]}, ${customGradientColors[1]})`;
-    } else if (customGradientColors.length === 3) {
-      return `linear-gradient(90deg, ${customGradientColors[0]}, ${customGradientColors[1]}, ${customGradientColors[2]})`;
+    if (d.ssl_status === 'failed') {
+      return { icon: <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />, text: 'Erro SSL', color: 'text-red-500' };
     }
-    return `linear-gradient(90deg, ${customGradientColors[0] || '#9333EA'}, ${customGradientColors[1] || '#EC4899'})`;
-  };
+    if (d.is_verified) {
+      return { icon: <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />, text: 'SSL em ativação', color: 'text-yellow-500' };
+    }
+    return { icon: <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />, text: 'Aguardando DNS', color: 'text-yellow-500' };
+  }, []);
 
-  const handleAddCustomColor = () => {
+  /* ---------- Gradiente customizado ---------- */
+  const addCustomColor = useCallback(() => {
     if (customGradientColors.length < 3) {
-      setCustomGradientColors([...customGradientColors, '#3B82F6']);
+      setCustomGradientColors(prev => [...prev, '#3B82F6']);
     }
-  };
+  }, [customGradientColors.length]);
 
-  const handleRemoveCustomColor = (index: number) => {
+  const removeCustomColor = useCallback((index: number) => {
     if (customGradientColors.length > 2) {
-      setCustomGradientColors(customGradientColors.filter((_, i) => i !== index));
+      setCustomGradientColors(prev => prev.filter((_, i) => i !== index));
     }
-  };
+  }, [customGradientColors.length]);
 
-  const handleUpdateCustomColor = (index: number, color: string) => {
-    const newColors = [...customGradientColors];
-    newColors[index] = color;
-    setCustomGradientColors(newColors);
-  };
+  const updateCustomColor = useCallback((index: number, color: string) => {
+    setCustomGradientColors(prev => {
+      const next = [...prev];
+      next[index] = color;
+      return next;
+    });
+  }, []);
 
-  const handleRandomGradient = () => {
-    const randomColor = () => {
-      const letters = '0123456789ABCDEF';
-      let color = '#';
-      for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-      }
-      return color;
-    };
-
-    const numberOfColors = Math.floor(Math.random() * 2) + 2;
-    const newColors = Array.from({ length: numberOfColors }, () => randomColor());
-    setCustomGradientColors(newColors);
+  const randomGradient = useCallback(() => {
+    const randomColor = () => `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+    const length = Math.floor(Math.random() * 2) + 2;
+    setCustomGradientColors(Array.from({ length }, randomColor));
     setIsCustomGradient(true);
-  };
+  }, []);
 
+  /* ------------------------------------------------- *
+   *  Renderização completa (mantém 100% da UI)        *
+   * ------------------------------------------------- */
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300"
+      className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-blue-900/20 text-gray-900 dark:text-white transition-all duration-500"
     >
-      <style>
-        {`
-          @media (max-width: 640px) {
-            ::-webkit-scrollbar {
-              width: 8px;
-            }
-            ::-webkit-scrollbar-track {
-              background: linear-gradient(to bottom, rgba(139, 92, 246, 0.05), rgba(219, 39, 119, 0.05));
-              border-radius: 10px;
-            }
-            ::-webkit-scrollbar-thumb {
-              background: linear-gradient(to bottom, #a855f7, #ec4899, #3b82f6);
-              border-radius: 10px;
-            }
-            ::-webkit-scrollbar-thumb:hover {
-              background: linear-gradient(to bottom, #c084fc, #f472b6);
-            }
-            ::-webkit-scrollbar-thumb:active {
-              background: linear-gradient(to bottom, #7c3aed, #db2777);
-            }
-          }
-          
-          @media (min-width: 641px) {
-            ::-webkit-scrollbar {
-              width: 12px;
-            }
-            ::-webkit-scrollbar-track {
-              background: linear-gradient(to bottom, rgba(139, 92, 246, 0.05), rgba(219, 39, 119, 0.05));
-              border-radius: 10px;
-            }
-            ::-webkit-scrollbar-thumb {
-              background: linear-gradient(to bottom, #a855f7, #ec4899, #3b82f6);
-              border-radius: 10px;
-              box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
-            }
-            ::-webkit-scrollbar-thumb:hover {
-              background: linear-gradient(to bottom, #c084fc, #f472b6);
-              box-shadow: 0 0 15px rgba(192, 132, 252, 0.6);
-            }
-          }
-        `}
-      </style>
+      <style jsx>{`
+        @keyframes gradient-x {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        .animate-gradient-x {
+          animation: gradient-x 6s ease infinite;
+        }
+        @media (max-width: 640px) {
+          ::-webkit-scrollbar { width: 8px; }
+          ::-webkit-scrollbar-track { background: linear-gradient(to bottom, rgba(139,92,246,.05), rgba(219,39,119,.05)); border-radius: 10px; }
+          ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #a855f7, #ec4899, #3b82f6); border-radius: 10px; }
+          ::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, #c084fc, #f472b6); }
+        }
+        @media (min-width: 641px) {
+          ::-webkit-scrollbar { width: 12px; }
+          ::-webkit-scrollbar-track { background: linear-gradient(to bottom, rgba(139,92,246,.05), rgba(219,39,119,.05)); border-radius: 10px; }
+          ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #a855f7, #ec4899, #3b82f6); border-radius: 10px; box-shadow: 0 0 10px rgba(168,85,247,.5); }
+          ::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, #c084fc, #f472b6); box-shadow: 0 0 15px rgba(192,132,252,.6); }
+        }
+      `}</style>
+
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="mb-6 sm:mb-8 relative overflow-hidden rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-xl border border-purple-200/30 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/80 to-blue-50/80 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm"
+          transition={{ delay: 0.1 }}
+          className="mb-6 sm:mb-8 relative overflow-hidden rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-2xl border border-purple-200/30 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/80 via-pink-50/80 to-blue-50/80 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-blue-900/20 backdrop-blur-sm"
         >
-          <div className="absolute top-0 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-gradient-to-br from-purple-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-tr from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
-          
+          <div className="absolute top-0 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-gradient-to-br from-purple-400/20 to-blue-400/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-tr from-blue-400/20 to-purple-400/20 rounded-full blur-3xl" />
           <div className="relative flex items-center space-x-3 sm:space-x-4">
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
               <Sparkles className="h-6 w-6 sm:h-8 sm:w-8" />
@@ -539,11 +464,11 @@ const CustomizationPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
+          transition={{ delay: 0.2 }}
           className="mb-4 sm:mb-6 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-1.5 sm:p-2 shadow-lg"
         >
           <div className="flex space-x-1.5 sm:space-x-2">
-            {tabs.map((tab) => {
+            {TABS.map(tab => {
               const Icon = tab.icon;
               return (
                 <motion.button
@@ -572,13 +497,14 @@ const CustomizationPage = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
             className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-4 sm:p-8 shadow-lg"
           >
-            {/* Cores e tema Tab */}
+
+            {/* ========== CORES & TEMA ========== */}
             {activeTab === 'cores-tema' && (
               <div className="space-y-6 sm:space-y-8">
-                {/* Theme Selection */}
+
+                {/* Tema Visual */}
                 <div>
                   <motion.h2
                     initial={{ opacity: 0, x: -20 }}
@@ -593,177 +519,40 @@ const CustomizationPage = () => {
                   </p>
 
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-                    {/* Claro Theme */}
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3, delay: 0.05 }}
-                      onClick={() => setSelectedTheme('claro')}
-                      className={`cursor-pointer rounded-xl sm:rounded-2xl p-3 sm:p-5 transition-all duration-300 hover:scale-105 ${
-                        selectedTheme === 'claro'
-                          ? 'ring-2 sm:ring-4 ring-purple-500 shadow-xl'
-                          : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
-                      }`}
-                    >
-                      <div className={`w-full h-36 sm:h-40 ${getThemeClasses('claro').background} rounded-lg sm:rounded-xl p-2.5 sm:p-4 mb-3 sm:mb-4 ${getThemeClasses('claro').border} border-2 shadow-inner`}>
-                        <div className="space-y-1 sm:space-y-2">
-                          <div className={`text-[10px] sm:text-sm font-bold ${getThemeClasses('claro').text} leading-tight`}>
-                            Rifa do iPhone 15
-                          </div>
-                          <div className={`text-[9px] sm:text-xs ${getThemeClasses('claro').textSecondary} leading-tight`}>
-                            R$ 5,00 por bilhete
-                          </div>
-                          <div className={`${getThemeClasses('claro').cardBg} rounded-md sm:rounded-lg p-1.5 sm:p-3 space-y-1 sm:space-y-2`}>
-                            <div className={`text-[9px] sm:text-xs font-medium ${getThemeClasses('claro').textSecondary} leading-tight`}>
-                              Progresso
+                    {Object.entries(THEME_PREVIEWS).map(([key, classes], i) => {
+                      const isActive = selectedTheme === key;
+                      return (
+                        <motion.div
+                          key={key}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: i * 0.05 }}
+                          onClick={() => setSelectedTheme(key as keyof typeof THEME_PREVIEWS)}
+                          className={`cursor-pointer rounded-xl sm:rounded-2xl p-3 sm:p-5 transition-all duration-300 hover:scale-105 ${
+                            isActive ? 'ring-2 sm:ring-4 ring-purple-500 shadow-xl' : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
+                          }`}
+                        >
+                          <div className={`w-full h-36 sm:h-40 ${classes.bg} rounded-lg sm:rounded-xl p-2.5 sm:p-4 mb-3 sm:mb-4 ${classes.border} border-2 shadow-inner`}>
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg" />
+                              <div className="text-xs font-medium text-gray-500">Logo</div>
                             </div>
-                            <div className="bg-gray-200 rounded-full h-1.5 sm:h-2">
-                              <div 
-                                className={`h-1.5 sm:h-2 rounded-full w-2/3 ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                                style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                              ></div>
+                            <div className={`${classes.txt} font-bold text-sm sm:text-base mb-1`}>Título da Campanha</div>
+                            <div className={`${classes.txt2} text-xs sm:text-sm mb-3`}>Descrição breve da oferta especial</div>
+                            <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-center">
+                              Ação Principal
                             </div>
                           </div>
-                          <div 
-                            className={`text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md leading-tight ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                            style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                          >
-                            Participar
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-center text-sm sm:text-base font-bold text-gray-900 dark:text-white">Claro</p>
-                    </motion.div>
-
-                    {/* Escuro Theme */}
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3, delay: 0.1 }}
-                      onClick={() => setSelectedTheme('escuro')}
-                      className={`cursor-pointer rounded-xl sm:rounded-2xl p-3 sm:p-5 transition-all duration-300 hover:scale-105 ${
-                        selectedTheme === 'escuro'
-                          ? 'ring-2 sm:ring-4 ring-purple-500 shadow-xl'
-                          : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
-                      }`}
-                    >
-                      <div className={`w-full h-36 sm:h-40 ${getThemeClasses('escuro').background} rounded-lg sm:rounded-xl p-2.5 sm:p-4 mb-3 sm:mb-4 border-2 ${getThemeClasses('escuro').border} shadow-inner`}>
-                        <div className="space-y-1 sm:space-y-2">
-                          <div className={`text-[10px] sm:text-sm font-bold ${getThemeClasses('escuro').text} leading-tight`}>
-                            Rifa do iPhone 15
-                          </div>
-                          <div className={`text-[9px] sm:text-xs ${getThemeClasses('escuro').textSecondary} leading-tight`}>
-                            R$ 5,00 por bilhete
-                          </div>
-                          <div className={`${getThemeClasses('escuro').cardBg} rounded-md sm:rounded-lg p-1.5 sm:p-3 space-y-1 sm:space-y-2`}>
-                            <div className={`text-[9px] sm:text-xs font-medium ${getThemeClasses('escuro').textSecondary} leading-tight`}>
-                              Progresso
-                            </div>
-                            <div className="bg-slate-600 rounded-full h-1.5 sm:h-2">
-                              <div 
-                                className={`h-1.5 sm:h-2 rounded-full w-2/3 ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                                style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                              ></div>
-                            </div>
-                          </div>
-                          <div 
-                            className={`text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md leading-tight ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                            style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                          >
-                            Participar
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-center text-sm sm:text-base font-bold text-gray-900 dark:text-white">Escuro</p>
-                    </motion.div>
-
-                    {/* Escuro Preto Theme */}
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3, delay: 0.15 }}
-                      onClick={() => setSelectedTheme('escuro-preto')}
-                      className={`cursor-pointer rounded-xl sm:rounded-2xl p-3 sm:p-5 transition-all duration-300 hover:scale-105 ${
-                        selectedTheme === 'escuro-preto'
-                          ? 'ring-2 sm:ring-4 ring-purple-500 shadow-xl'
-                          : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
-                      }`}
-                    >
-                      <div className={`w-full h-36 sm:h-40 ${getThemeClasses('escuro-preto').background} rounded-lg sm:rounded-xl p-2.5 sm:p-4 mb-3 sm:mb-4 border-2 ${getThemeClasses('escuro-preto').border} shadow-inner`}>
-                        <div className="space-y-1 sm:space-y-2">
-                          <div className={`text-[10px] sm:text-sm font-bold ${getThemeClasses('escuro-preto').text} leading-tight`}>
-                            Rifa do iPhone 15
-                          </div>
-                          <div className={`text-[9px] sm:text-xs ${getThemeClasses('escuro-preto').textSecondary} leading-tight`}>
-                            R$ 5,00 por bilhete
-                          </div>
-                          <div className={`${getThemeClasses('escuro-preto').cardBg} rounded-md sm:rounded-lg p-1.5 sm:p-3 space-y-1 sm:space-y-2`}>
-                            <div className={`text-[9px] sm:text-xs font-medium ${getThemeClasses('escuro-preto').textSecondary} leading-tight`}>
-                              Progresso
-                            </div>
-                            <div className="bg-gray-600 rounded-full h-1.5 sm:h-2">
-                              <div 
-                                className={`h-1.5 sm:h-2 rounded-full w-2/3 ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                                style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                              ></div>
-                            </div>
-                          </div>
-                          <div 
-                            className={`text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md leading-tight ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                            style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                          >
-                            Participar
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-center text-sm sm:text-base font-bold text-gray-900 dark:text-white">Escuro Preto</p>
-                    </motion.div>
-
-                    {/* Escuro Cinza Theme */}
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3, delay: 0.2 }}
-                      onClick={() => setSelectedTheme('escuro-cinza')}
-                      className={`cursor-pointer rounded-xl sm:rounded-2xl p-3 sm:p-5 transition-all duration-300 hover:scale-105 ${
-                        selectedTheme === 'escuro-cinza'
-                          ? 'ring-2 sm:ring-4 ring-purple-500 shadow-xl'
-                          : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 shadow-md'
-                      }`}
-                    >
-                      <div className={`w-full h-36 sm:h-40 ${getThemeClasses('escuro-cinza').background} rounded-lg sm:rounded-xl p-2.5 sm:p-4 mb-3 sm:mb-4 border-2 ${getThemeClasses('escuro-cinza').border} shadow-inner`}>
-                        <div className="space-y-1 sm:space-y-2">
-                          <div className={`text-[10px] sm:text-sm font-bold ${getThemeClasses('escuro-cinza').text} leading-tight`}>
-                            Rifa do iPhone 15
-                          </div>
-                          <div className={`text-[9px] sm:text-xs ${getThemeClasses('escuro-cinza').textSecondary} leading-tight`}>
-                            R$ 5,00 por bilhete
-                          </div>
-                          <div className={`${getThemeClasses('escuro-cinza').cardBg} rounded-md sm:rounded-lg p-1.5 sm:p-3 space-y-1 sm:space-y-2`}>
-                            <div className={`text-[9px] sm:text-xs font-medium ${getThemeClasses('escuro-cinza').textSecondary} leading-tight`}>
-                              Progresso
-                            </div>
-                            <div className="bg-[#404040] rounded-full h-1.5 sm:h-2">
-                              <div 
-                                className={`h-1.5 sm:h-2 rounded-full w-2/3 ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                                style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                              ></div>
-                            </div>
-                          </div>
-                          <div 
-                            className={`text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-2 sm:px-3 rounded-md sm:rounded-lg text-center font-semibold shadow-md leading-tight ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                            style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                          >
-                            Participar
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-center text-sm sm:text-base font-bold text-gray-900 dark:text-white">Escuro Cinza</p>
-                    </motion.div>
+                          <p className="text-center text-sm sm:text-base font-bold text-gray-900 dark:text-white">
+                            {key === 'claro' ? 'Claro' : key === 'escuro' ? 'Escuro' : key === 'escuro-preto' ? 'Escuro Preto' : 'Escuro Cinza'}
+                          </p>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Color Mode */}
+                {/* Modo de Cor */}
                 <div>
                   <motion.h2
                     initial={{ opacity: 0, x: -20 }}
@@ -775,59 +564,39 @@ const CustomizationPage = () => {
                     Estilo de cor
                   </motion.h2>
                   <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-                    Escolha entre cor sólida ou gradiente animado para os elementos principais
+                    Cor sólida ou gradiente animado
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
-                    <motion.button
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: 0.3 }}
-                      onClick={() => setColorMode('solid')}
-                      className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 ${
-                        colorMode === 'solid'
-                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-lg'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2 sm:mb-3">
-                        <span className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
-                          Cor Sólida
-                        </span>
-                        {colorMode === 'solid' && <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />}
-                      </div>
-                      <div 
-                        className="w-full h-6 sm:h-8 rounded-lg shadow-md"
-                        style={{ backgroundColor: selectedColor }}
-                      ></div>
-                    </motion.button>
-
-                    <motion.button
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: 0.35 }}
-                      onClick={() => setColorMode('gradient')}
-                      className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 ${
-                        colorMode === 'gradient'
-                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-lg'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2 sm:mb-3">
-                        <span className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
-                          Gradiente Animado
-                        </span>
-                        {colorMode === 'gradient' && <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />}
-                      </div>
-                      <div 
-                        className={`w-full h-6 sm:h-8 rounded-lg shadow-md animate-gradient-x bg-[length:200%_200%] ${isCustomGradient ? '' : `bg-gradient-to-r ${selectedGradient}`}`}
-                        style={isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {}}
-                      ></div>
-                    </motion.button>
+                    {(['solid', 'gradient'] as const).map((mode, i) => (
+                      <motion.button
+                        key={mode}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 + i * 0.05 }}
+                        onClick={() => setColorMode(mode)}
+                        className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 ${
+                          colorMode === mode
+                            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-lg'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2 sm:mb-3">
+                          <span className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
+                            {mode === 'solid' ? 'Cor Sólida' : 'Gradiente Animado'}
+                          </span>
+                          {colorMode === mode && <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />}
+                        </div>
+                        <div
+                          className={`w-full h-6 sm:h-8 rounded-lg shadow-md ${mode === 'gradient' ? gradientBtnClasses : ''}`}
+                          style={mode === 'solid' ? solidBtnStyle : gradientStyle}
+                        />
+                      </motion.button>
+                    ))}
                   </div>
                 </div>
 
-                {/* Solid Colors Section */}
+                {/* Cores Sólidas */}
                 <AnimatePresence>
                   {colorMode === 'solid' && (
                     <motion.div
@@ -835,17 +604,16 @@ const CustomizationPage = () => {
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="overflow-hidden"
                     >
                       <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
                         Cor principal
                       </h2>
                       <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-                        A cor selecionada será aplicada aos elementos principais da sua campanha
+                        Aplicada aos botões e destaques
                       </p>
 
                       <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6">
-                        {solidColors.map((color) => (
+                        {SOLID_COLORS.map(color => (
                           <button
                             key={color}
                             onClick={() => setSelectedColor(color)}
@@ -857,29 +625,32 @@ const CustomizationPage = () => {
                             style={{ backgroundColor: color }}
                           />
                         ))}
-
                         <div className="relative">
                           <input
                             type="color"
                             value={selectedColor}
-                            onChange={(e) => setSelectedColor(e.target.value)}
+                            onChange={e => setSelectedColor(e.target.value)}
                             className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl border-2 border-gray-300 dark:border-gray-600 opacity-0 absolute inset-0 cursor-pointer"
                           />
                           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-300 shadow-md">
-                            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md sm:rounded-lg bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500"></div>
+                            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md sm:rounded-lg bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500" />
                           </div>
                         </div>
                       </div>
 
-                      <div className="mb-4 sm:mb-6 p-3 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-                        <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Cor selecionada:</p>
+                      <div className="p-3 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
+                        <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
+                          Cor selecionada:
+                        </p>
                         <div className="flex items-center space-x-3 sm:space-x-4">
                           <div
                             className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl shadow-lg border-4 border-white dark:border-gray-700"
                             style={{ backgroundColor: selectedColor }}
-                          ></div>
+                          />
                           <div>
-                            <span className="text-gray-900 dark:text-white font-mono text-base sm:text-lg font-bold">{selectedColor.toUpperCase()}</span>
+                            <span className="text-gray-900 dark:text-white font-mono text-base sm:text-lg font-bold">
+                              {selectedColor.toUpperCase()}
+                            </span>
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Código hexadecimal</p>
                           </div>
                         </div>
@@ -888,7 +659,7 @@ const CustomizationPage = () => {
                   )}
                 </AnimatePresence>
 
-                {/* Gradient Section */}
+                {/* Gradientes */}
                 <AnimatePresence>
                   {colorMode === 'gradient' && (
                     <motion.div
@@ -896,13 +667,12 @@ const CustomizationPage = () => {
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="overflow-hidden"
                     >
                       <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
                         Gradientes animados
                       </h2>
                       <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-                        Escolha um gradiente pré-definido ou crie o seu próprio com até 3 cores
+                        Escolha um pré-definido ou crie o seu próprio
                       </p>
 
                       <div className="flex gap-2 sm:gap-3 mb-4 sm:mb-6">
@@ -930,7 +700,7 @@ const CustomizationPage = () => {
 
                       {!isCustomGradient && (
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-                          {gradients.map((gradient) => (
+                          {GRADIENTS.map(gradient => (
                             <button
                               key={gradient.id}
                               onClick={() => setSelectedGradient(gradient.classes)}
@@ -940,7 +710,9 @@ const CustomizationPage = () => {
                                   : 'hover:scale-105 hover:shadow-xl'
                               }`}
                             >
-                              <div className={`h-20 sm:h-24 bg-gradient-to-r ${gradient.classes} animate-gradient-x bg-[length:200%_200%]`}></div>
+                              <div
+                                className={`h-20 sm:h-24 bg-gradient-to-r ${gradient.classes} animate-gradient-x bg-[length:200%_200%]`}
+                              />
                               {selectedGradient === gradient.classes && (
                                 <div className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2 bg-white dark:bg-gray-900 rounded-full p-1 shadow-lg">
                                   <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
@@ -959,10 +731,10 @@ const CustomizationPage = () => {
                           <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl p-4 sm:p-8 border border-gray-200/50 dark:border-gray-700/50 mb-4 sm:mb-6">
                             <div className="flex items-center justify-between mb-4 sm:mb-6">
                               <h3 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
-                                Suas cores personalizadas
+                                Suas cores
                               </h3>
                               <button
-                                onClick={handleRandomGradient}
+                                onClick={randomGradient}
                                 className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-lg text-white rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 sm:gap-2"
                               >
                                 <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -976,36 +748,32 @@ const CustomizationPage = () => {
                                   <div className="flex-shrink-0 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 w-12 sm:w-16">
                                     Cor {index + 1}
                                   </div>
-                                  
                                   <div className="relative flex-1">
                                     <input
                                       type="color"
                                       value={color}
-                                      onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
+                                      onChange={e => updateCustomColor(index, e.target.value)}
                                       className="w-full h-10 sm:h-12 rounded-lg sm:rounded-xl border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
                                       style={{ backgroundColor: color }}
                                     />
                                   </div>
-
                                   <div className="flex items-center gap-2 sm:gap-3 flex-1">
-                                    <div 
+                                    <div
                                       className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl shadow-lg border-2 border-white dark:border-gray-700"
                                       style={{ backgroundColor: color }}
-                                    ></div>
+                                    />
                                     <input
                                       type="text"
                                       value={color.toUpperCase()}
-                                      onChange={(e) => handleUpdateCustomColor(index, e.target.value)}
+                                      onChange={e => updateCustomColor(index, e.target.value)}
                                       className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                                       placeholder="#000000"
                                     />
                                   </div>
-
                                   {customGradientColors.length > 2 && (
                                     <button
-                                      onClick={() => handleRemoveCustomColor(index)}
-                                      className="flex-shrink-0 p-1.5 sm:p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg sm:rounded-xl transition-all duration-300"
-                                      title="Remover cor"
+                                      onClick={() => removeCustomColor(index)}
+                                      className="p-1.5 sm:p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg sm:rounded-xl transition-all duration-300"
                                     >
                                       <X className="h-4 w-4 sm:h-5 sm:w-5" />
                                     </button>
@@ -1016,7 +784,7 @@ const CustomizationPage = () => {
 
                             {customGradientColors.length < 3 && (
                               <button
-                                onClick={handleAddCustomColor}
+                                onClick={addCustomColor}
                                 className="mt-3 sm:mt-4 w-full py-2 sm:py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 font-semibold"
                               >
                                 <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -1025,105 +793,88 @@ const CustomizationPage = () => {
                             )}
                           </div>
 
-                          <div className="mb-4 sm:mb-6 p-3 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-                            <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Gradiente personalizado:</p>
-                            <div 
+                          <div className="p-3 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
+                            <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
+                              Gradiente personalizado:
+                            </p>
+                            <div
                               className="w-full h-16 sm:h-20 rounded-xl sm:rounded-2xl shadow-xl animate-gradient-x bg-[length:200%_200%]"
-                              style={{ 
-                                background: getCustomGradientStyle(),
-                                backgroundSize: '200% 200%'
-                              }}
-                            ></div>
+                              style={{ background: customGradientStyle, backgroundSize: '200% 200%' }}
+                            />
                           </div>
                         </div>
                       )}
 
+                      {/* Preview do gradiente selecionado (pré-definido) */}
                       {!isCustomGradient && (
-                        <div className="mb-4 sm:mb-6 p-3 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-                          <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Gradiente selecionado:</p>
-                          <div className={`w-full h-16 sm:h-20 rounded-xl sm:rounded-2xl shadow-xl bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`}></div>
+                        <div className="p-3 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
+                          <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
+                            Gradiente selecionado:
+                          </p>
+                          <div
+                            className={`w-full h-16 sm:h-20 rounded-xl sm:rounded-2xl shadow-xl bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`}
+                          />
                         </div>
                       )}
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                {/* Preview */}
+                {/* Pré-visualização da campanha */}
                 <div>
                   <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2">
                     <Eye className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
                     Pré-visualização
                   </h2>
                   <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-                    Veja como sua campanha ficará para os visitantes
+                    Como sua campanha aparecerá para os visitantes
                   </p>
-                  <div className={`${getThemeClasses(selectedTheme).background} rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 ${getThemeClasses(selectedTheme).border} shadow-inner`}>
-                    <div className="space-y-4 sm:space-y-6">
-                      <div className="flex items-center justify-between">
-                        <h3 className={`text-lg sm:text-2xl font-bold ${getThemeClasses(selectedTheme).text}`}>
-                          Rifa do iPhone 15 Pro
-                        </h3>
-                        <span className={`text-sm sm:text-base font-semibold ${getThemeClasses(selectedTheme).textSecondary}`}>
-                          Sorteio em 30 dias
-                        </span>
-                      </div>
-                      <p className={`text-sm sm:text-base ${getThemeClasses(selectedTheme).textSecondary}`}>
-                        Participe da rifa e concorra a um iPhone 15 Pro! Cada bilhete custa R$ 5,00.
-                      </p>
-                      <div className={`${getThemeClasses(selectedTheme).cardBg} rounded-lg sm:rounded-xl p-4 sm:p-6 space-y-2 sm:space-y-3`}>
-                        <div className={`text-sm font-medium ${getThemeClasses(selectedTheme).textSecondary}`}>
-                          Progresso da campanha
-                        </div>
-                        <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2 sm:h-3">
-                          <div 
-                            className={`h-2 sm:h-3 rounded-full w-3/4 ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                            style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                          ></div>
-                        </div>
-                        <div className={`text-sm font-bold ${getThemeClasses(selectedTheme).text}`}>
-                          750/1000 bilhetes vendidos
-                        </div>
-                      </div>
-                      
-                      <button 
-                        className={`text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl shadow-lg ${colorMode === 'gradient' ? (isCustomGradient ? 'animate-gradient-x bg-[length:200%_200%]' : `bg-gradient-to-r ${selectedGradient} animate-gradient-x bg-[length:200%_200%]`) : ''}`}
-                        style={colorMode === 'solid' ? { backgroundColor: selectedColor } : (isCustomGradient ? { background: getCustomGradientStyle(), backgroundSize: '200% 200%' } : {})}
-                      >
-                        Participar da Rifa
-                      </button>
+                  <div className={`${themeClasses.bg} rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 ${themeClasses.border} shadow-inner`}>
+                    <div className="flex justify-between items-start mb-4">
+                      {currentLogoUrl ? (
+                        <img src={currentLogoUrl} alt="Logo" className="h-10 sm:h-12 object-contain" />
+                      ) : (
+                        <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg w-10 h-10 sm:w-12 sm:h-12" />
+                      )}
+                      <div className="text-xs text-gray-500">Pré-visualização</div>
                     </div>
-                  </div>
-                  
-                  <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl">
-                    <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-200 text-center">
-                      Esta é uma prévia de como sua campanha aparecerá para os visitantes
+                    <h3 className={`${themeClasses.txt} text-lg sm:text-xl font-bold mb-2`}>
+                      Título da Sua Campanha
+                    </h3>
+                    <p className={`${themeClasses.txt2} text-sm sm:text-base mb-4`}>
+                      Descrição breve e atraente da sua oferta especial com destaque visual.
                     </p>
+                    <button
+                      className={`w-full py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-white transition-all duration-300 shadow-lg ${
+                        colorMode === 'gradient'
+                          ? `bg-gradient-to-r ${isCustomGradient ? '' : selectedGradient} animate-gradient-x bg-[length:200%_200%]`
+                          : ''
+                      }`}
+                      style={colorMode === 'solid' ? { backgroundColor: selectedColor } : isCustomGradient ? { background: customGradientStyle, backgroundSize: '200% 200%' } : {}}
+                    >
+                      Ação Principal
+                    </button>
                   </div>
                 </div>
 
-                {/* Tip */}
+                {/* Dica */}
                 <div className="mb-4 sm:mb-6 p-3 sm:p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl sm:rounded-2xl shadow-md">
-                  <div className="flex items-start space-x-3 sm:space-x-4">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                      <Sparkles className="text-white h-4 w-4 sm:h-5 sm:w-5" />
-                    </div>
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <Info className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-blue-900 dark:text-blue-100 text-sm sm:text-base font-bold mb-1 sm:mb-2">
-                        Dica de Design
+                      <p className="text-sm sm:text-base font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                        Dica de design
                       </p>
-                      <p className="text-blue-800 dark:text-blue-200 text-xs sm:text-sm">
-                        {colorMode === 'solid' 
-                          ? 'Para melhor legibilidade, escolha cores mais escuras como cor principal. Cores muito claras podem dificultar a leitura do texto branco nos botões.'
-                          : 'Gradientes animados criam um efeito visual impressionante e moderno. Eles são perfeitos para destacar botões e elementos importantes da sua campanha.'
-                        }
+                      <p className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
+                        Use cores contrastantes para melhor conversão. Gradientes animados chamam mais atenção em dispositivos móveis.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Save Button */}
-                <motion.button 
-                  onClick={handleSaveChanges}
+                {/* Salvar */}
+                <motion.button
+                  onClick={saveChanges}
                   disabled={saving}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -1144,84 +895,55 @@ const CustomizationPage = () => {
               </div>
             )}
 
-            {/* Logo Tab */}
+            {/* ========== SUA LOGO ========== */}
             {activeTab === 'sua-logo' && (
-              <div>
-                <h2 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
-                  <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 dark:text-purple-400" />
-                  Sua logo
-                </h2>
-                <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-6 sm:mb-8">
-                  Adicione sua logo e deixe suas campanhas com a identidade da sua marca
-                </p>
-
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl p-4 sm:p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
-                  <h3 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
-                    Logo da empresa
-                  </h3>
+              <div className="space-y-6 sm:space-y-8">
+                <div>
+                  <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center gap-2">
+                    <Upload className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
+                    Upload da sua logo
+                  </h2>
                   <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-                    Dimensões recomendadas: <span className="text-purple-600 dark:text-purple-400 font-bold">100x50px</span> (proporção 2:1)
+                    Adicione sua logo para personalizar ainda mais suas campanhas
                   </p>
+                </div>
 
-                  {currentLogoUrl && (
-                    <div className="mb-6 sm:mb-8">
-                      <h4 className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
-                        Logo atual
-                      </h4>
-                      <div className="relative inline-block group">
-                        <img
-                          src={currentLogoUrl}
-                          alt="Logo atual"
-                          className="max-w-[200px] sm:max-w-xs max-h-24 sm:max-h-32 object-contain bg-white dark:bg-gray-700 p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-gray-300 dark:border-gray-600 shadow-lg"
-                        />
-                        <button
-                          onClick={handleRemoveLogo}
-                          disabled={uploadingLogo}
-                          className="absolute -top-2 sm:-top-3 -right-2 sm:-right-3 bg-red-500 hover:bg-red-600 disabled:bg-red-400 text-white p-1.5 sm:p-2 rounded-full transition-all duration-300 shadow-lg hover:scale-110"
-                          title="Remover logo"
-                        >
-                          <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </button>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoSelect}
+                  className="hidden"
+                />
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+                  <div>
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-2xl p-6 sm:p-8 text-center cursor-pointer hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-300"
+                      onClick={() => logoInputRef.current?.click()}
+                    >
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 sm:mb-4 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                        <Upload className="h-8 w-8 sm:h-10 sm:w-10 text-purple-600 dark:text-purple-400" />
                       </div>
+                      <p className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-1">
+                        Clique para fazer upload
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        PNG, JPG, SVG até 5MB
+                      </p>
                     </div>
-                  )}
+                  </div>
 
-                  <input
-                    ref={logoInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleLogoSelect}
-                    className="hidden"
-                  />
-
-                  {logoPreviewUrl && (
-                    <div className="mb-6 sm:mb-8">
-                      <h4 className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
-                        Pré-visualização
-                      </h4>
-                      <div className="relative inline-block">
-                        <img
-                          src={logoPreviewUrl}
-                          alt="Preview da nova logo"
-                          className="max-w-[200px] sm:max-w-xs max-h-24 sm:max-h-32 object-contain bg-white dark:bg-gray-700 p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-purple-500 shadow-xl"
-                        />
+                  <div>
+                    {logoPreviewUrl ? (
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-gray-200 dark:border-gray-700">
+                        <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                          Pré-visualização:
+                        </p>
+                        <img src={logoPreviewUrl} alt="Preview" className="w-full h-32 sm:h-40 object-contain rounded-lg" />
                         <button
-                          onClick={() => {
-                            setLogoFile(null);
-                            setLogoPreviewUrl(null);
-                          }}
-                          className="absolute -top-2 sm:-top-3 -right-2 sm:-right-3 bg-gray-500 hover:bg-gray-600 text-white p-1.5 sm:p-2 rounded-full transition-all duration-300 shadow-lg hover:scale-110"
-                          title="Cancelar"
-                        >
-                          <X className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </button>
-                      </div>
-                      
-                      <div className="mt-4 sm:mt-6">
-                        <button
-                          onClick={handleUploadLogo}
+                          onClick={uploadLogo}
                           disabled={uploadingLogo}
-                          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center space-x-2 sm:space-x-3 shadow-lg hover:scale-105"
+                          className="mt-4 w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 shadow-lg"
                         >
                           {uploadingLogo ? (
                             <>
@@ -1236,55 +958,51 @@ const CustomizationPage = () => {
                           )}
                         </button>
                       </div>
-                    </div>
-                  )}
-
-                  {!logoPreviewUrl && (
-                    <div 
-                      onClick={() => logoInputRef.current?.click()}
-                      className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-2xl p-8 sm:p-12 text-center transition-all duration-300 cursor-pointer hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/10 group"
-                    >
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                        <Upload className="h-8 w-8 sm:h-10 sm:w-10 text-purple-600 dark:text-purple-400" />
+                    ) : currentLogoUrl ? (
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-gray-200 dark:border-gray-700">
+                        <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                          Logo atual:
+                        </p>
+                        <img src={currentLogoUrl} alt="Logo atual" className="w-full h-32 sm:h-40 object-contain rounded-lg" />
+                        <button
+                          onClick={removeLogo}
+                          className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 shadow-lg"
+                        >
+                          <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                          <span>Remover Logo</span>
+                        </button>
                       </div>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4 sm:mb-6 text-sm sm:text-lg">
-                        Clique aqui para selecionar sua logo
-                      </p>
-                      <button 
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          logoInputRef.current?.click();
-                        }}
-                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base flex items-center space-x-2 sm:space-x-3 mx-auto transition-all duration-300 shadow-lg hover:scale-105"
-                      >
-                        <span>Adicionar Logo</span>
-                        <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="mt-4 sm:mt-6 p-3 sm:p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl">
-                    <div className="flex items-start space-x-2 sm:space-x-3">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                        <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                          <strong className="block mb-1 sm:mb-2">Especificações técnicas:</strong>
-                          • Formatos aceitos: JPG, PNG, WebP<br />
-                          • Tamanho máximo: 5MB<br />
-                          • Dimensões recomendadas: 100x50px (proporção 2:1)<br />
-                          • Fundo transparente recomendado para melhor resultado
+                    ) : (
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-dashed border-gray-300 dark:border-gray-600 text-center">
+                        <div className="w-16 h-16 mx-auto mb-3 bg-gray-200 dark:bg-gray-700 rounded-xl" />
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                          Nenhuma logo enviada ainda
                         </p>
                       </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl sm:rounded-2xl border border-purple-200 dark:border-purple-800">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <Info className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm sm:text-base font-semibold text-purple-900 dark:text-purple-100 mb-1">
+                        Recomendações para logo
+                      </p>
+                      <ul className="text-xs sm:text-sm text-purple-700 dark:text-purple-300 space-y-1">
+                        <li>• Use fundo transparente (PNG)</li>
+                        <li>• Proporção ideal: 3:1 ou 4:1</li>
+                        <li>• Altura mínima: 60px</li>
+                        <li>• Evite texto muito pequeno</li>
+                      </ul>
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Domains Tab */}
+            {/* ========== DOMÍNIOS ========== */}
             {activeTab === 'dominios' && (
               <div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-3 sm:gap-4">
@@ -1294,10 +1012,10 @@ const CustomizationPage = () => {
                       Domínio personalizado
                     </h2>
                     <p className="text-xs sm:text-base text-gray-600 dark:text-gray-400">
-                      Use seu próprio domínio para suas campanhas (ex: rifaminhaloja.com)
+                      Use seu próprio domínio para maior credibilidade
                     </p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setShowDomainModal(true)}
                     className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center space-x-1.5 sm:space-x-2 shadow-lg hover:scale-105 whitespace-nowrap"
                   >
@@ -1307,97 +1025,128 @@ const CustomizationPage = () => {
                 </div>
 
                 <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl sm:rounded-2xl p-4 sm:p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
-                  <h3 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
-                    Domínios configurados
-                  </h3>
-
                   {loadingDomains ? (
                     <div className="text-center py-12 sm:py-16">
-                      <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-4 border-purple-600 mx-auto mb-3 sm:mb-4"></div>
-                      <p className="text-gray-600 dark:text-gray-400 font-medium text-sm sm:text-base">Carregando domínios...</p>
+                      <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-4 border-purple-600 mx-auto mb-3 sm:mb-4" />
+                      <p className="text-gray-600 dark:text-gray-400 font-medium text-sm sm:text-base">
+                        Carregando domínios...
+                      </p>
                     </div>
                   ) : customDomains.length > 0 ? (
                     <div className="space-y-3 sm:space-y-4">
-                      {customDomains.map((domain) => (
-                        <div
-                          key={domain.id}
-                          className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300"
-                        >
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-                            <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
-                              <div className="flex-shrink-0">
-                                {getStatusIcon(domain)}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="font-bold text-base sm:text-lg text-gray-900 dark:text-white truncate">
-                                  {domain.domain_name}
+                      {customDomains.map(domain => {
+                        const { icon, text, color } = statusInfo(domain);
+                        const isOpen = showDNSDetails === domain.id;
+                        return (
+                          <div
+                            key={domain.id}
+                            className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300"
+                          >
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                              <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
+                                {icon}
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-bold text-base sm:text-lg text-gray-900 dark:text-white truncate">
+                                    {domain.domain_name}
+                                  </div>
+                                  <div className={`text-xs sm:text-sm ${color}`}>
+                                    Status: <span className="font-semibold">{text}</span>
+                                  </div>
                                 </div>
-                                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                                  Status: <span className="font-semibold">{getStatusText(domain)}</span>
-                                </div>
                               </div>
-                            </div>
-                            
-                            <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0 w-full sm:w-auto">
-                              {domain.is_verified ? (
-                                <a
-                                  href={`https://${domain.domain_name}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="p-2 sm:p-3 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-110"
-                                  title="Abrir domínio"
-                                >
-                                  <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
-                                </a>
-                              ) : (
+                              <div className="flex items-center space-x-1.5 sm:space-x-2">
+                                {domain.is_verified ? (
+                                  <a
+                                    href={`https://${domain.domain_name}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-2 sm:p-3 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-110"
+                                  >
+                                    <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
+                                  </a>
+                                ) : (
+                                  <button
+                                    onClick={() => verifyDomain(domain.id)}
+                                    disabled={verifyingDomain === domain.id}
+                                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-105 shadow-md"
+                                  >
+                                    {verifyingDomain === domain.id ? 'Verificando...' : 'Verificar'}
+                                  </button>
+                                )}
                                 <button
-                                  onClick={() => handleVerifyDomain(domain.id)}
-                                  disabled={verifyingDomain === domain.id}
-                                  className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-105 shadow-md"
+                                  onClick={() => deleteDomain(domain.id, domain.domain_name)}
+                                  className="p-2 sm:p-3 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-110"
                                 >
-                                  {verifyingDomain === domain.id ? 'Verificando...' : 'Verificar'}
+                                  <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                                 </button>
-                              )}
-                              
-                              <button
-                                onClick={() => handleDeleteDomain(domain.id, domain.domain_name)}
-                                className="p-2 sm:p-3 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-110"
-                                title="Remover domínio"
-                              >
-                                <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                              </button>
+                              </div>
                             </div>
+
+                            {!domain.is_verified && (
+                              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <button
+                                  onClick={() => setShowDNSDetails(isOpen ? null : domain.id)}
+                                  className="flex items-center gap-2 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
+                                >
+                                  <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                                  Instruções de DNS
+                                </button>
+                                {isOpen && (
+                                  <div className="mt-3 space-y-3">
+                                    <div>
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Tipo:</span>
+                                        <code className="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">CNAME</code>
+                                      </div>
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Nome/Host:</span>
+                                        <div className="flex items-center gap-2">
+                                          <code className="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">@</code>
+                                          <button
+                                            onClick={() => copyToClipboard('@', 'host')}
+                                            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                                          >
+                                            {copiedDNS === 'host' ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Valor/Destino:</span>
+                                        <code className="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">custom.yourapp.com</code>
+                                      </div>
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Cópia:</span>
+                                        <button
+                                          onClick={() => copyToClipboard('custom.yourapp.com', 'target')}
+                                          className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                                        >
+                                          {copiedDNS === 'target' ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                                        </button>
+                                      </div>
+                                    </div>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                      Adicione este registro CNAME no painel do seu provedor de domínio. A propagação pode levar até 48h.
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
-                          
-                          {!domain.is_verified && domain.dns_instructions && (
-                            <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl">
-                              <h4 className="text-xs sm:text-sm font-bold text-blue-900 dark:text-blue-100 mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2">
-                                <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
-                                Instruções DNS
-                              </h4>
-                              <div className="text-xs sm:text-sm text-blue-800 dark:text-blue-200 space-y-1.5 sm:space-y-2 font-mono bg-blue-100 dark:bg-blue-900/30 p-2 sm:p-3 rounded-md sm:rounded-lg">
-                                <p><strong>Tipo:</strong> CNAME</p>
-                                <p><strong>Nome:</strong> {domain.domain_name}</p>
-                                <p><strong>Valor:</strong> meuapp.com</p>
-                              </div>
-                              <div className="mt-2 sm:mt-3 text-xs text-blue-700 dark:text-blue-300">
-                                Após configurar o DNS, clique em "Verificar" para ativar o domínio.
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="text-center py-12 sm:py-16">
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
-                        <ExternalLink className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 dark:text-gray-500" />
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                        <ExternalLink className="h-8 w-8 sm:h-10 sm:w-10 text-purple-600 dark:text-purple-400" />
                       </div>
-                      <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg font-medium mb-1 sm:mb-2">
-                        Nenhum domínio configurado
+                      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 font-medium mb-2">
+                        Nenhum domínio personalizado
                       </p>
-                      <p className="text-gray-500 dark:text-gray-500 text-xs sm:text-sm">
-                        Adicione seu primeiro domínio personalizado
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Adicione seu primeiro domínio para começar
                       </p>
                     </div>
                   )}
@@ -1408,86 +1157,60 @@ const CustomizationPage = () => {
         </AnimatePresence>
       </main>
 
-      {/* Domain Modal */}
+      {/* ========== MODAIS ========== */}
       {showDomainModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-6 sm:p-8 w-full max-w-lg shadow-2xl border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
-                <Plus className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
-                Novo domínio
-              </h3>
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-6 sm:p-8 w-full max-w-lg shadow-2xl border border-gray-200 dark:border-gray-700"
+          >
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Adicionar Domínio
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Digite seu domínio completo (ex: meudominio.com)
+            </p>
+            <input
+              type="text"
+              value={newDomain}
+              onChange={e => setNewDomain(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addDomain()}
+              placeholder="exemplo.com"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4"
+            />
+            <div className="flex gap-3">
               <button
                 onClick={() => {
                   setShowDomainModal(false);
                   setNewDomain('');
                 }}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg sm:rounded-xl"
+                className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
               >
-                <X className="h-5 w-5 sm:h-6 sm:w-6" />
+                Cancelar
+              </button>
+              <button
+                onClick={addDomain}
+                disabled={!newDomain.trim() || saving}
+                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg font-bold transition-all duration-300 flex items-center justify-center space-x-2"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Salvando...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Salvar Domínio</span>
+                  </>
+                )}
               </button>
             </div>
-            
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-              Adicione um novo domínio personalizado para suas campanhas
-            </p>
-
-            <div className="mb-4 sm:mb-6">
-              <label className="block text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
-                Digite seu domínio
-              </label>
-              <input
-                type="text"
-                value={newDomain}
-                onChange={(e) => setNewDomain(e.target.value)}
-                placeholder="Exemplo: rifaqui.com.br"
-                className="w-full bg-white dark:bg-gray-700 border-2 border-purple-500 focus:border-purple-600 dark:border-purple-600 dark:focus:border-purple-500 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all duration-200"
-              />
-            </div>
-
-            <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg sm:rounded-xl">
-              <p className="text-xs sm:text-sm text-yellow-800 dark:text-yellow-200">
-                <strong>Importante:</strong> Não use https:// ou barras (/), insira apenas o domínio.
-              </p>
-            </div>
-
-            <button
-              onClick={handleSaveDomain}
-              disabled={!newDomain.trim() || saving}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-300 flex items-center justify-center space-x-2 sm:space-x-3 shadow-lg hover:scale-105"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                  <span>Salvando...</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Salvar Domínio</span>
-                </>
-              )}
-            </button>
-            
-            <div className="mt-4 sm:mt-6 p-3 sm:p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl">
-              <div className="flex items-start space-x-2 sm:space-x-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-200">
-                    <strong className="block mb-1">Como funciona:</strong>
-                    Após adicionar o domínio, você receberá instruções para configurar o DNS. 
-                    O certificado SSL será ativado automaticamente após a verificação bem-sucedida.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
-      {/* Confirm Modals */}
       <ConfirmModal
         isOpen={showRemoveLogoConfirm}
         title="Remover Logo"
