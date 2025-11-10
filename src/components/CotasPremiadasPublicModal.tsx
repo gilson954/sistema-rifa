@@ -145,30 +145,25 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
 
   const theme = getThemeClasses(campaignTheme);
 
-  // ✅ CRITICAL FIX: Função para calcular o número de dígitos para o preenchimento
-  // O quota_number no banco vai de 1 a N, mas exibimos de 00 a N-1
   const getQuotaNumberPadding = () => {
-    if (totalTickets === 0) return 1; // Garante pelo menos 1 dígito
-    // O maior número exibido é totalTickets - 1
+    if (totalTickets === 0) return 1;
     const maxDisplayNumber = totalTickets - 1;
     return String(maxDisplayNumber).length;
   };
 
-  // ✅ CRITICAL FIX: Função para formatar o número da cota (numero_cota - 1)
   const formatQuotaNumber = (numero: number) => {
-    // CRITICAL FIX: Formatar numero - 1 para exibição
     const displayNumber = numero - 1;
     return displayNumber.toString().padStart(getQuotaNumberPadding(), '0');
   };
 
   const getStatusBadge = (cota: CotaPremiada) => {
-    const isDark = campaignTheme === 'escuro' || campaignTheme === 'escuro-preto';
+    const isDark = campaignTheme === 'escuro' || campaignTheme === 'escuro-preto' || campaignTheme === 'escuro-cinza';
     
     switch (cota.status) {
       case 'disponivel':
         return (
           <motion.div 
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs font-bold shadow-sm ${
               isDark 
                 ? 'bg-green-900/40 text-green-300 border border-green-700' 
                 : 'bg-green-600 text-white'
@@ -176,14 +171,15 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
-            <CheckCircle className="h-4 w-4" />
-            <span>Disponível</span>
+            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Disponível</span>
+            <span className="sm:hidden">Disp.</span>
           </motion.div>
         );
       case 'comprada':
         return (
           <motion.div 
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs font-bold shadow-sm ${
               isDark 
                 ? 'bg-orange-900/40 text-orange-300 border border-orange-700' 
                 : 'bg-orange-600 text-white'
@@ -191,14 +187,15 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
-            <ShoppingBag className="h-4 w-4" />
-            <span>Comprada</span>
+            <ShoppingBag className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Comprada</span>
+            <span className="sm:hidden">Comp.</span>
           </motion.div>
         );
       case 'encontrada':
         return (
           <motion.div 
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs font-bold shadow-sm ${
               isDark 
                 ? 'bg-blue-900/40 text-blue-300 border border-blue-700' 
                 : 'bg-blue-600 text-white'
@@ -206,8 +203,11 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
-            <Trophy className="h-4 w-4" />
-            <span className="truncate max-w-[150px]">Ganhador: {cota.winner_name || 'Desconhecido'}</span>
+            <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="truncate max-w-[80px] sm:max-w-[150px]">
+              <span className="hidden sm:inline">Ganhador: </span>
+              {cota.winner_name || 'Desconhecido'}
+            </span>
           </motion.div>
         );
       default:
@@ -329,25 +329,25 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
           >
             {/* Header */}
             <motion.div
-              className={`flex items-center justify-between p-5 border-b ${theme.border}`}
+              className={`flex items-center justify-between p-4 sm:p-5 border-b ${theme.border}`}
               variants={headerVariants}
               initial="hidden"
               animate="visible"
             >
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 sm:space-x-3">
                 <motion.div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${getColorStyle().className}`}
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center ${getColorStyle().className}`}
                   style={getColorStyle().style}
                   whileHover={{ rotate: 360, scale: 1.1 }}
                   transition={{ duration: 0.6 }}
                 >
-                  <Award className="h-5 w-5 text-white" />
+                  <Award className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </motion.div>
-                <h2 className={`text-xl font-bold ${theme.text}`}>Cotas Premiadas</h2>
+                <h2 className={`text-lg sm:text-xl font-bold ${theme.text}`}>Cotas Premiadas</h2>
               </div>
               <motion.button
                 onClick={onClose}
-                className={`p-2 rounded-lg ${theme.closeButtonHover} transition-colors duration-200`}
+                className={`p-1.5 sm:p-2 rounded-lg ${theme.closeButtonHover} transition-colors duration-200`}
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 transition={{ duration: 0.2 }}
@@ -357,9 +357,9 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
             </motion.div>
 
             {/* Body */}
-            <div className="p-5">
+            <div className="p-4 sm:p-5">
               <motion.p
-                className={`text-sm ${theme.textSecondary} mb-4`}
+                className={`text-xs sm:text-sm ${theme.textSecondary} mb-3 sm:mb-4`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.3 }}
@@ -369,11 +369,11 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
 
               {cotasPremiadas && cotasPremiadas.length > 0 ? (
                 <>
-                  <div className="space-y-2.5">
+                  <div className="space-y-2 sm:space-y-2.5">
                     {displayedCotas.map((cota, index) => (
                       <motion.div
                         key={cota.id}
-                        className={`flex items-center justify-between p-3.5 ${theme.cardBg} rounded-lg border ${theme.border}`}
+                        className={`flex items-center justify-between p-2.5 sm:p-3.5 ${theme.cardBg} rounded-lg border ${theme.border}`}
                         custom={index}
                         variants={cotaItemVariants}
                         initial="hidden"
@@ -385,26 +385,25 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
                         }}
                       >
                         {/* Badge com número da cota + Nome do prêmio */}
-                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                           <motion.div
-                            className={`px-3 py-1.5 rounded-md ${theme.badgeBg} flex-shrink-0`}
+                            className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md ${theme.badgeBg} flex-shrink-0`}
                             whileHover={{ scale: 1.05 }}
                             transition={{ duration: 0.2 }}
                           >
-                            {/* ✅ CRITICAL FIX: Exibir numero_cota - 1 com padding correto */}
-                            <span className={`font-bold text-sm ${theme.badgeText}`}>
+                            <span className={`font-bold text-xs sm:text-sm ${theme.badgeText}`}>
                               {formatQuotaNumber(cota.numero_cota)}
                             </span>
                           </motion.div>
                           
                           {/* Nome do prêmio */}
-                          <p className={`font-semibold ${theme.text} truncate`}>
+                          <p className={`font-semibold text-xs sm:text-sm ${theme.text} truncate`}>
                             {cota.premio}
                           </p>
                         </div>
 
                         {/* Status Badge */}
-                        <div className="flex-shrink-0">
+                        <div className="flex-shrink-0 ml-2">
                           {getStatusBadge(cota)}
                         </div>
                       </motion.div>
@@ -414,14 +413,14 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
                   {/* Botão Mostrar Mais */}
                   {cotasPremiadas.length > 10 && (
                     <motion.div
-                      className="mt-4 text-center"
+                      className="mt-3 sm:mt-4 text-center"
                       variants={buttonVariants}
                       initial="hidden"
                       animate="visible"
                     >
                       <motion.button
                         onClick={() => setShowAll(!showAll)}
-                        className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${getColorStyle().className}`}
+                        className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-semibold transition-all duration-200 ${getColorStyle().className}`}
                         style={getColorStyle().style}
                         variants={buttonVariants}
                         whileHover="hover"
@@ -436,13 +435,13 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
                 </>
               ) : (
                 <motion.div
-                  className={`text-center p-8 ${theme.cardBg} rounded-xl border ${theme.border}`}
+                  className={`text-center p-6 sm:p-8 ${theme.cardBg} rounded-xl border ${theme.border}`}
                   variants={emptyStateVariants}
                   initial="hidden"
                   animate="visible"
                 >
                   <motion.div
-                    className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl ${getColorStyle().className}`}
+                    className={`inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-2xl ${getColorStyle().className}`}
                     style={getColorStyle().style}
                     animate={{
                       y: [0, -10, 0],
@@ -454,23 +453,25 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
                       repeatType: 'reverse',
                     }}
                   >
-                    <Award className="h-8 w-8 text-white" />
+                    <Award className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                   </motion.div>
-                  <p className={`mt-4 font-medium ${theme.text}`}>Nenhuma cota premiada cadastrada ainda.</p>
+                  <p className={`mt-3 sm:mt-4 text-sm sm:text-base font-medium ${theme.text}`}>
+                    Nenhuma cota premiada cadastrada ainda.
+                  </p>
                 </motion.div>
               )}
             </div>
 
             {/* Footer */}
             <motion.div
-              className={`p-5 border-t ${theme.border}`}
+              className={`p-4 sm:p-5 border-t ${theme.border}`}
               variants={buttonVariants}
               initial="hidden"
               animate="visible"
             >
               <motion.button
                 onClick={onClose}
-                className={`w-full text-white py-3 rounded-xl font-semibold transition-all duration-200 ${getColorStyle().className}`}
+                className={`w-full text-white py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 ${getColorStyle().className}`}
                 style={getColorStyle().style}
                 variants={buttonVariants}
                 whileHover="hover"
