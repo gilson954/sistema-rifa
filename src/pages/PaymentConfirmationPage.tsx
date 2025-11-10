@@ -275,12 +275,10 @@ const PaymentConfirmationPage = () => {
     loadOrganizerProfile();
   }, [reservationData]);
 
-  // useEffect para atualizar o favicon dinamicamente
   useEffect(() => {
     const faviconLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
     
     if (organizerProfile?.logo_url) {
-      // Se há logo do organizador, usar ele
       if (faviconLink) {
         faviconLink.href = organizerProfile.logo_url;
       } else {
@@ -290,13 +288,11 @@ const PaymentConfirmationPage = () => {
         document.head.appendChild(newFavicon);
       }
     } else {
-      // Se não há logo do organizador, restaurar o padrão
       if (faviconLink) {
         faviconLink.href = '/logo-chatgpt.png';
       }
     }
 
-    // Cleanup: restaurar favicon padrão ao desmontar
     return () => {
       const favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
       if (favicon) {
@@ -305,12 +301,9 @@ const PaymentConfirmationPage = () => {
     };
   }, [organizerProfile]);
 
-  // useEffect para atualizar o título da página dinamicamente
   useEffect(() => {
-    // Sempre exibir apenas "Pagamento"
     document.title = 'Pagamento';
 
-    // Cleanup: restaurar título padrão quando o componente desmontar
     return () => {
       document.title = 'Rifaqui';
     };
@@ -407,7 +400,11 @@ const PaymentConfirmationPage = () => {
             transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-500 rounded-2xl p-6">
+            <div className={`bg-red-50 dark:bg-red-900/20 border-2 border-red-500 rounded-2xl p-6 ${
+              campaignTheme === 'claro' 
+                ? 'shadow-[0_8px_30px_-8px_rgba(239,68,68,0.3),0_4px_15px_-4px_rgba(239,68,68,0.2)]'
+                : 'shadow-[0_8px_30px_-8px_rgba(239,68,68,0.6),0_4px_15px_-4px_rgba(239,68,68,0.4)]'
+            }`}>
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-red-500 rounded-2xl flex items-center justify-center shadow-lg">
                   <Timer className="h-7 w-7 text-white" />
@@ -429,7 +426,11 @@ const PaymentConfirmationPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} shadow-lg`}>
+            <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} ${
+              campaignTheme === 'claro' 
+                ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
+                : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
+            }`}>
               <div 
                 className="flex items-start gap-4 mb-6 cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={() => navigate(`/c/${reservationData.campaignPublicId || reservationData.campaignId}`)}
@@ -542,7 +543,6 @@ const PaymentConfirmationPage = () => {
           </motion.div>
         </main>
 
-        {/* Menu flutuante de redes sociais - Exibido quando há perfil do organizador */}
         {organizerProfile && (
           <SocialMediaFloatingMenu
             socialMediaLinks={organizerProfile.social_media_links}
@@ -580,7 +580,11 @@ const PaymentConfirmationPage = () => {
           transition={{ duration: 0.5 }}
           className="mb-8"
         >
-          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border-2 border-yellow-500 shadow-lg`}>
+          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border-2 border-yellow-500 ${
+            campaignTheme === 'claro' 
+              ? 'shadow-[0_8px_30px_-8px_rgba(234,179,8,0.3),0_4px_15px_-4px_rgba(234,179,8,0.2)]'
+              : 'shadow-[0_8px_30px_-8px_rgba(234,179,8,0.6),0_4px_15px_-4px_rgba(234,179,8,0.4)]'
+          }`}>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
@@ -650,7 +654,11 @@ const PaymentConfirmationPage = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mb-8"
         >
-          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} shadow-lg`}>
+          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} ${
+            campaignTheme === 'claro' 
+              ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
+              : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
+          }`}>
             <div className="flex items-center justify-between mb-4">
               <input
                 type="text"
@@ -684,7 +692,11 @@ const PaymentConfirmationPage = () => {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="mb-8"
         >
-          <div className={`${themeClasses.inputBg} rounded-xl p-4 border-l-4 border-yellow-500`}>
+          <div className={`${themeClasses.inputBg} rounded-xl p-4 border-l-4 border-yellow-500 ${
+            campaignTheme === 'claro' 
+              ? 'shadow-[0_4px_15px_-4px_rgba(0,0,0,0.1)]'
+              : 'shadow-[0_4px_15px_-4px_rgba(0,0,0,0.4)]'
+          }`}>
             <p className={`text-sm ${themeClasses.text}`}>
               <strong>Atenção:</strong> Este pagamento possui prazo limitado. Caso não seja confirmado dentro do tempo estabelecido, a reserva será cancelada e os números ficarão disponíveis novamente.
             </p>
@@ -696,7 +708,11 @@ const PaymentConfirmationPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} shadow-lg`}>
+          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} ${
+            campaignTheme === 'claro' 
+              ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
+              : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
+          }`}>
             <div 
               className="flex items-start gap-4 mb-6 cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate(`/c/${reservationData.campaignPublicId || reservationData.campaignId}`)}
@@ -820,7 +836,6 @@ const PaymentConfirmationPage = () => {
         </motion.div>
       </main>
 
-      {/* Menu flutuante de redes sociais - Exibido quando há perfil do organizador */}
       {organizerProfile && (
         <SocialMediaFloatingMenu
           socialMediaLinks={organizerProfile.social_media_links}
