@@ -34,28 +34,24 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     return 'dark';
   });
 
-  // Aplicar tema imediatamente quando o componente monta
   useEffect(() => {
-    const applyTheme = (currentTheme: Theme) => {
-      const htmlElement = document.documentElement;
-      
-      // Remover todas as classes de tema primeiro
-      htmlElement.classList.remove('dark', 'theme-escuro-cinza');
-      
-      // Aplicar classes baseadas no tema atual
-      if (currentTheme === 'dark' || currentTheme === 'escuro-cinza') {
-        htmlElement.classList.add('dark');
-      }
-      
-      if (currentTheme === 'escuro-cinza') {
-        htmlElement.classList.add('theme-escuro-cinza');
-      }
-      
-      // Salvar a preferência no localStorage
-      localStorage.setItem('theme', currentTheme);
-    };
+    // Salvar a preferência no localStorage
+    localStorage.setItem('theme', theme);
+    
+    // Aplicar ou remover a classe 'dark' no elemento html
+    // Tanto 'dark' quanto 'escuro-cinza' devem adicionar a classe 'dark'
+    if (theme === 'dark' || theme === 'escuro-cinza') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
 
-    applyTheme(theme);
+    // Adicionar classe específica para o tema escuro-cinza
+    if (theme === 'escuro-cinza') {
+      document.documentElement.classList.add('theme-escuro-cinza');
+    } else {
+      document.documentElement.classList.remove('theme-escuro-cinza');
+    }
   }, [theme]);
 
   const toggleTheme = () => {
