@@ -28,12 +28,6 @@ export default function Header() {
     }
   };
 
-  const handleToggleTheme = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleTheme();
-  };
-
   const scrollToSection = (sectionId: string) => {
     if (location.pathname !== '/') {
       navigate('/');
@@ -116,7 +110,7 @@ export default function Header() {
           {/* Theme Toggle and Action Buttons */}
           <div className="hidden md:flex items-center space-x-4">
             <button
-              onClick={handleToggleTheme}
+              onClick={toggleTheme}
               className={`p-2 ${
                 theme === 'dark' ? 'text-white hover:text-purple-400' : 'text-black hover:text-purple-600'
               } transition-colors duration-200 rounded-lg`}
@@ -201,7 +195,7 @@ export default function Header() {
               }`}>
                 <div className="flex items-center justify-between">
                   <button
-                    onClick={handleToggleTheme}
+                    onClick={toggleTheme}
                     className={`p-2 ${
                       theme === 'dark' ? 'text-white hover:text-purple-400' : 'text-black hover:text-purple-600'
                     } transition-colors duration-200 rounded-lg`}
