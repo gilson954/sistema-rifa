@@ -99,7 +99,7 @@ const slideVariants = {
     transition: {
       duration: 0.2
     }
-  }),
+  },
   exit: (direction: number) => ({
     x: direction > 0 ? -300 : 300,
     opacity: 0,
@@ -823,8 +823,7 @@ const CampaignPage = () => {
           border: 'border-gray-200',
           rifaquiText: 'text-gray-900',
           calendarBg: '#dbdbdb',
-          calendarBorder: '#dbdbdb',
-          calendarText: 'text-gray-900'
+          calendarBorder: '#dbdbdb'
         };
       case 'escuro':
         return {
@@ -832,12 +831,11 @@ const CampaignPage = () => {
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-slate-800',
-          headerBg: 'bg-[#161b26]',
-          border: 'border-gray-700',
+          headerBg: 'bg-black',
+          border: 'border-[#101625]',
           rifaquiText: 'text-white',
           calendarBg: '#101625',
-          calendarBorder: '#101625',
-          calendarText: 'text-white'
+          calendarBorder: '#101625'
         };
       case 'escuro-preto':
         return {
@@ -846,11 +844,10 @@ const CampaignPage = () => {
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
           headerBg: 'bg-[#161b26]',
-          border: 'border-gray-700',
+          border: 'border-[#101625]',
           rifaquiText: 'text-white',
           calendarBg: '#090E1A',
-          calendarBorder: '#090E1A',
-          calendarText: 'text-white'
+          calendarBorder: '#090E1A'
         };
       case 'escuro-cinza':
         return {
@@ -858,12 +855,11 @@ const CampaignPage = () => {
           text: 'text-white',
           textSecondary: 'text-gray-400',
           cardBg: 'bg-[#2C2C2C]',
-          headerBg: 'bg-[#2C2C2C]',
-          border: 'border-[#3A3A3A]',
+          headerBg: 'bg-[#141414]',
+          border: 'border-[#1f1f1f]',
           rifaquiText: 'text-white',
           calendarBg: '#141414',
-          calendarBorder: '#1f1f1f',
-          calendarText: 'text-white'
+          calendarBorder: '#1f1f1f'
         };
       default:
         return {
@@ -875,8 +871,7 @@ const CampaignPage = () => {
           border: 'border-gray-200',
           rifaquiText: 'text-gray-900',
           calendarBg: '#FFFFFF',
-          calendarBorder: '#E5E7EB',
-          calendarText: 'text-gray-900'
+          calendarBorder: '#E5E7EB'
         };
     }
   };
@@ -971,7 +966,7 @@ const CampaignPage = () => {
       {/* Header */}
       <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.headerBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-16">
             <button
               onClick={() => campaign?.user_id && navigate(`/org/${campaign.user_id}`)}
               className="flex items-center space-x-2 hover:opacity-80 transition-opacity duration-200"
@@ -980,16 +975,16 @@ const CampaignPage = () => {
                 <img
                   src={organizerProfile.logo_url}
                   alt="Logo do organizador"
-                  className="h-16 w-auto max-w-[200px] object-contain"
+                  className="h-12 w-auto max-w-[180px] object-contain"
                 />
               ) : (
                 <>
                   <img
                     src="/logo-chatgpt.png"
                     alt="Rifaqui Logo"
-                    className="w-10 h-10 object-contain"
+                    className="w-8 h-8 object-contain"
                   />
-                  <span className={`ml-2 text-2xl font-bold ${themeClasses.rifaquiText}`}>Rifaqui</span>
+                  <span className={`ml-2 text-xl font-bold ${themeClasses.rifaquiText}`}>Rifaqui</span>
                 </>
               )}
             </button>
@@ -1007,7 +1002,7 @@ const CampaignPage = () => {
                   setShowPhoneLoginModal(true);
                 }
               }}
-              className={`text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105 ${getColorClassName()}`}
+              className={`text-white px-3 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg hover:scale-105 text-sm ${getColorClassName()}`}
               style={getColorStyle(true, false)}
             >
               <Ticket className="h-4 w-4" />
@@ -1035,7 +1030,7 @@ const CampaignPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} border ${themeClasses.border} overflow-hidden mb-6 max-w-3xl mx-auto`}
+            className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} overflow-hidden mb-6 max-w-3xl mx-auto transition-all duration-300`}
           >
             <div
               className={getColorClassName("px-6 py-4")}
@@ -1130,7 +1125,7 @@ const CampaignPage = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto`}
+          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto transition-all duration-300`}
         >
           <div 
             className="relative group w-full h-[300px] sm:h-[500px] overflow-hidden"
@@ -1230,9 +1225,9 @@ const CampaignPage = () => {
                   borderColor: themeClasses.calendarBorder
                 }}
               >
-                <Calendar className={`h-4 w-4 mr-2 ${themeClasses.calendarText}`} />
-                <span className={`text-sm font-medium ${themeClasses.calendarText}`}>
-                  Sorteio: <span className={`font-bold ${themeClasses.calendarText}`}>{formatDate(campaign.draw_date)}</span>
+                <Calendar className="h-4 w-4 mr-2 text-white" />
+                <span className="text-sm font-medium text-white">
+                  Sorteio: <span className="font-bold text-white">{formatDate(campaign.draw_date)}</span>
                 </span>
               </div>
             )}
@@ -1242,7 +1237,7 @@ const CampaignPage = () => {
         {/* Prêmios */}
         {!isCampaignCompleted && campaign.prizes && Array.isArray(campaign.prizes) && campaign.prizes.length > 0 && (
           <motion.section 
-            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer`}
+            className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer transition-all duration-300`}
             onClick={() => setShowPrizesModal(true)}
             whileHover={{
               scale: [null, 1.02, 1.03],
@@ -1274,7 +1269,7 @@ const CampaignPage = () => {
         {/* Cotas Premiadas */}
         {!isCampaignCompleted && campaign?.campaign_model === 'automatic' && cotasPremiadas.length > 0 && campaign?.cotas_premiadas_visiveis && (
           <motion.section
-            className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer`}
+            className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto cursor-pointer transition-all duration-300`}
             onClick={() => setShowCotasPremiadasModal(true)}
             whileHover={{
               scale: [null, 1.02, 1.03],
@@ -1309,7 +1304,7 @@ const CampaignPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className={`${themeClasses.cardBg} rounded-xl shadow-md border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto`}
+          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto transition-all duration-300`}
         >
           {loadingOrganizer ? (
             <div className="flex items-center justify-center py-8">
@@ -1328,11 +1323,480 @@ const CampaignPage = () => {
         </motion.section>
         )}
 
-        {/* Restante do conteúdo continua igual... */}
+        {/* Promoções */}
+        {!isCampaignCompleted && campaign.promotions && Array.isArray(campaign.promotions) && campaign.promotions.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto transition-all duration-300`}
+          >
+            <div className={`text-center px-6 pt-6 pb-4`}>
+              <h2 className={`text-xl md:text-2xl font-bold ${themeClasses.text} mb-2 flex items-center justify-center gap-2`}>
+                🎁 Promoções Disponíveis
+              </h2>
+              <p className={`text-xs md:text-sm ${themeClasses.textSecondary}`}>
+                Compre mais cotas e economize! Quanto mais você participar, maiores suas chances de ganhar.
+              </p>
+            </div>
+
+            <div className="px-4 pb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {campaign.promotions.map((promo: Promotion) => {
+                const originalValue = promo.ticketQuantity * campaign.ticket_price;
+                const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0;
+                const finalValue = originalValue - promo.fixedDiscountAmount;
+                const colorMode = organizerProfile?.color_mode || 'solid';
+
+                return (
+                  <motion.div 
+                    key={promo.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {colorMode === 'gradient' ? (
+                      <div
+                        className={getColorClassName("p-0.5 rounded-lg")}
+                        style={getColorStyle(true)}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handlePromotionClick(promo.ticketQuantity)}
+                          disabled={!isCampaignAvailable}
+                          className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
+                            themeClasses.cardBg
+                          }`}
+                        >
+                          <span className={`text-xs md:text-sm font-bold ${themeClasses.text} text-left`}>
+                            {promo.ticketQuantity} cotas por {formatCurrency(finalValue)}
+                          </span>
+                          <span className="flex-shrink-0 px-2 py-0.5 bg-green-500 text-white text-xs font-bold rounded-full">
+                            {discountPercentage}%
+                          </span>
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handlePromotionClick(promo.ticketQuantity)}
+                        disabled={!isCampaignAvailable}
+                        className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg transition-all duration-200 border-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                          themeClasses.cardBg
+                        }`}
+                        style={{
+                          borderColor: organizerProfile?.primary_color || (campaignTheme === 'claro' ? '#d1d5db' : '#4b5563')
+                        }}
+                      >
+                        <span className={`text-xs md:text-sm font-bold ${themeClasses.text} text-left`}>
+                          {promo.ticketQuantity} cotas por {formatCurrency(finalValue)}
+                        </span>
+                        <span className="flex-shrink-0 px-2 py-0.5 bg-green-500 text-white text-xs font-bold rounded-full">
+                          {discountPercentage}%
+                        </span>
+                      </button>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.section>
+        )}
+
+        {/* Compra/seleção de cota */}
+        {!isCampaignCompleted && (
+        <motion.section
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto transition-all duration-300`}
+        >
+          {campaign.campaign_model === 'manual' ? (
+            <div className="space-y-4">
+              {!isCampaignAvailable && (
+                <div className="bg-gray-900 border border-orange-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-center space-x-3">
+                    <AlertTriangle className="h-6 w-6 text-orange-400 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-orange-300 mb-1">
+                        Campanha Indisponível
+                      </h4>
+                      <p className="text-sm text-orange-400">
+                        Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div data-quota-grid>
+                <QuotaGrid
+                  totalQuotas={campaign.total_tickets}
+                  selectedQuotas={selectedQuotas}
+                  onQuotaSelect={isCampaignAvailable ? handleQuotaSelect : undefined}
+                  activeFilter={activeFilter}
+                  onFilterChange={setActiveFilter}
+                  mode="manual"
+                  tickets={tickets}
+                  currentUserId={user?.id}
+                  campaignTheme={campaignTheme}
+                  primaryColor={primaryColor}
+                  colorMode={organizerProfile?.color_mode}
+                  gradientClasses={organizerProfile?.gradient_classes}
+                  customGradientColors={organizerProfile?.custom_gradient_colors}
+                  currentPage={currentQuotaPage}
+                  totalPages={ticketsTotalPages}
+                  onPageChange={handleQuotaPageChange}
+                />
+              </div>
+
+              {selectedQuotas.length > 0 && (
+                <div className={`${themeClasses.background} rounded-xl p-4 border ${themeClasses.border}`}>
+                  <h3 className={`text-base font-bold ${themeClasses.text} mb-3`}>
+                    Cotas Selecionadas
+                  </h3>
+                  
+                  <div className="mb-3 pb-16">
+                    <div className={`text-sm ${themeClasses.textSecondary} mb-2`}>
+                      Números selecionados:
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedQuotas.sort((a, b) => a - b).map(quota => (
+                        <span
+                          key={quota}
+                          className={getColorClassName("px-2 py-1 text-white rounded text-xs font-medium")}
+                          style={getColorStyle(true)}
+                        >
+                          {quota.toString().padStart(3, '0')}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {currentPromotionInfo && (
+                    <div className={`mb-3 p-3 border-2 border-green-500 dark:border-green-500 rounded-lg shadow-sm ${themeClasses.cardBg}`}>
+                      <div className="text-center">
+                        <div className="text-sm font-bold text-green-600 dark:text-green-400 mb-1">
+                          🎉 Promoção Aplicada: {currentPromotionInfo.discountPercentage}% OFF
+                        </div>
+                        <div className="text-sm font-semibold text-green-600 dark:text-green-400">
+                          Economia de {formatCurrency(currentPromotionInfo.savings)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center mb-6">
+                    <span className={`font-medium ${themeClasses.text}`}>
+                      {selectedQuotas.length} {selectedQuotas.length === 1 ? 'cota' : 'cotas'}
+                    </span>
+                    <div className="text-right">
+                      {currentPromotionInfo && (
+                        <div className={`text-xs ${themeClasses.textSecondary} line-through`}>
+                          {formatCurrency(currentPromotionInfo.originalTotal)}
+                        </div>
+                      )}
+                      <div
+                        className={currentPromotionInfo ? 'text-xl font-bold text-green-600' : getColorClassName('text-xl font-bold')}
+                        style={!currentPromotionInfo ? getColorStyle(true, true) : {}}
+                      >
+                        {formatCurrency(getCurrentTotalValue())}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleOpenReservationModal}
+                    disabled={selectedQuotas.length === 0}
+                    className={getColorClassName("w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed")}
+                    style={getColorStyle(true)}
+                  >
+                    {isCampaignAvailable ? 'Reservar Cotas Selecionadas' : 'Campanha Indisponível'}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {!isCampaignAvailable && (
+                <div className="bg-gray-900 border border-orange-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-center space-x-3">
+                    <AlertTriangle className="h-6 w-6 text-orange-400 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-orange-300 mb-1">
+                        Campanha Indisponível
+                      </h4>
+                      <p className="text-sm text-orange-400">
+                        Sua campanha está indisponível. Realize o pagamento da taxa para ativá-la!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            <div data-quota-selector>
+              <QuotaSelector
+                ticketPrice={campaign.ticket_price}
+                minTicketsPerPurchase={campaign.min_tickets_per_purchase || 1}
+                maxTicketsPerPurchase={campaign.max_tickets_per_purchase || 20000}
+                onQuantityChange={handleQuantityChange}
+                initialQuantity={quantity}
+                mode="automatic"
+                promotionInfo={currentPromotionInfo}
+                promotions={campaign.promotions || []}
+                primaryColor={primaryColor}
+                campaignTheme={campaignTheme}
+                onReserve={isCampaignAvailable ? handleOpenReservationModal : undefined}
+                reserving={reserving}
+                disabled={!isCampaignAvailable}
+                colorMode={organizerProfile?.color_mode}
+                gradientClasses={organizerProfile?.gradient_classes}
+                customGradientColors={organizerProfile?.custom_gradient_colors}
+              />
+            </div>
+            </>
+          )}
+        </motion.section>
+        )}
+
+        {/* Descrição */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.7 }}
+          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto transition-all duration-300`}
+        >
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <FileText className={`h-5 w-5 ${themeClasses.text}`} />
+            <h3 className={`text-lg font-bold ${themeClasses.text}`}>
+              Descrição
+            </h3>
+          </div>
+          
+          {campaign.description && isValidDescription(campaign.description) ? (
+            <div
+              className={`${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2 ${
+                campaignTheme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
+              }`}
+              style={{
+                maxHeight: '400px'
+              }}
+              dangerouslySetInnerHTML={{ __html: campaign.description }}
+            />
+          ) : (
+            <div className={`${themeClasses.textSecondary} text-center italic`}>
+              <p>Nenhuma descrição fornecida para esta campanha.</p>
+            </div>
+          )}
+        </motion.section>
+
+        {/* Método de Sorteio */}
+        {!isCampaignCompleted && (
+        <motion.section
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.8 }}
+          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} p-4 max-w-3xl mx-auto mb-4 transition-all duration-300`}
+        >
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+            <div className="flex items-center gap-2">
+              <div
+                className={getColorClassName("w-8 h-8 rounded-lg flex items-center justify-center text-white")}
+                style={getColorStyle(true)}
+              >
+                <Trophy className="h-4 w-4" />
+              </div>
+              <span className={`font-semibold text-sm ${themeClasses.text}`}>
+                Método de sorteio:
+              </span>
+            </div>
+            <span className={`font-medium text-sm ${themeClasses.text}`}>
+              {campaign.draw_method}
+            </span>
+          </div>
+        </motion.section>
+        )}
       </main>
+
+      {/* Fullscreen Image Modal */}
+      {fullscreenImageIndex !== null && campaign?.prize_image_urls && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
+          onClick={handleCloseFullscreen}
+        >
+          <div 
+            className="relative max-w-full max-h-full"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <img
+              src={campaign.prize_image_urls[fullscreenImageIndex]}
+              alt={campaign.title}
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+            
+            {campaign.prize_image_urls.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToPreviousFullscreenImage();
+                  }}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
+                  aria-label="Imagem anterior"
+                >
+                  <ChevronLeft className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToNextFullscreenImage();
+                  }}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all duration-200 flex items-center justify-center group"
+                  aria-label="Próxima imagem"
+                >
+                  <ChevronRight className="h-8 w-8 md:h-10 md:w-10 group-hover:scale-110 transition-transform duration-200" />
+                </button>
+              </>
+            )}
+
+            {campaign.prize_image_urls.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm font-medium">
+                {fullscreenImageIndex + 1} / {campaign.prize_image_urls.length}
+              </div>
+            )}
+            
+            <button
+              onClick={handleCloseFullscreen}
+              className="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-colors duration-200 flex items-center justify-center"
+              aria-label="Fechar imagem em tela cheia"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 1 Modal - Phone Input */}
+      <ReservationStep1Modal
+        isOpen={showStep1Modal}
+        onClose={() => setShowStep1Modal(false)}
+        onNewCustomer={handleStep1NewCustomer}
+        onExistingCustomer={handleStep1ExistingCustomer}
+        quotaCount={campaign.campaign_model === 'manual' ? selectedQuotas.length : quantity}
+        totalValue={getCurrentTotalValue()}
+        selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
+        campaignTitle={campaign.title}
+        primaryColor={primaryColor}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
+        campaignTheme={campaignTheme}
+      />
+
+      {/* Step 2 Modal */}
+      {showStep2Modal && 
+       customerDataForStep2 && 
+       quotaCountForStep2 > 0 && 
+       orderIdForReservation && 
+       reservationTimestampForReservation && (
+        <ReservationStep2Modal
+          isOpen={showStep2Modal}
+          onClose={() => setShowStep2Modal(false)}
+          onConfirm={handleStep2Confirm}
+          customerData={customerDataForStep2}
+          quotaCount={quotaCountForStep2}
+          totalValue={getCurrentTotalValue()}
+          selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
+          campaignTitle={campaign.title}
+          primaryColor={primaryColor}
+          colorMode={organizerProfile?.color_mode}
+          gradientClasses={organizerProfile?.gradient_classes}
+          customGradientColors={organizerProfile?.custom_gradient_colors}
+          campaignTheme={campaignTheme}
+          confirming={reserving}
+          orderId={orderIdForReservation}
+          reservationTimestamp={reservationTimestampForReservation}
+        />
+      )}
+
+      {/* Reservation Modal */}
+      {showReservationModal && 
+       quotaCountForStep2 > 0 && 
+       orderIdForReservation && 
+       reservationTimestampForReservation && (
+        <ReservationModal
+          isOpen={showReservationModal}
+          onClose={() => setShowReservationModal(false)}
+          onReserve={handleReservationSubmit}
+          quotaCount={quotaCountForStep2}
+          totalValue={getCurrentTotalValue()}
+          selectedQuotas={campaign.campaign_model === 'manual' ? selectedQuotas : undefined}
+          campaignTitle={campaign.title}
+          primaryColor={primaryColor}
+          campaignTheme={campaignTheme}
+          reserving={reserving}
+          reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
+          colorMode={organizerProfile?.color_mode}
+          gradientClasses={organizerProfile?.gradient_classes}
+          customGradientColors={organizerProfile?.custom_gradient_colors}
+          customerData={null}
+          orderId={orderIdForReservation}
+          reservationTimestamp={reservationTimestampForReservation}
+        />
+      )}
+
+      {/* Prizes Display Modal */}
+      {campaign && (
+        <PrizesDisplayModal
+          isOpen={showPrizesModal}
+          onClose={() => setShowPrizesModal(false)}
+          prizes={campaign.prizes || []}
+          campaignTitle={campaign.title}
+          campaignTheme={campaignTheme}
+          colorMode={organizerProfile?.color_mode}
+          primaryColor={primaryColor}
+          gradientClasses={organizerProfile?.gradient_classes}
+          customGradientColors={organizerProfile?.custom_gradient_colors}
+        />
+      )}
+
+      {/* Cotas Premiadas Public Modal */}
+      {campaign && (
+        <CotasPremiadasPublicModal
+          isOpen={showCotasPremiadasModal}
+          onClose={() => setShowCotasPremiadasModal(false)}
+          cotasPremiadas={cotasPremiadas}
+          campaignTitle={campaign.title}
+          campaignTheme={campaignTheme}
+          totalTickets={campaign.total_tickets}
+          colorMode={organizerProfile?.color_mode}
+          primaryColor={primaryColor}
+          gradientClasses={organizerProfile?.gradient_classes}
+          customGradientColors={organizerProfile?.custom_gradient_colors}
+        />
+      )}
+
+      {/* Phone Login Modal */}
+      <PhoneLoginModal
+        isOpen={showPhoneLoginModal}
+        onClose={() => setShowPhoneLoginModal(false)}
+        primaryColor={primaryColor}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
+        campaignTheme={campaignTheme}
+        campaignId={campaign?.id}
+        organizerId={campaign?.user_id}
+      />
 
       <CampaignFooter campaignTheme={campaignTheme} />
 
+      {/* Menu Flutuante de Redes Sociais */}
       <SocialMediaFloatingMenu
         socialMediaLinks={organizerProfile?.social_media_links}
         primaryColor={primaryColor}
