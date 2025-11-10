@@ -247,25 +247,25 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
           >
             {/* Header */}
             <motion.div 
-              className={`flex items-center justify-between p-5 border-b ${theme.border}`}
+              className={`flex items-center justify-between p-4 sm:p-5 border-b ${theme.border}`}
               variants={headerVariants}
               initial="hidden"
               animate="visible"
             >
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 sm:space-x-3">
                 <motion.div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${getColorStyle().className}`}
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center ${getColorStyle().className}`}
                   style={getColorStyle().style}
                   whileHover={{ rotate: 360, scale: 1.1 }}
                   transition={{ duration: 0.6 }}
                 >
-                  <Trophy className="h-5 w-5 text-white" />
+                  <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </motion.div>
-                <h2 className={`text-xl font-bold ${theme.text}`}>Prêmios</h2>
+                <h2 className={`text-lg sm:text-xl font-bold ${theme.text}`}>Prêmios</h2>
               </div>
               <motion.button
                 onClick={onClose}
-                className={`p-2 rounded-lg ${theme.closeButtonHover} transition-colors duration-200`}
+                className={`p-1.5 sm:p-2 rounded-lg ${theme.closeButtonHover} transition-colors duration-200`}
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 transition={{ duration: 0.2 }}
@@ -275,9 +275,9 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
             </motion.div>
 
             {/* Body */}
-            <div className="p-5">
+            <div className="p-4 sm:p-5">
               <motion.p 
-                className={`text-sm ${theme.textSecondary} mb-4`}
+                className={`text-xs sm:text-sm ${theme.textSecondary} mb-3 sm:mb-4`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.3 }}
@@ -286,11 +286,11 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
               </motion.p>
 
               {prizes && prizes.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {prizes.map((prize, index) => (
                     <motion.div
                       key={prize.id}
-                      className={`flex items-center space-x-3 p-4 ${theme.cardBg} rounded-xl border ${theme.border}`}
+                      className={`flex items-center space-x-2 sm:space-x-3 p-3 sm:p-4 ${theme.cardBg} rounded-xl border ${theme.border}`}
                       custom={index}
                       variants={prizeItemVariants}
                       initial="hidden"
@@ -302,26 +302,26 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
                       }}
                     >
                       <motion.div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${getColorStyle().className}`}
+                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${getColorStyle().className}`}
                         style={getColorStyle().style}
                         whileHover={{ scale: 1.2, rotate: 360 }}
                         transition={{ duration: 0.5 }}
                       >
-                        <span className="font-bold text-sm text-white">{index + 1}º</span>
+                        <span className="font-bold text-xs sm:text-sm text-white">{index + 1}º</span>
                       </motion.div>
-                      <p className={`font-medium ${theme.text}`}>{prize.name}</p>
+                      <p className={`font-medium text-sm sm:text-base ${theme.text}`}>{prize.name}</p>
                     </motion.div>
                   ))}
                 </div>
               ) : (
                 <motion.div 
-                  className={`text-center p-8 ${theme.cardBg} rounded-xl border ${theme.border}`}
+                  className={`text-center p-6 sm:p-8 ${theme.cardBg} rounded-xl border ${theme.border}`}
                   variants={emptyStateVariants}
                   initial="hidden"
                   animate="visible"
                 >
                   <motion.div
-                    className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl ${getColorStyle().className}`}
+                    className={`inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-2xl ${getColorStyle().className}`}
                     style={getColorStyle().style}
                     animate={{
                       y: [0, -10, 0],
@@ -333,23 +333,23 @@ const PrizesDisplayModal: React.FC<PrizesDisplayModalProps> = ({
                       repeatType: "reverse"
                     }}
                   >
-                    <Trophy className="h-8 w-8 text-white" />
+                    <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                   </motion.div>
-                  <p className={`font-medium ${theme.text}`}>Nenhum prêmio cadastrado ainda.</p>
+                  <p className={`mt-3 sm:mt-4 text-sm sm:text-base font-medium ${theme.text}`}>Nenhum prêmio cadastrado ainda.</p>
                 </motion.div>
               )}
             </div>
 
             {/* Footer */}
             <motion.div 
-              className={`p-5 border-t ${theme.border}`}
+              className={`p-4 sm:p-5 border-t ${theme.border}`}
               variants={buttonVariants}
               initial="hidden"
               animate="visible"
             >
               <motion.button
                 onClick={onClose}
-                className={`w-full text-white py-3 rounded-xl font-semibold transition-all duration-200 ${getColorStyle().className}`}
+                className={`w-full text-white py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 ${getColorStyle().className}`}
                 style={getColorStyle().style}
                 variants={buttonVariants}
                 whileHover="hover"
