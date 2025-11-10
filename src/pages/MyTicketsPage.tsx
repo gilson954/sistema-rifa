@@ -133,12 +133,10 @@ const MyTicketsPage = () => {
     loadOrganizerFromOrders();
   }, [orders]);
 
-  // useEffect para atualizar o favicon dinamicamente
   useEffect(() => {
     const faviconLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
     
     if (organizerProfile?.logo_url) {
-      // Se há logo do organizador, usar ele
       if (faviconLink) {
         faviconLink.href = organizerProfile.logo_url;
       } else {
@@ -148,13 +146,11 @@ const MyTicketsPage = () => {
         document.head.appendChild(newFavicon);
       }
     } else {
-      // Se não há logo do organizador, restaurar o padrão
       if (faviconLink) {
         faviconLink.href = '/logo-chatgpt.png';
       }
     }
 
-    // Cleanup: restaurar favicon padrão ao desmontar
     return () => {
       const favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
       if (favicon) {
@@ -163,11 +159,9 @@ const MyTicketsPage = () => {
     };
   }, [organizerProfile]);
 
-  // useEffect para atualizar o título da página dinamicamente
   useEffect(() => {
     document.title = 'Meus Pedidos';
 
-    // Cleanup: restaurar título padrão quando o componente desmontar
     return () => {
       document.title = 'Rifaqui';
     };
@@ -273,23 +267,23 @@ const MyTicketsPage = () => {
           paginationButtonBg: 'bg-gray-800', paginationButtonText: 'text-gray-200',
           paginationButtonDisabledBg: 'bg-black', paginationButtonDisabledText: 'text-gray-600'
         };
-    case 'escuro-cinza':
-      return {
-        background: 'bg-[#1A1A1A]', 
-        text: 'text-white', 
-        textSecondary: 'text-gray-400', 
-        cardBg: 'bg-[#2C2C2C]', 
-        border: 'border-[#1f1f1f]', 
-        headerBg: 'bg-[#141414]',
-        userBadgeBg: 'bg-[#2C2C2C]', 
-        userBadgeBorder: 'border-gray-700',
-        paginationContainerBg: 'bg-[#2C2C2C]', 
-        paginationContainerBorder: 'border-gray-700',
-        paginationButtonBg: 'bg-[#3C3C3C]', 
-        paginationButtonText: 'text-gray-200',
-        paginationButtonDisabledBg: 'bg-[#1A1A1A]', 
-        paginationButtonDisabledText: 'text-gray-600'
-      };
+      case 'escuro-cinza':
+        return {
+          background: 'bg-[#1A1A1A]', 
+          text: 'text-white', 
+          textSecondary: 'text-gray-400', 
+          cardBg: 'bg-[#2C2C2C]', 
+          border: 'border-[#1f1f1f]', 
+          headerBg: 'bg-[#141414]',
+          userBadgeBg: 'bg-[#2C2C2C]', 
+          userBadgeBorder: 'border-gray-700',
+          paginationContainerBg: 'bg-[#2C2C2C]', 
+          paginationContainerBorder: 'border-gray-700',
+          paginationButtonBg: 'bg-[#3C3C3C]', 
+          paginationButtonText: 'text-gray-200',
+          paginationButtonDisabledBg: 'bg-[#1A1A1A]', 
+          paginationButtonDisabledText: 'text-gray-600'
+        };
       default:
         return {
           background: 'bg-gray-50', text: 'text-gray-900', textSecondary: 'text-gray-600', cardBg: 'bg-white', border: 'border-gray-200', headerBg: 'bg-white',
@@ -300,6 +294,17 @@ const MyTicketsPage = () => {
         };
     }
   }
+
+  const getShadowClasses = (isHover: boolean = false) => {
+    if (campaignTheme === 'claro') {
+      return isHover 
+        ? 'shadow-[0_15px_45px_-10px_rgba(0,0,0,0.3),0_8px_22px_-6px_rgba(0,0,0,0.2)]'
+        : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]';
+    }
+    return isHover
+      ? 'shadow-[0_15px_45px_-10px_rgba(0,0,0,0.7),0_8px_22px_-6px_rgba(0,0,0,0.5)]'
+      : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]';
+  };
 
   if (authLoading || loading) {
     const loadingThemeClasses = getThemeClasses(campaignTheme);
@@ -358,14 +363,14 @@ const MyTicketsPage = () => {
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
           </div>
         ) : error ? (
-          <div className={`${themeClasses.cardBg} rounded-2xl shadow-xl p-8 border border-red-200 dark:border-red-800`}>
+          <div className={`${themeClasses.cardBg} rounded-2xl ${getShadowClasses()} p-8 border border-red-200 dark:border-red-800`}>
             <div className="flex items-center space-x-3 text-red-600 dark:text-red-400">
               <AlertCircle className="h-6 w-6" />
               <span className="font-medium">{error}</span>
             </div>
           </div>
         ) : orders.length === 0 ? (
-          <div className={`${themeClasses.cardBg} rounded-2xl shadow-xl p-8 sm:p-12 text-center border ${themeClasses.border}`}>
+          <div className={`${themeClasses.cardBg} rounded-2xl ${getShadowClasses()} p-8 sm:p-12 text-center border ${themeClasses.border}`}>
             <div className={`w-16 h-16 sm:w-20 sm:h-20 ${campaignTheme === 'claro' ? 'bg-gray-100' : 'bg-gray-800'} rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6`}>
               <Ticket className="h-8 sm:h-10 w-8 sm:w-10 text-gray-400" />
             </div>
@@ -388,7 +393,18 @@ const MyTicketsPage = () => {
                   const hasMoreTickets = order.ticket_numbers.length > maxVisibleTickets;
 
                   return (
-                    <motion.div key={order.order_id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className={`${themeClasses.cardBg} rounded-lg sm:rounded-xl shadow-md border-l-4 ${statusInfo.borderColor} overflow-hidden hover:shadow-lg transition-shadow duration-200`}>
+                    <motion.div 
+                      key={order.order_id} 
+                      initial={{ opacity: 0, y: 20 }} 
+                      animate={{ opacity: 1, y: 0 }} 
+                      exit={{ opacity: 0, y: -20 }} 
+                      transition={{ duration: 0.3 }}
+                      whileHover={{ 
+                        y: -4,
+                        transition: { duration: 0.3 }
+                      }}
+                      className={`${themeClasses.cardBg} rounded-lg sm:rounded-xl border-l-4 ${statusInfo.borderColor} overflow-hidden ${getShadowClasses()} hover:${getShadowClasses(true)} transition-all duration-300`}
+                    >
                       <div className="p-3 sm:p-4">
                         <div className="flex gap-3 sm:gap-4">
                           <div className="flex-shrink-0">
@@ -469,22 +485,39 @@ const MyTicketsPage = () => {
             </div>
 
             {totalPages > 1 && (
-              <div className={`flex flex-col items-center justify-between mt-6 sm:mt-8 gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg sm:rounded-xl border shadow-md ${themeClasses.paginationContainerBg} ${themeClasses.paginationContainerBorder}`}>
+              <div className={`flex flex-col items-center justify-between mt-6 sm:mt-8 gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg sm:rounded-xl border ${themeClasses.paginationContainerBg} ${themeClasses.paginationContainerBorder} ${getShadowClasses()}`}>
                 <div className={`text-xs sm:text-sm font-medium ${themeClasses.textSecondary} text-center`}>
                   Mostrando <span className="font-bold text-blue-600 dark:text-blue-400">{((currentPage - 1) * ordersPerPage) + 1}</span> a <span className="font-bold text-blue-600 dark:text-blue-400">{Math.min(currentPage * ordersPerPage, orders.length)}</span> de <span className="font-bold text-blue-600 dark:text-blue-400">{orders.length}</span> pedidos
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-2 w-full justify-center">
-                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1} className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-semibold text-xs sm:text-sm transition-all duration-300 ${currentPage === 1 ? `${themeClasses.paginationButtonDisabledBg} ${themeClasses.paginationButtonDisabledText} cursor-not-allowed` : `${themeClasses.paginationButtonBg} ${themeClasses.paginationButtonText} hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white shadow-md hover:shadow-lg`}`}>
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }} 
+                    whileTap={{ scale: 0.95 }} 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} 
+                    disabled={currentPage === 1} 
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-semibold text-xs sm:text-sm transition-all duration-300 ${currentPage === 1 ? `${themeClasses.paginationButtonDisabledBg} ${themeClasses.paginationButtonDisabledText} cursor-not-allowed` : `${themeClasses.paginationButtonBg} ${themeClasses.paginationButtonText} hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white shadow-md hover:shadow-lg`}`}
+                  >
                     Ant.
                   </motion.button>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <motion.button key={page} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => setCurrentPage(page)} className={`w-8 h-8 sm:w-10 sm:h-10 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-300 ${currentPage === page ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg scale-110' : `${themeClasses.paginationButtonBg} ${themeClasses.paginationButtonText} hover:bg-gray-100 dark:hover:bg-gray-700`}`}>
+                      <motion.button 
+                        key={page} 
+                        whileHover={{ scale: 1.1 }} 
+                        whileTap={{ scale: 0.9 }} 
+                        onClick={() => setCurrentPage(page)} 
+                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-300 ${currentPage === page ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg scale-110' : `${themeClasses.paginationButtonBg} ${themeClasses.paginationButtonText} hover:bg-gray-100 dark:hover:bg-gray-700`}`}
+                      >
                         {page}
                       </motion.button>
                     ))}
                   </div>
-                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages} className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-semibold text-xs sm:text-sm transition-all duration-300 ${currentPage === totalPages ? `${themeClasses.paginationButtonDisabledBg} ${themeClasses.paginationButtonDisabledText} cursor-not-allowed` : `${themeClasses.paginationButtonBg} ${themeClasses.paginationButtonText} hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white shadow-md hover:shadow-lg`}`}>
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }} 
+                    whileTap={{ scale: 0.95 }} 
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} 
+                    disabled={currentPage === totalPages} 
+                  >
                     Próx.
                   </motion.button>
                 </div>
