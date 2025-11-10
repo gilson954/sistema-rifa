@@ -298,7 +298,7 @@ const MyTicketsPage = () => {
   const getShadowClasses = (isHover: boolean = false) => {
     if (campaignTheme === 'claro') {
       return isHover 
-        ? 'shadow-[0_15px_45px_-10px_rgba(0,0,255,0.3),0_8px_22px_-6px_rgba(0,0,0,0.2)]'
+        ? 'shadow-[0_15px_45px_-10px_rgba(0,0,0,0.3),0_8px_22px_-6px_rgba(0,0,0,0.2)]'
         : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]';
     }
     return isHover
