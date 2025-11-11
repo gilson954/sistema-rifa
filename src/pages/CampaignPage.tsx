@@ -487,34 +487,34 @@ const CampaignPage = () => {
     }
   }, [campaign, isCampaignAvailable, getAvailableTickets, selectedQuotas, quantity, showSuccess, showError, showWarning]);
 
-  const handleQuotaSelect = useCallback((quotaNumber: number) => {
-    if (!campaign || campaign.campaign_model !== 'manual') return;
+const handleQuotaSelect = useCallback((quotaNumber: number) => {
+  if (!campaign || campaign.campaign_model !== 'manual') return;
 
-    const availableTickets = getAvailableTickets();
-    const isAvailable = availableTickets.some(ticket => ticket.quota_number === quotaNumber);
+  const availableTickets = getAvailableTickets();
+  const isAvailable = availableTickets.some(ticket => ticket.quota_number === quotaNumber);
 
-    if (!isAvailable) return;
+  if (!isAvailable) return;
 
-    setSelectedQuotas(prev => {
-      console.log(`🔵 CampaignPage: handleQuotaSelect - Estado anterior (prev):`, prev);
-      let newSelection;
-      if (prev.includes(quotaNumber)) {
-        newSelection = prev.filter(q => q !== quotaNumber);
-        console.log(`🟢 CampaignPage: Removendo cota ${quotaNumber}. Nova seleção:`, newSelection);
-      } else {
-        newSelection = [...prev, quotaNumber]; // problema aqui?
-        const maxLimit = campaign.max_tickets_per_purchase || 20000;
-        if (newSelection.length <= maxLimit) {
-          console.log(`🟢 CampaignPage: Adicionando cota ${quotaNumber}. Nova seleção:`, newSelection);
-          return newSelection; // Retorna a nova seleção se estiver dentro do limite
-        }
-        showWarning(`Máximo de ${maxLimit.toLocaleString('pt-BR')} ${maxLimit === 1 ? 'cota' : 'cotas'} por compra`);
-        console.log(`🟡 CampaignPage: Limite máximo atingido. Não adicionando cota ${quotaNumber}. Seleção atual:`, prev);
-        return prev; // Retorna o estado anterior se o limite for excedido
+  setSelectedQuotas(prev => {
+    console.log(`🔵 CampaignPage: handleQuotaSelect - Estado anterior (prev):`, prev);
+    let newSelectionState; // Use um nome diferente para evitar confusão com a variável interna do if/else
+    if (prev.includes(quotaNumber)) {
+      newSelectionState = prev.filter(q => q !== quotaNumber);
+      console.log(`🟢 CampaignPage: Removendo cota ${quotaNumber}. Nova seleção:`, newSelectionState);
+    } else {
+      newSelectionState = [...prev, quotaNumber]; // Atribua à newSelectionState
+      const maxLimit = campaign.max_tickets_per_purchase || 20000;
+      if (newSelectionState.length <= maxLimit) {
+        console.log(`🟢 CampaignPage: Adicionando cota ${quotaNumber}. Nova seleção:`, newSelectionState);
+        return newSelectionState; // Retorna a nova seleção se estiver dentro do limite
       }
-      return newSelection; // Retorna a nova seleção para remoção
-    });
-  }, [campaign, getAvailableTickets, showWarning]);
+      showWarning(`Máximo de ${maxLimit.toLocaleString('pt-BR')} ${maxLimit === 1 ? 'cota' : 'cotas'} por compra`);
+      console.log(`🟡 CampaignPage: Limite máximo atingido. Não adicionando cota ${quotaNumber}. Seleção atual:`, prev);
+      return prev; // Retorna o estado anterior se o limite for excedido
+    }
+    return newSelectionState; // Retorna a nova seleção para remoção
+  });
+}, [campaign, getAvailableTickets, showWarning]); // Certifique-se de que todas as dependências estão aqui
 
   const handleQuotaPageChange = useCallback((newPage: number) => {
     setCurrentQuotaPage(newPage);
