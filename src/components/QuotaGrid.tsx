@@ -161,13 +161,22 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     
     // Impedir clique em cotas reservadas ou compradas
     if (status === 'reserved' || status === 'purchased') {
+      console.log(`🔵 QuotaGrid: Cota ${quotaNumber} não clicável - status: ${status}`);
       return;
     }
     
     // CRITICAL: Permitir seleção apenas no modo manual e para cotas disponíveis/selecionadas
     // Passar o quota_number real (1 a N) para o handler
-    if (mode === 'manual' && (status === 'available' || status === 'selected') && onQuotaSelect) {
-      onQuotaSelect(quotaNumber);
+    if (mode === 'manual' && (status === 'available' || status === 'selected')) {
+      console.log(`🔵 QuotaGrid: Clicado na cota ${quotaNumber}. Modo: ${mode}, Status: ${status}`);
+      if (onQuotaSelect) {
+        onQuotaSelect(quotaNumber);
+      } else {
+        // Adiciona um aviso se onQuotaSelect não for fornecido
+        console.error(`❌ QuotaGrid: onQuotaSelect não foi fornecido para a campanha em modo manual. A seleção de cotas não funcionará.`);
+      }
+    } else {
+      console.log(`🔵 QuotaGrid: Cota ${quotaNumber} não clicável. Modo: ${mode}, Status: ${status}`);
     }
   };
 
