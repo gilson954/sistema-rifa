@@ -1,3 +1,4 @@
+// src/components/QuotaGrid.tsx
 import React from 'react';
 import { TicketStatusInfo } from '../lib/api/tickets';
 
