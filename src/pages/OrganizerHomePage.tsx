@@ -299,20 +299,14 @@ const OrganizerHomePage: React.FC = () => {
           <div className="flex items-center justify-between h-16 sm:h-20">
             <button onClick={() => navigate(`/org/${userId}`)} className="flex items-center hover:opacity-80 transition-opacity duration-200">
               {organizerProfile?.logo_url ? (
-                // Se o organizador tem logo personalizado, exibe ele
                 <img
                   src={organizerProfile.logo_url}
                   alt="Logo do organizador"
                   className="h-10 sm:h-14 w-auto max-w-[150px] sm:max-w-[200px] object-contain"
                 />
               ) : (
-                // Se não tem logo personalizado, exibe o logo padrão do Rifaqui
                 <div className="flex items-center">
-                  <img
-                    src="/logo-chatgpt.png"
-                    alt="Rifaqui"
-                    className="h-10 sm:h-14 w-auto object-contain"
-                  />
+                  <Ticket className="h-6 sm:h-8 w-6 sm:w-8 text-blue-600" />
                   <span className={`ml-2 text-lg sm:text-xl font-bold ${themeClasses.text}`}>Rifaqui</span>
                 </div>
               )}
