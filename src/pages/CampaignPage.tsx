@@ -497,13 +497,11 @@ const CampaignPage = () => {
 
     setSelectedQuotas(prev => {
       console.log(`🔵 CampaignPage: handleQuotaSelect - Estado anterior (prev):`, prev);
-      let newSelection; // Declarar newSelection uma vez aqui no escopo da função
-      
+      let newSelection;
       if (prev.includes(quotaNumber)) {
         newSelection = prev.filter(q => q !== quotaNumber);
         console.log(`🟢 CampaignPage: Removendo cota ${quotaNumber}. Nova seleção:`, newSelection);
       } else {
-        // REMOVIDO 'const' aqui para usar a newSelection do escopo externo
         newSelection = [...prev, quotaNumber];
         const maxLimit = campaign.max_tickets_per_purchase || 20000;
         if (newSelection.length <= maxLimit) {
