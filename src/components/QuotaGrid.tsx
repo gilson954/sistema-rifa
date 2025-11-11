@@ -1,3 +1,4 @@
+// src/components/QuotaGrid.tsx
 import React from 'react';
 import { TicketStatusInfo } from '../lib/api/tickets';
 
@@ -32,17 +33,6 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   gradientClasses,
   customGradientColors
 }) => {
-  // DEBUG: Log das props recebidas
-  React.useEffect(() => {
-    console.log('🔍 QuotaGrid Props:', {
-      mode,
-      totalQuotas,
-      selectedQuotasCount: selectedQuotas.length,
-      onQuotaSelectExists: !!onQuotaSelect,
-      ticketsCount: tickets.length
-    });
-  }, [mode, totalQuotas, selectedQuotas.length, onQuotaSelect, tickets.length]);
-
   const getThemeClasses = (theme: string) => {
     switch (theme) {
       case 'claro':
@@ -89,9 +79,10 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   };
 
   const getQuotaStatus = (quotaNumber: number) => {
+    // Find the ticket for this quota number
     const ticket = tickets.find(t => t.quota_number === quotaNumber);
     
-    if (!ticket) return 'available';
+    if (!ticket) return 'available'; // Default if ticket not found
     
     if (ticket.status === 'comprado') return 'purchased';
     if (ticket.status === 'reservado') return 'reserved';
@@ -99,6 +90,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     return 'available';
   };
 
+  // Função para gerar gradiente customizado
   const getCustomGradientStyle = (customColorsJson: string) => {
     try {
       const colors = JSON.parse(customColorsJson);
@@ -115,8 +107,10 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     return null;
   };
 
+  // Função para obter style para cor ou gradiente
   const getColorStyle = () => {
     if (colorMode === 'gradient') {
+      // Gradiente customizado
       if (gradientClasses === 'custom' && customGradientColors) {
         const gradientStyle = getCustomGradientStyle(customGradientColors);
         if (gradientStyle) {
@@ -126,16 +120,21 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           };
         }
       }
+      // Gradiente predefinido - retorna vazio, usará className
       return {};
     }
+    // Cor sólida
     return { backgroundColor: primaryColor || '#3B82F6' };
   };
 
+  // Função para obter className para gradientes
   const getColorClassName = (baseClasses: string = '') => {
     if (colorMode === 'gradient') {
+      // Gradiente customizado
       if (gradientClasses === 'custom' && customGradientColors) {
         return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
       }
+      // Gradiente predefinido
       if (gradientClasses && gradientClasses !== 'custom') {
         return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
       }
@@ -161,55 +160,52 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   const handleQuotaClick = (quotaNumber: number) => {
     const status = getQuotaStatus(quotaNumber);
     
-    // DEBUG: Log detalhado do clique
-    console.log('🖱️ Clique na cota:', {
-      quotaNumber,
-      status,
-      mode,
-      onQuotaSelectExists: !!onQuotaSelect,
-      isReservedOrPurchased: status === 'reserved' || status === 'purchased'
-    });
-    
-    // Impedir clique apenas se a cota estiver reservada ou comprada
+    // Impedir clique em cotas reservadas ou compradas
     if (status === 'reserved' || status === 'purchased') {
-      console.log('⛔ Cota reservada ou comprada - clique bloqueado');
+      console.log(`🔵 QuotaGrid: Cota ${quotaNumber} não clicável - status: ${status}`);
       return;
     }
     
-    // Verificar se está no modo manual
-    if (mode !== 'manual') {
-      console.log('⚠️ Modo não é manual - clique bloqueado');
-      return;
+    // CRITICAL: Permitir seleção apenas no modo manual e para cotas disponíveis/selecionadas
+    // Passar o quota_number real (1 a N) para o handler
+    if (mode === 'manual' && (status === 'available' || status === 'selected')) {
+      console.log(`🔵 QuotaGrid: Clicado na cota ${quotaNumber}. Modo: ${mode}, Status: ${status}`);
+      if (onQuotaSelect) {
+        onQuotaSelect(quotaNumber);
+      } else {
+        // Adiciona um aviso se onQuotaSelect não for fornecido
+        console.error(`❌ QuotaGrid: onQuotaSelect não foi fornecido para a campanha em modo manual. A seleção de cotas não funcionará.`);
+      }
+    } else {
+      console.log(`🔵 QuotaGrid: Cota ${quotaNumber} não clicável. Modo: ${mode}, Status: ${status}`);
     }
-    
-    // Verificar se o status permite clique
-    if (status !== 'available' && status !== 'selected') {
-      console.log('⚠️ Status não permite clique:', status);
-      return;
-    }
-    
-    // Verificar se onQuotaSelect existe
-    if (!onQuotaSelect) {
-      console.error('❌ PROBLEMA: onQuotaSelect não está definido!');
-      return;
-    }
-    
-    // Tudo OK - chamar onQuotaSelect
-    console.log('✅ Chamando onQuotaSelect com:', quotaNumber);
-    onQuotaSelect(quotaNumber);
   };
 
+  // Calculate grid columns based on total quotas for optimal display
   const getGridCols = () => {
     return 'grid-cols-10 sm:grid-cols-15 md:grid-cols-20';
   };
 
+  // CRITICAL FIX: Calculate padding length for quota numbers based on total quotas
+  // O quota_number no banco vai de 1 a N, mas exibimos de 00 a N-1
+  // Então o número máximo exibido é totalQuotas - 1
+  // Examples: 
+  // - 100 cotas (quota_number: 1-100, display: 00-99): máximo exibido é 99 → 2 dígitos ✅
+  // - 1000 cotas (quota_number: 1-1000, display: 000-999): máximo exibido é 999 → 3 dígitos ✅
+  // - 10000 cotas (quota_number: 1-10000, display: 0000-9999): máximo exibido é 9999 → 4 dígitos ✅
   const getPadLength = () => {
+    // Se totalQuotas for 0, retorna 1 para evitar problemas
     if (totalQuotas === 0) return 1;
+    
+    // CRITICAL FIX: Calcular baseado no maior número exibido (totalQuotas - 1)
+    // Exemplo: 100 cotas → maior número exibido é 99 → 2 dígitos
     const maxDisplayNumber = totalQuotas - 1;
     return String(maxDisplayNumber).length;
   };
 
+  // Filtrar cotas com base no filtro ativo
   const getFilteredQuotas = () => {
+    // CRITICAL: quota_number no banco vai de 1 a totalQuotas
     const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index + 1);
     
     switch (activeFilter) {
@@ -239,6 +235,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     }
   };
 
+  // Calcular contadores para os filtros
   const getFilterCounts = () => {
     const availableCount = tickets.filter(t => t.status === 'disponível').length;
     const reservedCount = tickets.filter(t => t.status === 'reservado').length;
@@ -257,27 +254,8 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   const filteredQuotas = getFilteredQuotas();
   const filterCounts = getFilterCounts();
 
-  // Determinar se o botão deve estar desabilitado
-  const isQuotaDisabled = (status: string) => {
-    // No modo automático, todos os botões são desabilitados
-    if (mode === 'automatic') return true;
-    
-    // No modo manual, apenas cotas compradas ou reservadas são desabilitadas
-    return status === 'purchased' || status === 'reserved';
-  };
-
   return (
     <div className="w-full">
-      {/* DEBUG INFO */}
-      <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg text-xs">
-        <strong>🐛 DEBUG INFO:</strong>
-        <div>Mode: <strong>{mode}</strong></div>
-        <div>onQuotaSelect: <strong>{onQuotaSelect ? '✅ Definido' : '❌ Não definido'}</strong></div>
-        <div>Total Quotas: <strong>{totalQuotas}</strong></div>
-        <div>Tickets carregados: <strong>{tickets.length}</strong></div>
-        <div>Cotas selecionadas: <strong>{selectedQuotas.length}</strong></div>
-      </div>
-
       {/* Filter Tabs */}
       <div className="mb-4">
         <div className="flex items-center justify-center mb-4">
@@ -370,8 +348,11 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           const padLength = getPadLength();
           const quotaStyles = getQuotaStyles(status);
           const isSelected = status === 'selected';
+          
+          // CRITICAL FIX: Exibir quota_number - 1 para o usuário
+          // quota_number no banco: 1 a N
+          // Exibição para usuário: 0 a N-1 (com padding de zeros à esquerda)
           const displayNumber = quotaNumber - 1;
-          const disabled = isQuotaDisabled(status);
           
           return (
             <button
@@ -381,10 +362,10 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
                 w-10 h-10 text-xs font-medium rounded flex items-center justify-center transition-all duration-200
                 ${quotaStyles}
                 ${isSelected ? getColorClassName('') : ''}
-                ${disabled ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}
+                ${mode === 'automatic' || status === 'purchased' || status === 'reserved' ? 'cursor-not-allowed' : 'cursor-pointer'}
               `}
               style={isSelected ? getColorStyle() : {}}
-              disabled={disabled}
+              disabled={mode === 'automatic' || status === 'purchased' || status === 'reserved'}
               title={`Cota ${displayNumber.toString().padStart(padLength, '0')} - ${
                 status === 'purchased' ? 'Comprada' : 
                 status === 'reserved' ? 'Reservada' : 
@@ -392,6 +373,8 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
                 'Disponível'
               }`}
             >
+              {/* CRITICAL FIX: Aplicar padStart com o padLength calculado corretamente */}
+              {/* Exibir quota_number - 1 com padding de zeros à esquerda */}
               {displayNumber.toString().padStart(padLength, '0')}
             </button>
           );
