@@ -157,7 +157,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   };
 
   const handleQuotaClick = (quotaNumber: number) => {
-    const status = getQuotaStatus(quotaNumber);
+    const status = getQuotaStatus(quotaNumber + 1); // +1 aqui
     
     // Impedir clique em cotas reservadas ou compradas
     if (status === 'reserved' || status === 'purchased') {
@@ -167,7 +167,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     // Permitir seleção apenas no modo manual e para cotas disponíveis/selecionadas
     // CRITICAL: Passar o quota_number real (1 a N) para o handler
     if (mode === 'manual' && (status === 'available' || status === 'selected') && onQuotaSelect) {
-      onQuotaSelect(quotaNumber);
+      onQuotaSelect(quotaNumber + 1); // enviar quota_number real (1–100)
     }
   };
 
