@@ -1,3 +1,4 @@
+// src/main.tsx
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
@@ -6,9 +7,10 @@ import './index.css';
 import 'react-quill/dist/quill.snow.css';
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+  // Remova ou comente <StrictMode> e </StrictMode>
+  // <StrictMode>
     <ThemeProvider>
       <App />
     </ThemeProvider>
-  </StrictMode>
+  // </StrictMode>
 );
