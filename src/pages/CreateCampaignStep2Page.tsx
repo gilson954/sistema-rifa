@@ -66,8 +66,6 @@ const CreateCampaignStep2Page = () => {
         drawDate: campaign.draw_date ? new Date(campaign.draw_date) : null,
         showDrawDateOption: campaign.draw_date ? 'show-date' : 'no-date'
       });
-      // Adiciona log para verificar o modelo da campanha carregado
-      console.log(`🔵 CreateCampaignStep2Page: Campaign model loaded from backend: ${campaign.campaign_model}`);
 
       setShowInlineDatePicker(!!campaign.draw_date);
 
@@ -246,7 +244,7 @@ const CreateCampaignStep2Page = () => {
         promotions: promotions,
         prizes: prizes,
         show_percentage: formData.showPercentage,
-        reservationTimeoutMinutes: formData.reservationTimeoutMinutes,
+        reservation_timeout_minutes: formData.reservationTimeoutMinutes,
         draw_date: formData.showDrawDateOption === 'show-date' && formData.drawDate 
           ? formData.drawDate.toISOString() 
           : null,
