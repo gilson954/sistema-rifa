@@ -306,7 +306,11 @@ const OrganizerHomePage: React.FC = () => {
                 />
               ) : (
                 <div className="flex items-center">
-                  <Ticket className="h-6 sm:h-8 w-6 sm:w-8 text-blue-600" />
+                  <img
+                    src="/logo-chatgpt.png"
+                    alt="Rifaqui"
+                    className="h-10 sm:h-14 w-auto object-contain"
+                    />
                   <span className={`ml-2 text-lg sm:text-xl font-bold ${themeClasses.text}`}>Rifaqui</span>
                 </div>
               )}
