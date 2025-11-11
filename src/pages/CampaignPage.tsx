@@ -496,17 +496,23 @@ const CampaignPage = () => {
     if (!isAvailable) return;
 
     setSelectedQuotas(prev => {
+      console.log(`🔵 CampaignPage: handleQuotaSelect - Estado anterior (prev):`, prev);
+      let newSelection;
       if (prev.includes(quotaNumber)) {
-        return prev.filter(q => q !== quotaNumber);
+        newSelection = prev.filter(q => q !== quotaNumber);
+        console.log(`🟢 CampaignPage: Removendo cota ${quotaNumber}. Nova seleção:`, newSelection);
       } else {
-        const newSelection = [...prev, quotaNumber];
+        newSelection = [...prev, quotaNumber];
         const maxLimit = campaign.max_tickets_per_purchase || 20000;
         if (newSelection.length <= maxLimit) {
-          return newSelection;
+          console.log(`🟢 CampaignPage: Adicionando cota ${quotaNumber}. Nova seleção:`, newSelection);
+          return newSelection; // Retorna a nova seleção se estiver dentro do limite
         }
         showWarning(`Máximo de ${maxLimit.toLocaleString('pt-BR')} ${maxLimit === 1 ? 'cota' : 'cotas'} por compra`);
-        return prev;
+        console.log(`🟡 CampaignPage: Limite máximo atingido. Não adicionando cota ${quotaNumber}. Seleção atual:`, prev);
+        return prev; // Retorna o estado anterior se o limite for excedido
       }
+      return newSelection; // Retorna a nova seleção para remoção
     });
   }, [campaign, getAvailableTickets, showWarning]);
 
@@ -980,16 +986,16 @@ const CampaignPage = () => {
                 <img
                   src={organizerProfile.logo_url}
                   alt="Logo do organizador"
-                  className="h-10 sm:h-14 w-auto max-w-[150px] sm:max-w-[200px] object-contain"
+                  className="h-12 w-auto max-w-[180px] object-contain"
                 />
               ) : (
                 <>
                   <img
                     src="/logo-chatgpt.png"
                     alt="Rifaqui Logo"
-                    className="h-10 sm:h-14 w-auto object-contain"
+                    className="w-8 h-8 object-contain"
                   />
-                  <span className={`ml-2 text-lg sm:text-xl font-bold ${themeClasses.text}`}>Rifaqui</span>
+                  <span className={`ml-2 text-xl font-bold ${themeClasses.rifaquiText}`}>Rifaqui</span>
                 </>
               )}
             </button>
