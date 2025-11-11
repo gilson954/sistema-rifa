@@ -187,7 +187,6 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
                   />
                 <span className={`ml-2 text-lg sm:text-xl font-bold ${themeClasses.text}`}>Rifaqui</span>
                 </span>
-              </div>
             )}
           </button>
 
