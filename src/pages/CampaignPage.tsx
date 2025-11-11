@@ -502,7 +502,7 @@ const CampaignPage = () => {
         newSelection = prev.filter(q => q !== quotaNumber);
         console.log(`🟢 CampaignPage: Removendo cota ${quotaNumber}. Nova seleção:`, newSelection);
       } else {
-        newSelection = [...prev, quotaNumber]; // ✅ Usa a variável do escopo externo
+        const newSelection = [...prev, quotaNumber]; // ❌ Cria nova variável local
         const maxLimit = campaign.max_tickets_per_purchase || 20000;
         if (newSelection.length <= maxLimit) {
           console.log(`🟢 CampaignPage: Adicionando cota ${quotaNumber}. Nova seleção:`, newSelection);
