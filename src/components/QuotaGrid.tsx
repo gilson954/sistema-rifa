@@ -157,7 +157,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   };
 
   const handleQuotaClick = (quotaNumber: number) => {
-    const status = getQuotaStatus(quotaNumber +);
+    const status = getQuotaStatus(quotaNumber);
     
     // Impedir clique em cotas reservadas ou compradas
     if (status === 'reserved' || status === 'purchased') {
