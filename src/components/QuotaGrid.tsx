@@ -164,8 +164,8 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
       return;
     }
     
-    // Permitir seleção apenas no modo manual e para cotas disponíveis/selecionadas
-    // CRITICAL: Passar o quota_number real (1 a N) para o handler
+    // CRITICAL: Permitir seleção apenas no modo manual e para cotas disponíveis/selecionadas
+    // Passar o quota_number real (1 a N) para o handler
     if (mode === 'manual' && (status === 'available' || status === 'selected') && onQuotaSelect) {
       onQuotaSelect(quotaNumber);
     }
@@ -187,7 +187,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     // Se totalQuotas for 0, retorna 1 para evitar problemas
     if (totalQuotas === 0) return 1;
     
-    // Calcular baseado no maior número exibido (totalQuotas - 1)
+    // CRITICAL FIX: Calcular baseado no maior número exibido (totalQuotas - 1)
     // Exemplo: 100 cotas → maior número exibido é 99 → 2 dígitos
     const maxDisplayNumber = totalQuotas - 1;
     return String(maxDisplayNumber).length;
@@ -340,6 +340,8 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           const isSelected = status === 'selected';
           
           // CRITICAL FIX: Exibir quota_number - 1 para o usuário
+          // quota_number no banco: 1 a N
+          // Exibição para usuário: 0 a N-1 (com padding de zeros à esquerda)
           const displayNumber = quotaNumber - 1;
           
           return (
@@ -361,7 +363,8 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
                 'Disponível'
               }`}
             >
-              {/* CRITICAL FIX: Exibir quota_number - 1 com padding correto */}
+              {/* CRITICAL FIX: Aplicar padStart com o padLength calculado corretamente */}
+              {/* Exibir quota_number - 1 com padding de zeros à esquerda */}
               {displayNumber.toString().padStart(padLength, '0')}
             </button>
           );
