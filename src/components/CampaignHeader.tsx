@@ -180,8 +180,8 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
               />
             ) : (
               <div className="flex items-center">
-                <Ticket className="h-6 sm:h-8 w-6 sm:w-8 text-blue-600" />
-                <span className={`ml-2 text-lg sm:text-xl font-bold ${themeStyles.logoText}`}>
+                <img
+                  src="/logo-chatgpt.png"
                   Rifaqui
                 </span>
               </div>
