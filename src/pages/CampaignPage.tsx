@@ -989,7 +989,7 @@ const CampaignPage = () => {
                     alt="Rifaqui Logo"
                     className="w-8 h-8 object-contain"
                   />
-                  <span className={`ml-2 text-xl font-bold ${themeClasses.rifaquiText}`}>Rifaqui</span>
+                  <span className={`ml-2 text-lg sm:text-xl font-bold ${themeClasses.text}`}>Rifaqui</span>
                 </>
               )}
             </button>
