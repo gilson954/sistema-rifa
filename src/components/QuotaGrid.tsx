@@ -32,7 +32,6 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   gradientClasses,
   customGradientColors
 }) => {
-  // Function to get theme classes
   const getThemeClasses = (theme: string) => {
     switch (theme) {
       case 'claro':
@@ -49,7 +48,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
-          border: 'border-gray-800'
+          border: 'border-[#101625]'
         };
       case 'escuro-preto':
         return {
@@ -57,8 +56,16 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
-          border: 'border-gray-800'
+          border: 'border-gray-700'
         };
+    case 'escuro-cinza':
+      return {
+        background: 'bg-[#1A1A1A]',
+        text: 'text-white',
+        textSecondary: 'text-gray-400',
+        cardBg: 'bg-[#2C2C2C]',
+        border: 'border-[#1f1f1f]'
+      };
       default:
         return {
           background: 'bg-white',
