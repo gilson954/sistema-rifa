@@ -1,5 +1,5 @@
 // src/components/QuotaGrid.tsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import { TicketStatusInfo } from '../lib/api/tickets';
 
 interface QuotaGridProps {
@@ -33,6 +33,11 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   gradientClasses,
   customGradientColors
 }) => {
+  // 🔍 DEPURAÇÃO: Monitorar mudanças na prop selectedQuotas
+  useEffect(() => {
+    console.log("🔵 QuotaGrid: Prop 'selectedQuotas' atualizada:", selectedQuotas);
+  }, [selectedQuotas]);
+
   const getThemeClasses = (theme: string) => {
     switch (theme) {
       case 'claro':
@@ -171,6 +176,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     if (mode === 'manual' && (status === 'available' || status === 'selected')) {
       console.log(`🔵 QuotaGrid: Clicado na cota ${quotaNumber}. Modo: ${mode}, Status: ${status}`);
       if (onQuotaSelect) {
+        console.log(`✅ Chamando onQuotaSelect com: ${quotaNumber}`);
         onQuotaSelect(quotaNumber);
       } else {
         // Adiciona um aviso se onQuotaSelect não for fornecido
