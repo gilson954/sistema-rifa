@@ -980,7 +980,7 @@ const CampaignPage = () => {
                 <img
                   src={organizerProfile.logo_url}
                   alt="Logo do organizador"
-                  className="h-12 w-auto max-w-[180px] object-contain"
+                  className="h-10 sm:h-14 w-auto max-w-[150px] sm:max-w-[200px] object-contain"
                 />
               ) : (
                 <>
