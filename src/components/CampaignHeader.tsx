@@ -182,7 +182,7 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
               <div className="flex items-center">
                 <img
                   src="/logo-chatgpt.png"
-                  Rifaqui
+                  alt="Rifaqui"
                 </span>
               </div>
             )}
