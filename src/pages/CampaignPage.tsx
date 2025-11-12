@@ -157,9 +157,6 @@ const CampaignPage = () => {
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
 
-  const [currentQuotaPage, setCurrentQuotaPage] = useState(1);
-  const quotasPerPage = 100;
-
   const {
     tickets,
     loading: ticketsLoading,
@@ -167,11 +164,8 @@ const CampaignPage = () => {
     reserveTickets,
     getAvailableTickets,
     reserving,
-    totalTickets,
-    currentPage: ticketsCurrentPage,
-    totalPages: ticketsTotalPages,
-    setPage: setTicketsPage
-  } = useTickets(campaign?.id || '', currentQuotaPage, quotasPerPage);
+    totalTickets
+  } = useTickets(campaign?.id || '');
 
   const { winners, loading: winnersLoading } = useCampaignWinners(campaign?.id);
 
@@ -1448,7 +1442,7 @@ const CampaignPage = () => {
                 <QuotaGrid
                   totalQuotas={campaign.total_tickets}
                   selectedQuotas={selectedQuotas}
-                  onQuotaSelect={isCampaignAvailable ? handleQuotaSelect : undefined}
+                  onQuotaSelect={handleQuotaSelect}
                   activeFilter={activeFilter}
                   onFilterChange={setActiveFilter}
                   mode="manual"
@@ -1459,9 +1453,6 @@ const CampaignPage = () => {
                   colorMode={organizerProfile?.color_mode}
                   gradientClasses={organizerProfile?.gradient_classes}
                   customGradientColors={organizerProfile?.custom_gradient_colors}
-                  currentPage={currentQuotaPage}
-                  totalPages={ticketsTotalPages}
-                  onPageChange={handleQuotaPageChange}
                 />
               </div>
 
