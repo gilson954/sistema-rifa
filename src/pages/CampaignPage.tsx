@@ -495,21 +495,25 @@ const CampaignPage = () => {
 
     setSelectedQuotas(prev => {
       console.log(`🔵 CampaignPage: handleQuotaSelect - Estado anterior (prev):`, prev);
-      let newSelection;
+      
+      // Se a cota já está selecionada, remove
       if (prev.includes(quotaNumber)) {
-        newSelection = prev.filter(q => q !== quotaNumber);
+        const newSelection = prev.filter(q => q !== quotaNumber);
         console.log(`🟢 CampaignPage: Removendo cota ${quotaNumber}. Nova seleção:`, newSelection);
-      } else {
-        newSelection = [...prev, quotaNumber];
-        const maxLimit = campaign.max_tickets_per_purchase || 20000;
-        if (newSelection.length <= maxLimit) {
-          console.log(`🟢 CampaignPage: Adicionando cota ${quotaNumber}. Nova seleção:`, newSelection);
-          return newSelection;
-        }
+        return newSelection;
+      }
+      
+      // Se não está selecionada, adiciona (verificando limite)
+      const newSelection = [...prev, quotaNumber];
+      const maxLimit = campaign.max_tickets_per_purchase || 20000;
+      
+      if (newSelection.length > maxLimit) {
         showWarning(`Máximo de ${maxLimit.toLocaleString('pt-BR')} ${maxLimit === 1 ? 'cota' : 'cotas'} por compra`);
         console.log(`🟡 CampaignPage: Limite máximo atingido. Não adicionando cota ${quotaNumber}. Seleção atual:`, prev);
         return prev;
       }
+      
+      console.log(`🟢 CampaignPage: Adicionando cota ${quotaNumber}. Nova seleção:`, newSelection);
       return newSelection;
     });
   }, [campaign, getAvailableTickets, showWarning]);
