@@ -50,7 +50,7 @@ export const useTickets = (campaignId: string) => {
         campaignId,
         user?.id,
         1,
-        999999 // PageSize gigante para pegar todos os tickets
+        20000 // PageSize gigante para pegar todos os tickets
       );
 
       if (result.error) {

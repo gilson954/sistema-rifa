@@ -46,7 +46,9 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
           cardBg: 'bg-gray-50',
-          border: 'border-gray-200'
+          border: 'border-gray-200',
+          scrollbarTrack: '#d4d6d9',
+          scrollbarThumb: '#9ca3af'
         };
       case 'escuro':
         return {
@@ -54,7 +56,9 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
-          border: 'border-[#101625]'
+          border: 'border-[#101625]',
+          scrollbarTrack: '#0a0d12',
+          scrollbarThumb: '#4b5563'
         };
       case 'escuro-preto':
         return {
@@ -62,15 +66,19 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           text: 'text-white',
           textSecondary: 'text-gray-300',
           cardBg: 'bg-gray-900',
-          border: 'border-gray-700'
+          border: 'border-gray-700',
+          scrollbarTrack: '#0a0d12',
+          scrollbarThumb: '#374151'
         };
       case 'escuro-cinza':
         return {
           background: 'bg-[#1A1A1A]',
           text: 'text-white',
           textSecondary: 'text-gray-400',
-          cardBg: 'bg-[#2C2C2C]',
-          border: 'border-[#1f1f1f]'
+          cardBg: 'bg-[#242424]',
+          border: 'border-[#1f1f1f]',
+          scrollbarTrack: '#0f0f0f',
+          scrollbarThumb: '#404040'
         };
       default:
         return {
@@ -78,7 +86,9 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           text: 'text-gray-900',
           textSecondary: 'text-gray-600',
           cardBg: 'bg-gray-50',
-          border: 'border-gray-200'
+          border: 'border-gray-200',
+          scrollbarTrack: '#e5e7eb',
+          scrollbarThumb: '#9ca3af'
         };
     }
   };
@@ -192,7 +202,9 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   const getPadLength = () => {
     if (totalQuotas === 0) return 1;
     const maxDisplayNumber = totalQuotas - 1; // Maximum 0-indexed number
-    return String(maxDisplayNumber).length;
+    const calculatedLength = String(maxDisplayNumber).length;
+    console.log(`🔵 getPadLength: totalQuotas=${totalQuotas}, maxDisplayNumber=${maxDisplayNumber}, padLength=${calculatedLength}`);
+    return calculatedLength;
   };
 
   // ✅ Format quota number with proper padding (0-indexed, no subtraction needed)
@@ -338,40 +350,82 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         </div>
       </div>
 
-      {/* ✅ Quota Grid - 0-indexed tickets (0 to N-1) */}
-      <div className={`quota-grid grid ${getGridCols()} gap-1 p-4 ${getThemeClasses(campaignTheme).cardBg} rounded-lg overflow-hidden`}>
-        {filteredQuotas.map((quotaNumber) => {
-          const status = getQuotaStatus(quotaNumber);
-          const quotaStyles = getQuotaStyles(status);
-          const isSelected = status === 'selected';
-          
-          // ✅ Display 0-indexed quota number directly (no subtraction)
-          const displayNumber = formatQuotaNumber(quotaNumber);
-          
-          return (
-            <button
-              key={quotaNumber}
-              onClick={() => handleQuotaClick(quotaNumber)}
-              className={`
-                w-10 h-10 text-xs font-medium rounded flex items-center justify-center transition-all duration-200
-                ${quotaStyles}
-                ${isSelected ? getColorClassName('') : ''}
-                ${mode === 'automatic' || status === 'purchased' || status === 'reserved' ? 'cursor-not-allowed' : 'cursor-pointer'}
-              `}
-              style={isSelected ? getColorStyle() : {}}
-              disabled={mode === 'automatic' || status === 'purchased' || status === 'reserved'}
-              title={`Cota ${displayNumber} - ${
-                status === 'purchased' ? 'Comprada' : 
-                status === 'reserved' ? 'Reservada' : 
-                status === 'selected' ? 'Selecionada' : 
-                'Disponível'
-              }`}
-            >
-              {displayNumber}
-            </button>
-          );
-        })}
+      {/* ✅ Quota Grid com Scroll SEMPRE VISÍVEL */}
+      <div 
+        className={`${getThemeClasses(campaignTheme).cardBg} rounded-lg`}
+        style={{ 
+          maxHeight: '660px', 
+          height: '660px',
+          overflow: 'hidden'
+        }}
+      >
+        <div 
+          className="p-4 overflow-y-scroll"
+          style={{ 
+            height: '100%',
+            scrollbarWidth: 'thin',
+            scrollbarColor: `${getThemeClasses(campaignTheme).scrollbarThumb} ${getThemeClasses(campaignTheme).scrollbarTrack}`
+          }}
+        >
+          <div className={`grid ${getGridCols()} gap-1`}>
+            {filteredQuotas.map((quotaNumber) => {
+              const status = getQuotaStatus(quotaNumber);
+              const quotaStyles = getQuotaStyles(status);
+              const isSelected = status === 'selected';
+              
+              // ✅ Display 0-indexed quota number directly (no subtraction)
+              const displayNumber = formatQuotaNumber(quotaNumber);
+              
+              return (
+                <button
+                  key={quotaNumber}
+                  onClick={() => handleQuotaClick(quotaNumber)}
+                  className={`
+                    w-10 h-10 text-xs font-medium rounded flex items-center justify-center transition-all duration-200
+                    ${quotaStyles}
+                    ${isSelected ? getColorClassName('') : ''}
+                    ${mode === 'automatic' || status === 'purchased' || status === 'reserved' ? 'cursor-not-allowed' : 'cursor-pointer'}
+                  `}
+                  style={isSelected ? getColorStyle() : {}}
+                  disabled={mode === 'automatic' || status === 'purchased' || status === 'reserved'}
+                  title={`Cota ${displayNumber} - ${
+                    status === 'purchased' ? 'Comprada' : 
+                    status === 'reserved' ? 'Reservada' : 
+                    status === 'selected' ? 'Selecionada' : 
+                    'Disponível'
+                  }`}
+                >
+                  {displayNumber}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
+
+      {/* ✅ Scrollbar customizada com CSS inline */}
+      <style dangerouslySetInnerHTML={{__html: `
+        .overflow-y-scroll::-webkit-scrollbar {
+          width: 12px;
+        }
+        
+        .overflow-y-scroll::-webkit-scrollbar-track {
+          background: ${getThemeClasses(campaignTheme).scrollbarTrack};
+          border-radius: 6px;
+          margin: 4px;
+        }
+        
+        .overflow-y-scroll::-webkit-scrollbar-thumb {
+          background: ${getThemeClasses(campaignTheme).scrollbarThumb};
+          border-radius: 6px;
+          border: 2px solid ${getThemeClasses(campaignTheme).scrollbarTrack};
+        }
+        
+        .overflow-y-scroll::-webkit-scrollbar-thumb:hover {
+          background: ${primaryColor || getThemeClasses(campaignTheme).scrollbarThumb};
+          opacity: 0.8;
+        }
+      `}} />
     </div>
   );
 };
