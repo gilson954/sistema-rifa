@@ -89,16 +89,14 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
     }
   };
 
-  // ✅ CRITICAL FIX: Converter o número digitado pelo usuário (0 a N-1) para o número real do banco (1 a N)
+  // ✅ 0-BASED INDEXING: Pass the 0-indexed number directly to the API
   const handleCreateCota = async (numeroCotaInput: number, premio: string) => {
     setSubmitting(true);
     try {
-      // CRITICAL FIX: Converter o número da cota do usuário (0 a N-1) para o número real (1 a N)
-      const numeroCotaReal = numeroCotaInput + 1;
-      
+      // 0-BASED: numeroCotaInput is already 0-indexed (0 to N-1), pass it directly
       const { data, error } = await CotasPremiadasAPI.createCotaPremiada({
         campaign_id: campaignId,
-        numero_cota: numeroCotaReal, // ✅ Usar o número real (1 a N)
+        numero_cota: numeroCotaInput, // ✅ Use 0-indexed number directly
         premio,
       });
 
@@ -150,20 +148,18 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
 
   const filteredCotas = getFilteredCotas();
 
-  // ✅ CRITICAL FIX: Função para calcular o número de dígitos para o preenchimento
-  // O quota_number no banco vai de 1 a N, mas exibimos de 00 a N-1
+  // ✅ 0-BASED INDEXING: Calculate padding based on the maximum 0-indexed number
   const getQuotaNumberPadding = () => {
-    if (totalTickets === 0) return 1; // Garante pelo menos 1 dígito
-    // O maior número exibido é totalTickets - 1
+    if (totalTickets === 0) return 1; // Ensure at least 1 digit
+    // The maximum displayed number is totalTickets - 1 (0-indexed)
     const maxDisplayNumber = totalTickets - 1;
     return String(maxDisplayNumber).length;
   };
 
-  // ✅ CRITICAL FIX: Função para formatar o número da cota (numero_cota - 1)
+  // ✅ 0-BASED INDEXING: Display the 0-indexed numero directly without conversion
   const formatQuotaNumber = (numero: number) => {
-    // CRITICAL FIX: Formatar numero - 1 para exibição
-    const displayNumber = numero - 1;
-    return displayNumber.toString().padStart(getQuotaNumberPadding(), '0');
+    // 0-BASED: Display numero directly (already 0-indexed: 0 to N-1)
+    return numero.toString().padStart(getQuotaNumberPadding(), '0');
   };
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -356,7 +352,7 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
                                 ? 'Titulo comprado'
                                 : 'Titulo encontrado'}
                             </p>
-                            {/* ✅ CRITICAL FIX: Exibir numero_cota - 1 com padding correto */}
+                            {/* ✅ 0-BASED INDEXING: Display numero directly (0 to N-1) */}
                             <p className="text-2xl font-extrabold text-gray-900 dark:text-white">
                               {formatQuotaNumber(cota.numero_cota)}
                             </p>
@@ -402,8 +398,7 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
         </motion.div>
       )}
 
-      {/* ✅ IMPORTANTE: O modal filho (CadastrarCotaPremiadaModal) recebe numeroCotaInput (0 a N-1) 
-          e handleCreateCota faz a conversão para numeroCotaReal (1 a N) */}
+      {/* ✅ 0-BASED INDEXING: Modal receives and sends 0-indexed numbers (0 to N-1) */}
       <CadastrarCotaPremiadaModal
         isOpen={showCadastrarModal}
         onClose={() => setShowCadastrarModal(false)}
