@@ -288,7 +288,7 @@ export const useTickets = (campaignId: string) => {
   // ✅ Busca inicial de TODOS os tickets
   useEffect(() => {
     fetchTicketsStatus();
-  }, [campaignId, user?.id]); // Removido fetchTicketsStatus das dependências para evitar loop
+  }, [fetchTicketsStatus]); // ✅ Adicionado fetchTicketsStatus nas dependências
 
   // Configurar escuta em tempo real para mudanças nos tickets
   useEffect(() => {
@@ -315,7 +315,7 @@ export const useTickets = (campaignId: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [campaignId]); // Dependências corretas para realtime
+  }, [campaignId, fetchTicketsStatus]); // ✅ Adicionado fetchTicketsStatus nas dependências
 
   return {
     // Estado dos tickets
