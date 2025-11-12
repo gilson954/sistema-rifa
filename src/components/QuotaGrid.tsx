@@ -5,7 +5,7 @@ import { TicketStatusInfo } from '../lib/api/tickets';
 interface QuotaGridProps {
   totalQuotas: number;
   selectedQuotas: number[];
-  onQuotaSelect: (quotaNumber: number) => void; // ✅ Agora obrigatório
+  onQuotaSelect: (quotaNumber: number) => void;
   activeFilter: 'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers';
   onFilterChange: (filter: 'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers') => void;
   mode: 'manual' | 'automatic';
@@ -83,11 +83,11 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     }
   };
 
+  // ✅ CORREÇÃO: quotaNumber é o número real (0 a N-1) tanto no frontend quanto no backend
   const getQuotaStatus = (quotaNumber: number) => {
-    // Find the ticket for this quota number
     const ticket = tickets.find(t => t.quota_number === quotaNumber);
     
-    if (!ticket) return 'available'; // Default if ticket not found
+    if (!ticket) return 'available';
     
     if (ticket.status === 'comprado') return 'purchased';
     if (ticket.status === 'reservado') return 'reserved';
@@ -162,6 +162,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     }
   };
 
+  // ✅ CORREÇÃO: quotaNumber é o número real (0 a N-1), envia direto para o backend
   const handleQuotaClick = (quotaNumber: number) => {
     const status = getQuotaStatus(quotaNumber);
     
@@ -176,7 +177,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     // ✅ SEMPRE chamar onQuotaSelect para modo manual com status válido
     if (mode === 'manual' && (status === 'available' || status === 'selected')) {
       console.log(`✅ QuotaGrid: Chamando onQuotaSelect com: ${quotaNumber}`);
-      onQuotaSelect(quotaNumber);
+      onQuotaSelect(quotaNumber); // 👈 envia o número real (0 a N-1) direto para o backend
     } else {
       console.log(`⚠️ QuotaGrid: Cota ${quotaNumber} não processada. Modo: ${mode}, Status: ${status}`);
     }
@@ -194,10 +195,9 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     return String(maxDisplayNumber).length;
   };
 
-  // ✅ VERSÃO SEM PAGINAÇÃO: Filtrar cotas renderizando TODAS de uma vez
+  // ✅ CORREÇÃO: Gerar cotas de 0 a N-1 (números reais no sistema)
   const getFilteredQuotas = () => {
-    // CRITICAL: quota_number no banco vai de 1 a totalQuotas
-    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index + 1);
+    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index); // 👈 [0, 1, 2, ..., N-1]
     
     switch (activeFilter) {
       case 'available':
@@ -332,7 +332,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         </div>
       </div>
 
-      {/* ✅ Quota Grid SEM PAGINAÇÃO - Renderiza TODAS as cotas filtradas */}
+      {/* ✅ Quota Grid - Cotas de 0 a N-1 (números reais) */}
       <div className={`quota-grid grid ${getGridCols()} gap-1 p-4 ${getThemeClasses(campaignTheme).cardBg} rounded-lg overflow-hidden`}>
         {filteredQuotas.map((quotaNumber) => {
           const status = getQuotaStatus(quotaNumber);
@@ -340,8 +340,8 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           const quotaStyles = getQuotaStyles(status);
           const isSelected = status === 'selected';
           
-          // CRITICAL FIX: Exibir quota_number - 1 para o usuário
-          const displayNumber = quotaNumber - 1;
+          // ✅ quotaNumber já é o número real (0 a N-1)
+          const displayNumber = quotaNumber;
           
           return (
             <button
