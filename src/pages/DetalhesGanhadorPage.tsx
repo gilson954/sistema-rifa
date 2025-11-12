@@ -95,6 +95,19 @@ const DetalhesGanhadorPage: React.FC = () => {
     return ticketsResult.data || [];
   };
 
+  // ✅ Calculate padding length based on maximum 0-indexed ticket number (totalTicketsCampaign - 1)
+  const getQuotaNumberPadding = () => {
+    if (totalTicketsCampaign === 0) return 1;
+    const maxDisplayNumber = totalTicketsCampaign - 1; // Maximum 0-indexed number
+    return String(maxDisplayNumber).length;
+  };
+
+  // ✅ Format quota number with proper padding (0-indexed, display directly without subtraction)
+  const formatQuotaNumber = (numero: number) => {
+    const padLength = getQuotaNumberPadding();
+    return numero.toString().padStart(padLength, '0');
+  };
+
   const handleWhatsAppContact = () => {
     if (!winner?.winner_phone) return;
 
@@ -110,22 +123,6 @@ const DetalhesGanhadorPage: React.FC = () => {
     if (!isExpanded) {
       setCurrentPage(1);
     }
-  };
-
-  // ✅ CRITICAL FIX: Função para calcular o número de dígitos para o preenchimento
-  // O quota_number no banco vai de 1 a N, mas exibimos de 00 a N-1
-  const getQuotaNumberPadding = () => {
-    if (totalTicketsCampaign === 0) return 1;
-    // O maior número exibido é totalTicketsCampaign - 1
-    const maxDisplayNumber = totalTicketsCampaign - 1;
-    return String(maxDisplayNumber).length;
-  };
-
-  // ✅ CRITICAL FIX: Função para formatar o número da cota (quota_number - 1)
-  const formatQuotaNumber = (numero: number) => {
-    // CRITICAL FIX: Formatar numero - 1 para exibição
-    const displayNumber = numero - 1;
-    return displayNumber.toString().padStart(getQuotaNumberPadding(), '0');
   };
 
   // Determinar quantos tickets mostrar
@@ -196,7 +193,7 @@ const DetalhesGanhadorPage: React.FC = () => {
                   <div className="flex items-center gap-2 text-purple-100">
                     <Ticket className="h-5 w-5" />
                     <span className="text-lg font-semibold">
-                      {/* ✅ CRITICAL FIX: Exibir quota_number - 1 */}
+                      {/* ✅ Display 0-indexed ticket number directly */}
                       Título vencedor: {formatQuotaNumber(winner.ticket_number)}
                     </span>
                   </div>
@@ -335,7 +332,7 @@ const DetalhesGanhadorPage: React.FC = () => {
                           : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:shadow-md hover:scale-105'
                       }`}
                     >
-                      {/* ✅ CRITICAL FIX: Exibir quota_number - 1 */}
+                      {/* ✅ Display 0-indexed ticket number directly */}
                       {formatQuotaNumber(ticket.quota_number)}
                     </div>
                   ))}
