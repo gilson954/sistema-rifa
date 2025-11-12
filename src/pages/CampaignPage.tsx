@@ -486,15 +486,26 @@ const CampaignPage = () => {
   }, [campaign, isCampaignAvailable, getAvailableTickets, selectedQuotas, quantity, showSuccess, showError, showWarning]);
 
   const handleQuotaSelect = useCallback((quotaNumber: number) => {
-    if (!campaign || campaign.campaign_model !== 'manual') return;
+    console.log(`🔵 CampaignPage: handleQuotaSelect CHAMADO com quotaNumber:`, quotaNumber, `Tipo:`, typeof quotaNumber);
+    
+    if (!campaign || campaign.campaign_model !== 'manual') {
+      console.log(`⚠️ CampaignPage: handleQuotaSelect bloqueado - campaign:`, !!campaign, `model:`, campaign?.campaign_model);
+      return;
+    }
 
     const availableTickets = getAvailableTickets();
     const isAvailable = availableTickets.some(ticket => ticket.quota_number === quotaNumber);
 
-    if (!isAvailable) return;
+    if (!isAvailable) {
+      console.log(`⚠️ CampaignPage: Cota ${quotaNumber} não disponível`);
+      return;
+    }
+
+    console.log(`🟢 CampaignPage: Cota ${quotaNumber} é válida, atualizando estado...`);
 
     setSelectedQuotas(prev => {
-      console.log(`🔵 CampaignPage: handleQuotaSelect - Estado anterior (prev):`, prev);
+      console.log(`🔵 CampaignPage: setSelectedQuotas - Estado anterior (prev):`, prev);
+      console.log(`🔵 CampaignPage: setSelectedQuotas - quotaNumber recebido:`, quotaNumber, `Tipo:`, typeof quotaNumber);
       
       // Se a cota já está selecionada, remove
       if (prev.includes(quotaNumber)) {
@@ -505,6 +516,8 @@ const CampaignPage = () => {
       
       // Se não está selecionada, adiciona (verificando limite)
       const newSelection = [...prev, quotaNumber];
+      console.log(`🟢 CampaignPage: Adicionando cota ${quotaNumber}. Nova seleção ANTES da verificação de limite:`, newSelection);
+      
       const maxLimit = campaign.max_tickets_per_purchase || 20000;
       
       if (newSelection.length > maxLimit) {
@@ -513,7 +526,7 @@ const CampaignPage = () => {
         return prev;
       }
       
-      console.log(`🟢 CampaignPage: Adicionando cota ${quotaNumber}. Nova seleção:`, newSelection);
+      console.log(`✅ CampaignPage: Adicionando cota ${quotaNumber}. Nova seleção FINAL:`, newSelection);
       return newSelection;
     });
   }, [campaign, getAvailableTickets, showWarning]);
@@ -990,7 +1003,7 @@ const CampaignPage = () => {
                   <img
                     src="/logo-chatgpt.png"
                     alt="Rifaqui Logo"
-                    className="h-10 sm:h-14 w-auto object-contain"
+                    className="w-8 h-8 object-contain"
                   />
                   <span className={`ml-2 text-xl font-bold ${themeClasses.rifaquiText}`}>Rifaqui</span>
                 </>
@@ -1465,15 +1478,20 @@ const CampaignPage = () => {
                       Números selecionados:
                     </div>
                     <div className="flex flex-wrap gap-1.5">
-                      {selectedQuotas.sort((a, b) => a - b).map(quota => (
-                        <span
-                          key={quota}
-                          className={getColorClassName("px-2 py-1 text-white rounded text-xs font-medium")}
-                          style={getColorStyle(true)}
-                        >
-                          {quota.toString().padStart(3, '0')}
-                        </span>
-                      ))}
+                      {selectedQuotas.sort((a, b) => a - b).map(quota => {
+                        // Calcular padding baseado no total de cotas
+                        const padLength = String(campaign.total_tickets).length;
+                        
+                        return (
+                          <span
+                            key={quota}
+                            className={getColorClassName("px-2 py-1 text-white rounded text-xs font-medium")}
+                            style={getColorStyle(true)}
+                          >
+                            {quota.toString().padStart(padLength, '0')}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
 
