@@ -487,6 +487,12 @@ const CampaignPage = () => {
 
   const handleQuotaSelect = useCallback((quotaNumber: number) => {
     console.log(`🔵 CampaignPage: handleQuotaSelect CHAMADO com quotaNumber:`, quotaNumber, `Tipo:`, typeof quotaNumber);
+
+    // ✅ Permitir cotas de 1 a 10000
+    if (quotaNumber < 1 || quotaNumber > 10000) {
+      console.warn(`⚠️ CampaignPage: Cota ${quotaNumber} fora do intervalo válido (1–10000).`);
+    return;
+      }
     
     if (!campaign || campaign.campaign_model !== 'manual') {
       console.log(`⚠️ CampaignPage: handleQuotaSelect bloqueado - campaign:`, !!campaign, `model:`, campaign?.campaign_model);
