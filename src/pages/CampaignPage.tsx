@@ -494,10 +494,16 @@ const CampaignPage = () => {
     }
 
     const availableTickets = getAvailableTickets();
+    console.log(`🔍 CampaignPage: Total de tickets disponíveis:`, availableTickets.length);
+    console.log(`🔍 CampaignPage: Range de quota_numbers disponíveis:`, 
+      availableTickets.length > 0 ? `${Math.min(...availableTickets.map(t => t.quota_number))} - ${Math.max(...availableTickets.map(t => t.quota_number))}` : 'Nenhum'
+    );
+    
     const isAvailable = availableTickets.some(ticket => ticket.quota_number === quotaNumber);
 
     if (!isAvailable) {
       console.log(`⚠️ CampaignPage: Cota ${quotaNumber} não disponível`);
+      console.log(`🔍 CampaignPage: Tickets carregados:`, tickets.length, `de`, campaign.total_tickets);
       return;
     }
 
@@ -529,7 +535,7 @@ const CampaignPage = () => {
       console.log(`✅ CampaignPage: Adicionando cota ${quotaNumber}. Nova seleção FINAL:`, newSelection);
       return newSelection;
     });
-  }, [campaign, getAvailableTickets, showWarning]);
+  }, [campaign, getAvailableTickets, showWarning, tickets]);
 
   const handleQuantityChange = useCallback((newQuantity: number) => {
     setQuantity(newQuantity);
