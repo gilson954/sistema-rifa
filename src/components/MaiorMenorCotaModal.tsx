@@ -63,17 +63,17 @@ const MaiorMenorCotaModal: React.FC<MaiorMenorCotaModalProps> = ({
     }
   }, [isOpen, campaignId]);
 
-  // ✅ CRITICAL FIX: Função para formatar o número da cota (quota_number - 1)
+  // ✅ Format quota number with proper padding (0-indexed, display directly without subtraction)
   const formatQuotaNumber = (quotaNumber: number): string => {
     if (!campaign?.total_tickets) {
       // Fallback: usa padding de 4 dígitos se campaign não estiver carregada
-      return (quotaNumber - 1).toString().padStart(4, '0');
+      return quotaNumber.toString().padStart(4, '0');
     }
-    // Calcula o número de dígitos baseado no maior número exibido (total_tickets - 1)
+    // Calcula o número de dígitos baseado no maior número 0-indexed (total_tickets - 1)
     const maxDisplayNumber = campaign.total_tickets - 1;
     const digits = String(maxDisplayNumber).length;
-    // CRITICAL FIX: Converter quota_number - 1 para exibição
-    return (quotaNumber - 1).toString().padStart(digits, '0');
+    // Display 0-indexed quota number directly
+    return quotaNumber.toString().padStart(digits, '0');
   };
 
   const handleSearch = async () => {
@@ -283,7 +283,7 @@ const MaiorMenorCotaModal: React.FC<MaiorMenorCotaModalProps> = ({
                         <span className="text-sm text-gray-600 dark:text-gray-400">
                           {searchType === 'menor' ? 'Menor cota encontrada:' : 'Maior cota encontrada:'}
                         </span>
-                        {/* ✅ CRITICAL FIX: Exibir quota_number - 1 com padding correto */}
+                        {/* ✅ Display 0-indexed quota number directly */}
                         <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                           {formatQuotaNumber(result.quota_number)}
                         </span>
