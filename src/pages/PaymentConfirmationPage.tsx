@@ -209,11 +209,11 @@ const PaymentConfirmationPage = () => {
 
   const formatQuotaNumber = (quotaNumber: number): string => {
     if (!campaign?.total_tickets) {
-      return (quotaNumber - 1).toString().padStart(3, '0');
+      return quotaNumber.toString().padStart(3, '0');
     }
     
     const digits = String(campaign.total_tickets - 1).length;
-    return (quotaNumber - 1).toString().padStart(digits, '0');
+    return quotaNumber.toString().padStart(digits, '0');
   };
 
   useEffect(() => {
