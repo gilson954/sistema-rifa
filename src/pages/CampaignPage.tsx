@@ -163,8 +163,7 @@ const CampaignPage = () => {
     error: ticketsError,
     reserveTickets,
     getAvailableTickets,
-    reserving,
-    totalTickets
+    reserving
   } = useTickets(campaign?.id || '');
 
   const { winners, loading: winnersLoading } = useCampaignWinners(campaign?.id);
