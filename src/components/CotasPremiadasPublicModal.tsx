@@ -145,15 +145,18 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
 
   const theme = getThemeClasses(campaignTheme);
 
+  // ✅ 0-BASED INDEXING: Calculate padding based on the maximum 0-indexed number
   const getQuotaNumberPadding = () => {
     if (totalTickets === 0) return 1;
+    // The maximum displayed number is totalTickets - 1 (0-indexed)
     const maxDisplayNumber = totalTickets - 1;
     return String(maxDisplayNumber).length;
   };
 
+  // ✅ 0-BASED INDEXING: Display the 0-indexed numero directly without conversion
   const formatQuotaNumber = (numero: number) => {
-    const displayNumber = numero - 1;
-    return displayNumber.toString().padStart(getQuotaNumberPadding(), '0');
+    // 0-BASED: Display numero directly (already 0-indexed: 0 to N-1)
+    return numero.toString().padStart(getQuotaNumberPadding(), '0');
   };
 
   const getStatusBadge = (cota: CotaPremiada) => {
@@ -391,6 +394,7 @@ const CotasPremiadasPublicModal: React.FC<CotasPremiadasPublicModalProps> = ({
                             whileHover={{ scale: 1.05 }}
                             transition={{ duration: 0.2 }}
                           >
+                            {/* ✅ 0-BASED INDEXING: Display numero directly (0 to N-1) */}
                             <span className={`font-bold text-xs sm:text-sm ${theme.badgeText}`}>
                               {formatQuotaNumber(cota.numero_cota)}
                             </span>
