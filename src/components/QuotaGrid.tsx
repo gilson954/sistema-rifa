@@ -5,7 +5,7 @@ import { TicketStatusInfo } from '../lib/api/tickets';
 interface QuotaGridProps {
   totalQuotas: number;
   selectedQuotas: number[];
-  onQuotaSelect: (quotaNumber: number) => void; // ✅ Agora obrigatório
+  onQuotaSelect: (quotaNumber: number) => void;
   activeFilter: 'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers';
   onFilterChange: (filter: 'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers') => void;
   mode: 'manual' | 'automatic';
@@ -83,15 +83,16 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     }
   };
 
-  const getQuotaStatus = (quotaNumber: number) => {
-    // Find the ticket for this quota number
-    const ticket = tickets.find(t => t.quota_number === quotaNumber);
+  // ✅ CORREÇÃO: Ajustado para receber número de exibição e consultar número real no banco
+  const getQuotaStatus = (quotaNumberDisplay: number) => {
+    const quotaNumberReal = quotaNumberDisplay + 1; // 👈 cota real no banco (1 a N)
+    const ticket = tickets.find(t => t.quota_number === quotaNumberReal);
     
-    if (!ticket) return 'available'; // Default if ticket not found
+    if (!ticket) return 'available';
     
     if (ticket.status === 'comprado') return 'purchased';
     if (ticket.status === 'reservado') return 'reserved';
-    if (selectedQuotas.includes(quotaNumber)) return 'selected';
+    if (selectedQuotas.includes(quotaNumberReal)) return 'selected';
     return 'available';
   };
 
@@ -162,6 +163,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     }
   };
 
+  // ✅ CORREÇÃO: Ajustado para enviar número real (1 a N) ao backend
   const handleQuotaClick = (quotaNumber: number) => {
     const status = getQuotaStatus(quotaNumber);
     
@@ -175,8 +177,9 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     
     // ✅ SEMPRE chamar onQuotaSelect para modo manual com status válido
     if (mode === 'manual' && (status === 'available' || status === 'selected')) {
-      console.log(`✅ QuotaGrid: Chamando onQuotaSelect com: ${quotaNumber}`);
-      onQuotaSelect(quotaNumber);
+      const quotaNumberReal = quotaNumber + 1; // 👈 envia número real (1 a N) para o backend
+      console.log(`✅ QuotaGrid: Chamando onQuotaSelect com: ${quotaNumberReal}`);
+      onQuotaSelect(quotaNumberReal);
     } else {
       console.log(`⚠️ QuotaGrid: Cota ${quotaNumber} não processada. Modo: ${mode}, Status: ${status}`);
     }
@@ -194,31 +197,34 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     return String(maxDisplayNumber).length;
   };
 
-  // ✅ VERSÃO SEM PAGINAÇÃO: Filtrar cotas renderizando TODAS de uma vez
+  // ✅ CORREÇÃO: Gerar cotas de 0 a N-1 para exibição
   const getFilteredQuotas = () => {
-    // CRITICAL: quota_number no banco vai de 1 a totalQuotas
-    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index + 1);
+    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index); // 👈 agora gera [0, 1, 2, ..., N-1]
     
     switch (activeFilter) {
       case 'available':
         return allQuotas.filter(quota => {
-          const ticket = tickets.find(t => t.quota_number === quota);
-          return ticket?.status === 'disponível' && !selectedQuotas.includes(quota);
+          const quotaReal = quota + 1; // 👈 converte para número real no banco
+          const ticket = tickets.find(t => t.quota_number === quotaReal);
+          return ticket?.status === 'disponível' && !selectedQuotas.includes(quotaReal);
         });
       case 'reserved':
         return allQuotas.filter(quota => {
-          const ticket = tickets.find(t => t.quota_number === quota);
+          const quotaReal = quota + 1;
+          const ticket = tickets.find(t => t.quota_number === quotaReal);
           return ticket?.status === 'reservado';
         });
       case 'purchased':
         return allQuotas.filter(quota => {
-          const ticket = tickets.find(t => t.quota_number === quota);
+          const quotaReal = quota + 1;
+          const ticket = tickets.find(t => t.quota_number === quotaReal);
           return ticket?.status === 'comprado';
         });
       case 'my-numbers':
         return allQuotas.filter(quota => {
-          const ticket = tickets.find(t => t.quota_number === quota);
-          return ticket?.is_mine || selectedQuotas.includes(quota);
+          const quotaReal = quota + 1;
+          const ticket = tickets.find(t => t.quota_number === quotaReal);
+          return ticket?.is_mine || selectedQuotas.includes(quotaReal);
         });
       case 'all':
       default:
@@ -332,7 +338,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         </div>
       </div>
 
-      {/* ✅ Quota Grid SEM PAGINAÇÃO - Renderiza TODAS as cotas filtradas */}
+      {/* ✅ Quota Grid - Renderiza cotas de 0 a N-1 */}
       <div className={`quota-grid grid ${getGridCols()} gap-1 p-4 ${getThemeClasses(campaignTheme).cardBg} rounded-lg overflow-hidden`}>
         {filteredQuotas.map((quotaNumber) => {
           const status = getQuotaStatus(quotaNumber);
@@ -340,8 +346,8 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           const quotaStyles = getQuotaStyles(status);
           const isSelected = status === 'selected';
           
-          // CRITICAL FIX: Exibir quota_number - 1 para o usuário
-          const displayNumber = quotaNumber - 1;
+          // ✅ CORREÇÃO: quotaNumber já é o número de exibição (0 a N-1)
+          const displayNumber = quotaNumber;
           
           return (
             <button
