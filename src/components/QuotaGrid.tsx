@@ -188,11 +188,17 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     return 'grid-cols-10 sm:grid-cols-15 md:grid-cols-20';
   };
 
-  // CRITICAL FIX: Calculate padding length for quota numbers based on total quotas
+  // ✅ Calculate padding length based on maximum 0-indexed ticket number (totalQuotas - 1)
   const getPadLength = () => {
     if (totalQuotas === 0) return 1;
-    const maxDisplayNumber = totalQuotas - 1;
+    const maxDisplayNumber = totalQuotas - 1; // Maximum 0-indexed number
     return String(maxDisplayNumber).length;
+  };
+
+  // ✅ Format quota number with proper padding (0-indexed, no subtraction needed)
+  const formatQuotaNumber = (quotaNumber: number): string => {
+    const padLength = getPadLength();
+    return quotaNumber.toString().padStart(padLength, '0');
   };
 
   // ✅ CORREÇÃO: Gerar cotas de 0 a N-1 (números reais no sistema)
@@ -332,16 +338,15 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         </div>
       </div>
 
-      {/* ✅ Quota Grid - Cotas de 0 a N-1 (números reais) */}
+      {/* ✅ Quota Grid - 0-indexed tickets (0 to N-1) */}
       <div className={`quota-grid grid ${getGridCols()} gap-1 p-4 ${getThemeClasses(campaignTheme).cardBg} rounded-lg overflow-hidden`}>
         {filteredQuotas.map((quotaNumber) => {
           const status = getQuotaStatus(quotaNumber);
-          const padLength = getPadLength();
           const quotaStyles = getQuotaStyles(status);
           const isSelected = status === 'selected';
           
-          // ✅ quotaNumber já é o número real (0 a N-1)
-          const displayNumber = quotaNumber;
+          // ✅ Display 0-indexed quota number directly (no subtraction)
+          const displayNumber = formatQuotaNumber(quotaNumber);
           
           return (
             <button
@@ -355,14 +360,14 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
               `}
               style={isSelected ? getColorStyle() : {}}
               disabled={mode === 'automatic' || status === 'purchased' || status === 'reserved'}
-              title={`Cota ${displayNumber.toString().padStart(padLength, '0')} - ${
+              title={`Cota ${displayNumber} - ${
                 status === 'purchased' ? 'Comprada' : 
                 status === 'reserved' ? 'Reservada' : 
                 status === 'selected' ? 'Selecionada' : 
                 'Disponível'
               }`}
             >
-              {displayNumber.toString().padStart(padLength, '0')}
+              {displayNumber}
             </button>
           );
         })}
