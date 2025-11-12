@@ -5,7 +5,7 @@ import { TicketStatusInfo } from '../lib/api/tickets';
 interface QuotaGridProps {
   totalQuotas: number;
   selectedQuotas: number[];
-  onQuotaSelect?: (quotaNumber: number) => void;
+  onQuotaSelect: (quotaNumber: number) => void; // ✅ Agora obrigatório
   activeFilter: 'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers';
   onFilterChange: (filter: 'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers') => void;
   mode: 'manual' | 'automatic';
@@ -64,14 +64,14 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           cardBg: 'bg-gray-900',
           border: 'border-gray-700'
         };
-    case 'escuro-cinza':
-      return {
-        background: 'bg-[#1A1A1A]',
-        text: 'text-white',
-        textSecondary: 'text-gray-400',
-        cardBg: 'bg-[#2C2C2C]',
-        border: 'border-[#1f1f1f]'
-      };
+      case 'escuro-cinza':
+        return {
+          background: 'bg-[#1A1A1A]',
+          text: 'text-white',
+          textSecondary: 'text-gray-400',
+          cardBg: 'bg-[#2C2C2C]',
+          border: 'border-[#1f1f1f]'
+        };
       default:
         return {
           background: 'bg-white',
@@ -165,25 +165,20 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   const handleQuotaClick = (quotaNumber: number) => {
     const status = getQuotaStatus(quotaNumber);
     
+    console.log(`🔵 QuotaGrid: Clicado na cota ${quotaNumber}. Modo: ${mode}, Status: ${status}`);
+    
     // Impedir clique em cotas reservadas ou compradas
     if (status === 'reserved' || status === 'purchased') {
-      console.log(`🔵 QuotaGrid: Cota ${quotaNumber} não clicável - status: ${status}`);
+      console.log(`⚠️ QuotaGrid: Cota ${quotaNumber} não clicável - status: ${status}`);
       return;
     }
     
-    // CRITICAL: Permitir seleção apenas no modo manual e para cotas disponíveis/selecionadas
-    // Passar o quota_number real (1 a N) para o handler
+    // ✅ SEMPRE chamar onQuotaSelect para modo manual com status válido
     if (mode === 'manual' && (status === 'available' || status === 'selected')) {
-      console.log(`🔵 QuotaGrid: Clicado na cota ${quotaNumber}. Modo: ${mode}, Status: ${status}`);
-      if (onQuotaSelect) {
-        console.log(`✅ Chamando onQuotaSelect com: ${quotaNumber}`);
-        onQuotaSelect(quotaNumber);
-      } else {
-        // Adiciona um aviso se onQuotaSelect não for fornecido
-        console.error(`❌ QuotaGrid: onQuotaSelect não foi fornecido para a campanha em modo manual. A seleção de cotas não funcionará.`);
-      }
+      console.log(`✅ QuotaGrid: Chamando onQuotaSelect com: ${quotaNumber}`);
+      onQuotaSelect(quotaNumber);
     } else {
-      console.log(`🔵 QuotaGrid: Cota ${quotaNumber} não clicável. Modo: ${mode}, Status: ${status}`);
+      console.log(`⚠️ QuotaGrid: Cota ${quotaNumber} não processada. Modo: ${mode}, Status: ${status}`);
     }
   };
 
@@ -193,23 +188,13 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   };
 
   // CRITICAL FIX: Calculate padding length for quota numbers based on total quotas
-  // O quota_number no banco vai de 1 a N, mas exibimos de 00 a N-1
-  // Então o número máximo exibido é totalQuotas - 1
-  // Examples: 
-  // - 100 cotas (quota_number: 1-100, display: 00-99): máximo exibido é 99 → 2 dígitos ✅
-  // - 1000 cotas (quota_number: 1-1000, display: 000-999): máximo exibido é 999 → 3 dígitos ✅
-  // - 10000 cotas (quota_number: 1-10000, display: 0000-9999): máximo exibido é 9999 → 4 dígitos ✅
   const getPadLength = () => {
-    // Se totalQuotas for 0, retorna 1 para evitar problemas
     if (totalQuotas === 0) return 1;
-    
-    // CRITICAL FIX: Calcular baseado no maior número exibido (totalQuotas - 1)
-    // Exemplo: 100 cotas → maior número exibido é 99 → 2 dígitos
     const maxDisplayNumber = totalQuotas - 1;
     return String(maxDisplayNumber).length;
   };
 
-  // Filtrar cotas com base no filtro ativo
+  // ✅ VERSÃO SEM PAGINAÇÃO: Filtrar cotas renderizando TODAS de uma vez
   const getFilteredQuotas = () => {
     // CRITICAL: quota_number no banco vai de 1 a totalQuotas
     const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index + 1);
@@ -347,7 +332,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         </div>
       </div>
 
-      {/* Quota Grid */}
+      {/* ✅ Quota Grid SEM PAGINAÇÃO - Renderiza TODAS as cotas filtradas */}
       <div className={`quota-grid grid ${getGridCols()} gap-1 p-4 ${getThemeClasses(campaignTheme).cardBg} rounded-lg overflow-hidden`}>
         {filteredQuotas.map((quotaNumber) => {
           const status = getQuotaStatus(quotaNumber);
@@ -356,8 +341,6 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           const isSelected = status === 'selected';
           
           // CRITICAL FIX: Exibir quota_number - 1 para o usuário
-          // quota_number no banco: 1 a N
-          // Exibição para usuário: 0 a N-1 (com padding de zeros à esquerda)
           const displayNumber = quotaNumber - 1;
           
           return (
@@ -379,8 +362,6 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
                 'Disponível'
               }`}
             >
-              {/* CRITICAL FIX: Aplicar padStart com o padLength calculado corretamente */}
-              {/* Exibir quota_number - 1 com padding de zeros à esquerda */}
               {displayNumber.toString().padStart(padLength, '0')}
             </button>
           );
