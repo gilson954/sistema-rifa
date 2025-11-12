@@ -200,7 +200,7 @@ const CampaignPage = () => {
   
   const [direction, setDirection] = useState(1);
 
-  // Adicionar este useEffect para monitorar selectedQuotas
+  // Monitorar mudanças em selectedQuotas
   useEffect(() => {
     console.log(`🔵 CampaignPage: selectedQuotas state updated:`, selectedQuotas);
   }, [selectedQuotas]);
@@ -504,20 +504,15 @@ const CampaignPage = () => {
         const maxLimit = campaign.max_tickets_per_purchase || 20000;
         if (newSelection.length <= maxLimit) {
           console.log(`🟢 CampaignPage: Adicionando cota ${quotaNumber}. Nova seleção:`, newSelection);
-          return newSelection; // Retorna a nova seleção se estiver dentro do limite
+          return newSelection;
         }
         showWarning(`Máximo de ${maxLimit.toLocaleString('pt-BR')} ${maxLimit === 1 ? 'cota' : 'cotas'} por compra`);
         console.log(`🟡 CampaignPage: Limite máximo atingido. Não adicionando cota ${quotaNumber}. Seleção atual:`, prev);
-        return prev; // Retorna o estado anterior se o limite for excedido
+        return prev;
       }
-      return newSelection; // Retorna a nova seleção para remoção
+      return newSelection;
     });
   }, [campaign, getAvailableTickets, showWarning]);
-
-  const handleQuotaPageChange = useCallback((newPage: number) => {
-    setCurrentQuotaPage(newPage);
-    setTicketsPage(newPage);
-  }, [setTicketsPage]);
 
   const handleQuantityChange = useCallback((newQuantity: number) => {
     setQuantity(newQuantity);
