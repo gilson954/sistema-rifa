@@ -33,37 +33,40 @@ const CreateCampaignStep1Page = () => {
     'Outros'
   ];
 
+  // Values now represent the last real ticket number (total - 1)
+  // Labels show the total quantity for user understanding
   const ticketQuantityOptions = [
-    { value: 25, label: '25 cotas' },
-    { value: 50, label: '50 cotas' },
-    { value: 100, label: '100 cotas' },
-    { value: 200, label: '200 cotas' },
-    { value: 300, label: '300 cotas' },
-    { value: 400, label: '400 cotas' },
-    { value: 500, label: '500 cotas' },
-    { value: 600, label: '600 cotas' },
-    { value: 700, label: '700 cotas' },
-    { value: 800, label: '800 cotas' },
-    { value: 900, label: '900 cotas' },
-    { value: 1000, label: '1.000 cotas' },
-    { value: 2000, label: '2.000 cotas' },
-    { value: 3000, label: '3.000 cotas' },
-    { value: 4000, label: '4.000 cotas' },
-    { value: 5000, label: '5.000 cotas' },
-    { value: 10000, label: '10.000 cotas' },
-    { value: 20000, label: '20.000 cotas' },
-    { value: 30000, label: '30.000 cotas' },
-    { value: 40000, label: '40.000 cotas' },
-    { value: 50000, label: '50.000 cotas' },
-    { value: 100000, label: '100.000 cotas' },
-    { value: 500000, label: '500.000 cotas' },
-    { value: 1000000, label: '1.000.000 cotas' },
-    { value: 10000000, label: '10.000.000 cotas' }
+    { value: 24, label: '25 cotas' },
+    { value: 49, label: '50 cotas' },
+    { value: 99, label: '100 cotas' },
+    { value: 199, label: '200 cotas' },
+    { value: 299, label: '300 cotas' },
+    { value: 399, label: '400 cotas' },
+    { value: 499, label: '500 cotas' },
+    { value: 599, label: '600 cotas' },
+    { value: 699, label: '700 cotas' },
+    { value: 799, label: '800 cotas' },
+    { value: 899, label: '900 cotas' },
+    { value: 999, label: '1.000 cotas' },
+    { value: 1999, label: '2.000 cotas' },
+    { value: 2999, label: '3.000 cotas' },
+    { value: 3999, label: '4.000 cotas' },
+    { value: 4999, label: '5.000 cotas' },
+    { value: 9999, label: '10.000 cotas' },
+    { value: 19999, label: '20.000 cotas' },
+    { value: 29999, label: '30.000 cotas' },
+    { value: 39999, label: '40.000 cotas' },
+    { value: 49999, label: '50.000 cotas' },
+    { value: 99999, label: '100.000 cotas' },
+    { value: 499999, label: '500.000 cotas' },
+    { value: 999999, label: '1.000.000 cotas' },
+    { value: 9999999, label: '10.000.000 cotas' }
   ];
 
   const updateCalculations = (price: string, quantity: string) => {
     const ticketPrice = parseFloat(price) / 100 || 0;
-    const ticketQuantity = parseInt(quantity) || 0;
+    // Add 1 to get actual total (since quantity represents last ticket number)
+    const ticketQuantity = quantity ? parseInt(quantity) + 1 : 0;
     const revenue = ticketPrice * ticketQuantity;
     const tax = CampaignAPI.getPublicationTax(revenue)?.price || 0;
 
@@ -137,7 +140,8 @@ const CreateCampaignStep1Page = () => {
     }
 
     const ticketPrice = parseFloat(rawTicketPrice) / 100;
-    const totalTickets = parseInt(formData.ticketQuantity);
+    // Add 1 to get actual total tickets (since ticketQuantity represents last ticket number)
+    const totalTickets = parseInt(formData.ticketQuantity) + 1;
     const campaignModel = totalTickets > 10000 ? 'automatic' : 'manual';
 
     setLoading(true);
