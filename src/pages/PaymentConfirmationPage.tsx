@@ -519,7 +519,7 @@ const PaymentConfirmationPage = () => {
                 </div>
               </div>
 
-              {campaignModel === 'manual' && reservationData.selectedQuotas && reservationData.selectedQuotas.length > 0 && (
+              {reservationData.selectedQuotas && reservationData.selectedQuotas.length > 0 ? (
                 <div className={`${themeClasses.inputBg} rounded-xl p-4`}>
                   <p className={`text-sm font-medium ${themeClasses.text} mb-3`}>
                     Números que estavam reservados:
@@ -538,9 +538,7 @@ const PaymentConfirmationPage = () => {
                     Estes números estão novamente disponíveis para compra.
                   </p>
                 </div>
-              )}
-
-              {(campaignModel !== 'manual' || !reservationData.selectedQuotas || reservationData.selectedQuotas.length === 0) && (
+              ) : (
                 <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 text-center">
                   <p className="text-sm text-red-600 dark:text-red-400 font-medium">
                     Nenhum número foi gerado devido ao cancelamento.
@@ -824,7 +822,7 @@ const PaymentConfirmationPage = () => {
               </div>
             </div>
 
-            {campaignModel === 'manual' && reservationData.selectedQuotas && reservationData.selectedQuotas.length > 0 && (
+            {reservationData.selectedQuotas && reservationData.selectedQuotas.length > 0 ? (
               <div className={`${themeClasses.inputBg} rounded-xl p-4`}>
                 <p className={`text-sm font-medium ${themeClasses.text} mb-3`}>
                   ✓ Números reservados com sucesso
@@ -843,9 +841,7 @@ const PaymentConfirmationPage = () => {
                   Seus números serão liberados assim que o pagamento for confirmado.
                 </p>
               </div>
-            )}
-
-            {(campaignModel !== 'manual' || !reservationData.selectedQuotas || reservationData.selectedQuotas.length === 0) && (
+            ) : (
               <div className={`${themeClasses.inputBg} rounded-xl p-4`}>
                 <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>
                   ✓ Reserva realizada com sucesso
