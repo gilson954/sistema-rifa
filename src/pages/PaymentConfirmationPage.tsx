@@ -519,11 +519,34 @@ const PaymentConfirmationPage = () => {
                 </div>
               </div>
 
-              <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 text-center">
-                <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-                  As cotas serão geradas após o pagamento.
-                </p>
-              </div>
+              {campaignModel === 'manual' && reservationData.selectedQuotas && reservationData.selectedQuotas.length > 0 && (
+                <div className={`${themeClasses.inputBg} rounded-xl p-4`}>
+                  <p className={`text-sm font-medium ${themeClasses.text} mb-3`}>
+                    Números que estavam reservados:
+                  </p>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {reservationData.selectedQuotas.map((quota, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center justify-center px-3 py-1.5 bg-red-500 text-white text-sm font-bold rounded-lg opacity-60"
+                      >
+                        {formatQuotaNumber(quota)}
+                      </span>
+                    ))}
+                  </div>
+                  <p className={`text-xs ${themeClasses.textSecondary}`}>
+                    Estes números estão novamente disponíveis para compra.
+                  </p>
+                </div>
+              )}
+
+              {(campaignModel !== 'manual' || !reservationData.selectedQuotas || reservationData.selectedQuotas.length === 0) && (
+                <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 text-center">
+                  <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                    Nenhum número foi gerado devido ao cancelamento.
+                  </p>
+                </div>
+              )}
             </div>
           </motion.div>
 
