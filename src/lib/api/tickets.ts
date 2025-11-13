@@ -141,7 +141,6 @@ export class TicketsAPI {
           p_user_id: userId || null
           p_offset: 0,
           p_limit: maxLimit
-      })
         });
 
       if (error) {
