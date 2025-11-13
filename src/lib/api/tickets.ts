@@ -142,7 +142,6 @@ export class TicketsAPI {
           p_offset: 0,
           p_limit: maxLimit
       })
-    .range(0, maxLimit - 1); // <--- FORÇA o PostgREST a devolver até 10.000
         });
 
       if (error) {
