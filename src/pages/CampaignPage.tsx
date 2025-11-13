@@ -493,19 +493,24 @@ const CampaignPage = () => {
       return;
     }
 
-    const availableTickets = getAvailableTickets();
-    console.log(`🔍 CampaignPage: Total de tickets disponíveis:`, availableTickets.length);
-    console.log(`🔍 CampaignPage: Range de quota_numbers disponíveis:`, 
-      availableTickets.length > 0 ? `${Math.min(...availableTickets.map(t => t.quota_number))} - ${Math.max(...availableTickets.map(t => t.quota_number))}` : 'Nenhum'
-    );
-    
-    const isAvailable = availableTickets.some(ticket => ticket.quota_number === quotaNumber);
-
-    if (!isAvailable) {
-      console.log(`⚠️ CampaignPage: Cota ${quotaNumber} não disponível`);
-      console.log(`🔍 CampaignPage: Tickets carregados:`, tickets.length, `de`, campaign.total_tickets);
+    // ✅ NOVA LÓGICA: Validar apenas se a cota está dentro do range válido da campanha
+    // Não mais validar contra o array de tickets carregados (que pode estar incompleto)
+    if (quotaNumber < 1 || quotaNumber > campaign.total_tickets) {
+      console.log(`⚠️ CampaignPage: Cota ${quotaNumber} fora do range válido (1-${campaign.total_tickets})`);
       return;
     }
+
+    // ✅ Verificar o status do ticket individual (se disponível no array carregado)
+    const ticket = tickets.find(t => t.quota_number === quotaNumber);
+    if (ticket) {
+      // Se o ticket foi carregado, verificar seu status
+      if (ticket.status === 'comprado' || ticket.status === 'reservado') {
+        console.log(`⚠️ CampaignPage: Cota ${quotaNumber} não disponível - status: ${ticket.status}`);
+        return;
+      }
+    }
+    // Se o ticket não foi encontrado no array, assumir que está disponível
+    // (pois pode estar em uma página não carregada ainda)
 
     console.log(`🟢 CampaignPage: Cota ${quotaNumber} é válida, atualizando estado...`);
 
@@ -535,7 +540,7 @@ const CampaignPage = () => {
       console.log(`✅ CampaignPage: Adicionando cota ${quotaNumber}. Nova seleção FINAL:`, newSelection);
       return newSelection;
     });
-  }, [campaign, getAvailableTickets, showWarning, tickets]);
+  }, [campaign, tickets, showWarning]);
 
   const handleQuantityChange = useCallback((newQuantity: number) => {
     setQuantity(newQuantity);
