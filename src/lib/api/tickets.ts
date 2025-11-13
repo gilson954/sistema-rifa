@@ -139,6 +139,10 @@ export class TicketsAPI {
         .rpc('get_campaign_tickets_status', {
           p_campaign_id: campaignId,
           p_user_id: userId || null
+          p_offset: 0,
+          p_limit: maxLimit
+      })
+    .range(0, maxLimit - 1); // <--- FORÇA o PostgREST a devolver até 10.000
         });
 
       if (error) {
