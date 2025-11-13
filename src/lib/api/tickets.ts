@@ -117,14 +117,26 @@ export class TicketsAPI {
   /**
    * ✨ FUNÇÃO PRINCIPAL COM PAGINAÇÃO
    * 
-   * Busca o status dos tickets de uma campanha com paginação
-   * Esta é a função principal que deve ser usada pelo frontend
+   * Busca o status dos tickets de uma campanha com paginação.
+   * Esta função é otimizada para buscar blocos específicos de tickets,
+   * respeitando o limite de 1000 linhas do PostgREST.
+   * 
+   * IMPORTANTE: Para campanhas com mais de 1000 tickets, esta função deve
+   * ser chamada múltiplas vezes com diferentes valores de offset/limit.
+   * O hook useTickets.ts implementa essa lógica multi-blocos automaticamente.
    * 
    * @param campaignId - ID da campanha
    * @param userId - ID do usuário (opcional)
    * @param page - Número da página (começa em 1)
-   * @param pageSize - Tamanho da página (padrão: 1000)
+   * @param pageSize - Tamanho da página (padrão: 1000, máximo recomendado devido ao PostgREST)
    * @returns Objeto com dados paginados e metadados de paginação
+   * 
+   * @example
+   * // Buscar primeira página (tickets 1-1000)
+   * const result1 = await getCampaignTicketsStatus('campaign-id', 'user-id', 1, 1000);
+   * 
+   * // Buscar segunda página (tickets 1001-2000)
+   * const result2 = await getCampaignTicketsStatus('campaign-id', 'user-id', 2, 1000);
    */
   static async getCampaignTicketsStatus(
     campaignId: string,
@@ -134,13 +146,26 @@ export class TicketsAPI {
   ): Promise<PaginatedTicketsResponse> {
     try {
       // Busca informações da campanha para obter o total de tickets
-      const { data: campaign } = await supabase
+      const { data: campaign, error: campaignError } = await supabase
         .from('campaigns')
         .select('total_tickets')
         .eq('id', campaignId)
         .maybeSingle();
 
+      if (campaignError) {
+        console.error('❌ Error fetching campaign info:', campaignError);
+        return {
+          data: null,
+          total: 0,
+          page,
+          pageSize,
+          totalPages: 0,
+          error: campaignError
+        };
+      }
+
       if (!campaign) {
+        console.warn(`⚠️ Campaign not found: ${campaignId}`);
         return {
           data: null,
           total: 0,
@@ -158,9 +183,14 @@ export class TicketsAPI {
       const validPage = Math.max(1, Math.min(page, totalPages));
       const offset = (validPage - 1) * pageSize;
 
-      console.log(`📄 Loading page ${validPage}/${totalPages} (${pageSize} tickets per page, offset: ${offset})`);
+      console.log(`📄 getCampaignTicketsStatus - Loading page ${validPage}/${totalPages}`);
+      console.log(`   Campaign ID: ${campaignId}`);
+      console.log(`   Total tickets: ${totalTickets}`);
+      console.log(`   Page size: ${pageSize}`);
+      console.log(`   Offset: ${offset}`);
+      console.log(`   Limit: ${pageSize}`);
 
-      // Busca apenas a página solicitada
+      // Busca apenas a página solicitada usando p_offset e p_limit
       const { data, error } = await supabase
         .rpc('get_campaign_tickets_status', {
           p_campaign_id: campaignId,
@@ -171,6 +201,12 @@ export class TicketsAPI {
 
       if (error) {
         console.error('❌ Error loading tickets page:', error);
+        console.error('   RPC params:', {
+          p_campaign_id: campaignId,
+          p_user_id: userId || null,
+          p_offset: offset,
+          p_limit: pageSize
+        });
         return {
           data: null,
           total: totalTickets,
@@ -181,7 +217,17 @@ export class TicketsAPI {
         };
       }
 
-      console.log(`✅ Successfully loaded page ${validPage}/${totalPages} (${data?.length || 0} tickets)`);
+      const ticketsReceived = data?.length || 0;
+      console.log(`✅ Successfully loaded page ${validPage}/${totalPages}`);
+      console.log(`   Tickets received: ${ticketsReceived}`);
+      console.log(`   Expected: ${Math.min(pageSize, totalTickets - offset)}`);
+
+      // Validação de sanidade: verificar se recebemos a quantidade esperada
+      const expectedTickets = Math.min(pageSize, totalTickets - offset);
+      if (ticketsReceived < expectedTickets && ticketsReceived < totalTickets) {
+        console.warn(`⚠️ Warning: Expected ${expectedTickets} tickets but received ${ticketsReceived}`);
+        console.warn('   This might indicate an issue with the RPC function or database state');
+      }
 
       return {
         data,
