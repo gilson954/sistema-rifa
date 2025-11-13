@@ -115,45 +115,92 @@ export const formatPhoneNumber = (phoneNumber: string): string => {
 
 export class TicketsAPI {
   /**
-   * ✅ NOVA VERSÃO — sem paginação, com limites dinâmicos
+   * ✨ FUNÇÃO PRINCIPAL COM PAGINAÇÃO
    * 
-   * Busca o status dos tickets de uma campanha sem paginação forçada
-   * Permite definir um limite dinâmico conforme a origem da chamada
+   * Busca o status dos tickets de uma campanha com paginação
+   * Esta é a função principal que deve ser usada pelo frontend
    * 
    * @param campaignId - ID da campanha
    * @param userId - ID do usuário (opcional)
-   * @param _page - Mantido apenas por compatibilidade (não utilizado)
-   * @param maxLimit - Limite máximo de tickets a retornar (padrão: 10000)
-   * @returns Objeto com dados e metadados
+   * @param page - Número da página (começa em 1)
+   * @param pageSize - Tamanho da página (padrão: 1000)
+   * @returns Objeto com dados paginados e metadados de paginação
    */
   static async getCampaignTicketsStatus(
     campaignId: string,
     userId?: string,
-    _page?: number,               // Mantido apenas por compatibilidade
-    maxLimit: number = 10000      // ← Padrão 10.000 (QuotaGrid)
-  ): Promise<{ data: TicketStatusInfo[]; total: number; error: any }> {
+    page: number = 1,
+    pageSize: number = 1000
+  ): Promise<PaginatedTicketsResponse> {
     try {
-      console.log(`📦 [TicketsAPI] Buscando até ${maxLimit} tickets da campanha ${campaignId}`);
+      // Busca informações da campanha para obter o total de tickets
+      const { data: campaign } = await supabase
+        .from('campaigns')
+        .select('total_tickets')
+        .eq('id', campaignId)
+        .maybeSingle();
 
+      if (!campaign) {
+        return {
+          data: null,
+          total: 0,
+          page,
+          pageSize,
+          totalPages: 0,
+          error: new Error('Campaign not found')
+        };
+      }
+
+      const totalTickets = campaign.total_tickets;
+      const totalPages = Math.ceil(totalTickets / pageSize);
+      
+      // Valida o número da página
+      const validPage = Math.max(1, Math.min(page, totalPages));
+      const offset = (validPage - 1) * pageSize;
+
+      console.log(`📄 Loading page ${validPage}/${totalPages} (${pageSize} tickets per page, offset: ${offset})`);
+
+      // Busca apenas a página solicitada
       const { data, error } = await supabase
         .rpc('get_campaign_tickets_status', {
           p_campaign_id: campaignId,
-          p_user_id: userId || null
+          p_user_id: userId || null,
+          p_offset: offset,
+          p_limit: pageSize
         });
 
       if (error) {
-        console.error('❌ [TicketsAPI] Erro ao buscar tickets:', error);
-        return { data: [], total: 0, error };
+        console.error('❌ Error loading tickets page:', error);
+        return {
+          data: null,
+          total: totalTickets,
+          page: validPage,
+          pageSize,
+          totalPages,
+          error
+        };
       }
 
-      // 🔹 Limita dinamicamente conforme origem da chamada
-      const safeData = (data || []).slice(0, maxLimit);
+      console.log(`✅ Successfully loaded page ${validPage}/${totalPages} (${data?.length || 0} tickets)`);
 
-      console.log(`✅ [TicketsAPI] Tickets carregados: ${safeData.length}`);
-      return { data: safeData, total: safeData.length, error: null };
-    } catch (err) {
-      console.error('❌ [TicketsAPI] Exceção:', err);
-      return { data: [], total: 0, error: err };
+      return {
+        data,
+        total: totalTickets,
+        page: validPage,
+        pageSize,
+        totalPages,
+        error: null
+      };
+    } catch (error) {
+      console.error('❌ Unexpected error fetching paginated tickets:', error);
+      return {
+        data: null,
+        total: 0,
+        page,
+        pageSize,
+        totalPages: 0,
+        error
+      };
     }
   }
 
