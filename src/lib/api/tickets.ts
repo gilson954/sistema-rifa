@@ -131,7 +131,7 @@ export class TicketsAPI {
     userId?: string,
     _page?: number,          // ignorado, só pra manter compatibilidade
     maxLimit: number = 10000 // limite padrão (10k para QuotaGrid)
-)
+    )
   ): Promise<PaginatedTicketsResponse> {
     try {
       // Busca informações da campanha para obter o total de tickets
