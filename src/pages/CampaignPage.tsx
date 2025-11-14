@@ -1022,14 +1022,14 @@ const CampaignPage = () => {
                   className="h-12 w-auto max-w-[180px] object-contain"
                 />
               ) : (
-                <>
+                <div className="flex items-center">
                   <img
                     src="/logo-chatgpt.png"
-                    alt="Rifaqui Logo"
-                    className="w-8 h-8 object-contain"
+                    alt="Rifaqui"
+                    className="h-10 sm:h-14 w-auto object-contain"
                   />
                   <span className={`ml-2 text-xl font-bold ${themeClasses.rifaquiText}`}>Rifaqui</span>
-                </>
+                </div>
               )}
             </button>
 
