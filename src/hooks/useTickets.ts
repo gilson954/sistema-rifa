@@ -13,16 +13,10 @@ interface CustomerData {
 }
 
 /**
- * Tamanho do bloco para busca multi-páginas
- * Define quantos tickets são buscados por vez para respeitar o limite de 1000 do PostgREST
- */
-const CHUNK_SIZE = 1000;
-
-/**
  * Hook personalizado para gerenciar tickets
  * 
- * ✅ IMPLEMENTAÇÃO MULTI-PÁGINAS: Busca todos os tickets em blocos de 1000
- * para contornar o limite do PostgREST e garantir que todos os botões funcionem
+ * ✅ ATUALIZAÇÃO: Removida paginação - busca TODOS os tickets de uma vez
+ * para restaurar funcionalidade original dos botões
  */
 export const useTickets = (campaignId: string) => {
   const { user } = useAuth();
@@ -35,17 +29,8 @@ export const useTickets = (campaignId: string) => {
   const [purchasing, setPurchasing] = useState(false);
 
   /**
-   * ✅ FUNÇÃO COM BUSCA MULTI-PÁGINAS
-   * 
-   * Busca TODOS os tickets da campanha em blocos de 1000 (CHUNK_SIZE)
-   * para contornar o limite de 1000 linhas do PostgREST.
-   * 
-   * Fluxo:
-   * 1. Busca informações da campanha para obter total_tickets
-   * 2. Calcula quantas páginas são necessárias (total_tickets / CHUNK_SIZE)
-   * 3. Faz requisições sequenciais para cada página
-   * 4. Combina todos os resultados em um único array
-   * 5. Atualiza o estado com todos os tickets
+   * ✅ FUNÇÃO SIMPLIFICADA: Busca o status de TODOS os tickets
+   * Sem parâmetros de paginação
    */
   const fetchTicketsStatus = useCallback(async () => {
     if (!campaignId) {
@@ -56,89 +41,28 @@ export const useTickets = (campaignId: string) => {
     setLoading(true);
     setError(null);
 
-    console.log(`📄 useTickets - Starting multi-page fetch for campaign ${campaignId}...`);
+    console.log(`📄 useTickets - Fetching ALL tickets for campaign ${campaignId}...`);
 
     try {
-      // Passo 1: Buscar informações da campanha para obter total_tickets
-      const { data: campaign, error: campaignError } = await supabase
-        .from('campaigns')
-        .select('total_tickets')
-        .eq('id', campaignId)
-        .maybeSingle();
+      // ✅ CORREÇÃO: Buscar TODOS os tickets sem paginação
+      // Passa page=1 e um pageSize muito grande para pegar tudo
+      const result = await TicketsAPI.getCampaignTicketsStatus(
+        campaignId,
+        user?.id,
+        1,
+        20000 // PageSize gigante para pegar todos os tickets
+      );
 
-      if (campaignError) {
-        console.error('❌ useTickets - Error fetching campaign info:', campaignError);
-        setError('Erro ao carregar informações da campanha');
+      if (result.error) {
+        setError('Erro ao carregar status das cotas');
+        console.error('❌ Error fetching tickets status:', result.error);
         setTickets([]);
-        setLoading(false);
-        return;
+      } else {
+        setTickets(result.data || []);
+        console.log(`✅ useTickets - Loaded ${result.data?.length || 0} tickets (total: ${result.total})`);
       }
-
-      if (!campaign) {
-        console.warn(`⚠️ useTickets - Campaign not found: ${campaignId}`);
-        setError('Campanha não encontrada');
-        setTickets([]);
-        setLoading(false);
-        return;
-      }
-
-      const totalTickets = campaign.total_tickets;
-      
-      // Passo 2: Calcular quantas páginas são necessárias
-      const totalPages = Math.ceil(totalTickets / CHUNK_SIZE);
-      
-      console.log(`📊 useTickets - Campaign has ${totalTickets} tickets`);
-      console.log(`📊 useTickets - Will fetch ${totalPages} pages of ${CHUNK_SIZE} tickets each`);
-
-      // Se não há tickets, retorna array vazio
-      if (totalTickets === 0) {
-        console.log('ℹ️ useTickets - Campaign has no tickets');
-        setTickets([]);
-        setLoading(false);
-        return;
-      }
-
-      // Passo 3: Fazer requisições sequenciais para cada página
-      const allTickets: TicketStatusInfo[] = [];
-      
-      for (let page = 1; page <= totalPages; page++) {
-        console.log(`📄 useTickets - Fetching page ${page}/${totalPages}...`);
-        
-        const result = await TicketsAPI.getCampaignTicketsStatus(
-          campaignId,
-          user?.id,
-          page,
-          CHUNK_SIZE
-        );
-
-        if (result.error) {
-          console.error(`❌ useTickets - Error fetching page ${page}:`, result.error);
-          setError(`Erro ao carregar página ${page} das cotas`);
-          // Em caso de erro, retorna o que foi coletado até agora
-          break;
-        }
-
-        if (result.data && result.data.length > 0) {
-          allTickets.push(...result.data);
-          console.log(`✅ useTickets - Page ${page}/${totalPages} loaded (${result.data.length} tickets)`);
-          console.log(`   Total accumulated: ${allTickets.length}/${totalTickets}`);
-        } else {
-          console.warn(`⚠️ useTickets - Page ${page} returned no data`);
-        }
-      }
-
-      // Passo 4: Atualizar o estado com todos os tickets coletados
-      console.log(`✅ useTickets - Multi-page fetch complete!`);
-      console.log(`   Total tickets loaded: ${allTickets.length}/${totalTickets}`);
-      
-      if (allTickets.length < totalTickets) {
-        console.warn(`⚠️ useTickets - Warning: Expected ${totalTickets} tickets but got ${allTickets.length}`);
-      }
-
-      setTickets(allTickets);
-      
     } catch (error) {
-      console.error('❌ useTickets - Exception in fetchTicketsStatus:', error);
+      console.error('❌ Exception in fetchTicketsStatus:', error);
       setError('Erro inesperado ao carregar cotas');
       setTickets([]);
     } finally {
@@ -314,7 +238,6 @@ export const useTickets = (campaignId: string) => {
 
   /**
    * ✅ RESTAURADO: As funções abaixo agora operam sobre TODOS os tickets
-   * (carregados via busca multi-páginas)
    */
 
   /**
@@ -368,10 +291,10 @@ export const useTickets = (campaignId: string) => {
     return ticket?.is_mine || false;
   }, [tickets]);
 
-  // ✅ Busca inicial de TODOS os tickets (via multi-páginas)
+  // ✅ Busca inicial de TODOS os tickets
   useEffect(() => {
     fetchTicketsStatus();
-  }, [fetchTicketsStatus]);
+  }, [fetchTicketsStatus]); // ✅ Adicionado fetchTicketsStatus nas dependências
 
   // Configurar escuta em tempo real para mudanças nos tickets
   useEffect(() => {
@@ -389,7 +312,7 @@ export const useTickets = (campaignId: string) => {
         },
         (payload) => {
           console.log('🔔 Ticket change detected:', payload);
-          // Recarrega todos os tickets quando há mudanças (via multi-páginas)
+          // Recarrega todos os tickets quando há mudanças
           fetchTicketsStatus();
         }
       )
@@ -398,7 +321,7 @@ export const useTickets = (campaignId: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [campaignId, fetchTicketsStatus]);
+  }, [campaignId, fetchTicketsStatus]); // ✅ Adicionado fetchTicketsStatus nas dependências
 
   return {
     // Estado dos tickets
@@ -413,7 +336,7 @@ export const useTickets = (campaignId: string) => {
     reserveTickets,
     finalizePurchase,
 
-    // Funções de filtro (operam sobre TODOS os tickets carregados)
+    // Funções de filtro (operam sobre TODOS os tickets)
     getTicketsByStatus,
     getMyTickets,
     getAvailableTickets,
