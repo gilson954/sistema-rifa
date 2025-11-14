@@ -162,15 +162,14 @@ const CampaignPage = () => {
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
 
   // ✅ useTickets é SEMPRE chamado, mesmo se campaign?.id for undefined
-  // Agora com refetchTickets exposto para carregamento sob demanda
+  // NÃO expõe mais refetchTickets - carregamento é sempre granular via updateTicketsLocally
   const {
     tickets,
     loading: ticketsLoading,
     error: ticketsError,
     reserveTickets,
     getAvailableTickets,
-    reserving,
-    refetchTickets // ✅ NOVO: Função para carregar tickets sob demanda
+    reserving
   } = useTickets(campaign?.id || '');
 
   // ✅ useCampaignWinners é SEMPRE chamado, mesmo se campaign?.id for undefined
@@ -208,30 +207,9 @@ const CampaignPage = () => {
   
   const [direction, setDirection] = useState(1);
 
-  // ✅ Carregar tickets na montagem do componente (após campanha ser carregada)
-  // Isso garante que o QuotaGrid tenha dados e que updateTicketsLocally funcione
-  useEffect(() => {
-    // Condições para carregar tickets:
-    // 1. A campanha foi carregada (!loading)
-    // 2. A campanha existe (campaign?.id)
-    // 3. Os tickets ainda não foram carregados (tickets.length === 0)
-    // 4. Não está carregando tickets no momento (!ticketsLoading)
-    // 5. A função refetchTickets está disponível
-    
-    // IMPORTANTE: Agora carrega para AMBOS os modos (manual E automático)
-    // para garantir que updateTicketsLocally sempre funcione
-    
-    if (!loading && 
-        campaign?.id && 
-        tickets.length === 0 && 
-        !ticketsLoading && 
-        refetchTickets) {
-      console.log('🔄 CampaignPage: Carregando tickets na montagem');
-      console.log('📊 CampaignPage: Modo:', campaign.campaign_model);
-      console.log('📊 CampaignPage: Total de tickets:', campaign.total_tickets);
-      refetchTickets();
-    }
-  }, [loading, campaign?.id, campaign?.campaign_model, campaign?.total_tickets, tickets.length, ticketsLoading, refetchTickets]);
+  // ✅ REMOVIDO: Não há mais carregamento automático de tickets na montagem
+  // Os tickets são gerenciados de forma granular via updateTicketsLocally
+  // Apenas os tickets reservados/comprados são adicionados ao estado
 
   // Monitorar mudanças em selectedQuotas
   useEffect(() => {
@@ -526,24 +504,25 @@ const CampaignPage = () => {
       return;
     }
 
-    // ✅ NOVA LÓGICA: Validar apenas se a cota está dentro do range válido da campanha
-    // Não mais validar contra o array de tickets carregados (que pode estar incompleto)
+    // ✅ OTIMIZADO: Validar apenas se a cota está dentro do range válido da campanha
+    // Não precisa validar contra o array de tickets (que agora é parcial/granular)
     if (quotaNumber < 1 || quotaNumber > campaign.total_tickets) {
       console.log(`⚠️ CampaignPage: Cota ${quotaNumber} fora do range válido (1-${campaign.total_tickets})`);
       return;
     }
 
-    // ✅ Verificar o status do ticket individual (se disponível no array carregado)
+    // ✅ OTIMIZADO: Verificar status do ticket APENAS se ele existir no array parcial
+    // Se não existir, assumir disponível (otimização para carregamento granular)
     const ticket = tickets.find(t => t.quota_number === quotaNumber);
     if (ticket) {
-      // Se o ticket foi carregado, verificar seu status
+      // Se o ticket foi carregado (parcialmente), verificar seu status
       if (ticket.status === 'comprado' || ticket.status === 'reservado') {
         console.log(`⚠️ CampaignPage: Cota ${quotaNumber} não disponível - status: ${ticket.status}`);
         return;
       }
     }
-    // Se o ticket não foi encontrado no array, assumir que está disponível
-    // (pois pode estar em uma página não carregada ainda)
+    // Se o ticket não existe no array, assumir disponível
+    // (carregamento granular = só tickets reservados/comprados são carregados)
 
     console.log(`🟢 CampaignPage: Cota ${quotaNumber} é válida, atualizando estado...`);
 
@@ -1047,7 +1026,7 @@ const CampaignPage = () => {
                   <img
                     src="/logo-chatgpt.png"
                     alt="Rifaqui Logo"
-                    className="h-10 sm:h-14 w-auto object-contain"
+                    className="w-8 h-8 object-contain"
                   />
                   <span className={`ml-2 text-xl font-bold ${themeClasses.rifaquiText}`}>Rifaqui</span>
                 </>
