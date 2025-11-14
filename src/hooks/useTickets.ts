@@ -19,6 +19,13 @@ interface CustomerData {
 const CHUNK_SIZE = 1000;
 
 /**
+ * Tamanho do lote para reservas
+ * Define quantos tickets são reservados por vez para evitar timeout do banco de dados
+ * ✅ OTIMIZAÇÃO: Evita que uma única chamada RPC exceda o timeout do Supabase
+ */
+const RESERVATION_BATCH_SIZE = 1000;
+
+/**
  * Hook personalizado para gerenciar tickets
  * 
  * ✅ OTIMIZAÇÃO RADICAL: Nunca carrega todos os tickets automaticamente
@@ -214,6 +221,12 @@ export const useTickets = (campaignId: string) => {
    * Reserva cotas para o usuário atual
    *
    * ✅ ATUALIZAÇÃO GRANULAR: Apenas os tickets reservados são adicionados/atualizados no estado
+   * ✅ BATCHING: Divide reservas grandes em lotes para evitar timeout do banco de dados
+   * 
+   * @param customerData - Dados do cliente (nome, email, telefone)
+   * @param totalQuantity - Quantidade total de tickets a reservar
+   * @param orderId - ID do pedido gerado no frontend
+   * @param reservationTimestamp - Timestamp consistente para o pedido
    */
   const reserveTickets = async (
     customerData: CustomerData,
@@ -230,59 +243,95 @@ export const useTickets = (campaignId: string) => {
     setReserving(true);
     setError(null);
 
-    console.log('🔵 useTickets.reserveTickets - Starting reservation...');
+    console.log('🔵 useTickets.reserveTickets - Starting reservation with batching...');
     console.log('🔵 Campaign ID:', campaignId);
     console.log('🔵 Total Quantity:', totalQuantity);
     console.log('🔵 Order ID:', orderId);
 
     try {
-      const { data, error: apiError } = await supabase.rpc('reserve_tickets_by_quantity', {
-        p_campaign_id: campaignId,
-        p_quantity_to_reserve: totalQuantity,
-        p_user_id: user?.id || null,
-        p_customer_name: customerData.name,
-        p_customer_email: customerData.email,
-        p_customer_phone: customerData.phoneNumber,
-        p_reservation_timestamp: reservationTimestamp.toISOString(),
-        p_order_id: orderId
-      });
+      // ✅ BATCHING: Calcular quantos lotes são necessários
+      const totalBatches = Math.ceil(totalQuantity / RESERVATION_BATCH_SIZE);
+      const allReservedResults: ReservationResult[] = [];
 
-      if (apiError) {
-        console.error('❌ useTickets.reserveTickets - API Error:', apiError);
-        
-        let errorMessage = 'Erro ao reservar cotas';
-        
-        if (typeof apiError === 'object' && apiError !== null) {
-          if ('message' in apiError && apiError.message) {
-            errorMessage = apiError.message as string;
-          } else if ('error' in apiError && apiError.error) {
-            errorMessage = apiError.error as string;
-          } else if ('hint' in apiError && apiError.hint) {
-            errorMessage = apiError.hint as string;
+      console.log(`📊 Reservation will be processed in ${totalBatches} batch(es) of max ${RESERVATION_BATCH_SIZE} tickets each`);
+
+      // ✅ PROCESSAR EM LOTES
+      for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+        // Calcular quantos tickets reservar neste lote
+        const remainingTickets = totalQuantity - (batchIndex * RESERVATION_BATCH_SIZE);
+        const batchQuantity = Math.min(RESERVATION_BATCH_SIZE, remainingTickets);
+
+        console.log(`📦 Processing batch ${batchIndex + 1}/${totalBatches}: ${batchQuantity} tickets`);
+
+        // Chamar RPC para este lote
+        const { data, error: apiError } = await supabase.rpc('reserve_tickets_by_quantity', {
+          p_campaign_id: campaignId,
+          p_quantity_to_reserve: batchQuantity,
+          p_user_id: user?.id || null,
+          p_customer_name: customerData.name,
+          p_customer_email: customerData.email,
+          p_customer_phone: customerData.phoneNumber,
+          p_reservation_timestamp: reservationTimestamp.toISOString(),
+          p_order_id: orderId
+        });
+
+        if (apiError) {
+          console.error(`❌ useTickets.reserveTickets - API Error in batch ${batchIndex + 1}:`, apiError);
+          
+          let errorMessage = `Erro ao reservar cotas (lote ${batchIndex + 1}/${totalBatches})`;
+          
+          if (typeof apiError === 'object' && apiError !== null) {
+            if ('message' in apiError && apiError.message) {
+              errorMessage = apiError.message as string;
+            } else if ('error' in apiError && apiError.error) {
+              errorMessage = apiError.error as string;
+            } else if ('hint' in apiError && apiError.hint) {
+              errorMessage = apiError.hint as string;
+            }
+          } else if (typeof apiError === 'string') {
+            errorMessage = apiError;
           }
-        } else if (typeof apiError === 'string') {
-          errorMessage = apiError;
+          
+          setError(errorMessage);
+          
+          // Se já reservamos alguns tickets, atualizar o estado com o que conseguimos
+          if (allReservedResults.length > 0) {
+            console.warn(`⚠️ Partial reservation: ${allReservedResults.length} tickets reserved before error`);
+            updateTicketsLocally(allReservedResults, 'reservado');
+          }
+          
+          throw new Error(errorMessage);
         }
-        
-        setError(errorMessage);
-        throw new Error(errorMessage);
+
+        const batchResults: ReservationResult[] = data as ReservationResult[];
+
+        if (!batchResults || batchResults.length === 0) {
+          console.warn(`⚠️ useTickets.reserveTickets - Batch ${batchIndex + 1} returned no data`);
+          
+          // Se já reservamos alguns tickets, continuar
+          if (allReservedResults.length > 0) {
+            console.warn(`⚠️ Partial reservation: ${allReservedResults.length} tickets reserved`);
+            break;
+          }
+          
+          const error = new Error('Nenhuma cota foi reservada. Tente novamente.');
+          setError(error.message);
+          throw error;
+        }
+
+        // Adicionar resultados deste lote ao array total
+        allReservedResults.push(...batchResults);
+        console.log(`✅ Batch ${batchIndex + 1}/${totalBatches} complete: ${batchResults.length} tickets reserved`);
+        console.log(`   Total reserved so far: ${allReservedResults.length}/${totalQuantity}`);
+
+        // ✅ ATUALIZAÇÃO GRANULAR INCREMENTAL: Atualiza o estado após cada lote
+        // Isso melhora a UX mostrando progresso em tempo real
+        updateTicketsLocally(batchResults, 'reservado');
       }
 
-      const reservedResults: ReservationResult[] = data as ReservationResult[];
+      console.log(`✅ useTickets.reserveTickets - All batches complete! Total reserved: ${allReservedResults.length} tickets`);
 
-      if (!reservedResults || reservedResults.length === 0) {
-        console.warn('⚠️ useTickets.reserveTickets - No data returned from API');
-        const error = new Error('Nenhuma cota foi reservada. Tente novamente.');
-        setError(error.message);
-        throw error;
-      }
-
-      console.log(`✅ useTickets.reserveTickets - Successfully reserved ${reservedResults.length} tickets`);
-
-      // ✅ ATUALIZAÇÃO GRANULAR: Adiciona/atualiza apenas os tickets reservados
-      updateTicketsLocally(reservedResults, 'reservado');
-
-      return { reservationId: orderId, results: reservedResults };
+      return { reservationId: orderId, results: allReservedResults };
     } catch (error) {
       console.error('❌ useTickets.reserveTickets - Exception caught:', error);
       
