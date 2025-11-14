@@ -373,10 +373,10 @@ export const useTickets = (campaignId: string) => {
     return ticket?.is_mine || false;
   }, [tickets]);
 
-  // ✅ REMOVIDO: useEffect que carregava tickets automaticamente na montagem
-  // O componente pai (CampaignPage.tsx) deve chamar refetchTickets() explicitamente
-
-  // ✅ Configurar escuta em tempo real para mudanças nos tickets
+  /**
+   * ✅ MUDANÇA CRÍTICA: useEffect de real-time agora só recarrega se tickets já foram carregados
+   * Isso evita um carregamento completo desnecessário ao entrar na página
+   */
   useEffect(() => {
     if (!campaignId) return;
 
@@ -392,10 +392,12 @@ export const useTickets = (campaignId: string) => {
         },
         (payload) => {
           console.log('🔔 Ticket change detected:', payload);
-          // Recarrega todos os tickets quando há mudanças (via multi-páginas)
-          // Só recarrega se já houver tickets carregados (evita recarregar se nunca foi carregado)
+          // ✅ Só recarrega se já houver tickets carregados (evita recarregar se nunca foi carregado)
           if (tickets.length > 0) {
+            console.log('🔄 Reloading tickets due to real-time change...');
             refetchTickets();
+          } else {
+            console.log('ℹ️ Real-time change detected, but tickets not loaded yet. Skipping reload.');
           }
         }
       )
