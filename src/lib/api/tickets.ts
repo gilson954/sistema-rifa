@@ -211,7 +211,7 @@ export class TicketsAPI {
         };
       }
 
-      // ✅ CORREÇÃO APLICADA: Usar p_offset e p_limit corretamente
+      // ✅ CORREÇÃO APLICADA: Usar p_offset e p_limit corretamente na chamada RPC
       // A função RPC get_campaign_tickets_status deve receber:
       // - p_offset: número de tickets a pular (0 para primeira página, 1000 para segunda, etc)
       // - p_limit: quantidade máxima de tickets a retornar
