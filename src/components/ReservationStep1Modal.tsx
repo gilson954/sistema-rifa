@@ -382,9 +382,16 @@ const getThemeClasses = (theme: string) => {
           onClick={handleClose}
         >
           <motion.div
-            className={`rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto ${theme.background} border ${theme.border} ${
-              campaignTheme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
-            }`}
+            className="rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto custom-modal-scrollbar"
+            style={{
+              backgroundColor: campaignTheme === 'claro' ? '#ffffff' : 
+                campaignTheme === 'escuro' ? '#0f172a' :
+                campaignTheme === 'escuro-preto' ? '#111827' :
+                campaignTheme === 'escuro-cinza' ? '#1A1A1A' : '#ffffff',
+              scrollbarColor: `${theme.scrollbarThumb} ${theme.scrollbarTrack}`
+                }}
+            variants={modalVariants}
+            
             variants={modalVariants}
             initial="hidden"
             animate="visible"
