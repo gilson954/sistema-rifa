@@ -71,9 +71,7 @@ const PaymentConfirmationPage = () => {
           idBoxBg: 'bg-gray-100',
           idBoxText: 'text-gray-700',
           stepBg: 'bg-green-500',
-          stepText: 'text-white',
-          scrollbarTrack: '#d4d6d9',
-          scrollbarThumb: '#9ca3af'
+          stepText: 'text-white'
         };
       case 'escuro':
         return {
@@ -86,9 +84,7 @@ const PaymentConfirmationPage = () => {
           idBoxBg: 'bg-slate-700',
           idBoxText: 'text-gray-200',
           stepBg: 'bg-green-500',
-          stepText: 'text-white',
-          scrollbarTrack: '#0a0d12',
-          scrollbarThumb: '#4b5563'
+          stepText: 'text-white'
         };
       case 'escuro-preto':
         return {
@@ -101,9 +97,7 @@ const PaymentConfirmationPage = () => {
           idBoxBg: 'bg-gray-800',
           idBoxText: 'text-gray-200',
           stepBg: 'bg-green-500',
-          stepText: 'text-white',
-          scrollbarTrack: '#0a0d12',
-          scrollbarThumb: '#374151'
+          stepText: 'text-white'
         };
     case 'escuro-cinza':
       return {
@@ -116,9 +110,7 @@ const PaymentConfirmationPage = () => {
         idBoxBg: 'bg-[#3C3C3C]',
         idBoxText: 'text-gray-200',
         stepBg: 'bg-green-500',
-        stepText: 'text-white',
-        scrollbarTrack: '#0f0f0f',
-        scrollbarThumb: '#404040'
+        stepText: 'text-white'
       };
       default:
         return {
@@ -131,9 +123,7 @@ const PaymentConfirmationPage = () => {
           idBoxBg: 'bg-gray-100',
           idBoxText: 'text-gray-700',
           stepBg: 'bg-green-500',
-          stepText: 'text-white',
-          scrollbarTrack: '#e5e7eb',
-          scrollbarThumb: '#9ca3af'
+          stepText: 'text-white'
         };
     }
   };
@@ -837,30 +827,7 @@ const PaymentConfirmationPage = () => {
                 <p className={`text-sm font-medium ${themeClasses.text} mb-3`}>
                   ✓ Números reservados com sucesso
                 </p>
-                <div 
-                  className="flex flex-wrap gap-2 mb-3 max-h-[420px] overflow-y-auto pr-2"
-                  style={{
-                    scrollbarWidth: 'thin',
-                    scrollbarColor: `${themeClasses.scrollbarThumb} ${themeClasses.scrollbarTrack}`
-                  }}
-                >
-                  <style>{`
-                    div::-webkit-scrollbar {
-                      width: 8px;
-                    }
-                    div::-webkit-scrollbar-track {
-                      background: ${themeClasses.scrollbarTrack};
-                      border-radius: 4px;
-                    }
-                    div::-webkit-scrollbar-thumb {
-                      background: ${themeClasses.scrollbarThumb};
-                      border-radius: 4px;
-                    }
-                    div::-webkit-scrollbar-thumb:hover {
-                      background: ${themeClasses.scrollbarThumb};
-                      opacity: 0.8;
-                    }
-                  `}</style>
+                <div className="flex flex-wrap gap-2 mb-3">
                   {reservationData.selectedQuotas.map((quota, index) => (
                     <span
                       key={index}
