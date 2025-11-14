@@ -26,6 +26,9 @@ interface SocialMediaFloatingMenuProps {
 /**
  * Componente de menu flutuante de redes sociais (FAB / Speed Dial)
  * Exibe um botão fixo no canto inferior direito que expande para mostrar links de redes sociais
+ * 
+ * ✅ CORREÇÃO APLICADA: Todos os Hooks são chamados incondicionalmente no topo do componente
+ * para seguir as regras dos Hooks do React e evitar o erro "Rendered more hooks than during the previous render"
  */
 const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
   socialMediaLinks = {},
@@ -39,8 +42,36 @@ const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
   gradientClasses = '',
   customGradientColors = ''
 }) => {
+  // ✅ CORREÇÃO CRÍTICA: Todos os Hooks DEVEM ser chamados no topo do componente,
+  // ANTES de qualquer retorno condicional (early return)
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // ✅ useEffect para fechar menu ao clicar fora ou pressionar ESC
+  // DEVE ser declarado antes de qualquer return condicional
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscapeKey);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [isOpen]);
 
   // Processar links de redes sociais vindos do organizador
   const processedSocialMedia: Array<{ platform: string; url: string; label: string; icon: any; color: string }> = [];
@@ -93,6 +124,7 @@ const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
     });
   }
 
+  // ✅ AGORA o return condicional vem DEPOIS de todos os Hooks
   // Se não houver redes sociais configuradas, não renderizar o componente
   if (processedSocialMedia.length === 0) {
     return null;
@@ -102,31 +134,6 @@ const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
-
-  // Fechar menu ao clicar fora ou pressionar ESC
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleEscapeKey);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscapeKey);
-    };
-  }, [isOpen]);
 
   // Gerar estilo de gradiente customizado
   const getCustomGradientStyle = (customColorsJson: string) => {
