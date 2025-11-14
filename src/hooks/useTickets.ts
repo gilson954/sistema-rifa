@@ -21,15 +21,15 @@ const CHUNK_SIZE = 1000;
 /**
  * Hook personalizado para gerenciar tickets
  * 
- * ✅ IMPLEMENTAÇÃO MULTI-PÁGINAS: Busca todos os tickets em blocos de 1000
- * para contornar o limite do PostgREST e garantir que todos os botões funcionem
+ * ✅ IMPLEMENTAÇÃO OTIMIZADA: Carrega todos os tickets APENAS após reserva bem-sucedida
+ * para melhorar performance inicial e evitar carregamento desnecessário
  */
 export const useTickets = (campaignId: string) => {
   const { user } = useAuth();
   
-  // Estado dos tickets (TODOS os tickets da campanha)
+  // Estado dos tickets (inicialmente vazio, carregado apenas após reserva)
   const [tickets, setTickets] = useState<TicketStatusInfo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reserving, setReserving] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
@@ -39,6 +39,8 @@ export const useTickets = (campaignId: string) => {
    * 
    * Busca TODOS os tickets da campanha em blocos de 1000 (CHUNK_SIZE)
    * para contornar o limite de 1000 linhas do PostgREST.
+   * 
+   * ⚠️ IMPORTANTE: Esta função é chamada APENAS após reserva bem-sucedida
    * 
    * Fluxo:
    * 1. Busca informações da campanha para obter total_tickets
@@ -148,6 +150,8 @@ export const useTickets = (campaignId: string) => {
 
   /**
    * Reserva cotas para o usuário atual
+   * 
+   * ✅ CORREÇÃO APLICADA: Carrega todos os tickets APÓS reserva bem-sucedida
    *
    * @param customerData - Dados do cliente (nome, email, telefone)
    * @param totalQuantity - Quantidade total de tickets a reservar
@@ -230,7 +234,8 @@ export const useTickets = (campaignId: string) => {
 
       console.log(`✅ useTickets.reserveTickets - Successfully reserved ${reservedResults.length} tickets for Order ID: ${orderId}`);
 
-      // Atualiza o status local após reserva bem-sucedida
+      // ✅ CORREÇÃO CRÍTICA: Carrega todos os tickets APENAS após reserva bem-sucedida
+      console.log('🔄 useTickets.reserveTickets - Loading all tickets after successful reservation...');
       await fetchTicketsStatus();
 
       return { reservationId: orderId, results: reservedResults };
@@ -313,8 +318,8 @@ export const useTickets = (campaignId: string) => {
   };
 
   /**
-   * ✅ RESTAURADO: As funções abaixo agora operam sobre TODOS os tickets
-   * (carregados via busca multi-páginas)
+   * ✅ MANTIDO: Funções de filtro operam sobre os tickets carregados
+   * (que só existirão após uma reserva bem-sucedida)
    */
 
   /**
@@ -368,10 +373,8 @@ export const useTickets = (campaignId: string) => {
     return ticket?.is_mine || false;
   }, [tickets]);
 
-  // ✅ Busca inicial de TODOS os tickets (via multi-páginas)
-  useEffect(() => {
-    fetchTicketsStatus();
-  }, [fetchTicketsStatus]);
+  // ✅ REMOVIDO: Carregamento automático inicial
+  // Os tickets agora são carregados APENAS após reserva bem-sucedida
 
   // Configurar escuta em tempo real para mudanças nos tickets
   useEffect(() => {
@@ -390,7 +393,10 @@ export const useTickets = (campaignId: string) => {
         (payload) => {
           console.log('🔔 Ticket change detected:', payload);
           // Recarrega todos os tickets quando há mudanças (via multi-páginas)
-          fetchTicketsStatus();
+          // Mas apenas se já houver tickets carregados (ou seja, após uma reserva)
+          if (tickets.length > 0) {
+            fetchTicketsStatus();
+          }
         }
       )
       .subscribe();
@@ -398,7 +404,7 @@ export const useTickets = (campaignId: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [campaignId, fetchTicketsStatus]);
+  }, [campaignId, fetchTicketsStatus, tickets.length]);
 
   return {
     // Estado dos tickets
@@ -413,7 +419,7 @@ export const useTickets = (campaignId: string) => {
     reserveTickets,
     finalizePurchase,
 
-    // Funções de filtro (operam sobre TODOS os tickets carregados)
+    // Funções de filtro (operam sobre os tickets carregados)
     getTicketsByStatus,
     getMyTickets,
     getAvailableTickets,
