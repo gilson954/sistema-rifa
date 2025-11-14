@@ -118,7 +118,7 @@ const PaymentConfirmationPage = () => {
         stepBg: 'bg-green-500',
         stepText: 'text-white',
         scrollbarTrack: '#0f0f0f',
-        scrollbarThumb: '#404040'
+        scrollbarThumb: '#2e2e2e'
       };
       default:
         return {
