@@ -353,11 +353,16 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     }
   }, [loadedPages, totalQuotas, PAGE_SIZE, loadTicketsPage]);
 
-  // 🚀 NOVA FUNCIONALIDADE: Carregar primeira página ao montar
+  // 🚀 NOVA FUNCIONALIDADE: Carregar todas as cotas ao montar (até 10mil por página)
   useEffect(() => {
     if (totalQuotas > 0) {
-      console.log('🔵 QuotaGrid: Componente montado, carregando primeira página');
-      loadTicketsPage(0);
+      const totalPages = Math.ceil(totalQuotas / PAGE_SIZE);
+      console.log(`🔵 QuotaGrid: Componente montado, carregando ${totalPages} página(s) para ${totalQuotas} cotas`);
+      
+      // Carregar todas as páginas necessárias
+      for (let page = 0; page < totalPages; page++) {
+        loadTicketsPage(page);
+      }
     }
   }, [totalQuotas]); // Apenas quando totalQuotas muda
 
