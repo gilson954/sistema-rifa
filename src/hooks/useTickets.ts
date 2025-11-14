@@ -1,5 +1,5 @@
 // src/hooks/useTickets.ts
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { TicketsAPI, TicketStatusInfo, ReservationResult } from '../lib/api/tickets';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -21,24 +21,29 @@ const CHUNK_SIZE = 1000;
 /**
  * Hook personalizado para gerenciar tickets
  * 
- * ✅ IMPLEMENTAÇÃO MULTI-PÁGINAS: Busca todos os tickets em blocos de 1000
- * para contornar o limite do PostgREST e garantir que todos os botões funcionem
+ * ✅ IMPLEMENTAÇÃO SOB DEMANDA: Não carrega tickets automaticamente
+ * ✅ IMPLEMENTAÇÃO MULTI-PÁGINAS: Busca todos os tickets em blocos de 1000 quando solicitado
+ * 
+ * O componente pai (CampaignPage.tsx) decide quando chamar refetchTickets()
  */
 export const useTickets = (campaignId: string) => {
   const { user } = useAuth();
   
-  // Estado dos tickets (TODOS os tickets da campanha)
+  // Estado dos tickets (inicialmente vazio, carregado sob demanda)
   const [tickets, setTickets] = useState<TicketStatusInfo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // ✅ Começa como false (sem carregamento automático)
   const [error, setError] = useState<string | null>(null);
   const [reserving, setReserving] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
 
   /**
-   * ✅ FUNÇÃO COM BUSCA MULTI-PÁGINAS
+   * ✅ FUNÇÃO COM BUSCA MULTI-PÁGINAS (SOB DEMANDA)
    * 
    * Busca TODOS os tickets da campanha em blocos de 1000 (CHUNK_SIZE)
    * para contornar o limite de 1000 linhas do PostgREST.
+   * 
+   * Esta função NÃO é chamada automaticamente na montagem do componente.
+   * O componente pai deve chamá-la explicitamente quando precisar dos dados.
    * 
    * Fluxo:
    * 1. Busca informações da campanha para obter total_tickets
@@ -47,7 +52,7 @@ export const useTickets = (campaignId: string) => {
    * 4. Combina todos os resultados em um único array
    * 5. Atualiza o estado com todos os tickets
    */
-  const fetchTicketsStatus = useCallback(async () => {
+  const refetchTickets = useCallback(async () => {
     if (!campaignId) {
       setLoading(false);
       return;
@@ -56,7 +61,7 @@ export const useTickets = (campaignId: string) => {
     setLoading(true);
     setError(null);
 
-    console.log(`📄 useTickets - Starting multi-page fetch for campaign ${campaignId}...`);
+    console.log(`📄 useTickets.refetchTickets - Starting multi-page fetch for campaign ${campaignId}...`);
 
     try {
       // Passo 1: Buscar informações da campanha para obter total_tickets
@@ -67,7 +72,7 @@ export const useTickets = (campaignId: string) => {
         .maybeSingle();
 
       if (campaignError) {
-        console.error('❌ useTickets - Error fetching campaign info:', campaignError);
+        console.error('❌ useTickets.refetchTickets - Error fetching campaign info:', campaignError);
         setError('Erro ao carregar informações da campanha');
         setTickets([]);
         setLoading(false);
@@ -75,7 +80,7 @@ export const useTickets = (campaignId: string) => {
       }
 
       if (!campaign) {
-        console.warn(`⚠️ useTickets - Campaign not found: ${campaignId}`);
+        console.warn(`⚠️ useTickets.refetchTickets - Campaign not found: ${campaignId}`);
         setError('Campanha não encontrada');
         setTickets([]);
         setLoading(false);
@@ -87,12 +92,12 @@ export const useTickets = (campaignId: string) => {
       // Passo 2: Calcular quantas páginas são necessárias
       const totalPages = Math.ceil(totalTickets / CHUNK_SIZE);
       
-      console.log(`📊 useTickets - Campaign has ${totalTickets} tickets`);
-      console.log(`📊 useTickets - Will fetch ${totalPages} pages of ${CHUNK_SIZE} tickets each`);
+      console.log(`📊 useTickets.refetchTickets - Campaign has ${totalTickets} tickets`);
+      console.log(`📊 useTickets.refetchTickets - Will fetch ${totalPages} pages of ${CHUNK_SIZE} tickets each`);
 
       // Se não há tickets, retorna array vazio
       if (totalTickets === 0) {
-        console.log('ℹ️ useTickets - Campaign has no tickets');
+        console.log('ℹ️ useTickets.refetchTickets - Campaign has no tickets');
         setTickets([]);
         setLoading(false);
         return;
@@ -102,7 +107,7 @@ export const useTickets = (campaignId: string) => {
       const allTickets: TicketStatusInfo[] = [];
       
       for (let page = 1; page <= totalPages; page++) {
-        console.log(`📄 useTickets - Fetching page ${page}/${totalPages}...`);
+        console.log(`📄 useTickets.refetchTickets - Fetching page ${page}/${totalPages}...`);
         
         const result = await TicketsAPI.getCampaignTicketsStatus(
           campaignId,
@@ -112,7 +117,7 @@ export const useTickets = (campaignId: string) => {
         );
 
         if (result.error) {
-          console.error(`❌ useTickets - Error fetching page ${page}:`, result.error);
+          console.error(`❌ useTickets.refetchTickets - Error fetching page ${page}:`, result.error);
           setError(`Erro ao carregar página ${page} das cotas`);
           // Em caso de erro, retorna o que foi coletado até agora
           break;
@@ -120,25 +125,25 @@ export const useTickets = (campaignId: string) => {
 
         if (result.data && result.data.length > 0) {
           allTickets.push(...result.data);
-          console.log(`✅ useTickets - Page ${page}/${totalPages} loaded (${result.data.length} tickets)`);
+          console.log(`✅ useTickets.refetchTickets - Page ${page}/${totalPages} loaded (${result.data.length} tickets)`);
           console.log(`   Total accumulated: ${allTickets.length}/${totalTickets}`);
         } else {
-          console.warn(`⚠️ useTickets - Page ${page} returned no data`);
+          console.warn(`⚠️ useTickets.refetchTickets - Page ${page} returned no data`);
         }
       }
 
       // Passo 4: Atualizar o estado com todos os tickets coletados
-      console.log(`✅ useTickets - Multi-page fetch complete!`);
+      console.log(`✅ useTickets.refetchTickets - Multi-page fetch complete!`);
       console.log(`   Total tickets loaded: ${allTickets.length}/${totalTickets}`);
       
       if (allTickets.length < totalTickets) {
-        console.warn(`⚠️ useTickets - Warning: Expected ${totalTickets} tickets but got ${allTickets.length}`);
+        console.warn(`⚠️ useTickets.refetchTickets - Warning: Expected ${totalTickets} tickets but got ${allTickets.length}`);
       }
 
       setTickets(allTickets);
       
     } catch (error) {
-      console.error('❌ useTickets - Exception in fetchTicketsStatus:', error);
+      console.error('❌ useTickets.refetchTickets - Exception in refetchTickets:', error);
       setError('Erro inesperado ao carregar cotas');
       setTickets([]);
     } finally {
@@ -230,8 +235,8 @@ export const useTickets = (campaignId: string) => {
 
       console.log(`✅ useTickets.reserveTickets - Successfully reserved ${reservedResults.length} tickets for Order ID: ${orderId}`);
 
-      // Atualiza o status local após reserva bem-sucedida
-      await fetchTicketsStatus();
+      // ✅ Atualiza o status local após reserva bem-sucedida (carrega todos os tickets)
+      await refetchTickets();
 
       return { reservationId: orderId, results: reservedResults };
     } catch (error) {
@@ -293,8 +298,8 @@ export const useTickets = (campaignId: string) => {
 
       console.log('✅ useTickets.finalizePurchase - Purchase finalized successfully');
 
-      // Atualiza o status local após compra bem-sucedida
-      await fetchTicketsStatus();
+      // ✅ Atualiza o status local após compra bem-sucedida (carrega todos os tickets)
+      await refetchTickets();
 
       return data;
     } catch (error) {
@@ -313,8 +318,8 @@ export const useTickets = (campaignId: string) => {
   };
 
   /**
-   * ✅ RESTAURADO: As funções abaixo agora operam sobre TODOS os tickets
-   * (carregados via busca multi-páginas)
+   * ✅ FUNÇÕES DE FILTRO: Operam sobre os tickets carregados
+   * (que só existem se refetchTickets() foi chamado explicitamente)
    */
 
   /**
@@ -368,12 +373,10 @@ export const useTickets = (campaignId: string) => {
     return ticket?.is_mine || false;
   }, [tickets]);
 
-  // ✅ Busca inicial de TODOS os tickets (via multi-páginas)
-  useEffect(() => {
-    fetchTicketsStatus();
-  }, [fetchTicketsStatus]);
+  // ✅ REMOVIDO: useEffect que carregava tickets automaticamente na montagem
+  // O componente pai (CampaignPage.tsx) deve chamar refetchTickets() explicitamente
 
-  // Configurar escuta em tempo real para mudanças nos tickets
+  // ✅ Configurar escuta em tempo real para mudanças nos tickets
   useEffect(() => {
     if (!campaignId) return;
 
@@ -390,7 +393,10 @@ export const useTickets = (campaignId: string) => {
         (payload) => {
           console.log('🔔 Ticket change detected:', payload);
           // Recarrega todos os tickets quando há mudanças (via multi-páginas)
-          fetchTicketsStatus();
+          // Só recarrega se já houver tickets carregados (evita recarregar se nunca foi carregado)
+          if (tickets.length > 0) {
+            refetchTickets();
+          }
         }
       )
       .subscribe();
@@ -398,7 +404,7 @@ export const useTickets = (campaignId: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [campaignId, fetchTicketsStatus]);
+  }, [campaignId, refetchTickets, tickets.length]);
 
   return {
     // Estado dos tickets
@@ -408,12 +414,14 @@ export const useTickets = (campaignId: string) => {
     reserving,
     purchasing,
 
+    // ✅ FUNÇÃO EXPOSTA: Permite ao componente pai controlar o carregamento
+    refetchTickets,
+
     // Funções de operação
-    fetchTicketsStatus,
     reserveTickets,
     finalizePurchase,
 
-    // Funções de filtro (operam sobre TODOS os tickets carregados)
+    // Funções de filtro (operam sobre os tickets carregados)
     getTicketsByStatus,
     getMyTickets,
     getAvailableTickets,
