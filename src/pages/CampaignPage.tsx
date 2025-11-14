@@ -570,15 +570,18 @@ const CampaignPage = () => {
     }
 
     console.log('🔵 CampaignPage - handleReservationSubmit START');
+    console.log('📊 Total de cotas a reservar:', totalQuantity);
 
     try {
       showInfo('Processando sua reserva...');
 
       const normalizedPhoneNumber = customerData.phoneNumber;
 
+      // ✅ ATUALIZADO: reserveTickets agora recebe totalQuantity (número)
+      // em vez de lista de quotaNumbers
       const reservationResult = await reserveTickets(
         customerData,
-        totalQuantity,
+        totalQuantity,  // ✅ Passa quantidade total, não lista de números
         orderId,
         reservationTimestamp
       );
@@ -681,6 +684,7 @@ const CampaignPage = () => {
 
   const handleStep2Confirm = useCallback(async (customerData: CustomerData, totalQuantity: number) => {
     console.log('═══ handleStep2Confirm START ═══');
+    console.log('📊 Total de cotas a reservar:', totalQuantity);
 
     if (!customerData || !customerData.name || !customerData.email || !customerData.phoneNumber) {
       showError('Dados do cliente incompletos.');
@@ -697,9 +701,11 @@ const CampaignPage = () => {
     try {
       showInfo('Processando sua reserva...');
 
+      // ✅ ATUALIZADO: reserveTickets agora recebe totalQuantity (número)
+      // em vez de lista de quotaNumbers
       const reservationResult = await reserveTickets(
         customerData,
-        totalQuantity,
+        totalQuantity,  // ✅ Passa quantidade total, não lista de números
         orderIdForReservation,
         reservationTimestampForReservation
       );
@@ -1487,6 +1493,9 @@ const CampaignPage = () => {
                   colorMode={organizerProfile?.color_mode}
                   gradientClasses={organizerProfile?.gradient_classes}
                   customGradientColors={organizerProfile?.custom_gradient_colors}
+                  disabled={!isCampaignAvailable}
+                  onReserve={handleOpenReservationModal}
+                  reserving={reserving}
                 />
               </div>
 
