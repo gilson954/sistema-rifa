@@ -136,7 +136,7 @@ const getThemeClasses = (theme: string) => {
         iconColor: 'text-gray-400',
         hoverBg: 'hover:bg-[#3C3C3C]',
         overlayBg: 'bg-black/60',
-        scrollbarTrack: '#292929',
+        scrollbarTrack: '#171717',
         scrollbarThumb: '#404040'
       };
     default:
