@@ -1,112 +1,144 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Trophy, Calendar, Users, ChevronLeft, ChevronRight, Ticket } from 'lucide-react';
-import { CampaignAPI } from '../lib/api/campaigns';
-import { Campaign } from '../types/campaign';
-import { supabase } from '../lib/supabase';
-import { formatCurrency } from '../utils/currency';
+import { Clock, Copy, CheckCircle, User, Mail, Phone, Hash, QrCode, AlertTriangle, Timer, Package, DollarSign } from 'lucide-react';
+import CampaignHeader from '../components/CampaignHeader';
 import CampaignFooter from '../components/CampaignFooter';
-import PhoneLoginModal from '../components/PhoneLoginModal';
 import SocialMediaFloatingMenu from '../components/SocialMediaFloatingMenu';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
+
+interface ReservationData {
+  reservationId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  quotaCount: number;
+  totalValue: number;
+  selectedQuotas?: number[];
+  campaignTitle: string;
+  campaignId: string;
+  campaignPublicId?: string;
+  expiresAt: string;
+  reservationTimeoutMinutes?: number;
+  campaignModel?: string;
+  prizeImageUrl?: string;
+}
 
 interface OrganizerProfile {
   id: string;
   name: string;
-  avatar_url?: string;
   logo_url?: string;
-  social_media_links?: any;
-  payment_integrations_config?: any;
   primary_color?: string;
   theme?: string;
   color_mode?: string;
   gradient_classes?: string;
   custom_gradient_colors?: string;
+  social_media_links?: any;
 }
 
-const OrganizerHomePage: React.FC = () => {
-  const { userId } = useParams<{ userId: string }>();
+interface Campaign {
+  total_tickets: number;
+}
+
+const PaymentConfirmationPage = () => {
+  const location = useLocation();
   const navigate = useNavigate();
-  const { user, isPhoneAuthenticated } = useAuth();
-  const [featuredCampaign, setFeaturedCampaign] = useState<Campaign | null>(null);
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const { signInWithPhone, isPhoneAuthenticated } = useAuth();
+
+  const [timeRemaining, setTimeRemaining] = useState<string>('');
+  const [isExpired, setIsExpired] = useState(false);
+  const [copiedPix, setCopiedPix] = useState(false);
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
-  const campaignsPerPage = 10;
+  const [campaignModel, setCampaignModel] = useState<string>('manual');
+  const [campaignImageUrl, setCampaignImageUrl] = useState<string>('');
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
 
-  useEffect(() => {
-    const loadOrganizerData = async () => {
-      if (!userId) return;
+  const reservationData = location.state?.reservationData as ReservationData;
 
-      setLoading(true);
-      try {
-        const { data: profile } = await supabase
-          .from('public_profiles_view')
-          .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
-          .eq('id', userId)
-          .maybeSingle();
+  const campaignTheme = organizerProfile?.theme || 'claro';
 
-        if (profile) {
-          setOrganizerProfile(profile);
-        }
-
-        const { data: featured } = await CampaignAPI.getFeaturedCampaign(userId);
-        setFeaturedCampaign(featured);
-
-        const { data: allCampaigns } = await CampaignAPI.getOrganizerPublicCampaigns(userId, false);
-
-        if (allCampaigns && featured) {
-          const filteredCampaigns = allCampaigns.filter(c => c.id !== featured.id);
-          setCampaigns(filteredCampaigns);
-        } else {
-          setCampaigns(allCampaigns || []);
-        }
-      } catch (error) {
-        console.error('Error loading organizer data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadOrganizerData();
-  }, [userId]);
-
-  useEffect(() => {
-    const faviconLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
-    
-    if (organizerProfile?.logo_url) {
-      if (faviconLink) {
-        faviconLink.href = organizerProfile.logo_url;
-      } else {
-        const newFavicon = document.createElement('link');
-        newFavicon.rel = 'icon';
-        newFavicon.href = organizerProfile.logo_url;
-        document.head.appendChild(newFavicon);
-      }
-    } else {
-      if (faviconLink) {
-        faviconLink.href = '/logo-chatgpt.png';
-      }
+  const getThemeClasses = (theme: string) => {
+    switch (theme) {
+      case 'claro':
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200',
+          inputBg: 'bg-gray-50',
+          idBoxBg: 'bg-gray-100',
+          idBoxText: 'text-gray-700',
+          stepBg: 'bg-green-500',
+          stepText: 'text-white',
+          scrollbarTrack: '#d4d6d9',
+          scrollbarThumb: '#9ca3af'
+        };
+      case 'escuro':
+        return {
+          background: 'bg-slate-900',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-slate-800',
+          border: 'border-[#101625]',
+          inputBg: 'bg-slate-700',
+          idBoxBg: 'bg-slate-700',
+          idBoxText: 'text-gray-200',
+          stepBg: 'bg-green-500',
+          stepText: 'text-white',
+          scrollbarTrack: '#0a0d12',
+          scrollbarThumb: '#4b5563'
+        };
+      case 'escuro-preto':
+        return {
+          background: 'bg-black',
+          text: 'text-white',
+          textSecondary: 'text-gray-300',
+          cardBg: 'bg-gray-900',
+          border: 'border-[#101625]',
+          inputBg: 'bg-gray-800',
+          idBoxBg: 'bg-gray-800',
+          idBoxText: 'text-gray-200',
+          stepBg: 'bg-green-500',
+          stepText: 'text-white',
+          scrollbarTrack: '#0a0d12',
+          scrollbarThumb: '#374151'
+        };
+    case 'escuro-cinza':
+      return {
+        background: 'bg-[#1A1A1A]',
+        text: 'text-white',
+        textSecondary: 'text-gray-400',
+        cardBg: 'bg-[#2C2C2C]',
+        border: 'border-[#1f1f1f]',
+        inputBg: 'bg-[#2C2C2C]',
+        idBoxBg: 'bg-[#3C3C3C]',
+        idBoxText: 'text-gray-200',
+        stepBg: 'bg-green-500',
+        stepText: 'text-white',
+        scrollbarTrack: '#0f0f0f',
+        scrollbarThumb: '#404040'
+      };
+      default:
+        return {
+          background: 'bg-gray-50',
+          text: 'text-gray-900',
+          textSecondary: 'text-gray-600',
+          cardBg: 'bg-white',
+          border: 'border-gray-200',
+          inputBg: 'bg-gray-50',
+          idBoxBg: 'bg-gray-100',
+          idBoxText: 'text-gray-700',
+          stepBg: 'bg-green-500',
+          stepText: 'text-white',
+          scrollbarTrack: '#e5e7eb',
+          scrollbarThumb: '#9ca3af'
+        };
     }
-
-    return () => {
-      const favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
-      if (favicon) {
-        favicon.href = '/logo-chatgpt.png';
-      }
-    };
-  }, [organizerProfile]);
-
-  useEffect(() => {
-    document.title = 'Campanhas';
-
-    return () => {
-      document.title = 'Rifaqui';
-    };
-  }, []);
+  };
+  
+  const themeClasses = getThemeClasses(campaignTheme);
 
   const getCustomGradientStyle = (customColorsJson: string) => {
     try {
@@ -185,403 +217,714 @@ const OrganizerHomePage: React.FC = () => {
     return baseClasses;
   };
 
-  const getThemeClasses = (theme: string) => {
-    switch (theme) {
-      case 'claro':
-        return {
-          background: 'bg-gray-50',
-          text: 'text-gray-900',
-          textSecondary: 'text-gray-600',
-          cardBg: 'bg-white',
-          headerBg: 'bg-white',
-          border: 'border-gray-200'
-        };
-      case 'escuro':
-        return {
-          background: 'bg-slate-900',
-          text: 'text-white',
-          textSecondary: 'text-gray-300',
-          cardBg: 'bg-slate-800',
-          headerBg: 'bg-black',
-          border: 'border-[#101625]'
-        };
-      case 'escuro-preto':
-        return {
-          background: 'bg-black',
-          text: 'text-white',
-          textSecondary: 'text-gray-300',
-          cardBg: 'bg-gray-900',
-          headerBg: 'bg-[#161b26]',
-          border: 'border-[#101625]'
-        };
-      case 'escuro-cinza':
-        return {
-          background: 'bg-[#1A1A1A]',
-          text: 'text-white',
-          textSecondary: 'text-gray-400',
-          cardBg: 'bg-[#2C2C2C]',
-          headerBg: 'bg-[#141414]',
-          border: 'border-[#1f1f1f]'
-        };
-      default:
-        return {
-          background: 'bg-gray-50',
-          text: 'text-gray-900',
-          textSecondary: 'text-gray-600',
-          cardBg: 'bg-white',
-          headerBg: 'bg-white',
-          border: 'border-gray-200'
-        };
+  const formatQuotaNumber = (quotaNumber: number): string => {
+    if (!campaign?.total_tickets) {
+      return quotaNumber.toString().padStart(3, '0');
     }
+    
+    const digits = String(campaign.total_tickets - 1).length;
+    return quotaNumber.toString().padStart(digits, '0');
   };
 
-  const handleCampaignClick = (publicId: string | null) => {
-    if (publicId) {
-      navigate(`/c/${publicId}`);
+  useEffect(() => {
+    if (!reservationData) {
+      navigate('/');
+      return;
     }
-  };
 
-  const handleMyTicketsClick = () => {
-    if (isPhoneAuthenticated) {
-      navigate('/my-tickets', {
-        state: {
-          organizerId: userId
+    if (reservationData.customerPhone && !isPhoneAuthenticated) {
+      signInWithPhone(reservationData.customerPhone);
+    }
+
+    console.log('🔵 PaymentConfirmationPage - Reservation ID:', reservationData.reservationId);
+    console.log('🔵 PaymentConfirmationPage - Full Reservation Data:', reservationData);
+  }, [reservationData, navigate, signInWithPhone, isPhoneAuthenticated]);
+
+  useEffect(() => {
+    const loadOrganizerProfile = async () => {
+      if (reservationData?.campaignId) {
+        const { data: campaignData, error: campaignError } = await supabase
+          .from('campaigns')
+          .select('user_id, campaign_model, prize_image_urls, total_tickets')
+          .eq('id', reservationData.campaignId)
+          .maybeSingle();
+
+        if (campaignError) {
+          console.error('Error loading campaign data:', campaignError);
+          return;
         }
-      });
+
+        if (campaignData) {
+          setCampaignModel(campaignData.campaign_model || 'manual');
+          setCampaign({ total_tickets: campaignData.total_tickets || 100 });
+          
+          if (campaignData.prize_image_urls && campaignData.prize_image_urls.length > 0) {
+            setCampaignImageUrl(campaignData.prize_image_urls[0]);
+          }
+
+          if (campaignData.user_id) {
+            const { data: profile, error: profileError } = await supabase
+              .from('public_profiles_view')
+              .select('id, name, logo_url, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, social_media_links')
+              .eq('id', campaignData.user_id)
+              .maybeSingle();
+
+            if (profileError) {
+              console.error('Error loading organizer profile:', profileError);
+              return;
+            }
+
+            if (profile) {
+              setOrganizerProfile(profile);
+            }
+          }
+        }
+      }
+    };
+
+    loadOrganizerProfile();
+  }, [reservationData]);
+
+  useEffect(() => {
+    const faviconLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+    
+    if (organizerProfile?.logo_url) {
+      if (faviconLink) {
+        faviconLink.href = organizerProfile.logo_url;
+      } else {
+        const newFavicon = document.createElement('link');
+        newFavicon.rel = 'icon';
+        newFavicon.href = organizerProfile.logo_url;
+        document.head.appendChild(newFavicon);
+      }
     } else {
-      setIsPhoneModalOpen(true);
+      if (faviconLink) {
+        faviconLink.href = '/logo-chatgpt.png';
+      }
+    }
+
+    return () => {
+      const favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+      if (favicon) {
+        favicon.href = '/logo-chatgpt.png';
+      }
+    };
+  }, [organizerProfile]);
+
+  useEffect(() => {
+    document.title = 'Pagamento';
+
+    return () => {
+      document.title = 'Rifaqui';
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!reservationData?.expiresAt) return;
+
+    const updateTimer = () => {
+      const now = new Date().getTime();
+      const expiration = new Date(reservationData.expiresAt).getTime();
+      const difference = expiration - now;
+
+      if (difference <= 0) {
+        setTimeRemaining('Expirado');
+        setIsExpired(true);
+        return;
+      }
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      if (days > 0) {
+        setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
+      } else if (hours > 0) {
+        setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
+      } else {
+        setTimeRemaining(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [reservationData?.expiresAt]);
+
+  useEffect(() => {
+    const styleId = 'quota-scrollbar-style';
+    let styleElement = document.getElementById(styleId) as HTMLStyleElement;
+    
+    if (!styleElement) {
+      styleElement = document.createElement('style');
+      styleElement.id = styleId;
+      document.head.appendChild(styleElement);
+    }
+
+    styleElement.textContent = `
+      .quota-scroll-container::-webkit-scrollbar {
+        width: 8px;
+      }
+      .quota-scroll-container::-webkit-scrollbar-track {
+        background: ${themeClasses.scrollbarTrack};
+        border-radius: 4px;
+      }
+      .quota-scroll-container::-webkit-scrollbar-thumb {
+        background: ${themeClasses.scrollbarThumb};
+        border-radius: 4px;
+      }
+      .quota-scroll-container::-webkit-scrollbar-thumb:hover {
+        opacity: 0.8;
+      }
+    `;
+
+    return () => {
+      const element = document.getElementById(styleId);
+      if (element) {
+        element.remove();
+      }
+    };
+  }, [themeClasses.scrollbarTrack, themeClasses.scrollbarThumb]);
+
+  const handleCopyPixKey = async () => {
+    const reservationIdClean = reservationData?.reservationId.replace(/-/g, '') || 'mock-key';
+    const pixKey = `00020126580014br.gov.bcb.pix0136${reservationIdClean}5204000053039865802BR5925RIFAQUI PAGAMENTOS LTDA6009SAO PAULO62070503***6304ABCD`;
+    
+    console.log('🔵 PaymentConfirmationPage - PIX Key generated:', pixKey);
+    
+    try {
+      await navigator.clipboard.writeText(pixKey);
+      setCopiedPix(true);
+      setTimeout(() => setCopiedPix(false), 2000);
+    } catch (error) {
+      console.error('❌ Failed to copy PIX key:', error);
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
   };
 
-  const organizerTheme = organizerProfile?.theme || 'claro';
-  const themeClasses = getThemeClasses(organizerTheme);
-  const primaryColor = organizerProfile?.primary_color || '#3B82F6';
-
-  const totalPages = Math.max(1, Math.ceil(campaigns.length / campaignsPerPage));
-  const paginatedCampaigns = campaigns.slice(
-    (currentPage - 1) * campaignsPerPage,
-    currentPage * campaignsPerPage
-  );
-
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
-  if (loading) {
+  if (!reservationData) {
+    const primaryColor = organizerProfile?.primary_color || '#3B82F6';
     return (
       <div className={`min-h-screen ${themeClasses.background} flex items-center justify-center`}>
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2" style={{ borderColor: primaryColor }}></div>
+        <div 
+          className="animate-spin rounded-full h-16 w-16 border-b-2" 
+          style={{ borderColor: primaryColor }}
+        ></div>
+      </div>
+    );
+  }
+
+  if (isExpired) {
+    return (
+      <div className={`min-h-screen ${themeClasses.background} transition-colors duration-300 flex flex-col`}>
+        <CampaignHeader
+          logoUrl={organizerProfile?.logo_url}
+          organizerName={organizerProfile?.name}
+          organizerId={organizerProfile?.id}
+          primaryColor={organizerProfile?.primary_color}
+          colorMode={organizerProfile?.color_mode}
+          gradientClasses={organizerProfile?.gradient_classes}
+          customGradientColors={organizerProfile?.custom_gradient_colors}
+          campaignTheme={campaignTheme}
+          hideMyTicketsButton={false}
+          campaignId={reservationData?.campaignId}
+        />
+
+        <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-8"
+          >
+            <div className={`bg-red-50 dark:bg-red-900/20 border-2 border-red-500 rounded-2xl p-4 sm:p-6 ${
+              campaignTheme === 'claro' 
+                ? 'shadow-[0_8px_30px_-8px_rgba(239,68,68,0.3),0_4px_15px_-4px_rgba(239,68,68,0.2)]'
+                : 'shadow-[0_8px_30px_-8px_rgba(239,68,68,0.6),0_4px_15px_-4px_rgba(239,68,68,0.4)]'
+            }`}>
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                  <Timer className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-red-600 dark:text-red-400">
+                    Pedido cancelado!
+                  </h2>
+                  <p className="text-xs sm:text-sm text-red-600 dark:text-red-400">
+                    O prazo para pagamento do seu pedido expirou.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} ${
+              campaignTheme === 'claro' 
+                ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
+                : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
+            }`}>
+              <div 
+                className="flex items-start gap-4 mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => navigate(`/c/${reservationData.campaignPublicId || reservationData.campaignId}`)}
+              >
+                <img
+                  src={campaignImageUrl || reservationData.prizeImageUrl || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400'}
+                  alt="Campanha"
+                  className="w-24 h-24 rounded-xl object-cover flex-shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <h3 className={`text-lg font-bold ${themeClasses.text} mb-1`}>
+                    {reservationData.campaignTitle}
+                  </h3>
+                  <p className={`text-sm ${themeClasses.textSecondary} mb-2`}>
+                    Sorteio pela Loteria Federal!
+                  </p>
+                  <span className="inline-block px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
+                    Cancelado
+                  </span>
+                </div>
+              </div>
+
+              <div className="border-t border-b py-4 mb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className={`text-sm font-medium ${themeClasses.text}`}>
+                    <Package className="inline h-4 w-4 mr-1" />
+                    Detalhes da sua compra
+                  </span>
+                </div>
+                <div className={`text-xs font-mono mb-4 ${themeClasses.idBoxBg} ${themeClasses.idBoxText} p-3 rounded-lg break-all`}>
+                  {reservationData.reservationId}
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                      <User className="h-4 w-4" />
+                      Nome
+                    </span>
+                    <span className={`text-sm font-medium ${themeClasses.text}`}>
+                      {reservationData.customerName}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                      <Phone className="h-4 w-4" />
+                      Telefone
+                    </span>
+                    <span className={`text-sm font-medium ${themeClasses.text}`}>
+                      {reservationData.customerPhone}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                      <Clock className="h-4 w-4" />
+                      Data/Hora
+                    </span>
+                    <span className={`text-sm font-medium ${themeClasses.text}`}>
+                      {new Date().toLocaleString('pt-BR', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                      <Hash className="h-4 w-4" />
+                      Quantidade
+                    </span>
+                    <span className={`text-sm font-medium ${themeClasses.text}`}>
+                      {reservationData.quotaCount} {reservationData.quotaCount === 1 ? 'Número' : 'Números'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                      <DollarSign className="h-4 w-4" />
+                      Valor
+                    </span>
+                    <span className={`text-lg font-bold ${themeClasses.text}`}>
+                      {formatCurrency(reservationData.totalValue)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {reservationData.selectedQuotas && reservationData.selectedQuotas.length > 0 ? (
+                <div className={`${themeClasses.inputBg} rounded-xl p-4`}>
+                  <p className={`text-sm font-medium ${themeClasses.text} mb-3`}>
+                    Números que estavam reservados:
+                  </p>
+                  <div 
+                    className="quota-scroll-container flex flex-wrap gap-2 mb-3 max-h-[420px] overflow-y-auto pr-2"
+                    style={{
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: `${themeClasses.scrollbarThumb} ${themeClasses.scrollbarTrack}`
+                    }}
+                  >
+                    {reservationData.selectedQuotas.map((quota, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center justify-center px-2 py-1 sm:px-3 sm:py-1.5 bg-red-500 text-white text-xs sm:text-sm font-bold rounded-lg opacity-60"
+                      >
+                        {formatQuotaNumber(quota)}
+                      </span>
+                    ))}
+                  </div>
+                  <p className={`text-xs ${themeClasses.textSecondary}`}>
+                    Estes números estão novamente disponíveis para compra.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 text-center">
+                  <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                    Nenhum número foi gerado devido ao cancelamento.
+                  </p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="mt-6"
+          >
+            <button
+              onClick={() => navigate(`/c/${reservationData.campaignPublicId || reservationData.campaignId}`)}
+              className={getColorClassName("w-full px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105")}
+              style={getColorStyle(true, false)}
+            >
+              Voltar para Campanha
+            </button>
+          </motion.div>
+        </main>
+
+        {organizerProfile && (
+          <SocialMediaFloatingMenu
+            socialMediaLinks={organizerProfile.social_media_links}
+            primaryColor={organizerProfile.primary_color || '#3B82F6'}
+            colorMode={organizerProfile.color_mode || 'solid'}
+            gradientClasses={organizerProfile.gradient_classes || ''}
+            customGradientColors={organizerProfile.custom_gradient_colors || ''}
+          />
+        )}
+
+        <CampaignFooter campaignTheme={campaignTheme} />
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen ${themeClasses.background} transition-colors duration-300`}>
-      <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.headerBg}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
-            <button onClick={() => navigate(`/org/${userId}`)} className="flex items-center hover:opacity-80 transition-opacity duration-200">
-              {organizerProfile?.logo_url ? (
-                <img
-                  src={organizerProfile.logo_url}
-                  alt="Logo do organizador"
-                  className="h-10 sm:h-14 w-auto max-w-[150px] sm:max-w-[200px] object-contain"
-                />
-              ) : (
-                <div className="flex items-center">
-                  <img
-                    src="/logo-chatgpt.png"
-                    alt="Rifaqui"
-                    className="h-10 sm:h-14 w-auto object-contain"
-                    />
-                  <span className={`ml-2 text-lg sm:text-xl font-bold ${themeClasses.text}`}>Rifaqui</span>
+    <div className={`min-h-screen ${themeClasses.background} transition-colors duration-300 flex flex-col`}>
+      <CampaignHeader
+        logoUrl={organizerProfile?.logo_url}
+        organizerName={organizerProfile?.name}
+        organizerId={organizerProfile?.id}
+        primaryColor={organizerProfile?.primary_color}
+        colorMode={organizerProfile?.color_mode}
+        gradientClasses={organizerProfile?.gradient_classes}
+        customGradientColors={organizerProfile?.custom_gradient_colors}
+        campaignTheme={campaignTheme}
+        hideMyTicketsButton={false}
+        campaignId={reservationData?.campaignId}
+      />
+
+      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-8"
+        >
+          <div className={`${themeClasses.cardBg} rounded-2xl p-4 sm:p-6 border-2 border-yellow-500 ${
+            campaignTheme === 'claro' 
+              ? 'shadow-[0_8px_30px_-8px_rgba(234,179,8,0.3),0_4px_15px_-4px_rgba(234,179,8,0.2)]'
+              : 'shadow-[0_8px_30px_-8px_rgba(234,179,8,0.6),0_4px_15px_-4px_rgba(234,179,8,0.4)]'
+          }`}>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                  <CheckCircle className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
                 </div>
-              )}
-            </button>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleMyTicketsClick}
-                className={getColorClassName("flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 text-white rounded-lg font-medium text-sm transition-all duration-200 shadow-md")}
-                style={getColorStyle(true, false)}
-              >
-                <Ticket className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                <span className="hidden sm:inline">
-                  {isPhoneAuthenticated ? 'Minhas Cotas' : 'Ver Minhas Cotas'}
-                </span>
-                <span className="sm:hidden">Cotas</span>
-              </motion.button>
+                <div className="flex-1 min-w-0">
+                  <h2 className={`text-lg sm:text-xl md:text-2xl font-bold ${themeClasses.text}`}>
+                    Aguardando Confirmação!
+                  </h2>
+                  <p className={`text-xs sm:text-sm ${themeClasses.textSecondary}`}>
+                    Complete o pagamento para garantir seus números
+                  </p>
+                </div>
+              </div>
+              <div className="text-center w-full sm:w-auto">
+                <div className={`text-xs sm:text-sm ${themeClasses.textSecondary} mb-1`}>
+                  Tempo restante
+                </div>
+                <div className={`text-2xl sm:text-3xl md:text-4xl font-bold ${timeRemaining === 'Expirado' ? 'text-red-600 dark:text-red-400' : timeRemaining.includes('m') && !timeRemaining.includes('d') && !timeRemaining.includes('h') && parseInt(timeRemaining.split(':')[0]) < 5 ? 'text-red-600 dark:text-red-400 animate-pulse' : 'text-orange-600 dark:text-orange-400'}`}>
+                  {timeRemaining}
+                </div>
+                <div className={`text-xs ${themeClasses.textSecondary}`}>
+                  {timeRemaining === 'Expirado' ? '' : timeRemaining.includes('d') ? '' : timeRemaining.includes('h') ? '' : 'minutos'}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </motion.div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {featuredCampaign && (
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-12"
-          >
-            <h2 className={`text-xl font-bold ${themeClasses.text} mb-4 flex items-center gap-2`}>
-              <Trophy className="h-6 w-6 text-yellow-500" />
-              Campanha em Destaque
-            </h2>
-            <motion.div
-              whileHover={{ 
-                y: -12,
-                scale: 1.02,
-                transition: { duration: 0.3 }
-              }}
-              onClick={() => handleCampaignClick(featuredCampaign.public_id)}
-              className={`${themeClasses.cardBg} rounded-2xl border ${themeClasses.border} overflow-hidden cursor-pointer ${
-                organizerTheme === 'claro' 
-                  ? 'shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3),0_10px_30px_-10px_rgba(0,0,0,0.2)]' 
-                  : 'shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7),0_10px_30px_-10px_rgba(0,0,0,0.5)]'
-              } hover:shadow-[0_30px_80px_-15px_rgba(0,0,0,0.4),0_15px_40px_-10px_rgba(0,0,0,0.3)]`}
-            >
-              <div className="relative h-[400px] sm:h-[500px]">
-                <img
-                  src={featuredCampaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1200'}
-                  alt={featuredCampaign.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-
-                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-                  <h3 className="text-2xl sm:text-4xl font-bold text-white mb-4 drop-shadow-lg">
-                    {featuredCampaign.title}
-                  </h3>
-
-                  {featuredCampaign.show_draw_date && featuredCampaign.draw_date && (
-                    <div className="flex flex-wrap gap-3 mb-4">
-                      <div className={`flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg`}>
-                        <Calendar className="h-5 w-5 text-white" />
-                        <span className="text-white font-medium text-sm">
-                          {formatDate(featuredCampaign.draw_date)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  <motion.button
-                    className={getColorClassName("w-[180px] px-6 py-2 rounded-lg font-bold text-lg text-white shadow-lg pointer-events-none")}
-                    style={getColorStyle(true)}
-                    animate={{ opacity: [1, 0, 1] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    whileHover={{ scale: 1.04 }}
-                    whileTap={{ scale: 0.96 }}
-                  >
-                    {featuredCampaign.status === 'active' ? 'Adquira Já!' : 'Concluída'}
-                  </motion.button>
-                </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-8"
+        >
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
+                1
               </div>
-            </motion.div>
-          </motion.section>
-        )}
-
-        {campaigns.length > 0 && (
-          <section>
-            <h2 className={`text-xl font-bold ${themeClasses.text} mb-6`}>
-              Mais Campanhas
-            </h2>
-
-            {/* Layout Mobile (até sm) - Cards em coluna única com layout horizontal */}
-            <div className="sm:hidden space-y-4 mb-8">
-              {paginatedCampaigns.map((campaign, index) => (
-                <motion.div
-                  key={campaign.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  whileHover={{ 
-                    scale: 1.02,
-                    transition: { duration: 0.2 }
-                  }}
-                  onClick={() => handleCampaignClick(campaign.public_id)}
-                  className={`${themeClasses.cardBg} rounded-xl border ${themeClasses.border} overflow-hidden cursor-pointer ${
-                    organizerTheme === 'claro'
-                      ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
-                      : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
-                  } hover:shadow-[0_15px_45px_-10px_rgba(0,0,0,0.3),0_8px_22px_-6px_rgba(0,0,0,0.2)] transition-all duration-300`}
-                >
-                  <div className="flex gap-4">
-                    {/* Imagem à esquerda */}
-                    <div className="relative w-32 h-32 flex-shrink-0 overflow-hidden">
-                      <motion.img
-                        src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=600'}
-                        alt={campaign.title}
-                        className="w-full h-full object-cover"
-                        whileHover={{ scale: 1.1 }}
-                        transition={{ duration: 0.4 }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/10" />
-                    </div>
-
-                    {/* Conteúdo à direita */}
-                    <div className="flex-1 py-3 pr-4 flex flex-col justify-between">
-                      <div>
-                        <h3 className={`text-sm font-bold ${themeClasses.text} mb-2 line-clamp-2 leading-snug`}>
-                          {campaign.title}
-                        </h3>
-                        <div className="mb-3">
-                          <span className={`text-xl font-bold ${themeClasses.text}`}>
-                            {formatCurrency(campaign.ticket_price)}
-                          </span>
-                        </div>
-                      </div>
-
-                      <motion.button
-                        className={getColorClassName("w-full px-4 py-2 rounded-lg font-bold text-sm text-white shadow-md pointer-events-none")}
-                        style={getColorStyle(true)}
-                        animate={{ opacity: [1, 0, 1] }}
-                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                      >
-                        {campaign.status === 'active' ? 'Adquira Já!' : 'Concluída'}
-                      </motion.button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+              <p className={`${themeClasses.text} pt-1 font-medium`}>
+                Copie o código de pagamento PIX apresentado abaixo.
+              </p>
             </div>
-
-            {/* Layout Desktop (sm e acima) - Grid responsivo */}
-            <div className="hidden sm:grid sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 mb-8">
-              {paginatedCampaigns.map((campaign, index) => (
-                <motion.div
-                  key={campaign.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  whileHover={{ 
-                    y: -6,
-                    scale: 1.03,
-                    transition: { duration: 0.3 }
-                  }}
-                  onClick={() => handleCampaignClick(campaign.public_id)}
-                  className={`${themeClasses.cardBg} rounded-xl border ${themeClasses.border} overflow-hidden cursor-pointer ${
-                    organizerTheme === 'claro'
-                      ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
-                      : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
-                  } hover:shadow-[0_15px_45px_-10px_rgba(0,0,0,0.3),0_8px_22px_-6px_rgba(0,0,0,0.2)] transition-all duration-300`}
-                >
-                  <div className="relative h-40 lg:h-44 overflow-hidden">
-                    <motion.img
-                      src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=600'}
-                      alt={campaign.title}
-                      className="w-full h-full object-cover"
-                      whileHover={{ scale: 1.1 }}
-                      transition={{ duration: 0.4 }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent" />
-                  </div>
-
-                  <div className="p-4">
-                    <h3 className={`text-sm font-bold ${themeClasses.text} mb-2 text-center line-clamp-2 min-h-[36px] leading-tight`}>
-                      {campaign.title}
-                    </h3>
-
-                    <div className="flex items-center justify-center mb-3">
-                      <span className={`text-lg lg:text-xl font-bold ${themeClasses.text}`}>
-                        {formatCurrency(campaign.ticket_price)}
-                      </span>
-                    </div>
-
-                    <motion.button
-                      className={getColorClassName("w-full px-3 py-2 rounded-lg font-bold text-sm text-white shadow-md pointer-events-none")}
-                      style={getColorStyle(true)}
-                      animate={{ opacity: [1, 0, 1] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      {campaign.status === 'active' ? 'Adquira Já!' : 'Concluída'}
-                    </motion.button>
-                  </div>
-                </motion.div>
-              ))}
+            <div className="flex items-start gap-3">
+              <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
+                2
+              </div>
+              <p className={`${themeClasses.text} pt-1 font-medium`}>
+                Acesse seu aplicativo bancário e escolha pagar via PIX.
+              </p>
             </div>
+            <div className="flex items-start gap-3">
+              <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
+                3
+              </div>
+              <p className={`${themeClasses.text} pt-1 font-medium`}>
+                Cole o código copiado na opção "PIX Copia e Cola" e finalize o pagamento.
+              </p>
+            </div>
+          </div>
+        </motion.div>
 
-            {totalPages > 1 && (
-              <div 
-                className={`flex items-center justify-center gap-4 p-4 rounded-xl ${themeClasses.cardBg} border ${themeClasses.border} ${
-                  organizerTheme === 'claro' ? 'shadow-lg' : 'shadow-2xl'
-                }`}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mb-8"
+        >
+          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} ${
+            campaignTheme === 'claro' 
+              ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
+              : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
+          }`}>
+            <div className="flex items-center justify-between mb-4">
+              <input
+                type="text"
+                readOnly
+                value={`00020126580014br.gov.bcb.pix0136${reservationData.reservationId.replace(/-/g, '')}5204000053039865802BR5925RIFAQUI...`}
+                className={`flex-1 ${themeClasses.inputBg} ${themeClasses.text} px-4 py-3 rounded-lg border ${themeClasses.border} font-mono text-sm`}
+              />
+              <button
+                onClick={handleCopyPixKey}
+                className="ml-3 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition-all duration-200 shadow-md flex items-center gap-2"
               >
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="p-2 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft className="h-5 w-5" style={{ color: primaryColor }} />
-                </button>
+                {copiedPix ? (
+                  <>
+                    <CheckCircle className="h-5 w-5" />
+                    <span className="hidden sm:inline">Copiado</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-5 w-5" />
+                    <span className="hidden sm:inline">Copiar</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </motion.div>
 
-                <span className={`font-semibold ${themeClasses.text}`}>
-                  Página {currentPage} de {totalPages}
-                </span>
-
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="p-2 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <ChevronRight className="h-5 w-5" style={{ color: primaryColor }} />
-                </button>
-              </div>
-            )}
-          </section>
-        )}
-
-        {!featuredCampaign && campaigns.length === 0 && (
-          <div className="text-center py-20">
-            <Trophy className="h-16 w-16 mx-auto mb-4 opacity-50" style={{ color: primaryColor }} />
-            <h2 className={`text-2xl font-bold ${themeClasses.text} mb-2`}>
-              Nenhuma campanha disponível
-            </h2>
-            <p className={themeClasses.textSecondary}>
-              Este organizador ainda não possui campanhas ativas.
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mb-8"
+        >
+          <div className={`${themeClasses.inputBg} rounded-xl p-4 border-l-4 border-yellow-500 ${
+            campaignTheme === 'claro' 
+              ? 'shadow-[0_4px_15px_-4px_rgba(0,0,0,0.1)]'
+              : 'shadow-[0_4px_15px_-4px_rgba(0,0,0,0.4)]'
+          }`}>
+            <p className={`text-sm ${themeClasses.text}`}>
+              <strong>Atenção:</strong> Este pagamento possui prazo limitado. Caso não seja confirmado dentro do tempo estabelecido, a reserva será cancelada e os números ficarão disponíveis novamente.
             </p>
           </div>
-        )}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} ${
+            campaignTheme === 'claro' 
+              ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
+              : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
+          }`}>
+            <div 
+              className="flex items-start gap-4 mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => navigate(`/c/${reservationData.campaignPublicId || reservationData.campaignId}`)}
+            >
+              <img
+                src={campaignImageUrl || reservationData.prizeImageUrl || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400'}
+                alt="Campanha"
+                className="w-24 h-24 rounded-xl object-cover flex-shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <h3 className={`text-lg font-bold ${themeClasses.text} mb-1`}>
+                  {reservationData.campaignTitle}
+                </h3>
+                <p className={`text-sm ${themeClasses.textSecondary} mb-2`}>
+                  Concorra a prêmios incríveis!
+                </p>
+                <span className="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
+                  Reservado
+                </span>
+              </div>
+            </div>
+
+            <div className="border-t border-b py-4 mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className={`text-sm font-medium ${themeClasses.text}`}>
+                  <Package className="inline h-4 w-4 mr-1" />
+                  Informações do Pedido
+                </span>
+              </div>
+              <div className={`text-xs font-mono mb-4 ${themeClasses.idBoxBg} ${themeClasses.idBoxText} p-3 rounded-lg break-all`}>
+                {reservationData.reservationId}
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                    <User className="h-4 w-4" />
+                    Nome
+                  </span>
+                  <span className={`text-sm font-medium ${themeClasses.text}`}>
+                    {reservationData.customerName}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                    <Phone className="h-4 w-4" />
+                    Telefone
+                  </span>
+                  <span className={`text-sm font-medium ${themeClasses.text}`}>
+                    {reservationData.customerPhone}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                    <Clock className="h-4 w-4" />
+                    Realizado em
+                  </span>
+                  <span className={`text-sm font-medium ${themeClasses.text}`}>
+                    {new Date().toLocaleString('pt-BR', { 
+                      day: '2-digit', 
+                      month: '2-digit', 
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                    <Hash className="h-4 w-4" />
+                    Quantidade
+                  </span>
+                  <span className={`text-sm font-medium ${themeClasses.text}`}>
+                    {reservationData.quotaCount} {reservationData.quotaCount === 1 ? 'Número' : 'Números'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <span className={`text-sm ${themeClasses.textSecondary} flex items-center gap-2`}>
+                    <DollarSign className="h-4 w-4" />
+                    Valor Total
+                  </span>
+                  <span className={`text-lg font-bold text-green-600 dark:text-green-400`}>
+                    {formatCurrency(reservationData.totalValue)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {reservationData.selectedQuotas && reservationData.selectedQuotas.length > 0 ? (
+              <div className={`${themeClasses.inputBg} rounded-xl p-4`}>
+                <p className={`text-sm font-medium ${themeClasses.text} mb-3`}>
+                  ✓ Números reservados com sucesso
+                </p>
+                <div 
+                  className="quota-scroll-container flex flex-wrap gap-2 mb-3 max-h-[420px] overflow-y-auto pr-2"
+                  style={{
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: `${themeClasses.scrollbarThumb} ${themeClasses.scrollbarTrack}`
+                  }}
+                >
+                  {reservationData.selectedQuotas.map((quota, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center justify-center px-2 py-1 sm:px-3 sm:py-1.5 bg-green-500 text-white text-xs sm:text-sm font-bold rounded-lg"
+                    >
+                      {formatQuotaNumber(quota)}
+                    </span>
+                  ))}
+                </div>
+                <p className={`text-xs ${themeClasses.textSecondary}`}>
+                  Seus números serão liberados assim que o pagamento for confirmado.
+                </p>
+              </div>
+            ) : (
+              <div className={`${themeClasses.inputBg} rounded-xl p-4`}>
+                <p className={`text-sm font-medium ${themeClasses.text} mb-2`}>
+                  ✓ Reserva realizada com sucesso
+                </p>
+                <p className={`text-xs ${themeClasses.textSecondary}`}>
+                  Seus números serão gerados automaticamente após a confirmação do pagamento.
+                </p>
+              </div>
+            )}
+          </div>
+        </motion.div>
       </main>
 
-      <SocialMediaFloatingMenu
-        socialMediaLinks={organizerProfile?.social_media_links}
-        whatsappSupport={organizerProfile?.payment_integrations_config?.whatsapp_number}
-        whatsappGroup={organizerProfile?.social_media_links?.whatsapp_group}
-        primaryColor={organizerProfile?.primary_color}
-        colorMode={organizerProfile?.color_mode}
-        gradientClasses={organizerProfile?.gradient_classes}
-        customGradientColors={organizerProfile?.custom_gradient_colors}
-        animatedGradient={true}
-      />
+      {organizerProfile && (
+        <SocialMediaFloatingMenu
+          socialMediaLinks={organizerProfile.social_media_links}
+          primaryColor={organizerProfile.primary_color || '#3B82F6'}
+          colorMode={organizerProfile.color_mode || 'solid'}
+          gradientClasses={organizerProfile.gradient_classes || ''}
+          customGradientColors={organizerProfile.custom_gradient_colors || ''}
+        />
+      )}
 
-      <PhoneLoginModal
-        isOpen={isPhoneModalOpen}
-        onClose={() => setIsPhoneModalOpen(false)}
-        primaryColor={organizerProfile?.primary_color}
-        colorMode={organizerProfile?.color_mode}
-        gradientClasses={organizerProfile?.gradient_classes}
-        customGradientColors={organizerProfile?.custom_gradient_colors}
-        campaignTheme={organizerTheme}
-        organizerId={userId}
-      />
-
-      <CampaignFooter campaignTheme={organizerTheme} />
+      <CampaignFooter campaignTheme={campaignTheme} />
     </div>
   );
 };
 
-export default OrganizerHomePage;
+export default PaymentConfirmationPage;
