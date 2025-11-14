@@ -51,8 +51,8 @@ export const useTickets = (campaignId: string) => {
    * Esta função é a PRINCIPAL responsável por gerenciar o estado 'tickets'.
    * Ela adiciona novos tickets ou atualiza existentes de forma granular.
    * 
-   * ✅ INTELIGENTE: Mescla com tickets existentes sem sobrescrever
-   * ✅ EFICIENTE: Usa Map para busca rápida por quota_number
+   * ✅ INTELIGENTE: Se o estado estiver vazio, cria novos objetos TicketStatusInfo
+   * ✅ EFICIENTE: Se o estado estiver populado, apenas atualiza os tickets afetados
    * 
    * @param results - Array de ReservationResult da RPC
    * @param newStatus - Novo status dos tickets ('reservado' ou 'comprado')
@@ -66,52 +66,47 @@ export const useTickets = (campaignId: string) => {
     console.log(`🔄 updateTicketsLocally - Processing ${results.length} tickets with status '${newStatus}'`);
 
     setTickets(prevTickets => {
-      // ✅ Criar um Map dos tickets existentes para busca rápida por quota_number
-      const ticketsMap = new Map(
+      // Criar um Map dos tickets existentes para busca rápida por quota_number
+      const existingTicketsMap = new Map(
         prevTickets.map(ticket => [ticket.quota_number, ticket])
       );
 
       // Processar cada resultado
       results.forEach(result => {
-        const existingTicket = ticketsMap.get(result.quota_number);
+        const existingTicket = existingTicketsMap.get(result.quota_number);
 
         if (!existingTicket) {
           // ✅ Ticket não existe no estado → Criar novo objeto TicketStatusInfo
           console.log(`   Creating new ticket ${result.quota_number} with status '${newStatus}'`);
-          ticketsMap.set(result.quota_number, {
+          existingTicketsMap.set(result.quota_number, {
             quota_number: result.quota_number,
             status: newStatus,
             is_mine: true,
-            campaign_id: campaignId,
-            user_id: user?.id || null,
+            campaign_id: campaignId, // Adicionar campaign_id
+            user_id: user?.id || null, // Adicionar user_id
             customer_name: result.customer_name || null,
             customer_email: result.customer_email || null,
             customer_phone: result.customer_phone || null,
             reserved_at: result.reserved_at || null,
-            purchased_at: newStatus === 'comprado' ? new Date().toISOString() : null
+            bought_at: newStatus === 'comprado' ? new Date().toISOString() : null // Usar bought_at
           });
         } else {
           // ✅ Ticket existe → Atualizar no Map
           console.log(`   Updating existing ticket ${result.quota_number}: ${existingTicket.status} -> ${newStatus}`);
-          ticketsMap.set(result.quota_number, {
+          existingTicketsMap.set(result.quota_number, {
             ...existingTicket,
             status: newStatus,
             is_mine: true,
-            purchased_at: newStatus === 'comprado' ? new Date().toISOString() : existingTicket.purchased_at,
-            // Preservar outros campos que podem ter sido carregados via fetchVisibleTickets
-            customer_name: result.customer_name || existingTicket.customer_name,
-            customer_email: result.customer_email || existingTicket.customer_email,
-            customer_phone: result.customer_phone || existingTicket.customer_phone,
-            reserved_at: result.reserved_at || existingTicket.reserved_at
+            bought_at: newStatus === 'comprado' ? new Date().toISOString() : existingTicket.bought_at
           });
         }
       });
 
       // Converter o Map de volta para array
-      const updatedTickets = Array.from(ticketsMap.values());
+      const updatedTickets = Array.from(existingTicketsMap.values());
 
       console.log(`✅ updateTicketsLocally - Complete!`);
-      console.log(`   Total tickets in state: ${updatedTickets.length}`);
+      console.log(`   Total de tickets no estado: ${updatedTickets.length}`);
 
       return updatedTickets;
     });
@@ -123,76 +118,56 @@ export const useTickets = (campaignId: string) => {
    * Esta função carrega apenas os tickets necessários para exibir na QuotaGrid,
    * usando paginação para evitar carregar todos os tickets de uma vez.
    * 
-   * @param startRange - Número da cota inicial (ex: 1, 1001, 2001)
-   * @param endRange - Número da cota final (ex: 1000, 2000, 3000)
+   * @param page - Número da página (começa em 1)
+   * @param pageSize - Tamanho da página
    * @returns Promise<void>
    */
-  const fetchVisibleTickets = useCallback(async (startRange: number, endRange: number) => {
+  const fetchVisibleTickets = useCallback(async (page: number, pageSize: number) => {
     if (!campaignId) {
       console.warn('⚠️ fetchVisibleTickets - No campaignId provided');
       return;
     }
 
-    if (startRange < 1 || endRange < startRange) {
-      console.warn('⚠️ fetchVisibleTickets - Invalid range:', { startRange, endRange });
+    if (page < 1 || pageSize <= 0) {
+      console.warn('⚠️ fetchVisibleTickets - Invalid page or pageSize:', { page, pageSize });
       return;
     }
 
     setLoading(true);
     setError(null);
 
-    console.log(`📄 useTickets.fetchVisibleTickets - Fetching tickets ${startRange} to ${endRange}...`);
+    // ✅ CORREÇÃO CRÍTICA: Calcular offset corretamente
+    const offset = (page - 1) * pageSize;
+
+    console.log(`📄 useTickets.fetchVisibleTickets - Fetching page ${page} (offset: ${offset}, limit: ${pageSize})...`);
 
     try {
-      // Calcular a quantidade de tickets a buscar
-      const limit = endRange - startRange + 1;
-      const offset = startRange - 1;
-
-      console.log(`📊 Fetching ${limit} tickets with offset ${offset}`);
-
-      // Buscar tickets usando a API existente (que usa a RPC get_campaign_tickets_status)
       const result = await TicketsAPI.getCampaignTicketsStatus(
         campaignId,
         user?.id,
-        1, // page sempre 1 porque estamos usando offset direto
-        limit,
-        offset // passa o offset para a API
+        offset, // Passar offset
+        pageSize // Passar limit
       );
 
       if (result.error) {
-        console.error('❌ useTickets.fetchVisibleTickets - Error:', result.error);
-        setError(`Erro ao carregar cotas ${startRange}-${endRange}`);
+        console.error(`❌ useTickets.fetchVisibleTickets - Error fetching page ${page}:`, result.error);
+        setError(`Erro ao carregar página ${page} das cotas`);
         return;
       }
 
-      if (!result.data || result.data.length === 0) {
-        console.warn(`⚠️ useTickets.fetchVisibleTickets - No data returned for range ${startRange}-${endRange}`);
-        return;
-      }
-
-      console.log(`✅ useTickets.fetchVisibleTickets - Loaded ${result.data.length} tickets`);
-
-      // ✅ MESCLAR com estado existente: Adicionar/atualizar apenas os tickets buscados
-      setTickets(prevTickets => {
-        // Criar um Map dos tickets existentes
-        const ticketsMap = new Map(
-          prevTickets.map(ticket => [ticket.quota_number, ticket])
-        );
-
-        // Adicionar/atualizar os novos tickets no Map
-        result.data.forEach(ticket => {
-          ticketsMap.set(ticket.quota_number, ticket);
+      if (result.data && result.data.length > 0) {
+        setTickets(prev => {
+          const existingTicketsMap = new Map(prev.map(t => [t.quota_number, t]));
+          result.data.forEach(newTicket => {
+            existingTicketsMap.set(newTicket.quota_number, newTicket);
+          });
+          return Array.from(existingTicketsMap.values());
         });
-
-        // Converter o Map de volta para array
-        const mergedTickets = Array.from(ticketsMap.values());
-
-        console.log(`   Tickets no estado antes: ${prevTickets.length}`);
-        console.log(`   Tickets no estado depois: ${mergedTickets.length}`);
-
-        return mergedTickets;
-      });
-
+        console.log(`✅ useTickets.fetchVisibleTickets - Page ${page} loaded (${result.data.length} tickets)`);
+      } else {
+        console.log(`ℹ️ useTickets.fetchVisibleTickets - Page ${page} returned no new tickets`);
+      }
+      
     } catch (error) {
       console.error('❌ useTickets.fetchVisibleTickets - Exception:', error);
       setError('Erro inesperado ao carregar cotas');
@@ -250,7 +225,7 @@ export const useTickets = (campaignId: string) => {
         // Chamar RPC para este lote
         const { data, error: apiError } = await supabase.rpc('reserve_tickets_by_quantity', {
           p_campaign_id: campaignId,
-          p_quantity_to_reserve: batchQuantity,
+          p_quantity_to_reserve: batchQuantity, // Passar a quantidade do lote
           p_user_id: user?.id || null,
           p_customer_name: customerData.name,
           p_customer_email: customerData.email,
@@ -365,7 +340,7 @@ export const useTickets = (campaignId: string) => {
             errorMessage = apiError.message as string;
           }
         } else if (typeof apiError === 'string') {
-          errorMessage = apiError;
+            errorMessage = apiError;
         }
         
         setError(errorMessage);
@@ -486,8 +461,9 @@ export const useTickets = (campaignId: string) => {
     reserving,
     purchasing,
 
-    // ✅ FUNÇÃO EXPOSTA: Permite carregar tickets por range (paginação/infinite scroll)
-    fetchVisibleTickets,
+    // ✅ refetchTickets NÃO é exposto - carregamento completo deve ser evitado
+    // Se necessário para casos específicos (como QuotaGrid completo), pode ser adicionado aqui
+    fetchVisibleTickets, // EXPOR A FUNÇÃO AQUI
 
     // Funções de operação
     reserveTickets,
