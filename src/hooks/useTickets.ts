@@ -23,6 +23,7 @@ const CHUNK_SIZE = 1000;
  * 
  * ✅ IMPLEMENTAÇÃO SOB DEMANDA: Não carrega tickets automaticamente
  * ✅ IMPLEMENTAÇÃO MULTI-PÁGINAS: Busca todos os tickets em blocos de 1000 quando solicitado
+ * ✅ ATUALIZAÇÃO INTELIGENTE: Atualiza estado local após operações sem recarregar tudo
  * 
  * O componente pai (CampaignPage.tsx) decide quando chamar refetchTickets()
  */
@@ -35,6 +36,51 @@ export const useTickets = (campaignId: string) => {
   const [error, setError] = useState<string | null>(null);
   const [reserving, setReserving] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
+
+  /**
+   * ✅ FUNÇÃO AUXILIAR: Atualiza tickets localmente com base nos resultados de uma operação
+   * 
+   * Esta função "mescla" os resultados de uma reserva ou compra no estado atual dos tickets,
+   * evitando a necessidade de recarregar todos os 100.000 tickets.
+   * 
+   * @param results - Array de ReservationResult da RPC
+   * @param newStatus - Novo status dos tickets ('reservado' ou 'comprado')
+   */
+  const updateTicketsLocally = useCallback((results: ReservationResult[], newStatus: 'reservado' | 'comprado') => {
+    if (!results || results.length === 0) {
+      console.warn('⚠️ updateTicketsLocally - No results to update');
+      return;
+    }
+
+    console.log(`🔄 updateTicketsLocally - Updating ${results.length} tickets to status '${newStatus}'`);
+
+    setTickets(prevTickets => {
+      // Se não há tickets carregados, não há nada para atualizar
+      if (prevTickets.length === 0) {
+        console.log('ℹ️ updateTicketsLocally - No tickets loaded, skipping local update');
+        return prevTickets;
+      }
+
+      // Criar um Set com os quota_numbers afetados para busca rápida
+      const affectedQuotaNumbers = new Set(results.map(r => r.quota_number));
+
+      // Atualizar os tickets afetados
+      const updatedTickets = prevTickets.map(ticket => {
+        if (affectedQuotaNumbers.has(ticket.quota_number)) {
+          console.log(`   Updating ticket ${ticket.quota_number}: ${ticket.status} -> ${newStatus}`);
+          return {
+            ...ticket,
+            status: newStatus,
+            is_mine: newStatus === 'reservado' || newStatus === 'comprado' ? true : ticket.is_mine
+          };
+        }
+        return ticket;
+      });
+
+      console.log(`✅ updateTicketsLocally - Successfully updated ${results.length} tickets locally`);
+      return updatedTickets;
+    });
+  }, []);
 
   /**
    * ✅ FUNÇÃO COM BUSCA MULTI-PÁGINAS (SOB DEMANDA)
@@ -154,6 +200,8 @@ export const useTickets = (campaignId: string) => {
   /**
    * Reserva cotas para o usuário atual
    *
+   * ✅ ATUALIZAÇÃO INTELIGENTE: Atualiza o estado local sem recarregar todos os tickets
+   *
    * @param customerData - Dados do cliente (nome, email, telefone)
    * @param totalQuantity - Quantidade total de tickets a reservar
    * @param orderId - ID do pedido gerado no frontend
@@ -187,7 +235,7 @@ export const useTickets = (campaignId: string) => {
     console.log('🔵 Reservation Timestamp:', reservationTimestamp.toISOString());
 
     try {
-      // CRITICAL FIX: Chamar o novo RPC reserve_tickets_by_quantity
+      // Chamar o RPC reserve_tickets_by_quantity
       const { data, error: apiError } = await supabase.rpc('reserve_tickets_by_quantity', {
         p_campaign_id: campaignId,
         p_quantity_to_reserve: totalQuantity,
@@ -222,7 +270,6 @@ export const useTickets = (campaignId: string) => {
         throw error;
       }
 
-      // CRITICAL CHANGE: data agora será um objeto jsonb (que é um array de resultados)
       // O Supabase retorna o JSONB como um array JavaScript diretamente
       const reservedResults: ReservationResult[] = data as ReservationResult[];
 
@@ -235,8 +282,9 @@ export const useTickets = (campaignId: string) => {
 
       console.log(`✅ useTickets.reserveTickets - Successfully reserved ${reservedResults.length} tickets for Order ID: ${orderId}`);
 
-      // ✅ Atualiza o status local após reserva bem-sucedida (carrega todos os tickets)
-      await refetchTickets();
+      // ✅ ATUALIZAÇÃO INTELIGENTE: Atualiza apenas os tickets afetados localmente
+      // Em vez de recarregar todos os 100.000 tickets, mescla os resultados no estado atual
+      updateTicketsLocally(reservedResults, 'reservado');
 
       return { reservationId: orderId, results: reservedResults };
     } catch (error) {
@@ -257,7 +305,7 @@ export const useTickets = (campaignId: string) => {
   /**
    * Finaliza a compra das cotas reservadas
    * 
-   * ✅ CORREÇÃO APLICADA: Lança erros apropriadamente
+   * ✅ ATUALIZAÇÃO INTELIGENTE: Atualiza o estado local sem recarregar todos os tickets
    */
   const finalizePurchase = async (quotaNumbers: number[]): Promise<ReservationResult[] | null> => {
     if (!user || !campaignId || quotaNumbers.length === 0) {
@@ -298,8 +346,11 @@ export const useTickets = (campaignId: string) => {
 
       console.log('✅ useTickets.finalizePurchase - Purchase finalized successfully');
 
-      // ✅ Atualiza o status local após compra bem-sucedida (carrega todos os tickets)
-      await refetchTickets();
+      // ✅ ATUALIZAÇÃO INTELIGENTE: Atualiza apenas os tickets afetados localmente
+      // Em vez de recarregar todos os 100.000 tickets, mescla os resultados no estado atual
+      if (data && data.length > 0) {
+        updateTicketsLocally(data, 'comprado');
+      }
 
       return data;
     } catch (error) {
