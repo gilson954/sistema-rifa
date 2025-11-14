@@ -40,7 +40,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false); // Prevenir chamadas duplicadas
-  const PAGE_SIZE = 200; // Carregar 200 tickets por vez
+  const PAGE_SIZE = 10000; // Carregar 10000 tickets por vez
 
   // 🔍 DEPURAÇÃO: Monitorar mudanças na prop selectedQuotas
   useEffect(() => {
