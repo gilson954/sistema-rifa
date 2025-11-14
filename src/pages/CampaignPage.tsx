@@ -162,14 +162,15 @@ const CampaignPage = () => {
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
 
   // ✅ useTickets é SEMPRE chamado, mesmo se campaign?.id for undefined
-  // NÃO expõe mais refetchTickets - carregamento é sempre granular via updateTicketsLocally
+  // Agora com fetchVisibleTickets para carregamento sob demanda de tickets visíveis
   const {
     tickets,
     loading: ticketsLoading,
     error: ticketsError,
     reserveTickets,
     getAvailableTickets,
-    reserving
+    reserving,
+    fetchVisibleTickets  // ✅ NOVO: Função para carregar tickets visíveis sob demanda
   } = useTickets(campaign?.id || '');
 
   // ✅ useCampaignWinners é SEMPRE chamado, mesmo se campaign?.id for undefined
@@ -1496,6 +1497,8 @@ const CampaignPage = () => {
                   disabled={!isCampaignAvailable}
                   onReserve={handleOpenReservationModal}
                   reserving={reserving}
+                  loading={ticketsLoading}
+                  fetchVisibleTickets={fetchVisibleTickets}
                 />
               </div>
 
