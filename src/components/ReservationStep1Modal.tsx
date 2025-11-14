@@ -606,6 +606,25 @@ const getThemeClasses = (theme: string) => {
               </motion.button>
             </motion.form>
           </motion.div>
+          <style>{`
+  .custom-modal-scrollbar::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .custom-modal-scrollbar::-webkit-scrollbar-track {
+    background: ${theme.scrollbarTrack};
+    border-radius: 5px;
+  }
+
+  .custom-modal-scrollbar::-webkit-scrollbar-thumb {
+    background: ${theme.scrollbarThumb};
+    border-radius: 5px;
+  }
+
+  .custom-modal-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: ${theme.scrollbarThumb}dd;
+  }
+`}</style>
         </motion.div>
       )}
     </AnimatePresence>
