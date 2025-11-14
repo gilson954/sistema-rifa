@@ -43,6 +43,8 @@ export const useTickets = (campaignId: string) => {
    * Esta função "mescla" os resultados de uma reserva ou compra no estado atual dos tickets,
    * evitando a necessidade de recarregar todos os 100.000 tickets.
    * 
+   * ✅ INTELIGENTE: Se o estado estiver vazio, cria novos objetos TicketStatusInfo
+   * 
    * @param results - Array de ReservationResult da RPC
    * @param newStatus - Novo status dos tickets ('reservado' ou 'comprado')
    */
@@ -55,12 +57,28 @@ export const useTickets = (campaignId: string) => {
     console.log(`🔄 updateTicketsLocally - Updating ${results.length} tickets to status '${newStatus}'`);
 
     setTickets(prevTickets => {
-      // Se não há tickets carregados, não há nada para atualizar
+      // ✅ CASO 1: Se não há tickets carregados, criar novos objetos TicketStatusInfo
       if (prevTickets.length === 0) {
-        console.log('ℹ️ updateTicketsLocally - No tickets loaded, skipping local update');
-        return prevTickets;
+        console.log('ℹ️ updateTicketsLocally - No tickets loaded, creating new ticket objects');
+        
+        const newTickets: TicketStatusInfo[] = results.map(result => ({
+          quota_number: result.quota_number,
+          status: newStatus,
+          is_mine: true, // Os tickets reservados/comprados pelo usuário são sempre "meus"
+          campaign_id: campaignId,
+          user_id: user?.id || null,
+          customer_name: result.customer_name || null,
+          customer_email: result.customer_email || null,
+          customer_phone: result.customer_phone || null,
+          reserved_at: result.reserved_at || null,
+          purchased_at: newStatus === 'comprado' ? new Date().toISOString() : null
+        }));
+
+        console.log(`✅ updateTicketsLocally - Created ${newTickets.length} new ticket objects`);
+        return newTickets;
       }
 
+      // ✅ CASO 2: Se há tickets carregados, atualizar os existentes
       // Criar um Set com os quota_numbers afetados para busca rápida
       const affectedQuotaNumbers = new Set(results.map(r => r.quota_number));
 
@@ -71,7 +89,8 @@ export const useTickets = (campaignId: string) => {
           return {
             ...ticket,
             status: newStatus,
-            is_mine: newStatus === 'reservado' || newStatus === 'comprado' ? true : ticket.is_mine
+            is_mine: true, // Marca como "meu" quando reservado/comprado
+            purchased_at: newStatus === 'comprado' ? new Date().toISOString() : ticket.purchased_at
           };
         }
         return ticket;
@@ -80,7 +99,7 @@ export const useTickets = (campaignId: string) => {
       console.log(`✅ updateTicketsLocally - Successfully updated ${results.length} tickets locally`);
       return updatedTickets;
     });
-  }, []);
+  }, [campaignId, user?.id]);
 
   /**
    * ✅ FUNÇÃO COM BUSCA MULTI-PÁGINAS (SOB DEMANDA)
