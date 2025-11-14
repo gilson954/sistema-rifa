@@ -148,6 +148,10 @@ const CampaignPage = () => {
     isCustomDomain ? window.location.hostname : ''
   );
   
+  // ✅ IMPORTANTE: Estes hooks SEMPRE devem ser chamados na mesma ordem
+  // mesmo quando campaign não existe, para evitar o erro:
+  // "Rendered more hooks than during the previous render"
+  
   const campaign = isCustomDomain ? campaignByDomain : campaignByPublicId;
   const loading = isCustomDomain ? loadingByDomain : loadingByPublicId;
   const error = isCustomDomain ? errorByDomain : errorByPublicId;
@@ -157,15 +161,19 @@ const CampaignPage = () => {
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
 
+  // ✅ useTickets é SEMPRE chamado, mesmo se campaign?.id for undefined
+  // Agora com refetchTickets exposto para carregamento sob demanda
   const {
     tickets,
     loading: ticketsLoading,
     error: ticketsError,
     reserveTickets,
     getAvailableTickets,
-    reserving
+    reserving,
+    refetchTickets // ✅ NOVO: Função para carregar tickets sob demanda
   } = useTickets(campaign?.id || '');
 
+  // ✅ useCampaignWinners é SEMPRE chamado, mesmo se campaign?.id for undefined
   const { winners, loading: winnersLoading } = useCampaignWinners(campaign?.id);
 
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
@@ -199,6 +207,18 @@ const CampaignPage = () => {
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
   
   const [direction, setDirection] = useState(1);
+
+  // ✅ NOVO: Carregar tickets sob demanda apenas para modo manual
+  useEffect(() => {
+    // Só carregar tickets se:
+    // 1. A campanha existir
+    // 2. For modo manual (que precisa dos tickets para o QuotaGrid)
+    // 3. Os tickets ainda não foram carregados (tickets.length === 0)
+    if (campaign?.id && campaign.campaign_model === 'manual' && tickets.length === 0 && refetchTickets) {
+      console.log('🔄 CampaignPage: Carregando tickets sob demanda para modo manual');
+      refetchTickets();
+    }
+  }, [campaign?.id, campaign?.campaign_model, tickets.length, refetchTickets]);
 
   // Monitorar mudanças em selectedQuotas
   useEffect(() => {
