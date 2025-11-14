@@ -1,5 +1,5 @@
 // src/components/QuotaGrid.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { TicketStatusInfo } from '../lib/api/tickets';
 
 interface QuotaGridProps {
@@ -21,6 +21,10 @@ interface QuotaGridProps {
   onReserve?: () => void;
   reserving?: boolean;
   disabled?: boolean; // <- when backend says campaign not paid, parent should pass disabled={true}
+  
+  // NOVO: Função para carregar tickets visíveis
+  fetchVisibleTickets: (page: number, pageSize: number) => Promise<void>;
+  loadingTickets: boolean; // NOVO: Estado de loading para tickets da grid
 }
 
 const QuotaGrid: React.FC<QuotaGridProps> = ({
@@ -39,12 +43,44 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   customGradientColors,
   onReserve,
   reserving = false,
-  disabled = false
+  disabled = false,
+  fetchVisibleTickets, // NOVO
+  loadingTickets // NOVO
 }) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const pageSize = 1000; // Tamanho da página para carregar tickets
+
   // 🔍 DEPURAÇÃO: Monitorar mudanças na prop selectedQuotas
   useEffect(() => {
     console.log("🔵 QuotaGrid: Prop 'selectedQuotas' atualizada:", selectedQuotas);
   }, [selectedQuotas]);
+
+  // Carregar a primeira página de tickets na montagem
+  useEffect(() => {
+    if (totalQuotas > 0) {
+      fetchVisibleTickets(1, pageSize);
+    }
+  }, [fetchVisibleTickets, totalQuotas]);
+
+  // Lógica de infinite scroll
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+      // Carregar mais tickets quando o usuário estiver a 200px do final
+      if (scrollTop + clientHeight >= scrollHeight - 200 && !loadingTickets && hasMore) {
+        const nextPage = currentPage + 1;
+        const totalPages = Math.ceil(totalQuotas / pageSize);
+        if (nextPage <= totalPages) {
+          setCurrentPage(nextPage);
+          fetchVisibleTickets(nextPage, pageSize);
+        } else {
+          setHasMore(false);
+        }
+      }
+    }
+  };
 
   const getThemeClasses = (theme: string) => {
     switch (theme) {
@@ -374,6 +410,8 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
             scrollbarWidth: 'thin',
             scrollbarColor: `${getThemeClasses(campaignTheme).scrollbarThumb} ${getThemeClasses(campaignTheme).scrollbarTrack}`
           }}
+          onScroll={handleScroll} // Adicionar onScroll
+          ref={scrollContainerRef} // Adicionar ref
         >
           <div className={`grid ${getGridCols()} gap-1`}>
             {filteredQuotas.map((quotaNumber) => {
@@ -407,6 +445,11 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
                 </button>
               );
             })}
+            {loadingTickets && ( // Mostrar loader se estiver carregando mais tickets
+              <div className="col-span-full text-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin text-gray-500 mx-auto" />
+              </div>
+            )}
           </div>
         </div>
       </div>
