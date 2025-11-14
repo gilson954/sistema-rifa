@@ -67,7 +67,7 @@ const PaymentConfirmationPage = () => {
           textSecondary: 'text-gray-600',
           cardBg: 'bg-white',
           border: 'border-gray-200',
-          inputBg: 'bg-[#bababa]',
+          inputBg: 'bg-[#e0e0e0]',
           idBoxBg: 'bg-gray-100',
           idBoxText: 'text-gray-700',
           stepBg: 'bg-green-500',
