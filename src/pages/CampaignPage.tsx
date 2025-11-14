@@ -1047,7 +1047,7 @@ const CampaignPage = () => {
                   <img
                     src="/logo-chatgpt.png"
                     alt="Rifaqui Logo"
-                    className="w-8 h-8 object-contain"
+                    className="h-10 sm:h-14 w-auto object-contain"
                   />
                   <span className={`ml-2 text-xl font-bold ${themeClasses.rifaquiText}`}>Rifaqui</span>
                 </>
