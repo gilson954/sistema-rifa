@@ -129,7 +129,7 @@ export const useTickets = (campaignId: string) => {
    * 
    * IMPORTANTE: Esta função NÃO é chamada automaticamente em nenhum momento.
    */
-  const refetchTickets = useCallback(async () => {
+  const fetchVisibleTickets = useCallback(async (page: number, pageSize: number) => {
     if (!campaignId) {
       setLoading(false);
       return;
@@ -138,7 +138,7 @@ export const useTickets = (campaignId: string) => {
     setLoading(true);
     setError(null);
 
-    console.log(`📄 useTickets.refetchTickets - Starting multi-page fetch for campaign ${campaignId}...`);
+    console.log(`📄 useTickets.fetchVisibleTickets - Starting multi-page fetch for campaign ${campaignId}...`);
 
     try {
       // Passo 1: Buscar informações da campanha para obter total_tickets
@@ -149,7 +149,7 @@ export const useTickets = (campaignId: string) => {
         .maybeSingle();
 
       if (campaignError) {
-        console.error('❌ useTickets.refetchTickets - Error fetching campaign info:', campaignError);
+        console.error('❌ useTickets.fetchVisibleTickets - Error fetching campaign info:', campaignError);
         setError('Erro ao carregar informações da campanha');
         setTickets([]);
         setLoading(false);
@@ -157,7 +157,7 @@ export const useTickets = (campaignId: string) => {
       }
 
       if (!campaign) {
-        console.warn(`⚠️ useTickets.refetchTickets - Campaign not found: ${campaignId}`);
+        console.warn(`⚠️ useTickets.fetchVisibleTickets - Campaign not found: ${campaignId}`);
         setError('Campanha não encontrada');
         setTickets([]);
         setLoading(false);
@@ -165,48 +165,46 @@ export const useTickets = (campaignId: string) => {
       }
 
       const totalTickets = campaign.total_tickets;
-      const totalPages = Math.ceil(totalTickets / CHUNK_SIZE);
+      const totalPages = Math.ceil(totalTickets / pageSize); // Usar pageSize para calcular totalPages
       
-      console.log(`📊 useTickets.refetchTickets - Campaign has ${totalTickets} tickets`);
-      console.log(`📊 useTickets.refetchTickets - Will fetch ${totalPages} pages of ${CHUNK_SIZE} tickets each`);
+      console.log(`📊 useTickets.fetchVisibleTickets - Campaign has ${totalTickets} tickets`);
+      console.log(`📊 useTickets.fetchVisibleTickets - Will fetch page ${page}/${totalPages} of ${pageSize} tickets each`);
 
       if (totalTickets === 0) {
-        console.log('ℹ️ useTickets.refetchTickets - Campaign has no tickets');
+        console.log('ℹ️ useTickets.fetchVisibleTickets - Campaign has no tickets');
         setTickets([]);
         setLoading(false);
         return;
       }
 
-      // Passo 2: Fazer requisições sequenciais para cada página
-      const allTickets: TicketStatusInfo[] = [];
-      
-      for (let page = 1; page <= totalPages; page++) {
-        console.log(`📄 useTickets.refetchTickets - Fetching page ${page}/${totalPages}...`);
-        
-        const result = await TicketsAPI.getCampaignTicketsStatus(
-          campaignId,
-          user?.id,
-          page,
-          CHUNK_SIZE
-        );
+      // Passo 2: Fazer requisição para a página específica
+      const result = await TicketsAPI.getCampaignTicketsStatus(
+        campaignId,
+        user?.id,
+        page,
+        pageSize
+      );
 
-        if (result.error) {
-          console.error(`❌ useTickets.refetchTickets - Error fetching page ${page}:`, result.error);
-          setError(`Erro ao carregar página ${page} das cotas`);
-          break;
-        }
-
-        if (result.data && result.data.length > 0) {
-          allTickets.push(...result.data);
-          console.log(`✅ useTickets.refetchTickets - Page ${page}/${totalPages} loaded (${result.data.length} tickets)`);
-        }
+      if (result.error) {
+        console.error(`❌ useTickets.fetchVisibleTickets - Error fetching page ${page}:`, result.error);
+        setError(`Erro ao carregar página ${page} das cotas`);
+        setLoading(false);
+        return;
       }
 
-      console.log(`✅ useTickets.refetchTickets - Complete! Loaded ${allTickets.length}/${totalTickets} tickets`);
-      setTickets(allTickets);
+      if (result.data && result.data.length > 0) {
+        setTickets(prev => {
+          const existingQuotaNumbers = new Set(prev.map(t => t.quota_number));
+          const newTickets = result.data.filter(t => !existingQuotaNumbers.has(t.quota_number));
+          return [...prev, ...newTickets];
+        });
+        console.log(`✅ useTickets.fetchVisibleTickets - Page ${page}/${totalPages} loaded (${result.data.length} tickets)`);
+      } else {
+        console.log(`ℹ️ useTickets.fetchVisibleTickets - Page ${page}/${totalPages} returned no new tickets`);
+      }
       
     } catch (error) {
-      console.error('❌ useTickets.refetchTickets - Exception:', error);
+      console.error('❌ useTickets.fetchVisibleTickets - Exception:', error);
       setError('Erro inesperado ao carregar cotas');
       setTickets([]);
     } finally {
@@ -378,7 +376,7 @@ export const useTickets = (campaignId: string) => {
             errorMessage = apiError.message as string;
           }
         } else if (typeof apiError === 'string') {
-          errorMessage = apiError;
+            errorMessage = apiError;
         }
         
         setError(errorMessage);
@@ -501,6 +499,7 @@ export const useTickets = (campaignId: string) => {
 
     // ✅ refetchTickets NÃO é exposto - carregamento completo deve ser evitado
     // Se necessário para casos específicos (como QuotaGrid completo), pode ser adicionado aqui
+    fetchVisibleTickets, // EXPOR A FUNÇÃO AQUI
 
     // Funções de operação
     reserveTickets,
