@@ -208,27 +208,30 @@ const CampaignPage = () => {
   
   const [direction, setDirection] = useState(1);
 
-  // ✅ NOVO: Carregar tickets sob demanda apenas quando a campanha for carregada
-  // e for modo manual (que precisa dos tickets para o QuotaGrid)
+  // ✅ Carregar tickets na montagem do componente (após campanha ser carregada)
+  // Isso garante que o QuotaGrid tenha dados e que updateTicketsLocally funcione
   useEffect(() => {
     // Condições para carregar tickets:
     // 1. A campanha foi carregada (!loading)
     // 2. A campanha existe (campaign?.id)
-    // 3. É modo manual (campaign.campaign_model === 'manual')
-    // 4. Os tickets ainda não foram carregados (tickets.length === 0)
-    // 5. Não está carregando tickets no momento (!ticketsLoading)
-    // 6. A função refetchTickets está disponível
+    // 3. Os tickets ainda não foram carregados (tickets.length === 0)
+    // 4. Não está carregando tickets no momento (!ticketsLoading)
+    // 5. A função refetchTickets está disponível
+    
+    // IMPORTANTE: Agora carrega para AMBOS os modos (manual E automático)
+    // para garantir que updateTicketsLocally sempre funcione
     
     if (!loading && 
         campaign?.id && 
-        campaign.campaign_model === 'manual' && 
         tickets.length === 0 && 
         !ticketsLoading && 
         refetchTickets) {
-      console.log('🔄 CampaignPage: Carregando tickets sob demanda para modo manual');
+      console.log('🔄 CampaignPage: Carregando tickets na montagem');
+      console.log('📊 CampaignPage: Modo:', campaign.campaign_model);
+      console.log('📊 CampaignPage: Total de tickets:', campaign.total_tickets);
       refetchTickets();
     }
-  }, [loading, campaign?.id, campaign?.campaign_model, tickets.length, ticketsLoading, refetchTickets]);
+  }, [loading, campaign?.id, campaign?.campaign_model, campaign?.total_tickets, tickets.length, ticketsLoading, refetchTickets]);
 
   // Monitorar mudanças em selectedQuotas
   useEffect(() => {
