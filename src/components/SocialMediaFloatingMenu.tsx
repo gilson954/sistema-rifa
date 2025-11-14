@@ -27,7 +27,7 @@ interface SocialMediaFloatingMenuProps {
  * Componente de menu flutuante de redes sociais (FAB / Speed Dial)
  * Exibe um botão fixo no canto inferior direito que expande para mostrar links de redes sociais
  * 
- * ✅ CORREÇÃO APLICADA: Todos os Hooks são chamados incondicionalmente no topo do componente
+ * ✅ CORREÇÃO APLICADA: Todos os Hooks são chamados incondicionalmente no topo do componente,
  * para seguir as regras dos Hooks do React e evitar o erro "Rendered more hooks than during the previous render"
  */
 const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
