@@ -73,8 +73,15 @@ const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
     };
   }, [isOpen]);
 
-  // Processar links de redes sociais vindos do organizador
-  const processedSocialMedia: Array<{ platform: string; url: string; label: string; icon: any; color: string }> = [];
+  // ✅ Processar links de redes sociais ANTES do return condicional
+  // mas DEPOIS de todos os Hooks serem declarados
+  const processedSocialMedia: Array<{ 
+    platform: string; 
+    url: string; 
+    label: string; 
+    icon: any; 
+    color: string 
+  }> = [];
 
   // Adicionar WhatsApp de Suporte se disponível
   if (whatsappSupport && whatsappSupport.trim() !== '') {
