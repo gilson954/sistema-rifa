@@ -65,90 +65,100 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
     }
   }, [isOpen]);
 
-  const getThemeClasses = (theme: string) => {
-    switch (theme) {
-      case 'claro':
-        return {
-          background: 'bg-white',
-          text: 'text-gray-900',
-          textSecondary: 'text-gray-700',
-          cardBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
-          border: 'border-gray-200',
-          inputBg: 'bg-white',
-          inputBorder: 'border-gray-300',
-          inputText: 'text-gray-900',
-          inputPlaceholder: 'placeholder-gray-500',
-          labelText: 'text-gray-900',
-          iconColor: 'text-gray-600',
-          hoverBg: 'hover:bg-gray-100',
-          overlayBg: 'bg-gray-900/40'
-        };
-      case 'escuro':
-        return {
-          background: 'bg-slate-900',
-          text: 'text-white',
-          textSecondary: 'text-gray-300',
-          cardBg: 'bg-gradient-to-br from-slate-800 to-slate-900',
-          border: 'border-[#101625]',
-          inputBg: 'bg-slate-800',
-          inputBorder: 'border-gray-700',
-          inputText: 'text-white',
-          inputPlaceholder: 'placeholder-gray-400',
-          labelText: 'text-gray-100',
-          iconColor: 'text-gray-400',
-          hoverBg: 'hover:bg-slate-800',
-          overlayBg: 'bg-black/60'
-        };
-      case 'escuro-preto':
-        return {
-          background: 'bg-gray-900',
-          text: 'text-white',
-          textSecondary: 'text-gray-300',
-          cardBg: 'bg-gradient-to-br from-gray-800 to-gray-900',
-          border: 'border-[#101625]',
-          inputBg: 'bg-gray-800',
-          inputBorder: 'border-gray-700',
-          inputText: 'text-white',
-          inputPlaceholder: 'placeholder-gray-400',
-          labelText: 'text-gray-100',
-          iconColor: 'text-gray-400',
-          hoverBg: 'hover:bg-gray-800',
-          overlayBg: 'bg-black/60'
-        };
-      case 'escuro-cinza':
-        return {
-          background: 'bg-[#1A1A1A]',
-          text: 'text-white',
-          textSecondary: 'text-gray-400',
-          cardBg: 'bg-gradient-to-br from-[#2C2C2C] to-[#1A1A1A]',
-          border: 'border-[#3A3A3A]',
-          inputBg: 'bg-[#2C2C2C]',
-          inputBorder: 'border-[#3A3A3A]',
-          inputText: 'text-white',
-          inputPlaceholder: 'placeholder-gray-400',
-          labelText: 'text-white',
-          iconColor: 'text-gray-400',
-          hoverBg: 'hover:bg-[#3C3C3C]',
-          overlayBg: 'bg-black/60'
-        };
-      default:
-        return {
-          background: 'bg-white',
-          text: 'text-gray-900',
-          textSecondary: 'text-gray-700',
-          cardBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
-          border: 'border-gray-200',
-          inputBg: 'bg-white',
-          inputBorder: 'border-gray-300',
-          inputText: 'text-gray-900',
-          inputPlaceholder: 'placeholder-gray-500',
-          labelText: 'text-gray-900',
-          iconColor: 'text-gray-600',
-          hoverBg: 'hover:bg-gray-100',
-          overlayBg: 'bg-gray-900/40'
-        };
-    }
-  };
+const getThemeClasses = (theme: string) => {
+  switch (theme) {
+    case 'claro':
+      return {
+        background: 'bg-white',
+        text: 'text-gray-900',
+        textSecondary: 'text-gray-700',
+        cardBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
+        border: 'border-gray-200',
+        inputBg: 'bg-white',
+        inputBorder: 'border-gray-300',
+        inputText: 'text-gray-900',
+        inputPlaceholder: 'placeholder-gray-500',
+        labelText: 'text-gray-900',
+        iconColor: 'text-gray-600',
+        hoverBg: 'hover:bg-gray-100',
+        overlayBg: 'bg-gray-900/40',
+        scrollbarTrack: '#d4d6d9',
+        scrollbarThumb: '#9ca3af'
+      };
+    case 'escuro':
+      return {
+        background: 'bg-slate-900',
+        text: 'text-white',
+        textSecondary: 'text-gray-300',
+        cardBg: 'bg-gradient-to-br from-slate-800 to-slate-900',
+        border: 'border-[#101625]',
+        inputBg: 'bg-slate-800',
+        inputBorder: 'border-gray-700',
+        inputText: 'text-white',
+        inputPlaceholder: 'placeholder-gray-400',
+        labelText: 'text-gray-100',
+        iconColor: 'text-gray-400',
+        hoverBg: 'hover:bg-slate-800',
+        overlayBg: 'bg-black/60',
+        scrollbarTrack: '#0a0d12',
+        scrollbarThumb: '#4b5563'
+      };
+    case 'escuro-preto':
+      return {
+        background: 'bg-gray-900',
+        text: 'text-white',
+        textSecondary: 'text-gray-300',
+        cardBg: 'bg-gradient-to-br from-gray-800 to-gray-900',
+        border: 'border-[#101625]',
+        inputBg: 'bg-gray-800',
+        inputBorder: 'border-gray-700',
+        inputText: 'text-white',
+        inputPlaceholder: 'placeholder-gray-400',
+        labelText: 'text-gray-100',
+        iconColor: 'text-gray-400',
+        hoverBg: 'hover:bg-gray-800',
+        overlayBg: 'bg-black/60',
+        scrollbarTrack: '#0a0d12',
+        scrollbarThumb: '#374151'
+      };
+    case 'escuro-cinza':
+      return {
+        background: 'bg-[#1A1A1A]',
+        text: 'text-white',
+        textSecondary: 'text-gray-400',
+        cardBg: 'bg-gradient-to-br from-[#2C2C2C] to-[#1A1A1A]',
+        border: 'border-[#3A3A3A]',
+        inputBg: 'bg-[#2C2C2C]',
+        inputBorder: 'border-[#3A3A3A]',
+        inputText: 'text-white',
+        inputPlaceholder: 'placeholder-gray-400',
+        labelText: 'text-white',
+        iconColor: 'text-gray-400',
+        hoverBg: 'hover:bg-[#3C3C3C]',
+        overlayBg: 'bg-black/60',
+        scrollbarTrack: '#0f0f0f',
+        scrollbarThumb: '#404040'
+      };
+    default:
+      return {
+        background: 'bg-white',
+        text: 'text-gray-900',
+        textSecondary: 'text-gray-700',
+        cardBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
+        border: 'border-gray-200',
+        inputBg: 'bg-white',
+        inputBorder: 'border-gray-300',
+        inputText: 'text-gray-900',
+        inputPlaceholder: 'placeholder-gray-500',
+        labelText: 'text-gray-900',
+        iconColor: 'text-gray-600',
+        hoverBg: 'hover:bg-gray-100',
+        overlayBg: 'bg-gray-900/40',
+        scrollbarTrack: '#e5e7eb',
+        scrollbarThumb: '#9ca3af'
+      };
+  }
+};
 
   const getCustomGradientStyle = () => {
     if (!customGradientColors) return {};
