@@ -140,7 +140,7 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
         itemTextPrimary: 'text-white',
         itemTextSecondary: 'text-gray-400',
         labelText: 'text-white',
-        scrollbarTrack: '#0f0f0f',
+        scrollbarTrack: '#1a1a1a',
         scrollbarThumb: '#404040'
       };
     }
