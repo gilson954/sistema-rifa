@@ -1,5 +1,5 @@
 // src/components/QuotaGrid.tsx
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect } from 'react';
 import { TicketStatusInfo } from '../lib/api/tickets';
 
 interface QuotaGridProps {
@@ -16,15 +16,6 @@ interface QuotaGridProps {
   colorMode?: string;
   gradientClasses?: string;
   customGradientColors?: string;
-
-  // ADIÇÃO: props para controlar o botão RESERVAR AGORA
-  onReserve?: () => void;
-  reserving?: boolean;
-  disabled?: boolean; // <- when backend says campaign not paid, parent should pass disabled={true}
-  
-  // NOVO: Função para carregar tickets visíveis
-  fetchVisibleTickets: (page: number, pageSize: number) => Promise<void>;
-  loadingTickets: boolean; // NOVO: Estado de loading para tickets da grid
 }
 
 const QuotaGrid: React.FC<QuotaGridProps> = ({
@@ -40,47 +31,12 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   primaryColor,
   colorMode = 'solid',
   gradientClasses,
-  customGradientColors,
-  onReserve,
-  reserving = false,
-  disabled = false,
-  fetchVisibleTickets, // NOVO
-  loadingTickets // NOVO
+  customGradientColors
 }) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const pageSize = 1000; // Tamanho da página para carregar tickets
-
   // 🔍 DEPURAÇÃO: Monitorar mudanças na prop selectedQuotas
   useEffect(() => {
     console.log("🔵 QuotaGrid: Prop 'selectedQuotas' atualizada:", selectedQuotas);
   }, [selectedQuotas]);
-
-  // Carregar a primeira página de tickets na montagem
-  useEffect(() => {
-    if (totalQuotas > 0) {
-      fetchVisibleTickets(1, pageSize);
-    }
-  }, [fetchVisibleTickets, totalQuotas]);
-
-  // Lógica de infinite scroll
-  const handleScroll = () => {
-    if (scrollContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-      // Carregar mais tickets quando o usuário estiver a 200px do final
-      if (scrollTop + clientHeight >= scrollHeight - 200 && !loadingTickets && hasMore) {
-        const nextPage = currentPage + 1;
-        const totalPages = Math.ceil(totalQuotas / pageSize);
-        if (nextPage <= totalPages) {
-          setCurrentPage(nextPage);
-          fetchVisibleTickets(nextPage, pageSize);
-        } else {
-          setHasMore(false);
-        }
-      }
-    }
-  };
 
   const getThemeClasses = (theme: string) => {
     switch (theme) {
@@ -410,8 +366,6 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
             scrollbarWidth: 'thin',
             scrollbarColor: `${getThemeClasses(campaignTheme).scrollbarThumb} ${getThemeClasses(campaignTheme).scrollbarTrack}`
           }}
-          onScroll={handleScroll} // Adicionar onScroll
-          ref={scrollContainerRef} // Adicionar ref
         >
           <div className={`grid ${getGridCols()} gap-1`}>
             {filteredQuotas.map((quotaNumber) => {
@@ -445,55 +399,9 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
                 </button>
               );
             })}
-            {loadingTickets && ( // Mostrar loader se estiver carregando mais tickets
-              <div className="col-span-full text-center py-4">
-                <Loader2 className="h-6 w-6 animate-spin text-gray-500 mx-auto" />
-              </div>
-            )}
           </div>
         </div>
       </div>
-
-      {/* ====== ADIÇÃO: Botão RESERVAR AGORA controlado pelo prop "disabled" enviada pelo backend/pai ====== */}
-      <div className="mt-4">
-        <button
-          onClick={onReserve}
-          disabled={reserving || disabled || !onReserve}
-          className={getColorClassName(`
-            relative overflow-hidden
-            w-full py-3 rounded-lg 
-            font-black text-base tracking-wide
-            transition-all duration-300 
-            shadow-lg hover:shadow-xl
-            disabled:opacity-50 disabled:cursor-not-allowed 
-            text-white
-            hover:scale-[1.02] active:scale-[0.98]
-            before:absolute before:inset-0 before:bg-white/0 hover:before:bg-white/10
-            before:transition-all before:duration-300
-          `)}
-          style={getColorStyle()}
-        >
-          <span className="relative z-10 flex items-center justify-center gap-2">
-            {reserving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                RESERVANDO...
-              </>
-            ) : disabled ? (
-              'INDISPONÍVEL'
-            ) : (
-              <>
-                RESERVAR AGORA
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </>
-            )}
-          </span>
-        </button>
-      </div>
-
-      {/* ====== fim botão ====== */}
 
       {/* ✅ Scrollbar customizada com CSS inline */}
       <style dangerouslySetInnerHTML={{__html: `
