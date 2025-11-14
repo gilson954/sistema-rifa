@@ -1,5 +1,5 @@
 // src/components/QuotaGrid.tsx
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { TicketStatusInfo } from '../lib/api/tickets';
 
 interface QuotaGridProps {
@@ -16,15 +16,7 @@ interface QuotaGridProps {
   colorMode?: string;
   gradientClasses?: string;
   customGradientColors?: string;
-
-  // ADIÇÃO: props para controlar o botão RESERVAR AGORA
-  onReserve?: () => void;
-  reserving?: boolean;
-  disabled?: boolean; // <- when backend says campaign not paid, parent should pass disabled={true}
-  
-  // NOVO: Função para carregar tickets visíveis
-  fetchVisibleTickets: (page: number, pageSize: number) => Promise<void>;
-  loadingTickets: boolean; // NOVO: Estado de loading para tickets da grid
+  fetchVisibleTickets: (offset: number, limit: number) => Promise<void>;
 }
 
 const QuotaGrid: React.FC<QuotaGridProps> = ({
@@ -41,46 +33,19 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   colorMode = 'solid',
   gradientClasses,
   customGradientColors,
-  onReserve,
-  reserving = false,
-  disabled = false,
-  fetchVisibleTickets, // NOVO
-  loadingTickets // NOVO
+  fetchVisibleTickets
 }) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const pageSize = 1000; // Tamanho da página para carregar tickets
+  // Estado para controle de paginação
+  const [loadedPages, setLoadedPages] = useState<Set<number>>(new Set());
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef(false); // Prevenir chamadas duplicadas
+  const PAGE_SIZE = 200; // Carregar 200 tickets por vez
 
   // 🔍 DEPURAÇÃO: Monitorar mudanças na prop selectedQuotas
   useEffect(() => {
     console.log("🔵 QuotaGrid: Prop 'selectedQuotas' atualizada:", selectedQuotas);
   }, [selectedQuotas]);
-
-  // Carregar a primeira página de tickets na montagem
-  useEffect(() => {
-    if (totalQuotas > 0) {
-      fetchVisibleTickets(1, pageSize);
-    }
-  }, [fetchVisibleTickets, totalQuotas]);
-
-  // Lógica de infinite scroll
-  const handleScroll = () => {
-    if (scrollContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-      // Carregar mais tickets quando o usuário estiver a 200px do final
-      if (scrollTop + clientHeight >= scrollHeight - 200 && !loadingTickets && hasMore) {
-        const nextPage = currentPage + 1;
-        const totalPages = Math.ceil(totalQuotas / pageSize);
-        if (nextPage <= totalPages) {
-          setCurrentPage(nextPage);
-          fetchVisibleTickets(nextPage, pageSize);
-        } else {
-          setHasMore(false);
-        }
-      }
-    }
-  };
 
   const getThemeClasses = (theme: string) => {
     switch (theme) {
@@ -304,6 +269,130 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     };
   };
 
+  // 🚀 NOVA FUNCIONALIDADE: Carregar página de tickets com offset/limit corretos
+  const loadTicketsPage = useCallback(async (page: number) => {
+    // Prevenir carregamento duplicado
+    if (loadedPages.has(page) || loadingRef.current) {
+      console.log(`⚠️ QuotaGrid: Página ${page} já está carregada ou em carregamento`);
+      return;
+    }
+
+    // Calcular offset e limit corretos
+    const offset = page * PAGE_SIZE;
+    const limit = PAGE_SIZE;
+
+    // Validar se está dentro dos limites
+    if (offset >= totalQuotas) {
+      console.log(`⚠️ QuotaGrid: Offset ${offset} excede totalQuotas ${totalQuotas}`);
+      return;
+    }
+
+    console.log(`🔵 QuotaGrid: Carregando página ${page} (offset: ${offset}, limit: ${limit})`);
+    
+    loadingRef.current = true;
+    setIsLoading(true);
+    setLoadedPages(prev => new Set(prev).add(page));
+
+    try {
+      await fetchVisibleTickets(offset, limit);
+      console.log(`✅ QuotaGrid: Página ${page} carregada com sucesso`);
+    } catch (error) {
+      console.error(`❌ QuotaGrid: Erro ao carregar página ${page}:`, error);
+      // Remove do cache em caso de erro para permitir retry
+      setLoadedPages(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(page);
+        return newSet;
+      });
+    } finally {
+      loadingRef.current = false;
+      setIsLoading(false);
+    }
+  }, [fetchVisibleTickets, loadedPages, totalQuotas, PAGE_SIZE]);
+
+  // 🚀 NOVA FUNCIONALIDADE: Detectar scroll e carregar páginas conforme necessário
+  const handleScroll = useCallback(() => {
+    if (!scrollRef.current || loadingRef.current) return;
+
+    const container = scrollRef.current;
+    const scrollTop = container.scrollTop;
+    const containerHeight = container.clientHeight;
+
+    // Calcular quantos itens cabem na viewport
+    const itemHeight = 44; // altura aproximada de cada item (40px + gap)
+    const itemsPerRow = 20; // baseado no grid-cols-20
+    const rowsVisible = Math.ceil(containerHeight / itemHeight);
+    const itemsVisible = rowsVisible * itemsPerRow;
+
+    // Calcular índice do primeiro item visível
+    const firstVisibleRow = Math.floor(scrollTop / itemHeight);
+    const firstVisibleIndex = firstVisibleRow * itemsPerRow;
+
+    // Calcular página atual e páginas adjacentes
+    const currentPage = Math.floor(firstVisibleIndex / PAGE_SIZE);
+    const lastVisibleIndex = firstVisibleIndex + itemsVisible;
+    const lastPage = Math.floor(lastVisibleIndex / PAGE_SIZE);
+
+    // Carregar página atual e uma página antes/depois (buffer)
+    const pagesToLoad = new Set<number>();
+    const startPage = Math.max(0, currentPage - 1);
+    const endPage = Math.min(Math.ceil(totalQuotas / PAGE_SIZE) - 1, lastPage + 1);
+
+    for (let page = startPage; page <= endPage; page++) {
+      if (!loadedPages.has(page)) {
+        pagesToLoad.add(page);
+      }
+    }
+
+    // Carregar páginas em sequência
+    if (pagesToLoad.size > 0) {
+      console.log(`🔵 QuotaGrid: Páginas a carregar:`, Array.from(pagesToLoad));
+      Array.from(pagesToLoad).forEach(page => {
+        loadTicketsPage(page);
+      });
+    }
+  }, [loadedPages, totalQuotas, PAGE_SIZE, loadTicketsPage]);
+
+  // 🚀 NOVA FUNCIONALIDADE: Carregar primeira página ao montar
+  useEffect(() => {
+    if (totalQuotas > 0) {
+      console.log('🔵 QuotaGrid: Componente montado, carregando primeira página');
+      loadTicketsPage(0);
+    }
+  }, [totalQuotas]); // Apenas quando totalQuotas muda
+
+  // 🚀 NOVA FUNCIONALIDADE: Adicionar listener de scroll
+  useEffect(() => {
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+
+    // Debounce do scroll para evitar muitas chamadas
+    let scrollTimeout: NodeJS.Timeout;
+    const debouncedScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        handleScroll();
+      }, 150);
+    };
+
+    scrollContainer.addEventListener('scroll', debouncedScroll);
+
+    // Cleanup
+    return () => {
+      clearTimeout(scrollTimeout);
+      scrollContainer.removeEventListener('scroll', debouncedScroll);
+    };
+  }, [handleScroll]);
+
+  // 🚀 NOVA FUNCIONALIDADE: Limpar cache ao mudar de filtro
+  useEffect(() => {
+    console.log('🔵 QuotaGrid: Filtro alterado para:', activeFilter);
+    // Não limpar o cache, apenas recarregar a primeira página se necessário
+    if (totalQuotas > 0 && !loadedPages.has(0)) {
+      loadTicketsPage(0);
+    }
+  }, [activeFilter]);
+
   const filteredQuotas = getFilteredQuotas();
   const filterCounts = getFilterCounts();
 
@@ -394,24 +483,33 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         </div>
       </div>
 
-      {/* ✅ Quota Grid com Scroll SEMPRE VISÍVEL */}
+      {/* ✅ Quota Grid com Scroll SEMPRE VISÍVEL e Paginação */}
       <div 
-        className={`${getThemeClasses(campaignTheme).cardBg} rounded-lg`}
+        className={`${getThemeClasses(campaignTheme).cardBg} rounded-lg relative`}
         style={{ 
           maxHeight: '660px', 
           height: '660px',
           overflow: 'hidden'
         }}
       >
+        {/* Loading Indicator */}
+        {isLoading && (
+          <div className="absolute top-2 right-2 z-10">
+            <div className="flex items-center gap-2 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full">
+              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-xs text-white">Carregando...</span>
+            </div>
+          </div>
+        )}
+
         <div 
+          ref={scrollRef}
           className="p-4 overflow-y-scroll"
           style={{ 
             height: '100%',
             scrollbarWidth: 'thin',
             scrollbarColor: `${getThemeClasses(campaignTheme).scrollbarThumb} ${getThemeClasses(campaignTheme).scrollbarTrack}`
           }}
-          onScroll={handleScroll} // Adicionar onScroll
-          ref={scrollContainerRef} // Adicionar ref
         >
           <div className={`grid ${getGridCols()} gap-1`}>
             {filteredQuotas.map((quotaNumber) => {
@@ -445,55 +543,9 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
                 </button>
               );
             })}
-            {loadingTickets && ( // Mostrar loader se estiver carregando mais tickets
-              <div className="col-span-full text-center py-4">
-                <Loader2 className="h-6 w-6 animate-spin text-gray-500 mx-auto" />
-              </div>
-            )}
           </div>
         </div>
       </div>
-
-      {/* ====== ADIÇÃO: Botão RESERVAR AGORA controlado pelo prop "disabled" enviada pelo backend/pai ====== */}
-      <div className="mt-4">
-        <button
-          onClick={onReserve}
-          disabled={reserving || disabled || !onReserve}
-          className={getColorClassName(`
-            relative overflow-hidden
-            w-full py-3 rounded-lg 
-            font-black text-base tracking-wide
-            transition-all duration-300 
-            shadow-lg hover:shadow-xl
-            disabled:opacity-50 disabled:cursor-not-allowed 
-            text-white
-            hover:scale-[1.02] active:scale-[0.98]
-            before:absolute before:inset-0 before:bg-white/0 hover:before:bg-white/10
-            before:transition-all before:duration-300
-          `)}
-          style={getColorStyle()}
-        >
-          <span className="relative z-10 flex items-center justify-center gap-2">
-            {reserving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                RESERVANDO...
-              </>
-            ) : disabled ? (
-              'INDISPONÍVEL'
-            ) : (
-              <>
-                RESERVAR AGORA
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </>
-            )}
-          </span>
-        </button>
-      </div>
-
-      {/* ====== fim botão ====== */}
 
       {/* ✅ Scrollbar customizada com CSS inline */}
       <style dangerouslySetInnerHTML={{__html: `
