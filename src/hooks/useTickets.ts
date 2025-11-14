@@ -71,9 +71,6 @@ export const useTickets = (campaignId: string) => {
         prevTickets.map(ticket => [ticket.quota_number, ticket])
       );
 
-      // Criar um Set com os quota_numbers dos resultados
-      const resultQuotaNumbers = new Set(results.map(r => r.quota_number));
-
       // Array para novos tickets (que não existem no estado atual)
       const newTickets: TicketStatusInfo[] = [];
 
@@ -88,13 +85,13 @@ export const useTickets = (campaignId: string) => {
             quota_number: result.quota_number,
             status: newStatus,
             is_mine: true,
-            campaign_id: campaignId,
-            user_id: user?.id || null,
+            campaign_id: campaignId, // Adicionar campaign_id
+            user_id: user?.id || null, // Adicionar user_id
             customer_name: result.customer_name || null,
             customer_email: result.customer_email || null,
             customer_phone: result.customer_phone || null,
             reserved_at: result.reserved_at || null,
-            purchased_at: newStatus === 'comprado' ? new Date().toISOString() : null
+            bought_at: newStatus === 'comprado' ? new Date().toISOString() : null // Usar bought_at
           });
         } else {
           // ✅ Ticket existe → Atualizar no Map
@@ -103,7 +100,7 @@ export const useTickets = (campaignId: string) => {
             ...existingTicket,
             status: newStatus,
             is_mine: true,
-            purchased_at: newStatus === 'comprado' ? new Date().toISOString() : existingTicket.purchased_at
+            bought_at: newStatus === 'comprado' ? new Date().toISOString() : existingTicket.bought_at
           });
         }
       });
@@ -266,7 +263,7 @@ export const useTickets = (campaignId: string) => {
         // Chamar RPC para este lote
         const { data, error: apiError } = await supabase.rpc('reserve_tickets_by_quantity', {
           p_campaign_id: campaignId,
-          p_quantity_to_reserve: batchQuantity,
+          p_quantity_to_reserve: batchQuantity, // Passar a quantidade do lote
           p_user_id: user?.id || null,
           p_customer_name: customerData.name,
           p_customer_email: customerData.email,
