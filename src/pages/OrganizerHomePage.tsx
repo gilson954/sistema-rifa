@@ -74,12 +74,10 @@ const OrganizerHomePage: React.FC = () => {
     loadOrganizerData();
   }, [userId]);
 
-  // useEffect para atualizar o favicon dinamicamente
   useEffect(() => {
     const faviconLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
     
     if (organizerProfile?.logo_url) {
-      // Se há logo do organizador, usar ele
       if (faviconLink) {
         faviconLink.href = organizerProfile.logo_url;
       } else {
@@ -89,13 +87,11 @@ const OrganizerHomePage: React.FC = () => {
         document.head.appendChild(newFavicon);
       }
     } else {
-      // Se não há logo do organizador, restaurar o padrão
       if (faviconLink) {
         faviconLink.href = '/logo-chatgpt.png';
       }
     }
 
-    // Cleanup: restaurar favicon padrão ao desmontar
     return () => {
       const favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
       if (favicon) {
@@ -104,12 +100,9 @@ const OrganizerHomePage: React.FC = () => {
     };
   }, [organizerProfile]);
 
-  // useEffect para atualizar o título da página dinamicamente
   useEffect(() => {
-    // Sempre exibir apenas "Campanhas"
     document.title = 'Campanhas';
 
-    // Cleanup: restaurar título padrão quando o componente desmontar
     return () => {
       document.title = 'Rifaqui';
     };
@@ -405,7 +398,68 @@ const OrganizerHomePage: React.FC = () => {
               Mais Campanhas
             </h2>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5 mb-8">
+            {/* Layout Mobile (até sm) - Cards em coluna única */}
+            <div className="sm:hidden space-y-4 mb-8">
+              {paginatedCampaigns.map((campaign, index) => (
+                <motion.div
+                  key={campaign.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  whileHover={{ 
+                    scale: 1.02,
+                    transition: { duration: 0.2 }
+                  }}
+                  onClick={() => handleCampaignClick(campaign.public_id)}
+                  className={`${themeClasses.cardBg} rounded-xl border ${themeClasses.border} overflow-hidden cursor-pointer ${
+                    organizerTheme === 'claro'
+                      ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
+                      : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
+                  } hover:shadow-[0_15px_45px_-10px_rgba(0,0,0,0.3),0_8px_22px_-6px_rgba(0,0,0,0.2)] transition-all duration-300`}
+                >
+                  <div className="flex gap-4">
+                    <div className="relative w-32 h-32 flex-shrink-0 overflow-hidden">
+                      <motion.img
+                        src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=600'}
+                        alt={campaign.title}
+                        className="w-full h-full object-cover"
+                        whileHover={{ scale: 1.1 }}
+                        transition={{ duration: 0.4 }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/10" />
+                    </div>
+
+                    <div className="flex-1 py-3 pr-4 flex flex-col justify-between">
+                      <div>
+                        <h3 className={`text-sm font-bold ${themeClasses.text} mb-2 line-clamp-2 leading-snug`}>
+                          {campaign.title}
+                        </h3>
+                        <div className="flex items-baseline gap-1 mb-3">
+                          <span className={`text-xl font-bold ${themeClasses.text}`}>
+                            {formatCurrency(campaign.ticket_price)}
+                          </span>
+                          <span className={`text-xs ${themeClasses.textSecondary}`}>
+                            /cota
+                          </span>
+                        </div>
+                      </div>
+
+                      <motion.button
+                        className={getColorClassName("w-full px-4 py-2 rounded-lg font-bold text-sm text-white shadow-md pointer-events-none")}
+                        style={getColorStyle(true)}
+                        animate={{ opacity: [1, 0, 1] }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                      >
+                        {campaign.status === 'active' ? 'Adquira Já!' : 'Concluída'}
+                      </motion.button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Layout Desktop (sm e acima) - Grid responsivo */}
+            <div className="hidden sm:grid sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 mb-8">
               {paginatedCampaigns.map((campaign, index) => (
                 <motion.div
                   key={campaign.id}
@@ -424,7 +478,7 @@ const OrganizerHomePage: React.FC = () => {
                       : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
                   } hover:shadow-[0_15px_45px_-10px_rgba(0,0,0,0.3),0_8px_22px_-6px_rgba(0,0,0,0.2)] transition-all duration-300`}
                 >
-                  <div className="relative h-32 sm:h-40 lg:h-44 overflow-hidden">
+                  <div className="relative h-40 lg:h-44 overflow-hidden">
                     <motion.img
                       src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=600'}
                       alt={campaign.title}
@@ -435,19 +489,19 @@ const OrganizerHomePage: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent" />
                   </div>
 
-                  <div className="p-3 sm:p-4">
-                    <h3 className={`text-xs sm:text-sm font-bold ${themeClasses.text} mb-2 text-center line-clamp-2 min-h-[32px] sm:min-h-[36px] leading-tight`}>
+                  <div className="p-4">
+                    <h3 className={`text-sm font-bold ${themeClasses.text} mb-2 text-center line-clamp-2 min-h-[36px] leading-tight`}>
                       {campaign.title}
                     </h3>
 
                     <div className="flex items-center justify-center mb-3">
-                      <span className={`text-base sm:text-lg lg:text-xl font-bold ${themeClasses.text}`}>
+                      <span className={`text-lg lg:text-xl font-bold ${themeClasses.text}`}>
                         {formatCurrency(campaign.ticket_price)}
                       </span>
                     </div>
 
                     <motion.button
-                      className={getColorClassName("w-full px-3 py-2 rounded-lg font-bold text-xs sm:text-sm text-white shadow-md pointer-events-none")}
+                      className={getColorClassName("w-full px-3 py-2 rounded-lg font-bold text-sm text-white shadow-md pointer-events-none")}
                       style={getColorStyle(true)}
                       animate={{ opacity: [1, 0, 1] }}
                       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -504,7 +558,6 @@ const OrganizerHomePage: React.FC = () => {
         )}
       </main>
 
-      {/* Botão Flutuante de Redes Sociais */}
       <SocialMediaFloatingMenu
         socialMediaLinks={organizerProfile?.social_media_links}
         whatsappSupport={organizerProfile?.payment_integrations_config?.whatsapp_number}
