@@ -579,7 +579,7 @@ const PaymentConfirmationPage = () => {
                     {reservationData.selectedQuotas.map((quota, index) => (
                       <span
                         key={index}
-                        className="inline-flex items-center justify-center px-3 py-1.5 bg-red-500 text-white text-sm font-bold rounded-lg opacity-60"
+                        className="inline-flex items-center justify-center px-2 py-1 sm:px-3 sm:py-1.5 bg-red-500 text-white text-xs sm:text-sm font-bold rounded-lg opacity-60"
                       >
                         {formatQuotaNumber(quota)}
                       </span>
@@ -888,7 +888,7 @@ const PaymentConfirmationPage = () => {
                   {reservationData.selectedQuotas.map((quota, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center justify-center px-3 py-1.5 bg-green-500 text-white text-sm font-bold rounded-lg"
+                      className="inline-flex items-center justify-center px-2 py-1 sm:px-3 sm:py-1.5 bg-green-500 text-white text-xs sm:text-sm font-bold rounded-lg"
                     >
                       {formatQuotaNumber(quota)}
                     </span>
