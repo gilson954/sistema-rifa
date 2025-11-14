@@ -67,7 +67,7 @@ const PaymentConfirmationPage = () => {
           textSecondary: 'text-gray-600',
           cardBg: 'bg-white',
           border: 'border-gray-200',
-          inputBg: 'bg-[#e0e0e0]',
+          inputBg: 'bg-gray-50',
           idBoxBg: 'bg-gray-100',
           idBoxText: 'text-gray-700',
           stepBg: 'bg-green-500',
@@ -445,21 +445,21 @@ const PaymentConfirmationPage = () => {
             transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <div className={`bg-red-50 dark:bg-red-900/20 border-2 border-red-500 rounded-2xl p-6 ${
+            <div className={`bg-red-50 dark:bg-red-900/20 border-2 border-red-500 rounded-xl sm:rounded-2xl p-3 sm:p-6 ${
               campaignTheme === 'claro' 
                 ? 'shadow-[0_8px_30px_-8px_rgba(239,68,68,0.3),0_4px_15px_-4px_rgba(239,68,68,0.2)]'
                 : 'shadow-[0_8px_30px_-8px_rgba(239,68,68,0.6),0_4px_15px_-4px_rgba(239,68,68,0.4)]'
             }`}>
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-red-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Timer className="h-7 w-7 text-white" />
+              <div className="flex items-center gap-2.5 sm:gap-4">
+                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-red-500 rounded-lg sm:rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                  <Timer className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
                 </div>
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-base sm:text-xl md:text-2xl font-bold text-red-600 dark:text-red-400 leading-tight">
                     Pedido cancelado!
                   </h2>
-                  <p className="text-sm text-red-600 dark:text-red-400">
-                    O prazo para pagamento do seu pedido expirou.
+                  <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-0.5">
+                    O prazo para pagamento expirou.
                   </p>
                 </div>
               </div>
@@ -652,30 +652,30 @@ const PaymentConfirmationPage = () => {
           transition={{ duration: 0.5 }}
           className="mb-8"
         >
-          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border-2 border-yellow-500 ${
+          <div className={`${themeClasses.cardBg} rounded-xl sm:rounded-2xl p-3 sm:p-6 border-2 border-yellow-500 ${
             campaignTheme === 'claro' 
               ? 'shadow-[0_8px_30px_-8px_rgba(234,179,8,0.3),0_4px_15px_-4px_rgba(234,179,8,0.2)]'
               : 'shadow-[0_8px_30px_-8px_rgba(234,179,8,0.6),0_4px_15px_-4px_rgba(234,179,8,0.4)]'
           }`}>
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <CheckCircle className="h-7 w-7 text-white" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+              <div className="flex items-center gap-2.5 sm:gap-4 w-full sm:w-auto">
+                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg sm:rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                  <CheckCircle className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
                 </div>
-                <div>
-                  <h2 className={`text-xl sm:text-2xl font-bold ${themeClasses.text}`}>
+                <div className="flex-1 min-w-0">
+                  <h2 className={`text-base sm:text-xl md:text-2xl font-bold ${themeClasses.text} leading-tight`}>
                     Aguardando Confirmação!
                   </h2>
-                  <p className={`text-sm ${themeClasses.textSecondary}`}>
-                    Complete o pagamento para garantir seus números
+                  <p className={`text-xs sm:text-sm ${themeClasses.textSecondary} mt-0.5`}>
+                    Complete o pagamento
                   </p>
                 </div>
               </div>
-              <div className="text-center">
-                <div className={`text-sm ${themeClasses.textSecondary} mb-1`}>
+              <div className="text-center w-full sm:w-auto bg-yellow-50 dark:bg-yellow-900/10 rounded-lg p-2 sm:p-0 sm:bg-transparent">
+                <div className={`text-xs sm:text-sm ${themeClasses.textSecondary} mb-0.5 sm:mb-1`}>
                   Tempo restante
                 </div>
-                <div className={`text-3xl sm:text-4xl font-bold ${timeRemaining === 'Expirado' ? 'text-red-600 dark:text-red-400' : timeRemaining.includes('m') && !timeRemaining.includes('d') && !timeRemaining.includes('h') && parseInt(timeRemaining.split(':')[0]) < 5 ? 'text-red-600 dark:text-red-400 animate-pulse' : 'text-orange-600 dark:text-orange-400'}`}>
+                <div className={`text-xl sm:text-3xl md:text-4xl font-bold ${timeRemaining === 'Expirado' ? 'text-red-600 dark:text-red-400' : timeRemaining.includes('m') && !timeRemaining.includes('d') && !timeRemaining.includes('h') && parseInt(timeRemaining.split(':')[0]) < 5 ? 'text-red-600 dark:text-red-400 animate-pulse' : 'text-orange-600 dark:text-orange-400'}`}>
                   {timeRemaining}
                 </div>
                 <div className={`text-xs ${themeClasses.textSecondary}`}>
