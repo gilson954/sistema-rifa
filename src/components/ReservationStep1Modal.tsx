@@ -389,9 +389,7 @@ const getThemeClasses = (theme: string) => {
                 campaignTheme === 'escuro-preto' ? '#111827' :
                 campaignTheme === 'escuro-cinza' ? '#1A1A1A' : '#ffffff',
               scrollbarColor: `${theme.scrollbarThumb} ${theme.scrollbarTrack}`
-                }}
-            variants={modalVariants}
-            
+            }}
             variants={modalVariants}
             initial="hidden"
             animate="visible"
