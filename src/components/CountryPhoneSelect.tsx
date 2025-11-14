@@ -12,10 +12,10 @@ interface CountryPhoneSelectProps {
   selectedCountry: Country;
   onCountryChange: (country: Country) => void;
   phoneNumber: string;
-  onPhoneChange: (phone: string) => void; // Agora sempre retorna número bruto (somente dígitos)
+  onPhoneChange: (phone: string) => void;
   placeholder?: string;
   error?: string;
-  theme?: 'claro' | 'escuro' | 'escuro-preto';
+  theme?: 'claro' | 'escuro' | 'escuro-preto' | 'escuro-cinza';
 }
 
 const countries: Country[] = [
@@ -75,111 +75,121 @@ const CountryPhoneSelect: React.FC<CountryPhoneSelectProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-const getThemeClasses = () => {
-  if (!theme) {
-    return {
-      buttonBg: 'bg-white dark:bg-gray-800',
-      buttonBorder: 'border-gray-300 dark:border-gray-700',
-      buttonHoverBorder: 'hover:border-blue-400 dark:hover:border-blue-500',
-      buttonText: 'text-gray-900 dark:text-white',
-      iconColor: 'text-gray-400 dark:text-gray-300',
-      dropdownBg: 'bg-white dark:bg-gray-800',
-      dropdownBorder: 'border-gray-200 dark:border-gray-700',
-      inputBg: 'bg-gray-50 dark:bg-gray-700',
-      inputBorder: 'border-gray-300 dark:border-gray-700',
-      inputText: 'text-gray-900 dark:text-white',
-      inputPlaceholder: 'placeholder-gray-400 dark:placeholder-gray-400',
-      itemHover: 'hover:bg-gray-50 dark:hover:bg-gray-700',
-      itemSelected: 'bg-blue-50 dark:bg-blue-900/20',
-      itemTextPrimary: 'text-gray-900 dark:text-white',
-      itemTextSecondary: 'text-gray-500 dark:text-gray-400',
-      labelText: 'text-gray-900 dark:text-gray-100'
-    };
-  }
+  const getThemeClasses = () => {
+    if (!theme) {
+      return {
+        buttonBg: 'bg-white dark:bg-gray-800',
+        buttonBorder: 'border-gray-300 dark:border-gray-700',
+        buttonHoverBorder: 'hover:border-blue-400 dark:hover:border-blue-500',
+        buttonText: 'text-gray-900 dark:text-white',
+        iconColor: 'text-gray-400 dark:text-gray-300',
+        dropdownBg: 'bg-white dark:bg-gray-800',
+        dropdownBorder: 'border-gray-200 dark:border-gray-700',
+        inputBg: 'bg-gray-50 dark:bg-gray-700',
+        inputBorder: 'border-gray-300 dark:border-gray-700',
+        inputText: 'text-gray-900 dark:text-white',
+        inputPlaceholder: 'placeholder-gray-400 dark:placeholder-gray-400',
+        itemHover: 'hover:bg-gray-50 dark:hover:bg-gray-700',
+        itemSelected: 'bg-blue-50 dark:bg-blue-900/20',
+        itemTextPrimary: 'text-gray-900 dark:text-white',
+        itemTextSecondary: 'text-gray-500 dark:text-gray-400',
+        labelText: 'text-gray-900 dark:text-gray-100',
+        scrollbarTrack: '#e5e7eb',
+        scrollbarThumb: '#9ca3af'
+      };
+    }
 
-  if (theme === 'claro') {
-    return {
-      buttonBg: 'bg-white',
-      buttonBorder: 'border-gray-200',
-      buttonHoverBorder: 'hover:border-blue-400',
-      buttonText: 'text-gray-900',
-      iconColor: 'text-gray-400',
-      dropdownBg: 'bg-white',
-      dropdownBorder: 'border-gray-200',
-      inputBg: 'bg-gray-50',
-      inputBorder: 'border-gray-200',
-      inputText: 'text-gray-900',
-      inputPlaceholder: 'placeholder-gray-400',
-      itemHover: 'hover:bg-gray-50',
-      itemSelected: 'bg-blue-50',
-      itemTextPrimary: 'text-gray-900',
-      itemTextSecondary: 'text-gray-500',
-      labelText: 'text-gray-900'
-    };
-  }
+    if (theme === 'claro') {
+      return {
+        buttonBg: 'bg-white',
+        buttonBorder: 'border-gray-200',
+        buttonHoverBorder: 'hover:border-blue-400',
+        buttonText: 'text-gray-900',
+        iconColor: 'text-gray-400',
+        dropdownBg: 'bg-white',
+        dropdownBorder: 'border-gray-200',
+        inputBg: 'bg-gray-50',
+        inputBorder: 'border-gray-200',
+        inputText: 'text-gray-900',
+        inputPlaceholder: 'placeholder-gray-400',
+        itemHover: 'hover:bg-gray-50',
+        itemSelected: 'bg-blue-50',
+        itemTextPrimary: 'text-gray-900',
+        itemTextSecondary: 'text-gray-500',
+        labelText: 'text-gray-900',
+        scrollbarTrack: '#d4d6d9',
+        scrollbarThumb: '#9ca3af'
+      };
+    }
 
-  if (theme === 'escuro-cinza') {
-    return {
-      buttonBg: 'bg-[#2C2C2C]',
-      buttonBorder: 'border-[#3A3A3A]',
-      buttonHoverBorder: 'hover:border-gray-500',
-      buttonText: 'text-white',
-      iconColor: 'text-gray-300',
-      dropdownBg: 'bg-[#2C2C2C]',
-      dropdownBorder: 'border-[#3A3A3A]',
-      inputBg: 'bg-[#1A1A1A]',
-      inputBorder: 'border-[#3A3A3A]',
-      inputText: 'text-white',
-      inputPlaceholder: 'placeholder-gray-400',
-      itemHover: 'hover:bg-[#3A3A3A]',
-      itemSelected: 'bg-[#3A3A3A]',
-      itemTextPrimary: 'text-white',
-      itemTextSecondary: 'text-gray-400',
-      labelText: 'text-white'
-    };
-  }
+    if (theme === 'escuro-cinza') {
+      return {
+        buttonBg: 'bg-[#2C2C2C]',
+        buttonBorder: 'border-[#3A3A3A]',
+        buttonHoverBorder: 'hover:border-gray-500',
+        buttonText: 'text-white',
+        iconColor: 'text-gray-300',
+        dropdownBg: 'bg-[#2C2C2C]',
+        dropdownBorder: 'border-[#3A3A3A]',
+        inputBg: 'bg-[#1A1A1A]',
+        inputBorder: 'border-[#3A3A3A]',
+        inputText: 'text-white',
+        inputPlaceholder: 'placeholder-gray-400',
+        itemHover: 'hover:bg-[#3A3A3A]',
+        itemSelected: 'bg-[#3A3A3A]',
+        itemTextPrimary: 'text-white',
+        itemTextSecondary: 'text-gray-400',
+        labelText: 'text-white',
+        scrollbarTrack: '#0f0f0f',
+        scrollbarThumb: '#404040'
+      };
+    }
 
-  if (theme === 'escuro-preto') {
+    if (theme === 'escuro-preto') {
+      return {
+        buttonBg: 'bg-gray-900',
+        buttonBorder: 'border-gray-700',
+        buttonHoverBorder: 'hover:border-gray-600',
+        buttonText: 'text-white',
+        iconColor: 'text-gray-300',
+        dropdownBg: 'bg-gray-900',
+        dropdownBorder: 'border-gray-700',
+        inputBg: 'bg-black',
+        inputBorder: 'border-gray-700',
+        inputText: 'text-white',
+        inputPlaceholder: 'placeholder-gray-400',
+        itemHover: 'hover:bg-gray-800',
+        itemSelected: 'bg-gray-800',
+        itemTextPrimary: 'text-white',
+        itemTextSecondary: 'text-gray-400',
+        labelText: 'text-white',
+        scrollbarTrack: '#0a0d12',
+        scrollbarThumb: '#374151'
+      };
+    }
+
+    // tema 'escuro' (padrão escuro)
     return {
-      buttonBg: 'bg-gray-900',
+      buttonBg: 'bg-slate-800',
       buttonBorder: 'border-gray-700',
       buttonHoverBorder: 'hover:border-gray-600',
       buttonText: 'text-white',
       iconColor: 'text-gray-300',
-      dropdownBg: 'bg-gray-900',
+      dropdownBg: 'bg-slate-800',
       dropdownBorder: 'border-gray-700',
-      inputBg: 'bg-black',
+      inputBg: 'bg-slate-900',
       inputBorder: 'border-gray-700',
       inputText: 'text-white',
       inputPlaceholder: 'placeholder-gray-400',
-      itemHover: 'hover:bg-gray-800',
-      itemSelected: 'bg-gray-800',
+      itemHover: 'hover:bg-slate-700',
+      itemSelected: 'bg-slate-700',
       itemTextPrimary: 'text-white',
       itemTextSecondary: 'text-gray-400',
-      labelText: 'text-white'
+      labelText: 'text-white',
+      scrollbarTrack: '#0a0d12',
+      scrollbarThumb: '#4b5563'
     };
-  }
-
-  // tema 'escuro' (padrão escuro)
-  return {
-    buttonBg: 'bg-slate-800',
-    buttonBorder: 'border-gray-700',
-    buttonHoverBorder: 'hover:border-gray-600',
-    buttonText: 'text-white',
-    iconColor: 'text-gray-300',
-    dropdownBg: 'bg-slate-800',
-    dropdownBorder: 'border-gray-700',
-    inputBg: 'bg-slate-900',
-    inputBorder: 'border-gray-700',
-    inputText: 'text-white',
-    inputPlaceholder: 'placeholder-gray-400',
-    itemHover: 'hover:bg-slate-700',
-    itemSelected: 'bg-slate-700',
-    itemTextPrimary: 'text-white',
-    itemTextSecondary: 'text-gray-400',
-    labelText: 'text-white'
   };
-};
 
   const themeClasses = getThemeClasses();
 
@@ -213,7 +223,6 @@ const getThemeClasses = () => {
     setSearchTerm('');
   };
 
-  // Função para formatar o número apenas para visualização no input
   const formatPhoneNumberForDisplay = (value: string, countryCode: string) => {
     const numbers = value.replace(/\D/g, '');
     
@@ -243,10 +252,8 @@ const getThemeClasses = () => {
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Extrai apenas os dígitos do input
     const rawNumbers = e.target.value.replace(/\D/g, '');
     
-    // Aplica os limites de caracteres de acordo com o país
     let limitedNumbers = rawNumbers;
     if (selectedCountry.code === 'BR') {
       limitedNumbers = rawNumbers.slice(0, 11);
@@ -256,17 +263,13 @@ const getThemeClasses = () => {
       limitedNumbers = rawNumbers.slice(0, 15);
     }
     
-    // CRÍTICO: onPhoneChange agora sempre recebe o número BRUTO (somente dígitos)
-    // O componente pai deve combinar com selectedCountry.dialCode antes de normalizar
     onPhoneChange(limitedNumbers);
   };
 
-  // Valor exibido no input é formatado para melhor UX
   const displayValue = formatPhoneNumberForDisplay(phoneNumber, selectedCountry.code);
 
   return (
     <div className="relative" ref={dropdownRef}>
-      
       <div className="flex space-x-2">
         {/* Country Selector */}
         <div className="relative">
@@ -318,9 +321,10 @@ const getThemeClasses = () => {
 
               {/* Countries List */}
               <div
-                className={`max-h-72 overflow-y-auto ${
-                  theme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
-                }`}
+                className="max-h-72 overflow-y-auto custom-scrollbar"
+                style={{
+                  scrollbarColor: `${themeClasses.scrollbarThumb} ${themeClasses.scrollbarTrack}`
+                }}
               >
                 {filteredCountries.map((country) => (
                   <button
@@ -391,6 +395,24 @@ const getThemeClasses = () => {
             opacity: 1;
             transform: translateY(0);
           }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: ${themeClasses.scrollbarTrack};
+          border-radius: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: ${themeClasses.scrollbarThumb};
+          border-radius: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: ${themeClasses.scrollbarThumb}dd;
         }
       `}</style>
     </div>
