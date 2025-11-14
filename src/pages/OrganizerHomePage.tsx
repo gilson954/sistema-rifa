@@ -398,7 +398,7 @@ const OrganizerHomePage: React.FC = () => {
               Mais Campanhas
             </h2>
 
-            {/* Layout Mobile (até sm) - Cards em coluna única */}
+            {/* Layout Mobile (até sm) - Cards em coluna única com layout horizontal */}
             <div className="sm:hidden space-y-4 mb-8">
               {paginatedCampaigns.map((campaign, index) => (
                 <motion.div
@@ -418,6 +418,7 @@ const OrganizerHomePage: React.FC = () => {
                   } hover:shadow-[0_15px_45px_-10px_rgba(0,0,0,0.3),0_8px_22px_-6px_rgba(0,0,0,0.2)] transition-all duration-300`}
                 >
                   <div className="flex gap-4">
+                    {/* Imagem à esquerda */}
                     <div className="relative w-32 h-32 flex-shrink-0 overflow-hidden">
                       <motion.img
                         src={campaign.prize_image_urls?.[0] || 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=600'}
@@ -429,17 +430,15 @@ const OrganizerHomePage: React.FC = () => {
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/10" />
                     </div>
 
+                    {/* Conteúdo à direita */}
                     <div className="flex-1 py-3 pr-4 flex flex-col justify-between">
                       <div>
                         <h3 className={`text-sm font-bold ${themeClasses.text} mb-2 line-clamp-2 leading-snug`}>
                           {campaign.title}
                         </h3>
-                        <div className="flex items-baseline gap-1 mb-3">
+                        <div className="mb-3">
                           <span className={`text-xl font-bold ${themeClasses.text}`}>
                             {formatCurrency(campaign.ticket_price)}
-                          </span>
-                          <span className={`text-xs ${themeClasses.textSecondary}`}>
-                            /cota
                           </span>
                         </div>
                       </div>
