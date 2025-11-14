@@ -148,6 +148,10 @@ const CampaignPage = () => {
     isCustomDomain ? window.location.hostname : ''
   );
   
+  // ✅ IMPORTANTE: Estes hooks SEMPRE devem ser chamados na mesma ordem
+  // mesmo quando campaign não existe, para evitar o erro:
+  // "Rendered more hooks than during the previous render"
+  
   const campaign = isCustomDomain ? campaignByDomain : campaignByPublicId;
   const loading = isCustomDomain ? loadingByDomain : loadingByPublicId;
   const error = isCustomDomain ? errorByDomain : errorByPublicId;
@@ -157,6 +161,8 @@ const CampaignPage = () => {
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
 
+  // ✅ useTickets é SEMPRE chamado, mesmo se campaign?.id for undefined
+  // Nesse caso, passa uma string vazia que é tratada dentro do hook
   const {
     tickets,
     loading: ticketsLoading,
@@ -166,6 +172,7 @@ const CampaignPage = () => {
     reserving
   } = useTickets(campaign?.id || '');
 
+  // ✅ useCampaignWinners é SEMPRE chamado, mesmo se campaign?.id for undefined
   const { winners, loading: winnersLoading } = useCampaignWinners(campaign?.id);
 
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
