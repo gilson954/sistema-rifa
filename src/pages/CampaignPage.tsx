@@ -208,17 +208,27 @@ const CampaignPage = () => {
   
   const [direction, setDirection] = useState(1);
 
-  // ✅ NOVO: Carregar tickets sob demanda apenas para modo manual
+  // ✅ NOVO: Carregar tickets sob demanda apenas quando a campanha for carregada
+  // e for modo manual (que precisa dos tickets para o QuotaGrid)
   useEffect(() => {
-    // Só carregar tickets se:
-    // 1. A campanha existir
-    // 2. For modo manual (que precisa dos tickets para o QuotaGrid)
-    // 3. Os tickets ainda não foram carregados (tickets.length === 0)
-    if (campaign?.id && campaign.campaign_model === 'manual' && tickets.length === 0 && refetchTickets) {
+    // Condições para carregar tickets:
+    // 1. A campanha foi carregada (!loading)
+    // 2. A campanha existe (campaign?.id)
+    // 3. É modo manual (campaign.campaign_model === 'manual')
+    // 4. Os tickets ainda não foram carregados (tickets.length === 0)
+    // 5. Não está carregando tickets no momento (!ticketsLoading)
+    // 6. A função refetchTickets está disponível
+    
+    if (!loading && 
+        campaign?.id && 
+        campaign.campaign_model === 'manual' && 
+        tickets.length === 0 && 
+        !ticketsLoading && 
+        refetchTickets) {
       console.log('🔄 CampaignPage: Carregando tickets sob demanda para modo manual');
       refetchTickets();
     }
-  }, [campaign?.id, campaign?.campaign_model, tickets.length, refetchTickets]);
+  }, [loading, campaign?.id, campaign?.campaign_model, tickets.length, ticketsLoading, refetchTickets]);
 
   // Monitorar mudanças em selectedQuotas
   useEffect(() => {
