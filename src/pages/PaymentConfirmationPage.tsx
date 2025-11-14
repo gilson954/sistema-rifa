@@ -353,6 +353,41 @@ const PaymentConfirmationPage = () => {
     return () => clearInterval(interval);
   }, [reservationData?.expiresAt]);
 
+  useEffect(() => {
+    const styleId = 'quota-scrollbar-style';
+    let styleElement = document.getElementById(styleId) as HTMLStyleElement;
+    
+    if (!styleElement) {
+      styleElement = document.createElement('style');
+      styleElement.id = styleId;
+      document.head.appendChild(styleElement);
+    }
+
+    styleElement.textContent = `
+      .quota-scroll-container::-webkit-scrollbar {
+        width: 8px;
+      }
+      .quota-scroll-container::-webkit-scrollbar-track {
+        background: ${themeClasses.scrollbarTrack};
+        border-radius: 4px;
+      }
+      .quota-scroll-container::-webkit-scrollbar-thumb {
+        background: ${themeClasses.scrollbarThumb};
+        border-radius: 4px;
+      }
+      .quota-scroll-container::-webkit-scrollbar-thumb:hover {
+        opacity: 0.8;
+      }
+    `;
+
+    return () => {
+      const element = document.getElementById(styleId);
+      if (element) {
+        element.remove();
+      }
+    };
+  }, [themeClasses.scrollbarTrack, themeClasses.scrollbarThumb]);
+
   const handleCopyPixKey = async () => {
     const reservationIdClean = reservationData?.reservationId.replace(/-/g, '') || 'mock-key';
     const pixKey = `00020126580014br.gov.bcb.pix0136${reservationIdClean}5204000053039865802BR5925RIFAQUI PAGAMENTOS LTDA6009SAO PAULO62070503***6304ABCD`;
@@ -534,7 +569,13 @@ const PaymentConfirmationPage = () => {
                   <p className={`text-sm font-medium ${themeClasses.text} mb-3`}>
                     Números que estavam reservados:
                   </p>
-                  <div className="flex flex-wrap gap-2 mb-3">
+                  <div 
+                    className="quota-scroll-container flex flex-wrap gap-2 mb-3 max-h-[420px] overflow-y-auto pr-2"
+                    style={{
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: `${themeClasses.scrollbarThumb} ${themeClasses.scrollbarTrack}`
+                    }}
+                  >
                     {reservationData.selectedQuotas.map((quota, index) => (
                       <span
                         key={index}
@@ -838,29 +879,12 @@ const PaymentConfirmationPage = () => {
                   ✓ Números reservados com sucesso
                 </p>
                 <div 
-                  className="flex flex-wrap gap-2 mb-3 max-h-[420px] overflow-y-auto pr-2"
+                  className="quota-scroll-container flex flex-wrap gap-2 mb-3 max-h-[420px] overflow-y-auto pr-2"
                   style={{
                     scrollbarWidth: 'thin',
                     scrollbarColor: `${themeClasses.scrollbarThumb} ${themeClasses.scrollbarTrack}`
                   }}
                 >
-                  <style>{`
-                    div::-webkit-scrollbar {
-                      width: 8px;
-                    }
-                    div::-webkit-scrollbar-track {
-                      background: ${themeClasses.scrollbarTrack};
-                      border-radius: 4px;
-                    }
-                    div::-webkit-scrollbar-thumb {
-                      background: ${themeClasses.scrollbarThumb};
-                      border-radius: 4px;
-                    }
-                    div::-webkit-scrollbar-thumb:hover {
-                      background: ${themeClasses.scrollbarThumb};
-                      opacity: 0.8;
-                    }
-                  `}</style>
                   {reservationData.selectedQuotas.map((quota, index) => (
                     <span
                       key={index}
