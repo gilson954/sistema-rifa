@@ -1,7 +1,7 @@
 // src/components/QuotaGrid.tsx
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect } from 'react';
 import { TicketStatusInfo } from '../lib/api/tickets';
-import { Loader2 } from 'lucide-react'; // Importar Loader2
+import { Loader2 } from 'lucide-react';
 
 interface QuotaGridProps {
   totalQuotas: number;
@@ -17,15 +17,9 @@ interface QuotaGridProps {
   colorMode?: string;
   gradientClasses?: string;
   customGradientColors?: string;
-
-  // ADIÇÃO: props para controlar o botão RESERVAR AGORA
-  onReserve?: () => void;
-  reserving?: boolean;
-  disabled?: boolean; // <- when backend says campaign not paid, parent should pass disabled={true}
   
-  // ✅ CORREÇÃO: loadAllTicketsForManualMode e loadingTickets são passados para o modo manual
   loadAllTicketsForManualMode: (totalTickets: number) => Promise<void>;
-  loadingTickets: boolean; // NOVO: Estado de loading para tickets da grid
+  loadingTickets: boolean;
 }
 
 const QuotaGrid: React.FC<QuotaGridProps> = ({
@@ -42,32 +36,12 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   colorMode = 'solid',
   gradientClasses,
   customGradientColors,
-  onReserve,
-  reserving = false,
-  disabled = false,
-  loadAllTicketsForManualMode, // NOVO
-  loadingTickets // NOVO
+  loadAllTicketsForManualMode,
+  loadingTickets
 }) => {
-  // ✅ CORREÇÃO: Remover estados e refs de paginação, pois o modo manual carrega tudo.
-  // const scrollContainerRef = useRef<HTMLDivElement>(null);
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const [hasMore, setHasMore] = useState(true);
-  // const pageSize = 1000; // Tamanho da página para carregar tickets
-
-  // 🔍 DEPURAÇÃO: Monitorar mudanças na prop selectedQuotas
   useEffect(() => {
     console.log("🔵 QuotaGrid: Prop 'selectedQuotas' atualizada:", selectedQuotas);
   }, [selectedQuotas]);
-
-  // ✅ CORREÇÃO: Lógica de carregamento inicial removida, pois o modo manual carrega tudo no useTickets.
-  // useEffect(() => {
-  //   if (totalQuotas > 0) {
-  //     fetchVisibleTickets(1, pageSize);
-  //   }
-  // }, [fetchVisibleTickets, totalQuotas]);
-
-  // ✅ CORREÇÃO: Lógica de infinite scroll removida, pois o modo manual carrega tudo.
-  // const handleScroll = () => { ... };
 
   const getThemeClasses = (theme: string) => {
     switch (theme) {
@@ -124,7 +98,6 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     }
   };
 
-  // ✅ CORREÇÃO: quotaNumber é o número real (0 a N-1) tanto no frontend quanto no backend
   const getQuotaStatus = (quotaNumber: number) => {
     const ticket = tickets.find(t => t.quota_number === quotaNumber);
     
@@ -136,7 +109,6 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     return 'available';
   };
 
-  // Função para gerar gradiente customizado
   const getCustomGradientStyle = (customColorsJson: string) => {
     try {
       const colors = JSON.parse(customColorsJson);
@@ -153,10 +125,8 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     return null;
   };
 
-  // Função para obter style para cor ou gradiente
   const getColorStyle = () => {
     if (colorMode === 'gradient') {
-      // Gradiente customizado
       if (gradientClasses === 'custom' && customGradientColors) {
         const gradientStyle = getCustomGradientStyle(customGradientColors);
         if (gradientStyle) {
@@ -166,21 +136,16 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
           };
         }
       }
-      // Gradiente predefinido - retorna vazio, usará className
       return {};
     }
-    // Cor sólida
     return { backgroundColor: primaryColor || '#3B82F6' };
   };
 
-  // Função para obter className para gradientes
   const getColorClassName = (baseClasses: string = '') => {
     if (colorMode === 'gradient') {
-      // Gradiente customizado
       if (gradientClasses === 'custom' && customGradientColors) {
         return `${baseClasses} animate-gradient-x bg-[length:200%_200%]`;
       }
-      // Gradiente predefinido
       if (gradientClasses && gradientClasses !== 'custom') {
         return `${baseClasses} bg-gradient-to-r ${gradientClasses} animate-gradient-x bg-[length:200%_200%]`;
       }
@@ -203,50 +168,43 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     }
   };
 
-  // ✅ CORREÇÃO: quotaNumber é o número real (0 a N-1), envia direto para o backend
   const handleQuotaClick = (quotaNumber: number) => {
     const status = getQuotaStatus(quotaNumber);
     
     console.log(`🔵 QuotaGrid: Clicado na cota ${quotaNumber}. Modo: ${mode}, Status: ${status}`);
     
-    // Impedir clique em cotas reservadas ou compradas
     if (status === 'reserved' || status === 'purchased') {
       console.log(`⚠️ QuotaGrid: Cota ${quotaNumber} não clicável - status: ${status}`);
       return;
     }
     
-    // ✅ SEMPRE chamar onQuotaSelect para modo manual com status válido
     if (mode === 'manual' && (status === 'available' || status === 'selected')) {
       console.log(`✅ QuotaGrid: Chamando onQuotaSelect com: ${quotaNumber}`);
-      onQuotaSelect(quotaNumber); // 👈 envia o número real (0 a N-1) direto para o backend
+      onQuotaSelect(quotaNumber);
     } else {
       console.log(`⚠️ QuotaGrid: Cota ${quotaNumber} não processada. Modo: ${mode}, Status: ${status}`);
     }
   };
 
-  // Calculate grid columns based on total quotas for optimal display
   const getGridCols = () => {
     return 'grid-cols-10 sm:grid-cols-15 md:grid-cols-20';
   };
 
-  // ✅ Calculate padding length based on maximum 0-indexed ticket number (totalQuotas - 1)
   const getPadLength = () => {
     if (totalQuotas === 0) return 1;
-    const maxDisplayNumber = totalQuotas - 1; // Maximum 0-indexed number
+    const maxDisplayNumber = totalQuotas - 1;
     const calculatedLength = String(maxDisplayNumber).length;
     console.log(`🔵 getPadLength: totalQuotas=${totalQuotas}, maxDisplayNumber=${maxDisplayNumber}, padLength=${calculatedLength}`);
     return calculatedLength;
   };
 
-  // ✅ Format quota number with proper padding (0-indexed, no subtraction needed)
   const formatQuotaNumber = (quotaNumber: number): string => {
     const padLength = getPadLength();
     return quotaNumber.toString().padStart(padLength, '0');
   };
 
-  // ✅ CORREÇÃO: Gerar cotas de 0 a N-1 (números reais no sistema)
   const getFilteredQuotas = () => {
-    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index); // 👈 [0, 1, 2, ..., N-1]
+    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index);
     
     switch (activeFilter) {
       case 'available':
@@ -275,7 +233,6 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     }
   };
 
-  // Calcular contadores para os filtros
   const getFilterCounts = () => {
     const availableCount = tickets.filter(t => t.status === 'disponível').length;
     const reservedCount = tickets.filter(t => t.status === 'reservado').length;
@@ -381,7 +338,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         </div>
       </div>
 
-      {/* ✅ Quota Grid com Scroll SEMPRE VISÍVEL */}
+      {/* Quota Grid */}
       <div 
         className={`${getThemeClasses(campaignTheme).cardBg} rounded-lg`}
         style={{ 
@@ -397,17 +354,12 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
             scrollbarWidth: 'thin',
             scrollbarColor: `${getThemeClasses(campaignTheme).scrollbarThumb} ${getThemeClasses(campaignTheme).scrollbarTrack}`
           }}
-          // ✅ CORREÇÃO: onScroll removido para modo manual, pois todos os tickets são carregados de uma vez.
-          // onScroll={handleScroll} 
-          // ref={scrollContainerRef} 
         >
           <div className={`grid ${getGridCols()} gap-1`}>
             {filteredQuotas.map((quotaNumber) => {
               const status = getQuotaStatus(quotaNumber);
               const quotaStyles = getQuotaStyles(status);
               const isSelected = status === 'selected';
-              
-              // ✅ Display 0-indexed quota number directly (no subtraction)
               const displayNumber = formatQuotaNumber(quotaNumber);
               
               return (
@@ -433,7 +385,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
                 </button>
               );
             })}
-            {loadingTickets && ( // Mostrar loader se estiver carregando mais tickets
+            {loadingTickets && (
               <div className="col-span-full text-center py-4">
                 <Loader2 className="h-6 w-6 animate-spin text-gray-500 mx-auto" />
               </div>
@@ -442,46 +394,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         </div>
       </div>
 
-      {/* ====== ADIÇÃO: Botão RESERVAR AGORA controlado pelo prop "disabled" enviada pelo backend/pai ====== */}
-      <div className="mt-4">
-        <button
-          onClick={onReserve}
-          disabled={reserving || disabled || !onReserve}
-          className={getColorClassName(`
-            relative overflow-hidden
-            w-full py-3 rounded-lg 
-            font-black text-base tracking-wide
-            transition-all duration-300 
-            shadow-lg hover:shadow-xl
-            disabled:opacity-50 disabled:cursor-not-allowed 
-            text-white
-            hover:scale-[1.02] active:scale-[0.98]
-            before:absolute before:inset-0 before:bg-white/0 hover:before:bg-white/10
-            before:transition-all before:duration-300
-          `)}
-          style={getColorStyle()}
-        >
-          <span className="relative z-10 flex items-center justify-center gap-2">
-            {reserving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                RESERVANDO...
-              </>
-            ) : disabled ? (
-              'INDISPONÍVEL'
-            ) : (
-              <>
-                RESERVAR AGORA
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </>
-            )}
-          </span>
-        </button>
-      </div>
-
-      {/* ✅ Scrollbar customizada com CSS inline */}
+      {/* Scrollbar customizada */}
       <style dangerouslySetInnerHTML={{__html: `
         .overflow-y-scroll::-webkit-scrollbar {
           width: 12px;
