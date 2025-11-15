@@ -1,3 +1,4 @@
+// src/lib/api/tickets.ts
 import { supabase } from '../supabase';
 
 export interface Ticket {
@@ -24,8 +25,9 @@ export interface TicketStatusInfo {
 export interface PaginatedTicketsResponse {
   data: TicketStatusInfo[] | null;
   total: number;
-  offset: number;
-  limit: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
   error: any;
 }
 
@@ -33,6 +35,10 @@ export interface ReservationResult {
   quota_number: number;
   status: string;
   message: string;
+  customer_name?: string; // Adicionado para consistência
+  customer_email?: string; // Adicionado para consistência
+  customer_phone?: string; // Adicionado para consistência
+  reserved_at?: string; // Adicionado para consistência
 }
 
 export interface CustomerTicket {
@@ -114,39 +120,37 @@ export const formatPhoneNumber = (phoneNumber: string): string => {
 
 export class TicketsAPI {
   /**
-   * ✨ FUNÇÃO PRINCIPAL COM PAGINAÇÃO (VERIFICADA E OTIMIZADA - FASE 1)
+   * ✨ FUNÇÃO PRINCIPAL COM PAGINAÇÃO (CORRIGIDA)
    * 
-   * Busca o status dos tickets de uma campanha com paginação em blocos de até 1000 tickets.
-   * Esta função é otimizada para ser chamada múltiplas vezes pelo useTickets.ts
-   * para carregar todos os tickets de campanhas em modo manual (até 10.000 cotas).
+   * Busca o status dos tickets de uma campanha com paginação.
+   * Esta função é otimizada para buscar blocos específicos de tickets,
+   * respeitando o limite de 1000 linhas do PostgREST.
    * 
-   * ✅ ESTRATÉGIA DE CARREGAMENTO:
-   * - Modo Manual: O useTickets.ts chama esta função em loop, incrementando o offset
-   *   em blocos de 1000, até carregar todos os tickets da campanha
-   * - Modo Automático: Não usa esta função (usa QuotaSelector)
+   * ✅ CORREÇÃO APLICADA: Agora utiliza corretamente p_offset e p_limit
+   * para garantir que a paginação funcione conforme esperado.
    * 
-   * ✅ CORREÇÃO APLICADA: Aceita p_offset e p_limit diretamente, sem cálculos internos.
-   * O hook useTickets.ts é responsável por calcular o offset correto para cada bloco.
+   * IMPORTANTE: Para campanhas com mais de 1000 tickets, esta função deve
+   * ser chamada múltiplas vezes com diferentes valores de page.
+   * O hook useTickets.ts implementa essa lógica multi-páginas automaticamente.
    * 
    * @param campaignId - ID da campanha
-   * @param userId - ID do usuário (opcional, para marcar tickets como "is_mine")
-   * @param offset - Número de tickets a pular (p_offset) - ex: 0, 1000, 2000...
-   * @param limit - Quantidade máxima de tickets a retornar (p_limit) - padrão 1000
+   * @param userId - ID do usuário (opcional)
+   * @param p_offset - Offset para a paginação (0 para a primeira página)
+   * @param p_limit - Quantidade máxima de tickets a retornar
    * @returns Objeto com dados paginados e metadados de paginação
    * 
    * @example
-   * // Carregar todos os tickets de uma campanha com 5000 tickets:
-   * const batch1 = await getCampaignTicketsStatus('campaign-id', 'user-id', 0, 1000);    // tickets 1-1000
-   * const batch2 = await getCampaignTicketsStatus('campaign-id', 'user-id', 1000, 1000); // tickets 1001-2000
-   * const batch3 = await getCampaignTicketsStatus('campaign-id', 'user-id', 2000, 1000); // tickets 2001-3000
-   * const batch4 = await getCampaignTicketsStatus('campaign-id', 'user-id', 3000, 1000); // tickets 3001-4000
-   * const batch5 = await getCampaignTicketsStatus('campaign-id', 'user-id', 4000, 1000); // tickets 4001-5000
+   * // Buscar primeira página (tickets 1-1000)
+   * const result1 = await getCampaignTicketsStatus('campaign-id', 'user-id', 0, 1000);
+   * 
+   * // Buscar segunda página (tickets 1001-2000)
+   * const result2 = await getCampaignTicketsStatus('campaign-id', 'user-id', 1000, 1000);
    */
   static async getCampaignTicketsStatus(
     campaignId: string,
-    userId: string | undefined,
-    offset: number = 0,
-    limit: number = 1000
+    userId?: string,
+    p_offset: number = 0, // ✅ CORRIGIDO: Agora é p_offset
+    p_limit: number = 1000 // ✅ CORRIGIDO: Agora é p_limit
   ): Promise<PaginatedTicketsResponse> {
     try {
       // Busca informações da campanha para obter o total de tickets
@@ -161,8 +165,9 @@ export class TicketsAPI {
         return {
           data: null,
           total: 0,
-          offset,
-          limit,
+          page: p_offset / p_limit + 1, // Calcular page para resposta
+          pageSize: p_limit,
+          totalPages: 0,
           error: campaignError
         };
       }
@@ -172,26 +177,23 @@ export class TicketsAPI {
         return {
           data: null,
           total: 0,
-          offset,
-          limit,
+          page: p_offset / p_limit + 1, // Calcular page para resposta
+          pageSize: p_limit,
+          totalPages: 0,
           error: new Error('Campaign not found')
         };
       }
 
       const totalTickets = campaign.total_tickets;
-
-      // ✅ VALIDAÇÃO: Garantir que offset e limit sejam válidos
-      const validOffset = Math.max(0, Math.min(offset, totalTickets));
-      const validLimit = Math.max(1, Math.min(limit, 1000)); // Máximo de 1000 por questões do PostgREST
-
-      console.log(`📄 TicketsAPI.getCampaignTicketsStatus - Fetching tickets`);
+      const totalPages = Math.ceil(totalTickets / p_limit);
+      
+      // ✅ CORRIGIDO: Não recalcular offset. Usar p_offset e p_limit diretamente.
+      console.log(`📄 TicketsAPI.getCampaignTicketsStatus - Loading tickets`);
       console.log(`   Campaign ID: ${campaignId}`);
       console.log(`   User ID: ${userId || 'null'}`);
-      console.log(`   Total tickets in campaign: ${totalTickets}`);
-      console.log(`   Requested offset (p_offset): ${offset}`);
-      console.log(`   Requested limit (p_limit): ${limit}`);
-      console.log(`   Valid offset: ${validOffset}`);
-      console.log(`   Valid limit: ${validLimit}`);
+      console.log(`   Total tickets: ${totalTickets}`);
+      console.log(`   Offset (p_offset): ${p_offset}`);
+      console.log(`   Limit (p_limit): ${p_limit}`);
 
       // Se não há tickets, retorna array vazio
       if (totalTickets === 0) {
@@ -199,48 +201,36 @@ export class TicketsAPI {
         return {
           data: [],
           total: 0,
-          offset: validOffset,
-          limit: validLimit,
+          page: p_offset / p_limit + 1,
+          pageSize: p_limit,
+          totalPages: 0,
           error: null
         };
       }
 
-      // Se o offset é maior ou igual ao total, não há mais tickets para carregar
-      if (validOffset >= totalTickets) {
-        console.log('ℹ️ TicketsAPI.getCampaignTicketsStatus - Offset beyond total tickets, returning empty');
-        return {
-          data: [],
-          total: totalTickets,
-          offset: validOffset,
-          limit: validLimit,
-          error: null
-        };
-      }
-
-      // ✅ CORREÇÃO APLICADA: Passar p_offset e p_limit diretamente para a RPC
-      // sem fazer nenhum cálculo adicional. A função RPC é responsável por
-      // interpretar esses valores corretamente.
+      // ✅ CORREÇÃO APLICADA: Usar p_offset e p_limit corretamente na chamada RPC
       const { data, error } = await supabase
         .rpc('get_campaign_tickets_status', {
           p_campaign_id: campaignId,
           p_user_id: userId || null,
-          p_offset: validOffset,
-          p_limit: validLimit
+          p_offset: p_offset, // ✅ Usar p_offset diretamente
+          p_limit: p_limit    // ✅ Usar p_limit diretamente
         });
 
       if (error) {
-        console.error('❌ TicketsAPI.getCampaignTicketsStatus - Error loading tickets:', error);
+        console.error('❌ TicketsAPI.getCampaignTicketsStatus - Error loading tickets page:', error);
         console.error('   RPC params:', {
           p_campaign_id: campaignId,
           p_user_id: userId || null,
-          p_offset: validOffset,
-          p_limit: validLimit
+          p_offset: p_offset,
+          p_limit: p_limit
         });
         return {
           data: null,
           total: totalTickets,
-          offset: validOffset,
-          limit: validLimit,
+          page: p_offset / p_limit + 1,
+          pageSize: p_limit,
+          totalPages: totalPages,
           error
         };
       }
@@ -249,12 +239,12 @@ export class TicketsAPI {
       console.log(`✅ TicketsAPI.getCampaignTicketsStatus - Successfully loaded tickets`);
       console.log(`   Tickets received: ${ticketsReceived}`);
       
-      // Calcular quantos tickets esperamos nesta requisição
-      const expectedTickets = Math.min(validLimit, totalTickets - validOffset);
+      // Calcular quantos tickets esperamos nesta página
+      const expectedTickets = Math.min(p_limit, totalTickets - p_offset);
       console.log(`   Expected: ${expectedTickets}`);
 
       // Validação de sanidade: verificar se recebemos a quantidade esperada
-      if (ticketsReceived < expectedTickets && validOffset + ticketsReceived < totalTickets) {
+      if (ticketsReceived < expectedTickets && ticketsReceived < totalTickets) {
         console.warn(`⚠️ TicketsAPI.getCampaignTicketsStatus - Warning: Expected ${expectedTickets} tickets but received ${ticketsReceived}`);
         console.warn('   This might indicate an issue with the RPC function or database state');
       }
@@ -262,8 +252,9 @@ export class TicketsAPI {
       return {
         data: data || [],
         total: totalTickets,
-        offset: validOffset,
-        limit: validLimit,
+        page: p_offset / p_limit + 1,
+        pageSize: p_limit,
+        totalPages: totalPages,
         error: null
       };
     } catch (error) {
@@ -271,8 +262,9 @@ export class TicketsAPI {
       return {
         data: null,
         total: 0,
-        offset,
-        limit,
+        page: p_offset / p_limit + 1,
+        pageSize: p_limit,
+        totalPages: 0,
         error
       };
     }
