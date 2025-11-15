@@ -118,51 +118,74 @@ export const useTickets = (campaignId: string) => {
   }, [campaignId, user?.id]);
 
   /**
-   * ✅ FUNÇÃO PARA QUOTAGRID: Carrega TODOS os tickets em blocos (modo manual)
+   * ✅ FUNÇÃO PARA MODO MANUAL: Carrega TODOS os tickets em blocos
    * 
-   * Esta função carrega TODOS os tickets da campanha em blocos de 1000,
-   * específica para campanhas em modo manual (até 10.000 cotas).
+   * Esta função é usada APENAS para campanhas em modo manual (até 10.000 cotas).
+   * Carrega TODOS os tickets da campanha em blocos de 1000 usando paginação técnica,
+   * mescla os resultados em memória e atualiza o estado uma única vez.
    * 
-   * Faz múltiplas chamadas à API e mescla todos os resultados em memória,
-   * atualizando o estado tickets uma única vez ao final.
+   * Para modo automático: Esta função NÃO deve ser chamada.
    * 
-   * @param totalTickets - Total de tickets da campanha (campaign.total_tickets)
    * @returns Promise<void>
    */
-  const fetchVisibleTickets = useCallback(async (totalTickets: number) => {
+  const loadAllTicketsForManualMode = useCallback(async () => {
     if (!campaignId) {
-      console.warn('⚠️ fetchVisibleTickets - No campaignId provided');
-      return;
-    }
-
-    if (totalTickets < 1) {
-      console.warn('⚠️ fetchVisibleTickets - Invalid totalTickets:', totalTickets);
+      console.warn('⚠️ loadAllTicketsForManualMode - No campaignId provided');
       return;
     }
 
     setLoading(true);
     setError(null);
 
-    console.log(`📄 useTickets.fetchVisibleTickets - Starting FULL load for ${totalTickets} tickets...`);
+    console.log(`📄 useTickets.loadAllTicketsForManualMode - Starting for campaign ${campaignId}...`);
 
     try {
-      // ✅ Calcular quantos blocos (páginas) são necessários
-      const pageSize = 1000; // Buscar em blocos de 1000
-      const totalPages = Math.ceil(totalTickets / pageSize);
-      
-      console.log(`📊 Will fetch ${totalPages} page(s) of ${pageSize} tickets each`);
+      // ✅ Passo 1: Buscar informações da campanha para obter total_tickets
+      const { data: campaign, error: campaignError } = await supabase
+        .from('campaigns')
+        .select('total_tickets')
+        .eq('id', campaignId)
+        .maybeSingle();
 
-      // Array temporário para acumular todos os tickets
+      if (campaignError) {
+        console.error('❌ loadAllTicketsForManualMode - Error fetching campaign info:', campaignError);
+        setError('Erro ao carregar informações da campanha');
+        setLoading(false);
+        return;
+      }
+
+      if (!campaign) {
+        console.warn(`⚠️ loadAllTicketsForManualMode - Campaign not found: ${campaignId}`);
+        setError('Campanha não encontrada');
+        setLoading(false);
+        return;
+      }
+
+      const totalTickets = campaign.total_tickets;
+      
+      // ✅ Passo 2: Calcular quantos blocos (páginas técnicas) são necessários
+      const totalPages = Math.ceil(totalTickets / CHUNK_SIZE);
+      
+      console.log(`📊 loadAllTicketsForManualMode - Campaign has ${totalTickets} tickets`);
+      console.log(`📊 Will fetch ${totalPages} page(s) of ${CHUNK_SIZE} tickets each using internal pagination`);
+
+      if (totalTickets === 0) {
+        console.log('ℹ️ loadAllTicketsForManualMode - Campaign has no tickets');
+        setTickets([]);
+        setLoading(false);
+        return;
+      }
+
+      // ✅ Passo 3: Array temporário para acumular TODOS os tickets
       const allTickets: TicketStatusInfo[] = [];
 
-      // ✅ Buscar todos os blocos sequencialmente
+      // ✅ Passo 4: Buscar todos os blocos sequencialmente (paginação técnica invisível)
       for (let page = 1; page <= totalPages; page++) {
-        const offset = (page - 1) * pageSize;
-        const limit = Math.min(pageSize, totalTickets - offset); // Último bloco pode ter menos tickets
+        const offset = (page - 1) * CHUNK_SIZE;
+        const limit = Math.min(CHUNK_SIZE, totalTickets - offset);
 
         console.log(`📦 Fetching page ${page}/${totalPages} (offset=${offset}, limit=${limit})...`);
 
-        // Chamar a API para este bloco
         const result = await TicketsAPI.getCampaignTicketsStatus(
           campaignId,
           user?.id,
@@ -172,8 +195,8 @@ export const useTickets = (campaignId: string) => {
         );
 
         if (result.error) {
-          console.error(`❌ useTickets.fetchVisibleTickets - Error on page ${page}:`, result.error);
-          setError(`Erro ao carregar cotas (página ${page}/${totalPages})`);
+          console.error(`❌ loadAllTicketsForManualMode - Error on page ${page}:`, result.error);
+          setError(`Erro ao carregar cotas (bloco ${page}/${totalPages})`);
           
           // Se já carregamos alguns tickets, usar o que temos
           if (allTickets.length > 0) {
@@ -181,11 +204,12 @@ export const useTickets = (campaignId: string) => {
             break;
           }
           
+          setLoading(false);
           return;
         }
 
         if (!result.data || result.data.length === 0) {
-          console.warn(`⚠️ useTickets.fetchVisibleTickets - No data on page ${page}`);
+          console.warn(`⚠️ loadAllTicketsForManualMode - No data on page ${page}`);
           continue;
         }
 
@@ -195,26 +219,30 @@ export const useTickets = (campaignId: string) => {
         console.log(`   Total accumulated: ${allTickets.length}/${totalTickets}`);
       }
 
-      console.log(`✅ useTickets.fetchVisibleTickets - All pages loaded! Total: ${allTickets.length} tickets`);
+      console.log(`✅ loadAllTicketsForManualMode - All pages loaded! Total: ${allTickets.length} tickets`);
 
-      // ✅ MESCLAR com estado existente UMA ÚNICA VEZ
+      // ✅ Passo 5: MESCLAR com estado existente UMA ÚNICA VEZ
       // Preservar tickets reservados/comprados que podem ter sido atualizados via updateTicketsLocally
       setTickets(prevTickets => {
-        // Criar Map com tickets existentes (preservar reservados/comprados)
+        console.log(`🔄 Merging ${allTickets.length} loaded tickets with ${prevTickets.length} existing tickets...`);
+
+        // Criar Map com tickets existentes (para preservar reservados/comprados)
         const ticketsMap = new Map(
           prevTickets.map(ticket => [ticket.quota_number, ticket])
         );
 
-        // Adicionar/atualizar com os novos tickets carregados
+        // Contadores para estatísticas de merge
         let preservedCount = 0;
         let addedCount = 0;
         let updatedCount = 0;
 
+        // Adicionar/atualizar com os novos tickets carregados
         allTickets.forEach(ticket => {
           const existingTicket = ticketsMap.get(ticket.quota_number);
           
           if (existingTicket && (existingTicket.status === 'reservado' || existingTicket.status === 'comprado')) {
             // ✅ PRESERVAR status importante (reservado/comprado)
+            // Não sobrescrever com 'disponível' do backend
             preservedCount++;
             ticketsMap.set(ticket.quota_number, {
               ...ticket,
@@ -237,10 +265,10 @@ export const useTickets = (campaignId: string) => {
           }
         });
 
-        // Converter Map de volta para array e ordenar
+        // Converter Map de volta para array e ordenar por quota_number
         const mergedTickets = Array.from(ticketsMap.values()).sort((a, b) => a.quota_number - b.quota_number);
 
-        console.log(`📊 Merge complete:`);
+        console.log(`✅ Merge complete:`);
         console.log(`   - Preserved (reserved/purchased): ${preservedCount}`);
         console.log(`   - Added (new): ${addedCount}`);
         console.log(`   - Updated (existing): ${updatedCount}`);
@@ -250,7 +278,7 @@ export const useTickets = (campaignId: string) => {
       });
 
     } catch (error) {
-      console.error('❌ useTickets.fetchVisibleTickets - Exception:', error);
+      console.error('❌ loadAllTicketsForManualMode - Exception:', error);
       setError('Erro inesperado ao carregar cotas');
     } finally {
       setLoading(false);
