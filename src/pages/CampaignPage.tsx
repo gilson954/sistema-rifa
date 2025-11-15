@@ -216,10 +216,12 @@ const CampaignPage = () => {
   useEffect(() => {
     const fetchPaymentStatus = async () => {
       if (!campaign?.id) {
+        console.log('⚠️ fetchPaymentStatus: Sem campaign.id');
         setLoadingPaymentStatus(false);
         return;
       }
 
+      console.log('🔍 fetchPaymentStatus: Buscando status para campaign.id:', campaign.id);
       setLoadingPaymentStatus(true);
       
       try {
@@ -230,15 +232,19 @@ const CampaignPage = () => {
           .single();
 
         if (error) {
-          console.error('Error fetching payment status:', error);
+          console.error('❌ fetchPaymentStatus: Error:', error);
           setCampaignPaid(false); // Por segurança, assume não pago
+          console.log('🔒 campaignPaid = FALSE (erro)');
         } else {
-          setCampaignPaid(data?.is_paid ?? false);
-          console.log('✅ Campaign payment status:', data?.is_paid ? 'PAID' : 'UNPAID');
+          const isPaid = data?.is_paid ?? false;
+          setCampaignPaid(isPaid);
+          console.log('✅ fetchPaymentStatus: is_paid =', data?.is_paid);
+          console.log(isPaid ? '🔓 campaignPaid = TRUE (PAGO)' : '🔒 campaignPaid = FALSE (NÃO PAGO)');
         }
       } catch (error) {
-        console.error('Exception fetching payment status:', error);
+        console.error('❌ fetchPaymentStatus: Exception:', error);
         setCampaignPaid(false); // Por segurança, assume não pago
+        console.log('🔒 campaignPaid = FALSE (exception)');
       } finally {
         setLoadingPaymentStatus(false);
       }
