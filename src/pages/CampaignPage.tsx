@@ -162,7 +162,7 @@ const CampaignPage = () => {
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
 
   // ✅ useTickets é SEMPRE chamado, mesmo se campaign?.id for undefined
-  // Agora com fetchVisibleTickets para carregamento sob demanda de tickets visíveis
+  // Agora com loadAllTicketsForManualMode para carregamento completo de tickets
   const {
     tickets,
     loading: ticketsLoading,
@@ -170,7 +170,7 @@ const CampaignPage = () => {
     reserveTickets,
     getAvailableTickets,
     reserving,
-    fetchVisibleTickets  // ✅ NOVO: Função para carregar tickets visíveis sob demanda
+    loadAllTicketsForManualMode  // ✅ NOVO: Carregar TODOS os tickets para modo manual
   } = useTickets(campaign?.id || '');
 
   // ✅ useCampaignWinners é SEMPRE chamado, mesmo se campaign?.id for undefined
@@ -1486,6 +1486,7 @@ const CampaignPage = () => {
           transition={{ duration: 0.6, delay: 0.6 }}
           className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto transition-all duration-300`}
         >
+          {/* ✅ FASE 2: Renderização condicional baseada no modelo da campanha */}
           {campaign.campaign_model === 'manual' ? (
             <div className="space-y-4">
               {!isCampaignAvailable && (
@@ -1504,6 +1505,7 @@ const CampaignPage = () => {
                 </div>
               )}
 
+              {/* ✅ MODO MANUAL: QuotaGrid com TODOS os tickets carregados */}
               <div data-quota-grid>
                 <QuotaGrid
                   totalQuotas={campaign.total_tickets}
@@ -1523,7 +1525,6 @@ const CampaignPage = () => {
                   onReserve={handleOpenReservationModal}
                   reserving={reserving}
                   loading={ticketsLoading}
-                  fetchVisibleTickets={fetchVisibleTickets}
                 />
               </div>
 
