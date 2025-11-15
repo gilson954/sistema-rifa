@@ -216,12 +216,10 @@ const CampaignPage = () => {
   useEffect(() => {
     const fetchPaymentStatus = async () => {
       if (!campaign?.id) {
-        console.log('⚠️ fetchPaymentStatus: Sem campaign.id');
         setLoadingPaymentStatus(false);
         return;
       }
 
-      console.log('🔍 fetchPaymentStatus: Buscando status para campaign.id:', campaign.id);
       setLoadingPaymentStatus(true);
       
       try {
@@ -232,19 +230,15 @@ const CampaignPage = () => {
           .single();
 
         if (error) {
-          console.error('❌ fetchPaymentStatus: Error:', error);
+          console.error('Error fetching payment status:', error);
           setCampaignPaid(false); // Por segurança, assume não pago
-          console.log('🔒 campaignPaid = FALSE (erro)');
         } else {
-          const isPaid = data?.is_paid ?? false;
-          setCampaignPaid(isPaid);
-          console.log('✅ fetchPaymentStatus: is_paid =', data?.is_paid);
-          console.log(isPaid ? '🔓 campaignPaid = TRUE (PAGO)' : '🔒 campaignPaid = FALSE (NÃO PAGO)');
+          setCampaignPaid(data?.is_paid ?? false);
+          console.log('✅ Campaign payment status:', data?.is_paid ? 'PAID' : 'UNPAID');
         }
       } catch (error) {
-        console.error('❌ fetchPaymentStatus: Exception:', error);
+        console.error('Exception fetching payment status:', error);
         setCampaignPaid(false); // Por segurança, assume não pago
-        console.log('🔒 campaignPaid = FALSE (exception)');
       } finally {
         setLoadingPaymentStatus(false);
       }
@@ -1563,8 +1557,10 @@ const CampaignPage = () => {
                   colorMode={organizerProfile?.color_mode}
                   gradientClasses={organizerProfile?.gradient_classes}
                   customGradientColors={organizerProfile?.custom_gradient_colors}
-                  loadAllTicketsForManualMode={loadAllTicketsForManualMode}
-                  loadingTickets={ticketsLoading}
+                  disabled={!isCampaignAvailable}
+                  onReserve={handleOpenReservationModal}
+                  reserving={reserving}
+                  loading={ticketsLoading}
                 />
               </div>
 
