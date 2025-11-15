@@ -24,8 +24,9 @@ export interface TicketStatusInfo {
 export interface PaginatedTicketsResponse {
   data: TicketStatusInfo[] | null;
   total: number;
-  offset: number;
-  limit: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
   error: any;
 }
 
@@ -114,164 +115,90 @@ export const formatPhoneNumber = (phoneNumber: string): string => {
 
 export class TicketsAPI {
   /**
-   * ✨ FUNÇÃO PRINCIPAL COM PAGINAÇÃO (CORRIGIDA CONFORME O PLANO)
+   * ✨ FUNÇÃO PRINCIPAL COM PAGINAÇÃO
    * 
-   * Busca o status dos tickets de uma campanha com paginação.
-   * Esta função é otimizada para buscar blocos específicos de tickets,
-   * respeitando o limite de 1000 linhas do PostgREST.
-   * 
-   * ✅ CORREÇÃO APLICADA: Agora aceita p_offset e p_limit diretamente
-   * sem recalcular o offset internamente. O cálculo deve ser feito
-   * pelo hook useTickets.ts antes de chamar esta função.
-   * 
-   * IMPORTANTE: Esta função apenas valida e passa os parâmetros para
-   * a chamada RPC do Supabase. O cálculo de offset baseado em page/pageSize
-   * deve ser feito externamente.
+   * Busca o status dos tickets de uma campanha com paginação
+   * Esta é a função principal que deve ser usada pelo frontend
    * 
    * @param campaignId - ID da campanha
    * @param userId - ID do usuário (opcional)
-   * @param offset - Número de tickets a pular (p_offset)
-   * @param limit - Quantidade máxima de tickets a retornar (p_limit)
-   * @returns Objeto com dados paginados e metadados
-   * 
-   * @example
-   * // Buscar primeira página (tickets 0-999)
-   * const result1 = await getCampaignTicketsStatus('campaign-id', 'user-id', 0, 1000);
-   * 
-   * // Buscar segunda página (tickets 1000-1999)
-   * const result2 = await getCampaignTicketsStatus('campaign-id', 'user-id', 1000, 1000);
+   * @param page - Número da página (começa em 1)
+   * @param pageSize - Tamanho da página (padrão: 1000)
+   * @returns Objeto com dados paginados e metadados de paginação
    */
   static async getCampaignTicketsStatus(
     campaignId: string,
-    userId: string | undefined,
-    offset: number = 0,
-    limit: number = 1000
+    userId?: string,
+    page: number = 1,
+    pageSize: number = 1000
   ): Promise<PaginatedTicketsResponse> {
     try {
       // Busca informações da campanha para obter o total de tickets
-      const { data: campaign, error: campaignError } = await supabase
+      const { data: campaign } = await supabase
         .from('campaigns')
         .select('total_tickets')
         .eq('id', campaignId)
         .maybeSingle();
 
-      if (campaignError) {
-        console.error('❌ TicketsAPI.getCampaignTicketsStatus - Error fetching campaign info:', campaignError);
-        return {
-          data: null,
-          total: 0,
-          offset,
-          limit,
-          error: campaignError
-        };
-      }
-
       if (!campaign) {
-        console.warn(`⚠️ TicketsAPI.getCampaignTicketsStatus - Campaign not found: ${campaignId}`);
         return {
           data: null,
           total: 0,
-          offset,
-          limit,
+          page,
+          pageSize,
+          totalPages: 0,
           error: new Error('Campaign not found')
         };
       }
 
       const totalTickets = campaign.total_tickets;
+      const totalPages = Math.ceil(totalTickets / pageSize);
+      
+      // Valida o número da página
+      const validPage = Math.max(1, Math.min(page, totalPages));
+      const offset = (validPage - 1) * pageSize;
 
-      // ✅ VALIDAÇÃO: Garantir que offset e limit sejam válidos
-      const validOffset = Math.max(0, Math.min(offset, totalTickets));
-      const validLimit = Math.max(1, Math.min(limit, 1000)); // Máximo de 1000 por questões do PostgREST
+      console.log(`📄 Loading page ${validPage}/${totalPages} (${pageSize} tickets per page, offset: ${offset})`);
 
-      console.log(`📄 TicketsAPI.getCampaignTicketsStatus - Fetching tickets`);
-      console.log(`   Campaign ID: ${campaignId}`);
-      console.log(`   User ID: ${userId || 'null'}`);
-      console.log(`   Total tickets in campaign: ${totalTickets}`);
-      console.log(`   Requested offset (p_offset): ${offset}`);
-      console.log(`   Requested limit (p_limit): ${limit}`);
-      console.log(`   Valid offset: ${validOffset}`);
-      console.log(`   Valid limit: ${validLimit}`);
-
-      // Se não há tickets, retorna array vazio
-      if (totalTickets === 0) {
-        console.log('ℹ️ TicketsAPI.getCampaignTicketsStatus - Campaign has no tickets');
-        return {
-          data: [],
-          total: 0,
-          offset: validOffset,
-          limit: validLimit,
-          error: null
-        };
-      }
-
-      // Se o offset é maior ou igual ao total, não há mais tickets para carregar
-      if (validOffset >= totalTickets) {
-        console.log('ℹ️ TicketsAPI.getCampaignTicketsStatus - Offset beyond total tickets, returning empty');
-        return {
-          data: [],
-          total: totalTickets,
-          offset: validOffset,
-          limit: validLimit,
-          error: null
-        };
-      }
-
-      // ✅ CORREÇÃO APLICADA: Passar p_offset e p_limit diretamente para a RPC
-      // sem fazer nenhum cálculo adicional. A função RPC é responsável por
-      // interpretar esses valores corretamente.
+      // Busca apenas a página solicitada
       const { data, error } = await supabase
         .rpc('get_campaign_tickets_status', {
           p_campaign_id: campaignId,
           p_user_id: userId || null,
-          p_offset: validOffset,
-          p_limit: validLimit
+          p_offset: offset,
+          p_limit: pageSize
         });
 
       if (error) {
-        console.error('❌ TicketsAPI.getCampaignTicketsStatus - Error loading tickets:', error);
-        console.error('   RPC params:', {
-          p_campaign_id: campaignId,
-          p_user_id: userId || null,
-          p_offset: validOffset,
-          p_limit: validLimit
-        });
+        console.error('❌ Error loading tickets page:', error);
         return {
           data: null,
           total: totalTickets,
-          offset: validOffset,
-          limit: validLimit,
+          page: validPage,
+          pageSize,
+          totalPages,
           error
         };
       }
 
-      const ticketsReceived = data?.length || 0;
-      console.log(`✅ TicketsAPI.getCampaignTicketsStatus - Successfully loaded tickets`);
-      console.log(`   Tickets received: ${ticketsReceived}`);
-      
-      // Calcular quantos tickets esperamos nesta requisição
-      const expectedTickets = Math.min(validLimit, totalTickets - validOffset);
-      console.log(`   Expected: ${expectedTickets}`);
-
-      // Validação de sanidade: verificar se recebemos a quantidade esperada
-      if (ticketsReceived < expectedTickets && validOffset + ticketsReceived < totalTickets) {
-        console.warn(`⚠️ TicketsAPI.getCampaignTicketsStatus - Warning: Expected ${expectedTickets} tickets but received ${ticketsReceived}`);
-        console.warn('   This might indicate an issue with the RPC function or database state');
-      }
+      console.log(`✅ Successfully loaded page ${validPage}/${totalPages} (${data?.length || 0} tickets)`);
 
       return {
-        data: data || [],
+        data,
         total: totalTickets,
-        offset: validOffset,
-        limit: validLimit,
+        page: validPage,
+        pageSize,
+        totalPages,
         error: null
       };
     } catch (error) {
-      console.error('❌ TicketsAPI.getCampaignTicketsStatus - Unexpected error:', error);
+      console.error('❌ Unexpected error fetching paginated tickets:', error);
       return {
         data: null,
         total: 0,
-        offset,
-        limit,
+        page,
+        pageSize,
+        totalPages: 0,
         error
       };
     }
@@ -290,7 +217,7 @@ export class TicketsAPI {
 
       return { data, error };
     } catch (error) {
-      console.error('❌ TicketsAPI.getCampaignTickets - Error:', error);
+      console.error('Error fetching campaign tickets:', error);
       return { data: null, error };
     }
   }
@@ -412,7 +339,7 @@ export class TicketsAPI {
 
       return { data, error };
     } catch (error) {
-      console.error('❌ TicketsAPI.finalizePurchase - Error:', error);
+      console.error('Error finalizing purchase:', error);
       return { data: null, error };
     }
   }
@@ -425,7 +352,7 @@ export class TicketsAPI {
       const { data, error } = await supabase.rpc('release_expired_reservations');
       return { data, error };
     } catch (error) {
-      console.error('❌ TicketsAPI.releaseExpiredReservations - Error:', error);
+      console.error('Error releasing expired reservations:', error);
       return { data: null, error };
     }
   }
@@ -447,7 +374,7 @@ export class TicketsAPI {
 
       return { data, error };
     } catch (error) {
-      console.error('❌ TicketsAPI.getUserTicketsInCampaign - Error:', error);
+      console.error('Error fetching user tickets:', error);
       return { data: null, error };
     }
   }
@@ -476,19 +403,19 @@ export class TicketsAPI {
       });
 
       if (error) {
-        console.error('❌ TicketsAPI.getTicketsByPhoneNumber - Error:', error);
+        console.error('❌ TicketsAPI - Error fetching tickets by phone:', error);
         return { data: null, error };
       }
 
       // Se encontrou tickets, retorna imediatamente
       if (data && data.length > 0) {
-        console.log(`✅ TicketsAPI.getTicketsByPhoneNumber - Found ${data.length} tickets`);
+        console.log(`✅ TicketsAPI - Found ${data.length} tickets for phone`);
         return { data, error: null };
       }
 
       // Se não encontrou e retry está habilitado, tenta query direta para debug
       if (retryOnEmpty) {
-        console.log('⚠️ TicketsAPI.getTicketsByPhoneNumber - No tickets found via RPC. Trying direct query...');
+        console.log('⚠️ TicketsAPI - No tickets found via RPC. Trying direct query for debug...');
 
         // Query direta para verificar se os dados existem
         const { data: directData, error: directError } = await supabase
@@ -540,7 +467,7 @@ export class TicketsAPI {
         }
 
         // Se nem a query direta encontrou, espera 1 segundo e tenta RPC novamente
-        console.log('⏳ No tickets found. Waiting 1s and retrying RPC...');
+        console.log('⏳ No tickets found even with direct query. Waiting 1s and retrying RPC...');
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         const { data: retryData, error: retryError } = await supabase.rpc('get_tickets_by_phone', {
@@ -548,12 +475,12 @@ export class TicketsAPI {
         });
 
         if (retryError) {
-          console.error('❌ Retry failed:', retryError);
+          console.error('❌ Retry also failed:', retryError);
           return { data: null, error: retryError };
         }
 
         if (retryData && retryData.length > 0) {
-          console.log(`✅ Retry successful! Found ${retryData.length} tickets`);
+          console.log(`✅ Retry successful! Found ${retryData.length} tickets after delay`);
           return { data: retryData, error: null };
         }
 
@@ -561,10 +488,10 @@ export class TicketsAPI {
         return { data: [], error: null };
       }
 
-      console.log('ℹ️ No tickets found');
+      console.log('ℹ️ No tickets found for phone');
       return { data: [], error: null };
     } catch (error) {
-      console.error('❌ TicketsAPI.getTicketsByPhoneNumber - Unexpected error:', error);
+      console.error('❌ TicketsAPI - Unexpected error:', error);
       return { data: null, error };
     }
   }
@@ -586,14 +513,14 @@ export class TicketsAPI {
       });
 
       if (error) {
-        console.error('❌ TicketsAPI.getOrdersByPhoneNumber - Error:', error);
+        console.error('❌ TicketsAPI - Error fetching orders:', error);
         return { data: null, error };
       }
 
-      console.log(`✅ TicketsAPI.getOrdersByPhoneNumber - Found ${data?.length || 0} orders`);
+      console.log(`✅ TicketsAPI - Found ${data?.length || 0} orders`);
       return { data, error };
     } catch (error) {
-      console.error('❌ TicketsAPI.getOrdersByPhoneNumber - Unexpected error:', error);
+      console.error('❌ TicketsAPI - Unexpected error:', error);
       return { data: null, error };
     }
   }
