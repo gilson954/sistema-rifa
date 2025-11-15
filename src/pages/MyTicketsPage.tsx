@@ -51,14 +51,14 @@ const MyTicketsPage = () => {
     return displayNumber.toString().padStart(padding, '0');
   };
 
-  // Carrega os pedidos do usuário - CORRIGIDO conforme Fase 3 do plano
+  // Carrega os pedidos do usuário - IMPLEMENTAÇÃO EXATA DA FASE 3 DO PLANO
   const loadUserOrders = async (phone: string) => {
     setLoading(true);
     setError(null);
     try {
       console.log('[MyTicketsPage] ========== INÍCIO CARREGAMENTO ==========');
       console.log('[MyTicketsPage] Telefone:', phone);
-      console.log('[MyTicketsPage] campaignContext:', campaignContext);
+      console.log('[MyTicketsPage] campaignContext:', JSON.stringify(campaignContext, null, 2));
       
       const { data, error: apiError } = await TicketsAPI.getOrdersByPhoneNumber(phone);
       
@@ -75,15 +75,20 @@ const MyTicketsPage = () => {
       if (data && data.length > 0) {
         console.log('[MyTicketsPage] Detalhes dos pedidos recebidos:');
         data.forEach((order, idx) => {
-          console.log(`  [${idx}] OrderID: ${order.order_id}, Campaign: ${order.campaign_id}, Status: ${order.status}, Tickets: ${order.ticket_count}`);
+          console.log(`  [${idx}] OrderID: ${order.order_id}`);
+          console.log(`       Campaign: ${order.campaign_id}`);
+          console.log(`       Status: ${order.status}`);
+          console.log(`       Tickets: ${order.ticket_count}`);
+          console.log(`       Title: ${order.campaign_title}`);
         });
       }
       
+      // IMPLEMENTAÇÃO EXATA DA PROPOSTA DO PLANO (Fase 3)
       let ordersToSet = data || [];
       
-      // MODIFICAÇÃO CRÍTICA: Filtro por organizerId é OPCIONAL e bem documentado
       if (campaignContext?.organizerId) {
-        console.log('[MyTicketsPage] 🔍 Aplicando filtro por organizerId:', campaignContext.organizerId);
+        // Apenas filtre se um ID de organizador for explicitamente fornecido no contexto
+        console.log('[MyTicketsPage] 🔍 Filtro por organizerId ATIVADO:', campaignContext.organizerId);
         
         const { data: organizerCampaigns, error: campaignsError } = await supabase
           .from('campaigns')
@@ -92,24 +97,29 @@ const MyTicketsPage = () => {
         
         if (campaignsError) {
           console.error('[MyTicketsPage] ❌ Erro ao buscar campanhas do organizador:', campaignsError);
+          // Continua sem filtrar em caso de erro
         } else {
           const organizerCampaignIds = organizerCampaigns?.map(c => c.id) || [];
           console.log('[MyTicketsPage] IDs das campanhas do organizador:', organizerCampaignIds);
           
           if (organizerCampaignIds.length === 0) {
-            console.warn('[MyTicketsPage] ⚠️ ATENÇÃO: Nenhuma campanha encontrada para o organizador!');
+            console.warn('[MyTicketsPage] ⚠️ AVISO: organizerCampaignIds está VAZIO! Nenhuma campanha encontrada para este organizador.');
+            console.warn('[MyTicketsPage] ⚠️ Isso pode significar que o organizerId está incorreto ou o organizador não tem campanhas.');
           }
           
           const beforeFilterCount = ordersToSet.length;
           ordersToSet = ordersToSet.filter(order => organizerCampaignIds.includes(order.campaign_id));
-          console.log(`[MyTicketsPage] Pedidos após filtro: ${ordersToSet.length} (era ${beforeFilterCount})`);
+          console.log(`[MyTicketsPage] Pedidos ANTES do filtro: ${beforeFilterCount}`);
+          console.log(`[MyTicketsPage] Pedidos APÓS o filtro: ${ordersToSet.length}`);
           
           if (beforeFilterCount > 0 && ordersToSet.length === 0) {
-            console.warn('[MyTicketsPage] ⚠️ ATENÇÃO: Todos os pedidos foram filtrados! Isso pode indicar um problema.');
+            console.error('[MyTicketsPage] ❌ PROBLEMA CRÍTICO: Todos os pedidos foram REMOVIDOS pelo filtro!');
+            console.error('[MyTicketsPage] ❌ Isso indica que campaignContext.organizerId pode estar sempre presente quando não deveria.');
           }
         }
       } else {
-        console.log('[MyTicketsPage] ℹ️ Sem filtro de organizador - mostrando TODOS os pedidos do usuário');
+        console.log('[MyTicketsPage] ℹ️ Filtro por organizerId DESATIVADO');
+        console.log('[MyTicketsPage] ℹ️ Exibindo TODOS os pedidos do usuário (sem filtro)');
       }
       
       console.log('[MyTicketsPage] 📦 Total de pedidos a serem exibidos:', ordersToSet.length);
@@ -126,25 +136,45 @@ const MyTicketsPage = () => {
     }
   };
 
-  // MODIFICADO: useEffect para carregar pedidos - agora reage a mudanças no phoneUser
+  // CORRIGIDO: useEffect com dependência explícita em phoneUser?.phone
   useEffect(() => {
+    console.log('[MyTicketsPage] useEffect disparado - Auth:', isPhoneAuthenticated, 'Phone:', phoneUser?.phone);
+    
     if (isPhoneAuthenticated && phoneUser?.phone) {
-      console.log('[MyTicketsPage] Carregando pedidos no mount/update');
+      console.log('[MyTicketsPage] ✅ Condições atendidas - iniciando carregamento de pedidos');
       loadUserOrders(phoneUser.phone);
+    } else {
+      console.log('[MyTicketsPage] ⏳ Aguardando autenticação ou telefone do usuário');
     }
   }, [isPhoneAuthenticated, phoneUser?.phone]);
 
-  // NOVO: useEffect adicional para recarregar quando voltar para a página
+  // NOVO: Recarrega pedidos quando a página fica visível ou quando retorna de navegação
   useEffect(() => {
+    console.log('[MyTicketsPage] Configurando listeners de visibilidade');
+    
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && isPhoneAuthenticated && phoneUser?.phone) {
-        console.log('[MyTicketsPage] Página ficou visível - recarregando pedidos');
+        console.log('[MyTicketsPage] 🔄 Página ficou visível - recarregando pedidos automaticamente');
+        loadUserOrders(phoneUser.phone);
+      }
+    };
+
+    // Também recarrega quando o componente recebe foco (útil para navegação SPA)
+    const handleFocus = () => {
+      if (isPhoneAuthenticated && phoneUser?.phone) {
+        console.log('[MyTicketsPage] 🔄 Janela recebeu foco - recarregando pedidos');
         loadUserOrders(phoneUser.phone);
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      console.log('[MyTicketsPage] Removendo listeners de visibilidade');
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [isPhoneAuthenticated, phoneUser?.phone]);
 
   useEffect(() => {
@@ -301,7 +331,10 @@ const MyTicketsPage = () => {
   };
 
   useEffect(() => {
+    console.log('[MyTicketsPage] useEffect de redirecionamento - authLoading:', authLoading, 'isPhoneAuthenticated:', isPhoneAuthenticated);
+    
     if (!authLoading && !isPhoneAuthenticated) {
+      console.log('[MyTicketsPage] ❌ Usuário não autenticado - redirecionando para home');
       navigate('/', { replace: true });
     }
   }, [isPhoneAuthenticated, authLoading, navigate]);
