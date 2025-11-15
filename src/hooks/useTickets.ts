@@ -1,5 +1,5 @@
 // src/hooks/useTickets.ts
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { TicketsAPI, TicketStatusInfo, ReservationResult } from '../lib/api/tickets';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -13,216 +13,58 @@ interface CustomerData {
 }
 
 /**
- * Tamanho do bloco para busca multi-páginas
- * Define quantos tickets são buscados por vez para respeitar o limite de 1000 do PostgREST
- */
-const CHUNK_SIZE = 1000;
-
-/**
- * Tamanho do lote para reservas
- * Define quantos tickets são reservados por vez para evitar timeout do banco de dados
- * ✅ OTIMIZAÇÃO: Evita que uma única chamada RPC exceda o timeout do Supabase
- */
-const RESERVATION_BATCH_SIZE = 1000;
-
-/**
  * Hook personalizado para gerenciar tickets
  * 
- * ✅ OTIMIZAÇÃO RADICAL: Nunca carrega todos os tickets automaticamente
- * ✅ ATUALIZAÇÃO GRANULAR: Apenas tickets afetados por operações são adicionados/atualizados
- * ✅ REAL-TIME INTELIGENTE: Mudanças externas são aplicadas granularmente
- * 
- * O estado 'tickets' contém apenas os tickets que foram explicitamente carregados
- * ou que foram afetados por operações (reserva/compra)
+ * ✅ ATUALIZAÇÃO: Removida paginação - busca TODOS os tickets de uma vez
+ * para restaurar funcionalidade original dos botões
  */
 export const useTickets = (campaignId: string) => {
   const { user } = useAuth();
   
-  // Estado dos tickets (inicialmente vazio, populado apenas sob demanda)
+  // Estado dos tickets (TODOS os tickets da campanha)
   const [tickets, setTickets] = useState<TicketStatusInfo[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reserving, setReserving] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
 
   /**
-   * ✅ FUNÇÃO AUXILIAR: Atualiza tickets localmente com base nos resultados de uma operação
-   * 
-   * Esta função é a PRINCIPAL responsável por gerenciar o estado 'tickets'.
-   * Ela adiciona novos tickets ou atualiza existentes de forma granular.
-   * 
-   * ✅ INTELIGENTE: Mescla com tickets existentes sem sobrescrever
-   * ✅ EFICIENTE: Usa Map para busca rápida por quota_number
-   * 
-   * @param results - Array de ReservationResult da RPC
-   * @param newStatus - Novo status dos tickets ('reservado' ou 'comprado')
+   * ✅ FUNÇÃO SIMPLIFICADA: Busca o status de TODOS os tickets
+   * Sem parâmetros de paginação
    */
-  const updateTicketsLocally = useCallback((results: ReservationResult[], newStatus: 'reservado' | 'comprado') => {
-    if (!results || results.length === 0) {
-      console.warn('⚠️ updateTicketsLocally - No results to update');
-      return;
-    }
-
-    console.log(`🔄 updateTicketsLocally - Processing ${results.length} tickets with status '${newStatus}'`);
-
-    setTickets(prevTickets => {
-      // ✅ Criar um Map dos tickets existentes para busca rápida por quota_number
-      const ticketsMap = new Map(
-        prevTickets.map(ticket => [ticket.quota_number, ticket])
-      );
-
-      // Processar cada resultado
-      results.forEach(result => {
-        const existingTicket = ticketsMap.get(result.quota_number);
-
-        if (!existingTicket) {
-          // ✅ Ticket não existe no estado → Criar novo objeto TicketStatusInfo
-          console.log(`   Creating new ticket ${result.quota_number} with status '${newStatus}'`);
-          ticketsMap.set(result.quota_number, {
-            quota_number: result.quota_number,
-            status: newStatus,
-            is_mine: true,
-            campaign_id: campaignId,
-            user_id: user?.id || null,
-            customer_name: result.customer_name || null,
-            customer_email: result.customer_email || null,
-            customer_phone: result.customer_phone || null,
-            reserved_at: result.reserved_at || null,
-            purchased_at: newStatus === 'comprado' ? new Date().toISOString() : null
-          });
-        } else {
-          // ✅ Ticket existe → Atualizar no Map
-          console.log(`   Updating existing ticket ${result.quota_number}: ${existingTicket.status} -> ${newStatus}`);
-          ticketsMap.set(result.quota_number, {
-            ...existingTicket,
-            status: newStatus,
-            is_mine: true,
-            purchased_at: newStatus === 'comprado' ? new Date().toISOString() : existingTicket.purchased_at,
-            // Preservar outros campos que podem ter sido carregados via fetchVisibleTickets
-            customer_name: result.customer_name || existingTicket.customer_name,
-            customer_email: result.customer_email || existingTicket.customer_email,
-            customer_phone: result.customer_phone || existingTicket.customer_phone,
-            reserved_at: result.reserved_at || existingTicket.reserved_at
-          });
-        }
-      });
-
-      // Converter o Map de volta para array
-      const updatedTickets = Array.from(ticketsMap.values());
-
-      console.log(`✅ updateTicketsLocally - Complete!`);
-      console.log(`   Total tickets in state: ${updatedTickets.length}`);
-
-      return updatedTickets;
-    });
-  }, [campaignId, user?.id]);
-
-  /**
-   * ✅ FUNÇÃO PARA QUOTAGRID: Busca tickets visíveis (paginação/infinite scroll)
-   * 
-   * Esta função carrega apenas os tickets necessários para exibir na QuotaGrid,
-   * usando paginação para evitar carregar todos os tickets de uma vez.
-   * 
-   * IMPORTANTE: Calcula o offset correto e passa para a API
-   * 
-   * @param page - Número da página (começa em 1)
-   * @param pageSize - Quantidade de tickets por página (ex: 200, 500, 1000)
-   * @returns Promise<void>
-   */
-  const fetchVisibleTickets = useCallback(async (page: number, pageSize: number) => {
+  const fetchTicketsStatus = useCallback(async () => {
     if (!campaignId) {
-      console.warn('⚠️ fetchVisibleTickets - No campaignId provided');
-      return;
-    }
-
-    if (page < 1 || pageSize < 1) {
-      console.warn('⚠️ fetchVisibleTickets - Invalid parameters:', { page, pageSize });
+      setLoading(false);
       return;
     }
 
     setLoading(true);
     setError(null);
 
-    // ✅ Calcular offset corretamente
-    // offset = quantos tickets pular (começa em 0)
-    // Exemplo: page=1, pageSize=200 → offset=0 (tickets 1-200)
-    // Exemplo: page=2, pageSize=200 → offset=200 (tickets 201-400)
-    const offset = (page - 1) * pageSize;
-    const limit = pageSize;
-
-    const startQuota = offset + 1;
-    const endQuota = offset + limit;
-
-    console.log(`📄 useTickets.fetchVisibleTickets - Fetching page ${page} (quotas ${startQuota}-${endQuota})...`);
-    console.log(`📊 API params: offset=${offset}, limit=${limit}`);
+    console.log(`📄 useTickets - Fetching ALL tickets for campaign ${campaignId}...`);
 
     try {
-      // ✅ Chamar a API com offset e limit calculados
-      // A API receberá esses valores e os passará diretamente para o RPC do Supabase
+      // ✅ CORREÇÃO: Buscar TODOS os tickets sem paginação
+      // Passa page=1 e um pageSize muito grande para pegar tudo
       const result = await TicketsAPI.getCampaignTicketsStatus(
         campaignId,
         user?.id,
-        page,        // page para referência/logs
-        limit,       // limit = quantos buscar
-        offset       // offset = quantos pular
+        1,
+        20000 // PageSize gigante para pegar todos os tickets
       );
 
       if (result.error) {
-        console.error('❌ useTickets.fetchVisibleTickets - Error:', result.error);
-        setError(`Erro ao carregar cotas da página ${page}`);
-        return;
+        setError('Erro ao carregar status das cotas');
+        console.error('❌ Error fetching tickets status:', result.error);
+        setTickets([]);
+      } else {
+        setTickets(result.data || []);
+        console.log(`✅ useTickets - Loaded ${result.data?.length || 0} tickets (total: ${result.total})`);
       }
-
-      if (!result.data || result.data.length === 0) {
-        console.warn(`⚠️ useTickets.fetchVisibleTickets - No data returned for page ${page}`);
-        return;
-      }
-
-      console.log(`✅ useTickets.fetchVisibleTickets - Loaded ${result.data.length} tickets for page ${page}`);
-      console.log(`   First ticket: ${result.data[0]?.quota_number}, Last ticket: ${result.data[result.data.length - 1]?.quota_number}`);
-
-      // ✅ MESCLAR com estado existente: Adicionar/atualizar apenas os tickets buscados
-      setTickets(prevTickets => {
-        // Criar um Map dos tickets existentes
-        const ticketsMap = new Map(
-          prevTickets.map(ticket => [ticket.quota_number, ticket])
-        );
-
-        // Adicionar/atualizar os novos tickets no Map
-        result.data.forEach(ticket => {
-          // ✅ Preservar status 'reservado' ou 'comprado' se já existe no estado
-          const existingTicket = ticketsMap.get(ticket.quota_number);
-          if (existingTicket && (existingTicket.status === 'reservado' || existingTicket.status === 'comprado')) {
-            // Preservar o status mais importante (reservado/comprado) em vez de sobrescrever com 'disponível'
-            console.log(`   Preserving status for ticket ${ticket.quota_number}: ${existingTicket.status}`);
-            ticketsMap.set(ticket.quota_number, {
-              ...ticket,
-              status: existingTicket.status,
-              is_mine: existingTicket.is_mine,
-              customer_name: existingTicket.customer_name || ticket.customer_name,
-              customer_email: existingTicket.customer_email || ticket.customer_email,
-              customer_phone: existingTicket.customer_phone || ticket.customer_phone,
-              reserved_at: existingTicket.reserved_at || ticket.reserved_at,
-              purchased_at: existingTicket.purchased_at || ticket.purchased_at
-            });
-          } else {
-            // Ticket novo ou status 'disponível' - adicionar normalmente
-            ticketsMap.set(ticket.quota_number, ticket);
-          }
-        });
-
-        // Converter o Map de volta para array e ordenar por quota_number
-        const mergedTickets = Array.from(ticketsMap.values()).sort((a, b) => a.quota_number - b.quota_number);
-
-        console.log(`   Tickets no estado antes: ${prevTickets.length}`);
-        console.log(`   Tickets no estado depois: ${mergedTickets.length}`);
-
-        return mergedTickets;
-      });
-
     } catch (error) {
-      console.error('❌ useTickets.fetchVisibleTickets - Exception:', error);
+      console.error('❌ Exception in fetchTicketsStatus:', error);
       setError('Erro inesperado ao carregar cotas');
+      setTickets([]);
     } finally {
       setLoading(false);
     }
@@ -231,13 +73,12 @@ export const useTickets = (campaignId: string) => {
   /**
    * Reserva cotas para o usuário atual
    *
-   * ✅ ATUALIZAÇÃO GRANULAR: Apenas os tickets reservados são adicionados/atualizados no estado
-   * ✅ BATCHING: Divide reservas grandes em lotes para evitar timeout do banco de dados
-   * 
    * @param customerData - Dados do cliente (nome, email, telefone)
    * @param totalQuantity - Quantidade total de tickets a reservar
    * @param orderId - ID do pedido gerado no frontend
    * @param reservationTimestamp - Timestamp consistente para o pedido
+   * @returns {Promise<{ reservationId: string; results: ReservationResult[] } | null>} Resultado da reserva ou null
+   * @throws {Error} Lança erro com mensagem apropriada se a reserva falhar
    */
   const reserveTickets = async (
     customerData: CustomerData,
@@ -254,95 +95,69 @@ export const useTickets = (campaignId: string) => {
     setReserving(true);
     setError(null);
 
-    console.log('🔵 useTickets.reserveTickets - Starting reservation with batching...');
+    console.log('🔵 useTickets.reserveTickets - Starting reservation...');
     console.log('🔵 Campaign ID:', campaignId);
     console.log('🔵 Total Quantity:', totalQuantity);
+    console.log('🔵 User ID:', user?.id || null);
+    console.log('🔵 Customer Name:', customerData.name);
+    console.log('🔵 Customer Email:', customerData.email);
+    console.log('🔵 Customer Phone:', customerData.phoneNumber);
     console.log('🔵 Order ID:', orderId);
+    console.log('🔵 Reservation Timestamp:', reservationTimestamp.toISOString());
 
     try {
-      // ✅ BATCHING: Calcular quantos lotes são necessários
-      const totalBatches = Math.ceil(totalQuantity / RESERVATION_BATCH_SIZE);
-      const allReservedResults: ReservationResult[] = [];
+      // CRITICAL FIX: Chamar o novo RPC reserve_tickets_by_quantity
+      const { data, error: apiError } = await supabase.rpc('reserve_tickets_by_quantity', {
+        p_campaign_id: campaignId,
+        p_quantity_to_reserve: totalQuantity,
+        p_user_id: user?.id || null,
+        p_customer_name: customerData.name,
+        p_customer_email: customerData.email,
+        p_customer_phone: customerData.phoneNumber,
+        p_reservation_timestamp: reservationTimestamp.toISOString(),
+        p_order_id: orderId
+      });
 
-      console.log(`📊 Reservation will be processed in ${totalBatches} batch(es) of max ${RESERVATION_BATCH_SIZE} tickets each`);
-
-      // ✅ PROCESSAR EM LOTES
-      for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
-        // Calcular quantos tickets reservar neste lote
-        const remainingTickets = totalQuantity - (batchIndex * RESERVATION_BATCH_SIZE);
-        const batchQuantity = Math.min(RESERVATION_BATCH_SIZE, remainingTickets);
-
-        console.log(`📦 Processing batch ${batchIndex + 1}/${totalBatches}: ${batchQuantity} tickets`);
-
-        // Chamar RPC para este lote
-        const { data, error: apiError } = await supabase.rpc('reserve_tickets_by_quantity', {
-          p_campaign_id: campaignId,
-          p_quantity_to_reserve: batchQuantity,
-          p_user_id: user?.id || null,
-          p_customer_name: customerData.name,
-          p_customer_email: customerData.email,
-          p_customer_phone: customerData.phoneNumber,
-          p_reservation_timestamp: reservationTimestamp.toISOString(),
-          p_order_id: orderId
-        });
-
-        if (apiError) {
-          console.error(`❌ useTickets.reserveTickets - API Error in batch ${batchIndex + 1}:`, apiError);
-          
-          let errorMessage = `Erro ao reservar cotas (lote ${batchIndex + 1}/${totalBatches})`;
-          
-          if (typeof apiError === 'object' && apiError !== null) {
-            if ('message' in apiError && apiError.message) {
-              errorMessage = apiError.message as string;
-            } else if ('error' in apiError && apiError.error) {
-              errorMessage = apiError.error as string;
-            } else if ('hint' in apiError && apiError.hint) {
-              errorMessage = apiError.hint as string;
-            }
-          } else if (typeof apiError === 'string') {
-            errorMessage = apiError;
+      if (apiError) {
+        console.error('❌ useTickets.reserveTickets - API Error:', apiError);
+        
+        let errorMessage = 'Erro ao reservar cotas';
+        
+        if (typeof apiError === 'object' && apiError !== null) {
+          if ('message' in apiError && apiError.message) {
+            errorMessage = apiError.message as string;
+          } else if ('error' in apiError && apiError.error) {
+            errorMessage = apiError.error as string;
+          } else if ('hint' in apiError && apiError.hint) {
+            errorMessage = apiError.hint as string;
           }
-          
-          setError(errorMessage);
-          
-          // Se já reservamos alguns tickets, atualizar o estado com o que conseguimos
-          if (allReservedResults.length > 0) {
-            console.warn(`⚠️ Partial reservation: ${allReservedResults.length} tickets reserved before error`);
-            updateTicketsLocally(allReservedResults, 'reservado');
-          }
-          
-          throw new Error(errorMessage);
+        } else if (typeof apiError === 'string') {
+          errorMessage = apiError;
         }
-
-        const batchResults: ReservationResult[] = data as ReservationResult[];
-
-        if (!batchResults || batchResults.length === 0) {
-          console.warn(`⚠️ useTickets.reserveTickets - Batch ${batchIndex + 1} returned no data`);
-          
-          // Se já reservamos alguns tickets, continuar
-          if (allReservedResults.length > 0) {
-            console.warn(`⚠️ Partial reservation: ${allReservedResults.length} tickets reserved`);
-            break;
-          }
-          
-          const error = new Error('Nenhuma cota foi reservada. Tente novamente.');
-          setError(error.message);
-          throw error;
-        }
-
-        // Adicionar resultados deste lote ao array total
-        allReservedResults.push(...batchResults);
-        console.log(`✅ Batch ${batchIndex + 1}/${totalBatches} complete: ${batchResults.length} tickets reserved`);
-        console.log(`   Total reserved so far: ${allReservedResults.length}/${totalQuantity}`);
-
-        // ✅ ATUALIZAÇÃO GRANULAR INCREMENTAL: Atualiza o estado após cada lote
-        // Isso melhora a UX mostrando progresso em tempo real
-        updateTicketsLocally(batchResults, 'reservado');
+        
+        setError(errorMessage);
+        
+        const error = new Error(errorMessage);
+        throw error;
       }
 
-      console.log(`✅ useTickets.reserveTickets - All batches complete! Total reserved: ${allReservedResults.length} tickets`);
+      // CRITICAL CHANGE: data agora será um objeto jsonb (que é um array de resultados)
+      // O Supabase retorna o JSONB como um array JavaScript diretamente
+      const reservedResults: ReservationResult[] = data as ReservationResult[];
 
-      return { reservationId: orderId, results: allReservedResults };
+      if (!reservedResults || reservedResults.length === 0) {
+        console.warn('⚠️ useTickets.reserveTickets - No data returned from API');
+        const error = new Error('Nenhuma cota foi reservada. Tente novamente.');
+        setError(error.message);
+        throw error;
+      }
+
+      console.log(`✅ useTickets.reserveTickets - Successfully reserved ${reservedResults.length} tickets for Order ID: ${orderId}`);
+
+      // Atualiza o status local após reserva bem-sucedida
+      await fetchTicketsStatus();
+
+      return { reservationId: orderId, results: reservedResults };
     } catch (error) {
       console.error('❌ useTickets.reserveTickets - Exception caught:', error);
       
@@ -361,7 +176,7 @@ export const useTickets = (campaignId: string) => {
   /**
    * Finaliza a compra das cotas reservadas
    * 
-   * ✅ ATUALIZAÇÃO GRANULAR: Apenas os tickets comprados são atualizados no estado
+   * ✅ CORREÇÃO APLICADA: Lança erros apropriadamente
    */
   const finalizePurchase = async (quotaNumbers: number[]): Promise<ReservationResult[] | null> => {
     if (!user || !campaignId || quotaNumbers.length === 0) {
@@ -396,15 +211,14 @@ export const useTickets = (campaignId: string) => {
         }
         
         setError(errorMessage);
-        throw new Error(errorMessage);
+        const error = new Error(errorMessage);
+        throw error;
       }
 
       console.log('✅ useTickets.finalizePurchase - Purchase finalized successfully');
 
-      // ✅ ATUALIZAÇÃO GRANULAR: Atualiza apenas os tickets comprados
-      if (data && data.length > 0) {
-        updateTicketsLocally(data, 'comprado');
-      }
+      // Atualiza o status local após compra bem-sucedida
+      await fetchTicketsStatus();
 
       return data;
     } catch (error) {
@@ -423,44 +237,66 @@ export const useTickets = (campaignId: string) => {
   };
 
   /**
-   * ✅ FUNÇÕES DE FILTRO: Operam sobre os tickets carregados no estado
+   * ✅ RESTAURADO: As funções abaixo agora operam sobre TODOS os tickets
    */
 
+  /**
+   * Obtém cotas por status
+   */
   const getTicketsByStatus = useCallback((status: string) => {
     return tickets.filter(ticket => ticket.status === status);
   }, [tickets]);
 
+  /**
+   * Obtém cotas do usuário atual
+   */
   const getMyTickets = useCallback(() => {
     return tickets.filter(ticket => ticket.is_mine);
   }, [tickets]);
 
+  /**
+   * Obtém cotas disponíveis
+   */
   const getAvailableTickets = useCallback(() => {
     return tickets.filter(ticket => ticket.status === 'disponível');
   }, [tickets]);
 
+  /**
+   * Obtém cotas reservadas
+   */
   const getReservedTickets = useCallback(() => {
     return tickets.filter(ticket => ticket.status === 'reservado');
   }, [tickets]);
 
+  /**
+   * Obtém cotas compradas
+   */
   const getPurchasedTickets = useCallback(() => {
     return tickets.filter(ticket => ticket.status === 'comprado');
   }, [tickets]);
 
+  /**
+   * Verifica se uma cota específica está disponível
+   */
   const isTicketAvailable = useCallback((quotaNumber: number) => {
     const ticket = tickets.find(t => t.quota_number === quotaNumber);
     return ticket?.status === 'disponível';
   }, [tickets]);
 
+  /**
+   * Verifica se uma cota específica pertence ao usuário atual
+   */
   const isMyTicket = useCallback((quotaNumber: number) => {
     const ticket = tickets.find(t => t.quota_number === quotaNumber);
     return ticket?.is_mine || false;
   }, [tickets]);
 
-  /**
-   * ✅ REAL-TIME INTELIGENTE: Atualiza apenas o ticket que mudou
-   * 
-   * Em vez de recarregar todos os tickets, aplica a mudança granularmente
-   */
+  // ✅ Busca inicial de TODOS os tickets
+  useEffect(() => {
+    fetchTicketsStatus();
+  }, [fetchTicketsStatus]); // ✅ Adicionado fetchTicketsStatus nas dependências
+
+  // Configurar escuta em tempo real para mudanças nos tickets
   useEffect(() => {
     if (!campaignId) return;
 
@@ -475,27 +311,9 @@ export const useTickets = (campaignId: string) => {
           filter: `campaign_id=eq.${campaignId}`
         },
         (payload) => {
-          console.log('🔔 Real-time ticket change detected:', payload);
-          
-          // ✅ Aplicar mudança granularmente usando o payload.new
-          if (payload.new && typeof payload.new === 'object') {
-            const changedTicket = payload.new as any;
-            
-            // Criar um ReservationResult a partir do payload
-            const result: ReservationResult = {
-              quota_number: changedTicket.quota_number,
-              customer_name: changedTicket.customer_name,
-              customer_email: changedTicket.customer_email,
-              customer_phone: changedTicket.customer_phone,
-              reserved_at: changedTicket.reserved_at
-            };
-
-            // Determinar o novo status
-            const newStatus = changedTicket.status as 'reservado' | 'comprado';
-            
-            console.log(`🔄 Applying real-time update for ticket ${result.quota_number} -> ${newStatus}`);
-            updateTicketsLocally([result], newStatus);
-          }
+          console.log('🔔 Ticket change detected:', payload);
+          // Recarrega todos os tickets quando há mudanças
+          fetchTicketsStatus();
         }
       )
       .subscribe();
@@ -503,24 +321,22 @@ export const useTickets = (campaignId: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [campaignId, updateTicketsLocally]);
+  }, [campaignId, fetchTicketsStatus]); // ✅ Adicionado fetchTicketsStatus nas dependências
 
   return {
-    // Estado dos tickets (contém apenas tickets explicitamente carregados ou afetados por operações)
+    // Estado dos tickets
     tickets,
     loading,
     error,
     reserving,
     purchasing,
 
-    // ✅ FUNÇÃO EXPOSTA: Permite carregar tickets por range (paginação/infinite scroll)
-    fetchVisibleTickets,
-
     // Funções de operação
+    fetchTicketsStatus,
     reserveTickets,
     finalizePurchase,
 
-    // Funções de filtro
+    // Funções de filtro (operam sobre TODOS os tickets)
     getTicketsByStatus,
     getMyTickets,
     getAvailableTickets,
