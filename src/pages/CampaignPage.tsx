@@ -208,34 +208,31 @@ const CampaignPage = () => {
   
   const [direction, setDirection] = useState(1);
 
-  // ✅ REMOVIDO: Não há mais carregamento automático de tickets na montagem
-  // Os tickets são gerenciados de forma granular via updateTicketsLocally
-  // Apenas os tickets reservados/comprados são adicionados ao estado
-
-  // ✅ FASE 1: Carregar TODOS os tickets para modo MANUAL (uma única vez)
+  // ✅ FASE 2: Carregar TODOS os tickets para modo MANUAL (uma única vez)
+  // Usando loadAllTicketsForManualMode do hook useTickets
   useEffect(() => {
     // Só carregar se:
     // 1. Campanha foi carregada (!loading)
     // 2. Campanha existe (campaign?.id)
-    // 3. É modo MANUAL (precisa do QuotaGrid)
+    // 3. É modo MANUAL (precisa do QuotaGrid com todos os tickets)
     // 4. Tickets ainda não foram carregados (tickets.length === 0)
     // 5. Não está carregando (!ticketsLoading)
-    // 6. fetchVisibleTickets está disponível
+    // 6. loadAllTicketsForManualMode está disponível
     
     if (!loading && 
         campaign?.id && 
         campaign.campaign_model === 'manual' && 
         tickets.length === 0 && 
         !ticketsLoading && 
-        fetchVisibleTickets) {
+        loadAllTicketsForManualMode) {
       console.log('🔄 CampaignPage: Carregando TODOS os tickets para modo manual');
       console.log('📊 Total de tickets:', campaign.total_tickets);
       
-      // Carregar todos os tickets de uma vez (em blocos internamente no hook)
-      // O hook fetchVisibleTickets fará múltiplas chamadas de 1000 em 1000
-      fetchVisibleTickets(1, campaign.total_tickets);
+      // Carregar todos os tickets de uma vez
+      // O hook fará múltiplas chamadas de 1000 em 1000 e mesclará em memória
+      loadAllTicketsForManualMode();
     }
-  }, [loading, campaign?.id, campaign?.campaign_model, campaign?.total_tickets, tickets.length, ticketsLoading, fetchVisibleTickets]);
+  }, [loading, campaign?.id, campaign?.campaign_model, campaign?.total_tickets, tickets.length, ticketsLoading, loadAllTicketsForManualMode]);
 
   // Monitorar mudanças em selectedQuotas
   useEffect(() => {
