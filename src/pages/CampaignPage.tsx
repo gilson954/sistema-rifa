@@ -205,6 +205,35 @@ const CampaignPage = () => {
   
   const [direction, setDirection] = useState(1);
 
+  // ✅ NOVO: Estado para controlar visibilidade da seção fixa
+  const [showFixedSection, setShowFixedSection] = useState(true);
+  const staticSectionRef = React.useRef<HTMLDivElement>(null);
+
+  // ✅ NOVO: IntersectionObserver para detectar quando a seção estática entra em tela
+  useEffect(() => {
+    if (!staticSectionRef.current || campaign?.campaign_model !== 'manual') return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          // Quando a seção estática está visível, esconde a fixa
+          // Quando a seção estática sai da tela, mostra a fixa
+          setShowFixedSection(!entry.isIntersecting);
+        });
+      },
+      {
+        threshold: 0, // Detecta assim que qualquer parte da seção aparece
+        rootMargin: '0px' // Sem margem extra
+      }
+    );
+
+    observer.observe(staticSectionRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [campaign?.campaign_model, selectedQuotas.length]);
+
   useEffect(() => {
     const fetchPaymentStatus = async () => {
       if (!campaign?.id) {
@@ -1530,8 +1559,66 @@ const CampaignPage = () => {
               </div>
 
               {/* ✅ Espaçamento para não sobrepor a seção fixa */}
-              {selectedQuotas.length > 0 && (
+              {selectedQuotas.length > 0 && showFixedSection && (
                 <div className="h-48 sm:h-40"></div>
+              )}
+
+              {/* ✅ SEÇÃO ESTÁTICA (aparece no final da página) */}
+              {selectedQuotas.length > 0 && (
+                <div 
+                  ref={staticSectionRef}
+                  className={`${themeClasses.background} rounded-xl p-4 border ${themeClasses.border} mt-4`}
+                >
+                  <h3 className={`text-base font-bold ${themeClasses.text} mb-3`}>
+                    Cotas Selecionadas
+                  </h3>
+
+                  {currentPromotionInfo && (
+                    <div className={`mb-3 p-3 border-2 border-green-500 dark:border-green-500 rounded-lg shadow-sm ${themeClasses.cardBg}`}>
+                      <div className="text-center">
+                        <div className="text-sm font-bold text-green-600 dark:text-green-400 mb-1">
+                          🎉 Promoção Aplicada: {currentPromotionInfo.discountPercentage}% OFF
+                        </div>
+                        <div className="text-sm font-semibold text-green-600 dark:text-green-400">
+                          Economia de {formatCurrency(currentPromotionInfo.savings)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center mb-3">
+                    <span className={`font-medium ${themeClasses.text}`}>
+                      {selectedQuotas.length} {selectedQuotas.length === 1 ? 'cota' : 'cotas'}
+                    </span>
+                    <div className="text-right">
+                      {currentPromotionInfo && (
+                        <div className={`text-xs ${themeClasses.textSecondary} line-through`}>
+                          {formatCurrency(currentPromotionInfo.originalTotal)}
+                        </div>
+                      )}
+                      <div
+                        className={currentPromotionInfo ? 'text-xl font-bold text-green-600' : getColorClassName('text-xl font-bold')}
+                        style={!currentPromotionInfo ? getColorStyle(true, true) : {}}
+                      >
+                        {formatCurrency(getCurrentTotalValue())}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleOpenReservationModal}
+                    disabled={!isCampaignAvailable || selectedQuotas.length === 0}
+                    className={getColorClassName("w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed")}
+                    style={getColorStyle(true)}
+                  >
+                    {!isCampaignAvailable 
+                      ? 'Campanha Indisponível' 
+                      : selectedQuotas.length === 0
+                      ? 'Selecione pelo menos uma cota'
+                      : 'Reservar Cotas Selecionadas'
+                    }
+                  </button>
+                </div>
               )}
             </div>
           ) : (
@@ -1817,7 +1904,8 @@ const CampaignPage = () => {
       <CampaignFooter campaignTheme={campaignTheme} />
 
       {/* ✅ SEÇÃO FIXA DE COTAS SELECIONADAS - MODO MANUAL */}
-      {campaign?.campaign_model === 'manual' && selectedQuotas.length > 0 && (
+      {/* Só aparece quando showFixedSection === true (seção estática NÃO está visível) */}
+      {campaign?.campaign_model === 'manual' && selectedQuotas.length > 0 && showFixedSection && (
         <div className="fixed bottom-0 left-0 right-0 z-40 animate-in slide-in-from-bottom duration-300">
           <div className="max-w-3xl mx-auto px-4 pb-4">
             <div className={`${themeClasses.cardBg} rounded-xl p-4 border ${themeClasses.border} shadow-2xl backdrop-blur-sm`}>
