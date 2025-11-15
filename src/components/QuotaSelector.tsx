@@ -60,6 +60,12 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   const lastNotifiedQuantityRef = useRef<number>(quantity);
   const isExternalUpdateRef = useRef(false);
 
+  // ✅ FASE 2: Renderiza null se o modo não for 'automatic'
+  // Isso garante que QuotaSelector só aparece em campanhas automáticas
+  if (mode !== 'automatic') {
+    return null;
+  }
+
   // ✅ Sincroniza com initialQuantity quando muda externamente (promoções)
   useEffect(() => {
     const validQuantity = Math.max(initialQuantity, minTicketsPerPurchase);
@@ -152,21 +158,21 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
           promotionText: 'text-amber-400',
           promotionTextSecondary: 'text-amber-300'
         };
-    case 'escuro-cinza':
-      return {
-        background: 'bg-[#1A1A1A]',
-        text: 'text-white',
-        textSecondary: 'text-gray-400',
-        cardBg: 'bg-[#141414]',
-        border: 'border-[#1f1f1f]',
-        inputBg: 'bg-[#2C2C2C]',
-        inputRing: 'ring-[#2C2C2C]',
-        inputFocusRing: 'focus-within:ring-blue-500',
-        promotionBg: 'bg-gradient-to-r from-amber-950/30 to-orange-950/30',
-        promotionBorder: 'border-amber-700/50',
-        promotionText: 'text-amber-400',
-        promotionTextSecondary: 'text-amber-300'
-      };
+      case 'escuro-cinza':
+        return {
+          background: 'bg-[#1A1A1A]',
+          text: 'text-white',
+          textSecondary: 'text-gray-400',
+          cardBg: 'bg-[#141414]',
+          border: 'border-[#1f1f1f]',
+          inputBg: 'bg-[#2C2C2C]',
+          inputRing: 'ring-[#2C2C2C]',
+          inputFocusRing: 'focus-within:ring-blue-500',
+          promotionBg: 'bg-gradient-to-r from-amber-950/30 to-orange-950/30',
+          promotionBorder: 'border-amber-700/50',
+          promotionText: 'text-amber-400',
+          promotionTextSecondary: 'text-amber-300'
+        };
       default:
         return {
           background: 'bg-gray-50',
@@ -329,9 +335,13 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     return baseClasses;
   };
 
-  if (mode === 'manual') {
-    return null;
-  }
+  // ✅ FASE 2: Handler do botão RESERVAR AGORA
+  // Garante que onReserve seja chamado corretamente
+  const handleReserveClick = () => {
+    if (onReserve && !reserving && !disabled) {
+      onReserve();
+    }
+  };
 
   const theme = getThemeClasses(campaignTheme);
 
@@ -509,9 +519,9 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         </div>
       </div>
 
-      {/* Buy Button */}
+      {/* ✅ FASE 2: Buy Button com handler correto */}
       <button
-        onClick={onReserve}
+        onClick={handleReserveClick}
         disabled={reserving || disabled || !onReserve}
         className={getColorClassName(`
           relative overflow-hidden
