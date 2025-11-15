@@ -148,25 +148,19 @@ const CampaignPage = () => {
     isCustomDomain ? window.location.hostname : ''
   );
   
-  // ✅ IMPORTANTE: Estes hooks SEMPRE devem ser chamados na mesma ordem
-  // mesmo quando campaign não existe, para evitar o erro:
-  // "Rendered more hooks than during the previous render"
-  
   const campaign = isCustomDomain ? campaignByDomain : campaignByPublicId;
   const loading = isCustomDomain ? loadingByDomain : loadingByPublicId;
   const error = isCustomDomain ? errorByDomain : errorByPublicId;
 
+  // ✅ ATUALIZADO: Variável de controle unificada para disponibilidade da campanha
   const isCampaignAvailable = campaign?.status === 'active' && campaign?.is_paid !== false;
 
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
   
-  // ✅ NOVO: Estado para controle de pagamento da campanha
   const [campaignPaid, setCampaignPaid] = useState<boolean>(false);
   const [loadingPaymentStatus, setLoadingPaymentStatus] = useState<boolean>(true);
 
-  // ✅ useTickets é SEMPRE chamado, mesmo se campaign?.id for undefined
-  // Agora com loadAllTicketsForManualMode para carregamento completo de tickets
   const {
     tickets,
     loading: ticketsLoading,
@@ -174,10 +168,9 @@ const CampaignPage = () => {
     reserveTickets,
     getAvailableTickets,
     reserving,
-    loadAllTicketsForManualMode  // ✅ NOVO: Carregar TODOS os tickets para modo manual
+    loadAllTicketsForManualMode
   } = useTickets(campaign?.id || '');
 
-  // ✅ useCampaignWinners é SEMPRE chamado, mesmo se campaign?.id for undefined
   const { winners, loading: winnersLoading } = useCampaignWinners(campaign?.id);
 
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
@@ -212,7 +205,6 @@ const CampaignPage = () => {
   
   const [direction, setDirection] = useState(1);
 
-  // ✅ NOVO: Buscar status de pagamento da campanha
   useEffect(() => {
     const fetchPaymentStatus = async () => {
       if (!campaign?.id) {
@@ -231,14 +223,14 @@ const CampaignPage = () => {
 
         if (error) {
           console.error('Error fetching payment status:', error);
-          setCampaignPaid(false); // Por segurança, assume não pago
+          setCampaignPaid(false);
         } else {
           setCampaignPaid(data?.is_paid ?? false);
           console.log('✅ Campaign payment status:', data?.is_paid ? 'PAID' : 'UNPAID');
         }
       } catch (error) {
         console.error('Exception fetching payment status:', error);
-        setCampaignPaid(false); // Por segurança, assume não pago
+        setCampaignPaid(false);
       } finally {
         setLoadingPaymentStatus(false);
       }
@@ -247,17 +239,7 @@ const CampaignPage = () => {
     fetchPaymentStatus();
   }, [campaign?.id]);
 
-  // ✅ FASE 2: Carregar TODOS os tickets para modo MANUAL (uma única vez)
-  // Usando loadAllTicketsForManualMode do hook useTickets
   useEffect(() => {
-    // Só carregar se:
-    // 1. Campanha foi carregada (!loading)
-    // 2. Campanha existe (campaign?.id)
-    // 3. É modo MANUAL (precisa do QuotaGrid com todos os tickets)
-    // 4. Tickets ainda não foram carregados (tickets.length === 0)
-    // 5. Não está carregando (!ticketsLoading)
-    // 6. loadAllTicketsForManualMode está disponível
-    
     if (!loading && 
         campaign?.id && 
         campaign.campaign_model === 'manual' && 
@@ -267,13 +249,10 @@ const CampaignPage = () => {
       console.log('🔄 CampaignPage: Carregando TODOS os tickets para modo manual');
       console.log('📊 Total de tickets:', campaign.total_tickets);
       
-      // Carregar todos os tickets de uma vez
-      // O hook fará múltiplas chamadas de 1000 em 1000 e mesclará em memória
       loadAllTicketsForManualMode();
     }
   }, [loading, campaign?.id, campaign?.campaign_model, campaign?.total_tickets, tickets.length, ticketsLoading, loadAllTicketsForManualMode]);
 
-  // Monitorar mudanças em selectedQuotas
   useEffect(() => {
     console.log(`🔵 CampaignPage: selectedQuotas state updated:`, selectedQuotas);
   }, [selectedQuotas]);
@@ -566,25 +545,18 @@ const CampaignPage = () => {
       return;
     }
 
-    // ✅ OTIMIZADO: Validar apenas se a cota está dentro do range válido da campanha
-    // Não precisa validar contra o array de tickets (que agora é parcial/granular)
     if (quotaNumber < 1 || quotaNumber > campaign.total_tickets) {
       console.log(`⚠️ CampaignPage: Cota ${quotaNumber} fora do range válido (1-${campaign.total_tickets})`);
       return;
     }
 
-    // ✅ OTIMIZADO: Verificar status do ticket APENAS se ele existir no array parcial
-    // Se não existir, assumir disponível (otimização para carregamento granular)
     const ticket = tickets.find(t => t.quota_number === quotaNumber);
     if (ticket) {
-      // Se o ticket foi carregado (parcialmente), verificar seu status
       if (ticket.status === 'comprado' || ticket.status === 'reservado') {
         console.log(`⚠️ CampaignPage: Cota ${quotaNumber} não disponível - status: ${ticket.status}`);
         return;
       }
     }
-    // Se o ticket não existe no array, assumir disponível
-    // (carregamento granular = só tickets reservados/comprados são carregados)
 
     console.log(`🟢 CampaignPage: Cota ${quotaNumber} é válida, atualizando estado...`);
 
@@ -592,14 +564,12 @@ const CampaignPage = () => {
       console.log(`🔵 CampaignPage: setSelectedQuotas - Estado anterior (prev):`, prev);
       console.log(`🔵 CampaignPage: setSelectedQuotas - quotaNumber recebido:`, quotaNumber, `Tipo:`, typeof quotaNumber);
       
-      // Se a cota já está selecionada, remove
       if (prev.includes(quotaNumber)) {
         const newSelection = prev.filter(q => q !== quotaNumber);
         console.log(`🟢 CampaignPage: Removendo cota ${quotaNumber}. Nova seleção:`, newSelection);
         return newSelection;
       }
       
-      // Se não está selecionada, adiciona (verificando limite)
       const newSelection = [...prev, quotaNumber];
       console.log(`🟢 CampaignPage: Adicionando cota ${quotaNumber}. Nova seleção ANTES da verificação de limite:`, newSelection);
       
@@ -639,11 +609,9 @@ const CampaignPage = () => {
 
       const normalizedPhoneNumber = customerData.phoneNumber;
 
-      // ✅ ATUALIZADO: reserveTickets agora recebe totalQuantity (número)
-      // em vez de lista de quotaNumbers
       const reservationResult = await reserveTickets(
         customerData,
-        totalQuantity,  // ✅ Passa quantidade total, não lista de números
+        totalQuantity,
         orderId,
         reservationTimestamp
       );
@@ -763,11 +731,9 @@ const CampaignPage = () => {
     try {
       showInfo('Processando sua reserva...');
 
-      // ✅ ATUALIZADO: reserveTickets agora recebe totalQuantity (número)
-      // em vez de lista de quotaNumbers
       const reservationResult = await reserveTickets(
         customerData,
-        totalQuantity,  // ✅ Passa quantidade total, não lista de números
+        totalQuantity,
         orderIdForReservation,
         reservationTimestampForReservation
       );
@@ -1522,9 +1488,9 @@ const CampaignPage = () => {
           transition={{ duration: 0.6, delay: 0.6 }}
           className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} p-4 mb-4 max-w-3xl mx-auto transition-all duration-300`}
         >
-          {/* ✅ FASE 2: Renderização condicional baseada no modelo da campanha */}
           {campaign.campaign_model === 'manual' ? (
             <div className="space-y-4">
+              {/* ✅ ALERTA DE CAMPANHA INDISPONÍVEL - MODO MANUAL */}
               {!isCampaignAvailable && (
                 <div className="bg-gray-900 border border-orange-800 rounded-lg p-4 mb-4">
                   <div className="flex items-center space-x-3">
@@ -1541,7 +1507,6 @@ const CampaignPage = () => {
                 </div>
               )}
 
-              {/* ✅ MODO MANUAL: QuotaGrid com TODOS os tickets carregados */}
               <div data-quota-grid>
                 <QuotaGrid
                   totalQuotas={campaign.total_tickets}
@@ -1576,7 +1541,6 @@ const CampaignPage = () => {
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {selectedQuotas.sort((a, b) => a - b).map(quota => {
-                        // Calcular padding baseado no total de cotas
                         const padLength = String(campaign.total_tickets).length;
                         
                         return (
@@ -1624,19 +1588,26 @@ const CampaignPage = () => {
                     </div>
                   </div>
 
+                  {/* ✅ BOTÃO RESERVAR COTAS SELECIONADAS COM CONTROLE DE PAGAMENTO */}
                   <button
                     onClick={handleOpenReservationModal}
-                    disabled={selectedQuotas.length === 0}
+                    disabled={!isCampaignAvailable || selectedQuotas.length === 0}
                     className={getColorClassName("w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed")}
                     style={getColorStyle(true)}
                   >
-                    {isCampaignAvailable ? 'Reservar Cotas Selecionadas' : 'Campanha Indisponível'}
+                    {!isCampaignAvailable 
+                      ? 'Campanha Indisponível' 
+                      : selectedQuotas.length === 0
+                      ? 'Selecione pelo menos uma cota'
+                      : 'Reservar Cotas Selecionadas'
+                    }
                   </button>
                 </div>
               )}
             </div>
           ) : (
             <>
+              {/* ✅ ALERTA DE CAMPANHA INDISPONÍVEL - MODO AUTOMÁTICO */}
               {!isCampaignAvailable && (
                 <div className="bg-gray-900 border border-orange-800 rounded-lg p-4 mb-4">
                   <div className="flex items-center space-x-3">
