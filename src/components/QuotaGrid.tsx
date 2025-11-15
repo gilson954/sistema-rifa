@@ -1,5 +1,5 @@
 // src/components/QuotaGrid.tsx
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { TicketStatusInfo } from '../lib/api/tickets';
 
 interface QuotaGridProps {
@@ -16,7 +16,7 @@ interface QuotaGridProps {
   colorMode?: string;
   gradientClasses?: string;
   customGradientColors?: string;
-  fetchVisibleTickets: (offset: number, limit: number) => Promise<void>;
+  loadingTickets?: boolean;
 }
 
 const QuotaGrid: React.FC<QuotaGridProps> = ({
@@ -33,19 +33,17 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   colorMode = 'solid',
   gradientClasses,
   customGradientColors,
-  fetchVisibleTickets
+  loadingTickets = false
 }) => {
-  // Estado para controle de paginação
-  const [loadedPages, setLoadedPages] = useState<Set<number>>(new Set());
-  const [isLoading, setIsLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const loadingRef = useRef(false); // Prevenir chamadas duplicadas
-  const PAGE_SIZE = 10000; // Carregar 10000 tickets por vez
-
   // 🔍 DEPURAÇÃO: Monitorar mudanças na prop selectedQuotas
   useEffect(() => {
     console.log("🔵 QuotaGrid: Prop 'selectedQuotas' atualizada:", selectedQuotas);
   }, [selectedQuotas]);
+
+  // 🔍 DEPURAÇÃO: Monitorar tickets recebidos
+  useEffect(() => {
+    console.log(`🔵 QuotaGrid: Recebidos ${tickets.length} tickets de ${totalQuotas} cotas totais`);
+  }, [tickets, totalQuotas]);
 
   const getThemeClasses = (theme: string) => {
     switch (theme) {
@@ -212,7 +210,6 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     if (totalQuotas === 0) return 1;
     const maxDisplayNumber = totalQuotas - 1; // Maximum 0-indexed number
     const calculatedLength = String(maxDisplayNumber).length;
-    console.log(`🔵 getPadLength: totalQuotas=${totalQuotas}, maxDisplayNumber=${maxDisplayNumber}, padLength=${calculatedLength}`);
     return calculatedLength;
   };
 
@@ -229,18 +226,18 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
     switch (activeFilter) {
       case 'available':
         return allQuotas.filter(quota => {
-          const ticket = tickets.find(t => t.quota_number === quota);
-          return ticket?.status === 'disponível' && !selectedQuotas.includes(quota);
+          const status = getQuotaStatus(quota);
+          return status === 'available';
         });
       case 'reserved':
         return allQuotas.filter(quota => {
-          const ticket = tickets.find(t => t.quota_number === quota);
-          return ticket?.status === 'reservado';
+          const status = getQuotaStatus(quota);
+          return status === 'reserved';
         });
       case 'purchased':
         return allQuotas.filter(quota => {
-          const ticket = tickets.find(t => t.quota_number === quota);
-          return ticket?.status === 'comprado';
+          const status = getQuotaStatus(quota);
+          return status === 'purchased';
         });
       case 'my-numbers':
         return allQuotas.filter(quota => {
@@ -255,148 +252,24 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
 
   // Calcular contadores para os filtros
   const getFilterCounts = () => {
-    const availableCount = tickets.filter(t => t.status === 'disponível').length;
-    const reservedCount = tickets.filter(t => t.status === 'reservado').length;
-    const purchasedCount = tickets.filter(t => t.status === 'comprado').length;
-    const myNumbersCount = tickets.filter(t => t.is_mine).length + selectedQuotas.length;
+    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index);
+    
+    const availableCount = allQuotas.filter(quota => getQuotaStatus(quota) === 'available').length;
+    const reservedCount = allQuotas.filter(quota => getQuotaStatus(quota) === 'reserved').length;
+    const purchasedCount = allQuotas.filter(quota => getQuotaStatus(quota) === 'purchased').length;
+    const myNumbersCount = allQuotas.filter(quota => {
+      const ticket = tickets.find(t => t.quota_number === quota);
+      return ticket?.is_mine || selectedQuotas.includes(quota);
+    }).length;
     
     return {
       all: totalQuotas,
-      available: Math.max(0, availableCount - selectedQuotas.length),
+      available: availableCount,
       reserved: reservedCount,
       purchased: purchasedCount,
       myNumbers: myNumbersCount
     };
   };
-
-  // 🚀 NOVA FUNCIONALIDADE: Carregar página de tickets com offset/limit corretos
-  const loadTicketsPage = useCallback(async (page: number) => {
-    // Prevenir carregamento duplicado
-    if (loadedPages.has(page) || loadingRef.current) {
-      console.log(`⚠️ QuotaGrid: Página ${page} já está carregada ou em carregamento`);
-      return;
-    }
-
-    // Calcular offset e limit corretos
-    const offset = page * PAGE_SIZE;
-    const limit = PAGE_SIZE;
-
-    // Validar se está dentro dos limites
-    if (offset >= totalQuotas) {
-      console.log(`⚠️ QuotaGrid: Offset ${offset} excede totalQuotas ${totalQuotas}`);
-      return;
-    }
-
-    console.log(`🔵 QuotaGrid: Carregando página ${page} (offset: ${offset}, limit: ${limit})`);
-    
-    loadingRef.current = true;
-    setIsLoading(true);
-    setLoadedPages(prev => new Set(prev).add(page));
-
-    try {
-      await fetchVisibleTickets(offset, limit);
-      console.log(`✅ QuotaGrid: Página ${page} carregada com sucesso`);
-    } catch (error) {
-      console.error(`❌ QuotaGrid: Erro ao carregar página ${page}:`, error);
-      // Remove do cache em caso de erro para permitir retry
-      setLoadedPages(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(page);
-        return newSet;
-      });
-    } finally {
-      loadingRef.current = false;
-      setIsLoading(false);
-    }
-  }, [fetchVisibleTickets, loadedPages, totalQuotas, PAGE_SIZE]);
-
-  // 🚀 NOVA FUNCIONALIDADE: Detectar scroll e carregar páginas conforme necessário
-  const handleScroll = useCallback(() => {
-    if (!scrollRef.current || loadingRef.current) return;
-
-    const container = scrollRef.current;
-    const scrollTop = container.scrollTop;
-    const containerHeight = container.clientHeight;
-
-    // Calcular quantos itens cabem na viewport
-    const itemHeight = 44; // altura aproximada de cada item (40px + gap)
-    const itemsPerRow = 20; // baseado no grid-cols-20
-    const rowsVisible = Math.ceil(containerHeight / itemHeight);
-    const itemsVisible = rowsVisible * itemsPerRow;
-
-    // Calcular índice do primeiro item visível
-    const firstVisibleRow = Math.floor(scrollTop / itemHeight);
-    const firstVisibleIndex = firstVisibleRow * itemsPerRow;
-
-    // Calcular página atual e páginas adjacentes
-    const currentPage = Math.floor(firstVisibleIndex / PAGE_SIZE);
-    const lastVisibleIndex = firstVisibleIndex + itemsVisible;
-    const lastPage = Math.floor(lastVisibleIndex / PAGE_SIZE);
-
-    // Carregar página atual e uma página antes/depois (buffer)
-    const pagesToLoad = new Set<number>();
-    const startPage = Math.max(0, currentPage - 1);
-    const endPage = Math.min(Math.ceil(totalQuotas / PAGE_SIZE) - 1, lastPage + 1);
-
-    for (let page = startPage; page <= endPage; page++) {
-      if (!loadedPages.has(page)) {
-        pagesToLoad.add(page);
-      }
-    }
-
-    // Carregar páginas em sequência
-    if (pagesToLoad.size > 0) {
-      console.log(`🔵 QuotaGrid: Páginas a carregar:`, Array.from(pagesToLoad));
-      Array.from(pagesToLoad).forEach(page => {
-        loadTicketsPage(page);
-      });
-    }
-  }, [loadedPages, totalQuotas, PAGE_SIZE, loadTicketsPage]);
-
-  // 🚀 NOVA FUNCIONALIDADE: Carregar todas as cotas ao montar (até 10mil por página)
-  useEffect(() => {
-    if (totalQuotas > 0) {
-      const totalPages = Math.ceil(totalQuotas / PAGE_SIZE);
-      console.log(`🔵 QuotaGrid: Componente montado, carregando ${totalPages} página(s) para ${totalQuotas} cotas`);
-      
-      // Carregar todas as páginas necessárias
-      for (let page = 0; page < totalPages; page++) {
-        loadTicketsPage(page);
-      }
-    }
-  }, [totalQuotas]); // Apenas quando totalQuotas muda
-
-  // 🚀 NOVA FUNCIONALIDADE: Adicionar listener de scroll
-  useEffect(() => {
-    const scrollContainer = scrollRef.current;
-    if (!scrollContainer) return;
-
-    // Debounce do scroll para evitar muitas chamadas
-    let scrollTimeout: NodeJS.Timeout;
-    const debouncedScroll = () => {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        handleScroll();
-      }, 150);
-    };
-
-    scrollContainer.addEventListener('scroll', debouncedScroll);
-
-    // Cleanup
-    return () => {
-      clearTimeout(scrollTimeout);
-      scrollContainer.removeEventListener('scroll', debouncedScroll);
-    };
-  }, [handleScroll]);
-
-  // 🚀 NOVA FUNCIONALIDADE: Limpar cache ao mudar de filtro
-  useEffect(() => {
-    console.log('🔵 QuotaGrid: Filtro alterado para:', activeFilter);
-    // Não limpar o cache, apenas recarregar a primeira página se necessário
-    if (totalQuotas > 0 && !loadedPages.has(0)) {
-      loadTicketsPage(0);
-    }
-  }, [activeFilter]);
 
   const filteredQuotas = getFilteredQuotas();
   const filterCounts = getFilterCounts();
@@ -484,11 +357,11 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         </div>
         
         <div className={`text-center text-sm ${getThemeClasses(campaignTheme).textSecondary}`}>
-          {activeFilter === 'my-numbers' ? selectedQuotas.length : filteredQuotas.length}/{totalQuotas}
+          {filteredQuotas.length}/{totalQuotas}
         </div>
       </div>
 
-      {/* ✅ Quota Grid com Scroll SEMPRE VISÍVEL e Paginação */}
+      {/* ✅ Quota Grid com todos os tickets carregados */}
       <div 
         className={`${getThemeClasses(campaignTheme).cardBg} rounded-lg relative`}
         style={{ 
@@ -498,17 +371,16 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         }}
       >
         {/* Loading Indicator */}
-        {isLoading && (
-          <div className="absolute top-2 right-2 z-10">
-            <div className="flex items-center gap-2 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full">
-              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-xs text-white">Carregando...</span>
+        {loadingTickets && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-10">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-white font-medium">Carregando cotas...</span>
             </div>
           </div>
         )}
 
         <div 
-          ref={scrollRef}
           className="p-4 overflow-y-scroll"
           style={{ 
             height: '100%',
