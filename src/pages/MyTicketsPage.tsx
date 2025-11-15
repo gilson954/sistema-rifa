@@ -51,68 +51,11 @@ const MyTicketsPage = () => {
     return displayNumber.toString().padStart(padding, '0');
   };
 
-  // Carrega os pedidos do usuário - MODIFICADO para remover filtro obrigatório por organizerId
-  const loadUserOrders = async (phone: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      console.log('[MyTicketsPage] Carregando pedidos para telefone:', phone);
-      const { data, error: apiError } = await TicketsAPI.getOrdersByPhoneNumber(phone);
-      
-      if (apiError) {
-        console.error('[MyTicketsPage] Erro ao buscar pedidos:', apiError);
-        setError('Erro ao buscar seus pedidos. Tente novamente.');
-        setOrders([]);
-      } else {
-        console.log('[MyTicketsPage] Pedidos recebidos:', data?.length || 0);
-        let filteredOrders = data || [];
-        
-        // MODIFICAÇÃO: Filtro por organizerId é OPCIONAL - só aplica se houver contexto específico
-        if (campaignContext?.organizerId) {
-          console.log('[MyTicketsPage] Filtrando por organizerId:', campaignContext.organizerId);
-          const { data: organizerCampaigns } = await supabase
-            .from('campaigns')
-            .select('id')
-            .eq('user_id', campaignContext.organizerId);
-          
-          const organizerCampaignIds = organizerCampaigns?.map(c => c.id) || [];
-          filteredOrders = filteredOrders.filter(order => organizerCampaignIds.includes(order.campaign_id));
-          console.log('[MyTicketsPage] Pedidos após filtro:', filteredOrders.length);
-        } else {
-          console.log('[MyTicketsPage] Mostrando todos os pedidos do usuário (sem filtro de organizador)');
-        }
-        
-        setOrders(filteredOrders);
-      }
-    } catch (error) {
-      console.error('[MyTicketsPage] Erro inesperado:', error);
-      setError('Erro inesperado. Tente novamente.');
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // MODIFICADO: useEffect para carregar pedidos - agora reage a mudanças no phoneUser
   useEffect(() => {
-    if (isPhoneAuthenticated && phoneUser?.phone) {
-      console.log('[MyTicketsPage] Carregando pedidos no mount/update');
+    if (isPhoneAuthenticated && phoneUser) {
       loadUserOrders(phoneUser.phone);
     }
-  }, [isPhoneAuthenticated, phoneUser?.phone]);
-
-  // NOVO: useEffect adicional para recarregar quando voltar para a página
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && isPhoneAuthenticated && phoneUser?.phone) {
-        console.log('[MyTicketsPage] Página ficou visível - recarregando pedidos');
-        loadUserOrders(phoneUser.phone);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isPhoneAuthenticated, phoneUser?.phone]);
+  }, [isPhoneAuthenticated, phoneUser, campaignContext?.organizerId]);
 
   useEffect(() => {
     const loadCampaignTotalTickets = async () => {
@@ -223,6 +166,29 @@ const MyTicketsPage = () => {
       document.title = 'Rifaqui';
     };
   }, []);
+
+  const loadUserOrders = async (phone: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, error: apiError } = await TicketsAPI.getOrdersByPhoneNumber(phone);
+      if (apiError) {
+        setError('Erro ao buscar seus pedidos. Tente novamente.');
+      } else {
+        let filteredOrders = data || [];
+        if (campaignContext?.organizerId) {
+          const { data: organizerCampaigns } = await supabase.from('campaigns').select('id').eq('user_id', campaignContext.organizerId);
+          const organizerCampaignIds = organizerCampaigns?.map(c => c.id) || [];
+          filteredOrders = filteredOrders.filter(order => organizerCampaignIds.includes(order.campaign_id));
+        }
+        setOrders(filteredOrders);
+      }
+    } catch (error) {
+      setError('Erro inesperado. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Data não disponível';
@@ -555,7 +521,6 @@ const MyTicketsPage = () => {
                     whileTap={{ scale: 0.95 }} 
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} 
                     disabled={currentPage === totalPages} 
-                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-semibold text-xs sm:text-sm transition-all duration-300 ${currentPage === totalPages ? `${themeClasses.paginationButtonDisabledBg} ${themeClasses.paginationButtonDisabledText} cursor-not-allowed` : `${themeClasses.paginationButtonBg} ${themeClasses.paginationButtonText} hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white shadow-md hover:shadow-lg`}`}
                   >
                     Próx.
                   </motion.button>
