@@ -24,9 +24,8 @@ export interface TicketStatusInfo {
 export interface PaginatedTicketsResponse {
   data: TicketStatusInfo[] | null;
   total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
+  offset: number;
+  limit: number;
   error: any;
 }
 
@@ -115,37 +114,38 @@ export const formatPhoneNumber = (phoneNumber: string): string => {
 
 export class TicketsAPI {
   /**
-   * ✨ FUNÇÃO PRINCIPAL COM PAGINAÇÃO (CORRIGIDA)
+   * ✨ FUNÇÃO PRINCIPAL COM PAGINAÇÃO (CORRIGIDA CONFORME O PLANO)
    * 
    * Busca o status dos tickets de uma campanha com paginação.
    * Esta função é otimizada para buscar blocos específicos de tickets,
    * respeitando o limite de 1000 linhas do PostgREST.
    * 
-   * ✅ CORREÇÃO APLICADA: Agora utiliza corretamente p_offset e p_limit
-   * para garantir que a paginação funcione conforme esperado.
+   * ✅ CORREÇÃO APLICADA: Agora aceita p_offset e p_limit diretamente
+   * sem recalcular o offset internamente. O cálculo deve ser feito
+   * pelo hook useTickets.ts antes de chamar esta função.
    * 
-   * IMPORTANTE: Para campanhas com mais de 1000 tickets, esta função deve
-   * ser chamada múltiplas vezes com diferentes valores de page.
-   * O hook useTickets.ts implementa essa lógica multi-páginas automaticamente.
+   * IMPORTANTE: Esta função apenas valida e passa os parâmetros para
+   * a chamada RPC do Supabase. O cálculo de offset baseado em page/pageSize
+   * deve ser feito externamente.
    * 
    * @param campaignId - ID da campanha
    * @param userId - ID do usuário (opcional)
-   * @param page - Número da página (começa em 1)
-   * @param pageSize - Tamanho da página (padrão: 1000, máximo recomendado devido ao PostgREST)
-   * @returns Objeto com dados paginados e metadados de paginação
+   * @param offset - Número de tickets a pular (p_offset)
+   * @param limit - Quantidade máxima de tickets a retornar (p_limit)
+   * @returns Objeto com dados paginados e metadados
    * 
    * @example
-   * // Buscar primeira página (tickets 1-1000)
-   * const result1 = await getCampaignTicketsStatus('campaign-id', 'user-id', 1, 1000);
+   * // Buscar primeira página (tickets 0-999)
+   * const result1 = await getCampaignTicketsStatus('campaign-id', 'user-id', 0, 1000);
    * 
-   * // Buscar segunda página (tickets 1001-2000)
-   * const result2 = await getCampaignTicketsStatus('campaign-id', 'user-id', 2, 1000);
+   * // Buscar segunda página (tickets 1000-1999)
+   * const result2 = await getCampaignTicketsStatus('campaign-id', 'user-id', 1000, 1000);
    */
   static async getCampaignTicketsStatus(
     campaignId: string,
-    userId?: string,
-    page: number = 1,
-    pageSize: number = 1000
+    userId: string | undefined,
+    offset: number = 0,
+    limit: number = 1000
   ): Promise<PaginatedTicketsResponse> {
     try {
       // Busca informações da campanha para obter o total de tickets
@@ -160,9 +160,8 @@ export class TicketsAPI {
         return {
           data: null,
           total: 0,
-          page,
-          pageSize,
-          totalPages: 0,
+          offset,
+          limit,
           error: campaignError
         };
       }
@@ -172,31 +171,26 @@ export class TicketsAPI {
         return {
           data: null,
           total: 0,
-          page,
-          pageSize,
-          totalPages: 0,
+          offset,
+          limit,
           error: new Error('Campaign not found')
         };
       }
 
       const totalTickets = campaign.total_tickets;
-      const totalPages = Math.ceil(totalTickets / pageSize);
-      
-      // Valida o número da página
-      const validPage = Math.max(1, Math.min(page, totalPages || 1));
-      
-      // ✅ CORREÇÃO CRÍTICA: Calcular offset corretamente
-      // offset = (página - 1) × tamanho_da_página
-      // Exemplo: página 1 → offset 0, página 2 → offset 1000, página 3 → offset 2000
-      const offset = (validPage - 1) * pageSize;
 
-      console.log(`📄 TicketsAPI.getCampaignTicketsStatus - Loading page ${validPage}/${totalPages}`);
+      // ✅ VALIDAÇÃO: Garantir que offset e limit sejam válidos
+      const validOffset = Math.max(0, Math.min(offset, totalTickets));
+      const validLimit = Math.max(1, Math.min(limit, 1000)); // Máximo de 1000 por questões do PostgREST
+
+      console.log(`📄 TicketsAPI.getCampaignTicketsStatus - Fetching tickets`);
       console.log(`   Campaign ID: ${campaignId}`);
       console.log(`   User ID: ${userId || 'null'}`);
-      console.log(`   Total tickets: ${totalTickets}`);
-      console.log(`   Page size: ${pageSize}`);
-      console.log(`   Offset (p_offset): ${offset}`);
-      console.log(`   Limit (p_limit): ${pageSize}`);
+      console.log(`   Total tickets in campaign: ${totalTickets}`);
+      console.log(`   Requested offset (p_offset): ${offset}`);
+      console.log(`   Requested limit (p_limit): ${limit}`);
+      console.log(`   Valid offset: ${validOffset}`);
+      console.log(`   Valid limit: ${validLimit}`);
 
       // Se não há tickets, retorna array vazio
       if (totalTickets === 0) {
@@ -204,53 +198,62 @@ export class TicketsAPI {
         return {
           data: [],
           total: 0,
-          page: validPage,
-          pageSize,
-          totalPages: 0,
+          offset: validOffset,
+          limit: validLimit,
           error: null
         };
       }
 
-      // ✅ CORREÇÃO APLICADA: Usar p_offset e p_limit corretamente na chamada RPC
-      // A função RPC get_campaign_tickets_status deve receber:
-      // - p_offset: número de tickets a pular (0 para primeira página, 1000 para segunda, etc)
-      // - p_limit: quantidade máxima de tickets a retornar
+      // Se o offset é maior ou igual ao total, não há mais tickets para carregar
+      if (validOffset >= totalTickets) {
+        console.log('ℹ️ TicketsAPI.getCampaignTicketsStatus - Offset beyond total tickets, returning empty');
+        return {
+          data: [],
+          total: totalTickets,
+          offset: validOffset,
+          limit: validLimit,
+          error: null
+        };
+      }
+
+      // ✅ CORREÇÃO APLICADA: Passar p_offset e p_limit diretamente para a RPC
+      // sem fazer nenhum cálculo adicional. A função RPC é responsável por
+      // interpretar esses valores corretamente.
       const { data, error } = await supabase
         .rpc('get_campaign_tickets_status', {
           p_campaign_id: campaignId,
           p_user_id: userId || null,
-          p_offset: offset,
-          p_limit: pageSize
+          p_offset: validOffset,
+          p_limit: validLimit
         });
 
       if (error) {
-        console.error('❌ TicketsAPI.getCampaignTicketsStatus - Error loading tickets page:', error);
+        console.error('❌ TicketsAPI.getCampaignTicketsStatus - Error loading tickets:', error);
         console.error('   RPC params:', {
           p_campaign_id: campaignId,
           p_user_id: userId || null,
-          p_offset: offset,
-          p_limit: pageSize
+          p_offset: validOffset,
+          p_limit: validLimit
         });
         return {
           data: null,
           total: totalTickets,
-          page: validPage,
-          pageSize,
-          totalPages,
+          offset: validOffset,
+          limit: validLimit,
           error
         };
       }
 
       const ticketsReceived = data?.length || 0;
-      console.log(`✅ TicketsAPI.getCampaignTicketsStatus - Successfully loaded page ${validPage}/${totalPages}`);
+      console.log(`✅ TicketsAPI.getCampaignTicketsStatus - Successfully loaded tickets`);
       console.log(`   Tickets received: ${ticketsReceived}`);
       
-      // Calcular quantos tickets esperamos nesta página
-      const expectedTickets = Math.min(pageSize, totalTickets - offset);
+      // Calcular quantos tickets esperamos nesta requisição
+      const expectedTickets = Math.min(validLimit, totalTickets - validOffset);
       console.log(`   Expected: ${expectedTickets}`);
 
       // Validação de sanidade: verificar se recebemos a quantidade esperada
-      if (ticketsReceived < expectedTickets && ticketsReceived < totalTickets) {
+      if (ticketsReceived < expectedTickets && validOffset + ticketsReceived < totalTickets) {
         console.warn(`⚠️ TicketsAPI.getCampaignTicketsStatus - Warning: Expected ${expectedTickets} tickets but received ${ticketsReceived}`);
         console.warn('   This might indicate an issue with the RPC function or database state');
       }
@@ -258,9 +261,8 @@ export class TicketsAPI {
       return {
         data: data || [],
         total: totalTickets,
-        page: validPage,
-        pageSize,
-        totalPages,
+        offset: validOffset,
+        limit: validLimit,
         error: null
       };
     } catch (error) {
@@ -268,9 +270,8 @@ export class TicketsAPI {
       return {
         data: null,
         total: 0,
-        page,
-        pageSize,
-        totalPages: 0,
+        offset,
+        limit,
         error
       };
     }
