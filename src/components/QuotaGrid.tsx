@@ -43,7 +43,8 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   // 🔍 DEPURAÇÃO: Monitorar tickets recebidos
   useEffect(() => {
     console.log(`🔵 QuotaGrid: Recebidos ${tickets.length} tickets de ${totalQuotas} cotas totais`);
-  }, [tickets, totalQuotas]);
+    console.log(`🔵 QuotaGrid: loadingTickets = ${loadingTickets}`);
+  }, [tickets, totalQuotas, loadingTickets]);
 
   const getThemeClasses = (theme: string) => {
     switch (theme) {
