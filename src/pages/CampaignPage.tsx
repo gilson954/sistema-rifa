@@ -160,6 +160,10 @@ const CampaignPage = () => {
 
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
+  
+  // ✅ NOVO: Estado para controle de pagamento da campanha
+  const [campaignPaid, setCampaignPaid] = useState<boolean>(false);
+  const [loadingPaymentStatus, setLoadingPaymentStatus] = useState<boolean>(true);
 
   // ✅ useTickets é SEMPRE chamado, mesmo se campaign?.id for undefined
   // Agora com loadAllTicketsForManualMode para carregamento completo de tickets
@@ -207,6 +211,41 @@ const CampaignPage = () => {
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
   
   const [direction, setDirection] = useState(1);
+
+  // ✅ NOVO: Buscar status de pagamento da campanha
+  useEffect(() => {
+    const fetchPaymentStatus = async () => {
+      if (!campaign?.id) {
+        setLoadingPaymentStatus(false);
+        return;
+      }
+
+      setLoadingPaymentStatus(true);
+      
+      try {
+        const { data, error } = await supabase
+          .from('campaigns')
+          .select('is_paid')
+          .eq('id', campaign.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching payment status:', error);
+          setCampaignPaid(false); // Por segurança, assume não pago
+        } else {
+          setCampaignPaid(data?.is_paid ?? false);
+          console.log('✅ Campaign payment status:', data?.is_paid ? 'PAID' : 'UNPAID');
+        }
+      } catch (error) {
+        console.error('Exception fetching payment status:', error);
+        setCampaignPaid(false); // Por segurança, assume não pago
+      } finally {
+        setLoadingPaymentStatus(false);
+      }
+    };
+
+    fetchPaymentStatus();
+  }, [campaign?.id]);
 
   // ✅ FASE 2: Carregar TODOS os tickets para modo MANUAL (uma única vez)
   // Usando loadAllTicketsForManualMode do hook useTickets
