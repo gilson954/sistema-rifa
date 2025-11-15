@@ -51,11 +51,101 @@ const MyTicketsPage = () => {
     return displayNumber.toString().padStart(padding, '0');
   };
 
+  // Carrega os pedidos do usuário - CORRIGIDO conforme Fase 3 do plano
+  const loadUserOrders = async (phone: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      console.log('[MyTicketsPage] ========== INÍCIO CARREGAMENTO ==========');
+      console.log('[MyTicketsPage] Telefone:', phone);
+      console.log('[MyTicketsPage] campaignContext:', campaignContext);
+      
+      const { data, error: apiError } = await TicketsAPI.getOrdersByPhoneNumber(phone);
+      
+      if (apiError) {
+        console.error('[MyTicketsPage] ❌ Erro API ao buscar pedidos:', apiError);
+        setError('Erro ao buscar seus pedidos. Tente novamente.');
+        setOrders([]);
+        return;
+      }
+
+      console.log('[MyTicketsPage] ✅ Pedidos recebidos da API:', data?.length || 0);
+      
+      // Log detalhado dos pedidos recebidos
+      if (data && data.length > 0) {
+        console.log('[MyTicketsPage] Detalhes dos pedidos recebidos:');
+        data.forEach((order, idx) => {
+          console.log(`  [${idx}] OrderID: ${order.order_id}, Campaign: ${order.campaign_id}, Status: ${order.status}, Tickets: ${order.ticket_count}`);
+        });
+      }
+      
+      let ordersToSet = data || [];
+      
+      // MODIFICAÇÃO CRÍTICA: Filtro por organizerId é OPCIONAL e bem documentado
+      if (campaignContext?.organizerId) {
+        console.log('[MyTicketsPage] 🔍 Aplicando filtro por organizerId:', campaignContext.organizerId);
+        
+        const { data: organizerCampaigns, error: campaignsError } = await supabase
+          .from('campaigns')
+          .select('id')
+          .eq('user_id', campaignContext.organizerId);
+        
+        if (campaignsError) {
+          console.error('[MyTicketsPage] ❌ Erro ao buscar campanhas do organizador:', campaignsError);
+        } else {
+          const organizerCampaignIds = organizerCampaigns?.map(c => c.id) || [];
+          console.log('[MyTicketsPage] IDs das campanhas do organizador:', organizerCampaignIds);
+          
+          if (organizerCampaignIds.length === 0) {
+            console.warn('[MyTicketsPage] ⚠️ ATENÇÃO: Nenhuma campanha encontrada para o organizador!');
+          }
+          
+          const beforeFilterCount = ordersToSet.length;
+          ordersToSet = ordersToSet.filter(order => organizerCampaignIds.includes(order.campaign_id));
+          console.log(`[MyTicketsPage] Pedidos após filtro: ${ordersToSet.length} (era ${beforeFilterCount})`);
+          
+          if (beforeFilterCount > 0 && ordersToSet.length === 0) {
+            console.warn('[MyTicketsPage] ⚠️ ATENÇÃO: Todos os pedidos foram filtrados! Isso pode indicar um problema.');
+          }
+        }
+      } else {
+        console.log('[MyTicketsPage] ℹ️ Sem filtro de organizador - mostrando TODOS os pedidos do usuário');
+      }
+      
+      console.log('[MyTicketsPage] 📦 Total de pedidos a serem exibidos:', ordersToSet.length);
+      console.log('[MyTicketsPage] ========== FIM CARREGAMENTO ==========');
+      
+      setOrders(ordersToSet);
+      
+    } catch (error) {
+      console.error('[MyTicketsPage] ❌ Erro inesperado no catch:', error);
+      setError('Erro inesperado. Tente novamente.');
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // MODIFICADO: useEffect para carregar pedidos - agora reage a mudanças no phoneUser
   useEffect(() => {
-    if (isPhoneAuthenticated && phoneUser) {
+    if (isPhoneAuthenticated && phoneUser?.phone) {
+      console.log('[MyTicketsPage] Carregando pedidos no mount/update');
       loadUserOrders(phoneUser.phone);
     }
-  }, [isPhoneAuthenticated, phoneUser, campaignContext?.organizerId]);
+  }, [isPhoneAuthenticated, phoneUser?.phone]);
+
+  // NOVO: useEffect adicional para recarregar quando voltar para a página
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isPhoneAuthenticated && phoneUser?.phone) {
+        console.log('[MyTicketsPage] Página ficou visível - recarregando pedidos');
+        loadUserOrders(phoneUser.phone);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isPhoneAuthenticated, phoneUser?.phone]);
 
   useEffect(() => {
     const loadCampaignTotalTickets = async () => {
@@ -166,29 +256,6 @@ const MyTicketsPage = () => {
       document.title = 'Rifaqui';
     };
   }, []);
-
-  const loadUserOrders = async (phone: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error: apiError } = await TicketsAPI.getOrdersByPhoneNumber(phone);
-      if (apiError) {
-        setError('Erro ao buscar seus pedidos. Tente novamente.');
-      } else {
-        let filteredOrders = data || [];
-        if (campaignContext?.organizerId) {
-          const { data: organizerCampaigns } = await supabase.from('campaigns').select('id').eq('user_id', campaignContext.organizerId);
-          const organizerCampaignIds = organizerCampaigns?.map(c => c.id) || [];
-          filteredOrders = filteredOrders.filter(order => organizerCampaignIds.includes(order.campaign_id));
-        }
-        setOrders(filteredOrders);
-      }
-    } catch (error) {
-      setError('Erro inesperado. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Data não disponível';
@@ -521,6 +588,7 @@ const MyTicketsPage = () => {
                     whileTap={{ scale: 0.95 }} 
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} 
                     disabled={currentPage === totalPages} 
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-semibold text-xs sm:text-sm transition-all duration-300 ${currentPage === totalPages ? `${themeClasses.paginationButtonDisabledBg} ${themeClasses.paginationButtonDisabledText} cursor-not-allowed` : `${themeClasses.paginationButtonBg} ${themeClasses.paginationButtonText} hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white shadow-md hover:shadow-lg`}`}
                   >
                     Próx.
                   </motion.button>
