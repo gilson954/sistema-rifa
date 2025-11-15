@@ -148,6 +148,10 @@ const CampaignPage = () => {
     isCustomDomain ? window.location.hostname : ''
   );
   
+  // ✅ IMPORTANTE: Estes hooks SEMPRE devem ser chamados na mesma ordem
+  // mesmo quando campaign não existe, para evitar o erro:
+  // "Rendered more hooks than during the previous render"
+  
   const campaign = isCustomDomain ? campaignByDomain : campaignByPublicId;
   const loading = isCustomDomain ? loadingByDomain : loadingByPublicId;
   const error = isCustomDomain ? errorByDomain : errorByPublicId;
@@ -157,15 +161,19 @@ const CampaignPage = () => {
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
 
+  // ✅ useTickets é SEMPRE chamado, mesmo se campaign?.id for undefined
+  // Agora com fetchVisibleTickets para carregamento sob demanda de tickets visíveis
   const {
     tickets,
     loading: ticketsLoading,
     error: ticketsError,
     reserveTickets,
     getAvailableTickets,
-    reserving
+    reserving,
+    fetchVisibleTickets  // ✅ NOVO: Função para carregar tickets visíveis sob demanda
   } = useTickets(campaign?.id || '');
 
+  // ✅ useCampaignWinners é SEMPRE chamado, mesmo se campaign?.id for undefined
   const { winners, loading: winnersLoading } = useCampaignWinners(campaign?.id);
 
   const [selectedQuotas, setSelectedQuotas] = useState<number[]>([]);
@@ -199,6 +207,10 @@ const CampaignPage = () => {
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
   
   const [direction, setDirection] = useState(1);
+
+  // ✅ REMOVIDO: Não há mais carregamento automático de tickets na montagem
+  // Os tickets são gerenciados de forma granular via updateTicketsLocally
+  // Apenas os tickets reservados/comprados são adicionados ao estado
 
   // Monitorar mudanças em selectedQuotas
   useEffect(() => {
@@ -493,19 +505,25 @@ const CampaignPage = () => {
       return;
     }
 
-    const availableTickets = getAvailableTickets();
-    console.log(`🔍 CampaignPage: Total de tickets disponíveis:`, availableTickets.length);
-    console.log(`🔍 CampaignPage: Range de quota_numbers disponíveis:`, 
-      availableTickets.length > 0 ? `${Math.min(...availableTickets.map(t => t.quota_number))} - ${Math.max(...availableTickets.map(t => t.quota_number))}` : 'Nenhum'
-    );
-    
-    const isAvailable = availableTickets.some(ticket => ticket.quota_number === quotaNumber);
-
-    if (!isAvailable) {
-      console.log(`⚠️ CampaignPage: Cota ${quotaNumber} não disponível`);
-      console.log(`🔍 CampaignPage: Tickets carregados:`, tickets.length, `de`, campaign.total_tickets);
+    // ✅ OTIMIZADO: Validar apenas se a cota está dentro do range válido da campanha
+    // Não precisa validar contra o array de tickets (que agora é parcial/granular)
+    if (quotaNumber < 1 || quotaNumber > campaign.total_tickets) {
+      console.log(`⚠️ CampaignPage: Cota ${quotaNumber} fora do range válido (1-${campaign.total_tickets})`);
       return;
     }
+
+    // ✅ OTIMIZADO: Verificar status do ticket APENAS se ele existir no array parcial
+    // Se não existir, assumir disponível (otimização para carregamento granular)
+    const ticket = tickets.find(t => t.quota_number === quotaNumber);
+    if (ticket) {
+      // Se o ticket foi carregado (parcialmente), verificar seu status
+      if (ticket.status === 'comprado' || ticket.status === 'reservado') {
+        console.log(`⚠️ CampaignPage: Cota ${quotaNumber} não disponível - status: ${ticket.status}`);
+        return;
+      }
+    }
+    // Se o ticket não existe no array, assumir disponível
+    // (carregamento granular = só tickets reservados/comprados são carregados)
 
     console.log(`🟢 CampaignPage: Cota ${quotaNumber} é válida, atualizando estado...`);
 
@@ -535,7 +553,7 @@ const CampaignPage = () => {
       console.log(`✅ CampaignPage: Adicionando cota ${quotaNumber}. Nova seleção FINAL:`, newSelection);
       return newSelection;
     });
-  }, [campaign, getAvailableTickets, showWarning, tickets]);
+  }, [campaign, tickets, showWarning]);
 
   const handleQuantityChange = useCallback((newQuantity: number) => {
     setQuantity(newQuantity);
@@ -553,15 +571,18 @@ const CampaignPage = () => {
     }
 
     console.log('🔵 CampaignPage - handleReservationSubmit START');
+    console.log('📊 Total de cotas a reservar:', totalQuantity);
 
     try {
       showInfo('Processando sua reserva...');
 
       const normalizedPhoneNumber = customerData.phoneNumber;
 
+      // ✅ ATUALIZADO: reserveTickets agora recebe totalQuantity (número)
+      // em vez de lista de quotaNumbers
       const reservationResult = await reserveTickets(
         customerData,
-        totalQuantity,
+        totalQuantity,  // ✅ Passa quantidade total, não lista de números
         orderId,
         reservationTimestamp
       );
@@ -664,6 +685,7 @@ const CampaignPage = () => {
 
   const handleStep2Confirm = useCallback(async (customerData: CustomerData, totalQuantity: number) => {
     console.log('═══ handleStep2Confirm START ═══');
+    console.log('📊 Total de cotas a reservar:', totalQuantity);
 
     if (!customerData || !customerData.name || !customerData.email || !customerData.phoneNumber) {
       showError('Dados do cliente incompletos.');
@@ -680,9 +702,11 @@ const CampaignPage = () => {
     try {
       showInfo('Processando sua reserva...');
 
+      // ✅ ATUALIZADO: reserveTickets agora recebe totalQuantity (número)
+      // em vez de lista de quotaNumbers
       const reservationResult = await reserveTickets(
         customerData,
-        totalQuantity,
+        totalQuantity,  // ✅ Passa quantidade total, não lista de números
         orderIdForReservation,
         reservationTimestampForReservation
       );
@@ -1005,14 +1029,14 @@ const CampaignPage = () => {
                   className="h-12 w-auto max-w-[180px] object-contain"
                 />
               ) : (
-                <>
+                <div className="flex items-center">
                   <img
                     src="/logo-chatgpt.png"
-                    alt="Rifaqui Logo"
-                    className="w-8 h-8 object-contain"
+                    alt="Rifaqui"
+                    className="h-10 sm:h-14 w-auto object-contain"
                   />
                   <span className={`ml-2 text-xl font-bold ${themeClasses.rifaquiText}`}>Rifaqui</span>
-                </>
+                </div>
               )}
             </button>
 
@@ -1470,6 +1494,11 @@ const CampaignPage = () => {
                   colorMode={organizerProfile?.color_mode}
                   gradientClasses={organizerProfile?.gradient_classes}
                   customGradientColors={organizerProfile?.custom_gradient_colors}
+                  disabled={!isCampaignAvailable}
+                  onReserve={handleOpenReservationModal}
+                  reserving={reserving}
+                  loading={ticketsLoading}
+                  fetchVisibleTickets={fetchVisibleTickets}
                 />
               </div>
 
