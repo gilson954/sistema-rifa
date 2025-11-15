@@ -20,11 +20,6 @@ interface QuotaGridProps {
   
   loadAllTicketsForManualMode: (totalTickets: number) => Promise<void>;
   loadingTickets: boolean;
-  
-  // ✅ Props para o botão RESERVAR AGORA
-  onReserve?: () => void;
-  reserving?: boolean;
-  disabled?: boolean; // quando backend diz que campanha não está paga
 }
 
 const QuotaGrid: React.FC<QuotaGridProps> = ({
@@ -42,10 +37,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   gradientClasses,
   customGradientColors,
   loadAllTicketsForManualMode,
-  loadingTickets,
-  onReserve,
-  reserving = false,
-  disabled = false
+  loadingTickets
 }) => {
   useEffect(() => {
     console.log("🔵 QuotaGrid: Prop 'selectedQuotas' atualizada:", selectedQuotas);
@@ -400,62 +392,6 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
             )}
           </div>
         </div>
-      </div>
-
-      {/* ✅ BOTÃO RESERVAR AGORA - Sistema igual ao QuotaSelector */}
-      <div className="mt-4">
-        <button
-          onClick={onReserve}
-          disabled={reserving || disabled || !onReserve}
-          className={getColorClassName(`
-            relative overflow-hidden
-            w-full py-3 rounded-lg 
-            font-black text-base tracking-wide
-            transition-all duration-300 
-            shadow-lg hover:shadow-xl
-            disabled:opacity-50 disabled:cursor-not-allowed 
-            text-white
-            hover:scale-[1.02] active:scale-[0.98]
-            before:absolute before:inset-0 before:bg-white/0 hover:before:bg-white/10
-            before:transition-all before:duration-300
-          `)}
-          style={getColorStyle()}
-        >
-          <span className="relative z-10 flex items-center justify-center gap-2">
-            {reserving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                RESERVANDO...
-              </>
-            ) : disabled ? (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                AGUARDANDO PAGAMENTO
-              </>
-            ) : (
-              <>
-                RESERVAR AGORA
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </>
-            )}
-          </span>
-        </button>
-
-        {/* ✅ Mensagem de aviso quando desabilitado */}
-        {disabled && (
-          <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-            <p className="text-yellow-500 text-sm text-center flex items-center justify-center gap-2">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              Aguardando confirmação de pagamento da campanha
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Scrollbar customizada */}
