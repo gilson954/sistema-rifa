@@ -1557,10 +1557,8 @@ const CampaignPage = () => {
                   colorMode={organizerProfile?.color_mode}
                   gradientClasses={organizerProfile?.gradient_classes}
                   customGradientColors={organizerProfile?.custom_gradient_colors}
-                  disabled={!isCampaignAvailable}
-                  onReserve={handleOpenReservationModal}
-                  reserving={reserving}
-                  loading={ticketsLoading}
+                  loadAllTicketsForManualMode={loadAllTicketsForManualMode}
+                  loadingTickets={ticketsLoading}
                 />
               </div>
 
