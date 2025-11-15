@@ -123,6 +123,8 @@ export const useTickets = (campaignId: string) => {
    * Esta função carrega apenas os tickets necessários para exibir na QuotaGrid,
    * usando paginação para evitar carregar todos os tickets de uma vez.
    * 
+   * IMPORTANTE: Calcula o offset correto e passa para a API
+   * 
    * @param page - Número da página (começa em 1)
    * @param pageSize - Quantidade de tickets por página (ex: 200, 500, 1000)
    * @returns Promise<void>
@@ -141,27 +143,28 @@ export const useTickets = (campaignId: string) => {
     setLoading(true);
     setError(null);
 
-    // ✅ Calcular o range de tickets baseado em page e pageSize
-    const startRange = (page - 1) * pageSize + 1;
-    const endRange = page * pageSize;
+    // ✅ Calcular offset corretamente
+    // offset = quantos tickets pular (começa em 0)
+    // Exemplo: page=1, pageSize=200 → offset=0 (tickets 1-200)
+    // Exemplo: page=2, pageSize=200 → offset=200 (tickets 201-400)
+    const offset = (page - 1) * pageSize;
+    const limit = pageSize;
 
-    console.log(`📄 useTickets.fetchVisibleTickets - Fetching page ${page} (tickets ${startRange} to ${endRange})...`);
+    const startQuota = offset + 1;
+    const endQuota = offset + limit;
+
+    console.log(`📄 useTickets.fetchVisibleTickets - Fetching page ${page} (quotas ${startQuota}-${endQuota})...`);
+    console.log(`📊 API params: offset=${offset}, limit=${limit}`);
 
     try {
-      // ✅ Calcular offset e limit para a API
-      // offset = quantos tickets pular (começa em 0)
-      // limit = quantos tickets buscar
-      const offset = (page - 1) * pageSize;
-      const limit = pageSize;
-
-      console.log(`📊 API call params: offset=${offset}, limit=${limit}`);
-
-      // Buscar tickets usando a API existente
+      // ✅ Chamar a API com offset e limit calculados
+      // A API receberá esses valores e os passará diretamente para o RPC do Supabase
       const result = await TicketsAPI.getCampaignTicketsStatus(
         campaignId,
         user?.id,
-        page,
-        limit
+        page,        // page para referência/logs
+        limit,       // limit = quantos buscar
+        offset       // offset = quantos pular
       );
 
       if (result.error) {
@@ -176,6 +179,7 @@ export const useTickets = (campaignId: string) => {
       }
 
       console.log(`✅ useTickets.fetchVisibleTickets - Loaded ${result.data.length} tickets for page ${page}`);
+      console.log(`   First ticket: ${result.data[0]?.quota_number}, Last ticket: ${result.data[result.data.length - 1]?.quota_number}`);
 
       // ✅ MESCLAR com estado existente: Adicionar/atualizar apenas os tickets buscados
       setTickets(prevTickets => {
@@ -190,6 +194,7 @@ export const useTickets = (campaignId: string) => {
           const existingTicket = ticketsMap.get(ticket.quota_number);
           if (existingTicket && (existingTicket.status === 'reservado' || existingTicket.status === 'comprado')) {
             // Preservar o status mais importante (reservado/comprado) em vez de sobrescrever com 'disponível'
+            console.log(`   Preserving status for ticket ${ticket.quota_number}: ${existingTicket.status}`);
             ticketsMap.set(ticket.quota_number, {
               ...ticket,
               status: existingTicket.status,
