@@ -1565,8 +1565,12 @@ const CampaignPage = () => {
 
               {/* ✅ SEÇÃO ESTÁTICA (aparece no final da página) */}
               {selectedQuotas.length > 0 && (
-                <div 
+                <motion.div
                   ref={staticSectionRef}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
                   className={`${themeClasses.background} rounded-xl p-4 border ${themeClasses.border} mt-4`}
                 >
                   <h3 className={`text-base font-bold ${themeClasses.text} mb-3`}>
@@ -1574,7 +1578,12 @@ const CampaignPage = () => {
                   </h3>
 
                   {currentPromotionInfo && (
-                    <div className={`mb-3 p-3 border-2 border-green-500 dark:border-green-500 rounded-lg shadow-sm ${themeClasses.cardBg}`}>
+                    <motion.div
+                      initial={{ scale: 0.95, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.1, duration: 0.3 }}
+                      className={`mb-3 p-3 border-2 border-green-500 dark:border-green-500 rounded-lg shadow-sm ${themeClasses.cardBg}`}
+                    >
                       <div className="text-center">
                         <div className="text-sm font-bold text-green-600 dark:text-green-400 mb-1">
                           🎉 Promoção Aplicada: {currentPromotionInfo.discountPercentage}% OFF
@@ -1583,10 +1592,15 @@ const CampaignPage = () => {
                           Economia de {formatCurrency(currentPromotionInfo.savings)}
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
-                  <div className="flex justify-between items-center mb-3">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.15, duration: 0.3 }}
+                    className="flex justify-between items-center mb-3"
+                  >
                     <span className={`font-medium ${themeClasses.text}`}>
                       {selectedQuotas.length} {selectedQuotas.length === 1 ? 'cota' : 'cotas'}
                     </span>
@@ -1603,11 +1617,16 @@ const CampaignPage = () => {
                         {formatCurrency(getCurrentTotalValue())}
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
 
-                  <button
+                  <motion.button
                     onClick={handleOpenReservationModal}
                     disabled={!isCampaignAvailable || selectedQuotas.length === 0}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, duration: 0.3 }}
                     className={getColorClassName("w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed")}
                     style={getColorStyle(true)}
                   >
@@ -1617,8 +1636,8 @@ const CampaignPage = () => {
                       ? 'Selecione pelo menos uma cota'
                       : 'Reservar Cotas Selecionadas'
                     }
-                  </button>
-                </div>
+                  </motion.button>
+                </motion.div>
               )}
             </div>
           ) : (
@@ -1905,63 +1924,125 @@ const CampaignPage = () => {
 
       {/* ✅ SEÇÃO FIXA DE COTAS SELECIONADAS - MODO MANUAL */}
       {/* Só aparece quando showFixedSection === true (seção estática NÃO está visível) */}
-      {campaign?.campaign_model === 'manual' && selectedQuotas.length > 0 && showFixedSection && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 animate-in slide-in-from-bottom duration-300">
-          <div className="max-w-3xl mx-auto px-4 pb-4">
-            <div className={`${themeClasses.cardBg} rounded-xl p-4 border ${themeClasses.border} shadow-2xl backdrop-blur-sm`}>
-              <h3 className={`text-base font-bold ${themeClasses.text} mb-3`}>
-                Cotas Selecionadas
-              </h3>
-
-              {currentPromotionInfo && (
-                <div className={`mb-3 p-3 border-2 border-green-500 dark:border-green-500 rounded-lg shadow-sm ${themeClasses.background}`}>
-                  <div className="text-center">
-                    <div className="text-sm font-bold text-green-600 dark:text-green-400 mb-1">
-                      🎉 Promoção Aplicada: {currentPromotionInfo.discountPercentage}% OFF
-                    </div>
-                    <div className="text-sm font-semibold text-green-600 dark:text-green-400">
-                      Economia de {formatCurrency(currentPromotionInfo.savings)}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex justify-between items-center mb-3">
-                <span className={`font-medium ${themeClasses.text}`}>
-                  {selectedQuotas.length} {selectedQuotas.length === 1 ? 'cota' : 'cotas'}
-                </span>
-                <div className="text-right">
-                  {currentPromotionInfo && (
-                    <div className={`text-xs ${themeClasses.textSecondary} line-through`}>
-                      {formatCurrency(currentPromotionInfo.originalTotal)}
-                    </div>
-                  )}
-                  <div
-                    className={currentPromotionInfo ? 'text-xl font-bold text-green-600' : getColorClassName('text-xl font-bold')}
-                    style={!currentPromotionInfo ? getColorStyle(true, true) : {}}
-                  >
-                    {formatCurrency(getCurrentTotalValue())}
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={handleOpenReservationModal}
-                disabled={!isCampaignAvailable || selectedQuotas.length === 0}
-                className={getColorClassName("w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed")}
-                style={getColorStyle(true)}
+      <AnimatePresence>
+        {campaign?.campaign_model === 'manual' && selectedQuotas.length > 0 && showFixedSection && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 300, 
+              damping: 30,
+              opacity: { duration: 0.2 }
+            }}
+            className="fixed bottom-0 left-0 right-0 z-40"
+          >
+            <div className="max-w-3xl mx-auto px-4 pb-4">
+              <motion.div
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.1, duration: 0.2 }}
+                className={`${themeClasses.cardBg} rounded-xl p-4 border ${themeClasses.border} shadow-2xl backdrop-blur-sm`}
               >
-                {!isCampaignAvailable 
-                  ? 'Campanha Indisponível' 
-                  : selectedQuotas.length === 0
-                  ? 'Selecione pelo menos uma cota'
-                  : 'Reservar Cotas Selecionadas'
-                }
-              </button>
+                <motion.h3
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.15, duration: 0.3 }}
+                  className={`text-base font-bold ${themeClasses.text} mb-3`}
+                >
+                  Cotas Selecionadas
+                </motion.h3>
+
+                {currentPromotionInfo && (
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.2, duration: 0.3, type: "spring", stiffness: 200 }}
+                    className={`mb-3 p-3 border-2 border-green-500 dark:border-green-500 rounded-lg shadow-sm ${themeClasses.background}`}
+                  >
+                    <div className="text-center">
+                      <motion.div
+                        initial={{ y: -5, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.25, duration: 0.3 }}
+                        className="text-sm font-bold text-green-600 dark:text-green-400 mb-1"
+                      >
+                        🎉 Promoção Aplicada: {currentPromotionInfo.discountPercentage}% OFF
+                      </motion.div>
+                      <motion.div
+                        initial={{ y: 5, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.3, duration: 0.3 }}
+                        className="text-sm font-semibold text-green-600 dark:text-green-400"
+                      >
+                        Economia de {formatCurrency(currentPromotionInfo.savings)}
+                      </motion.div>
+                    </div>
+                  </motion.div>
+                )}
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25, duration: 0.3 }}
+                  className="flex justify-between items-center mb-3"
+                >
+                  <span className={`font-medium ${themeClasses.text}`}>
+                    {selectedQuotas.length} {selectedQuotas.length === 1 ? 'cota' : 'cotas'}
+                  </span>
+                  <div className="text-right">
+                    {currentPromotionInfo && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3, duration: 0.2 }}
+                        className={`text-xs ${themeClasses.textSecondary} line-through`}
+                      >
+                        {formatCurrency(currentPromotionInfo.originalTotal)}
+                      </motion.div>
+                    )}
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.35, duration: 0.3, type: "spring", stiffness: 200 }}
+                      className={currentPromotionInfo ? 'text-xl font-bold text-green-600' : getColorClassName('text-xl font-bold')}
+                      style={!currentPromotionInfo ? getColorStyle(true, true) : {}}
+                    >
+                      {formatCurrency(getCurrentTotalValue())}
+                    </motion.div>
+                  </div>
+                </motion.div>
+
+                <motion.button
+                  onClick={handleOpenReservationModal}
+                  disabled={!isCampaignAvailable || selectedQuotas.length === 0}
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ 
+                    delay: 0.4, 
+                    duration: 0.3,
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 20
+                  }}
+                  className={getColorClassName("w-full text-white py-3 rounded-xl font-bold text-base transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed")}
+                  style={getColorStyle(true)}
+                >
+                  {!isCampaignAvailable 
+                    ? 'Campanha Indisponível' 
+                    : selectedQuotas.length === 0
+                    ? 'Selecione pelo menos uma cota'
+                    : 'Reservar Cotas Selecionadas'
+                  }
+                </motion.button>
+              </motion.div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Menu Flutuante de Redes Sociais */}
       <SocialMediaFloatingMenu
