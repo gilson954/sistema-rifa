@@ -51,7 +51,6 @@ const MyTicketsPage = () => {
     return displayNumber.toString().padStart(padding, '0');
   };
 
-  // Carrega os pedidos do usuário - IMPLEMENTAÇÃO EXATA DA FASE 3 DO PLANO
   const loadUserOrders = async (phone: string) => {
     setLoading(true);
     setError(null);
@@ -71,7 +70,6 @@ const MyTicketsPage = () => {
 
       console.log('[MyTicketsPage] ✅ Pedidos recebidos da API:', data?.length || 0);
       
-      // Log detalhado dos pedidos recebidos
       if (data && data.length > 0) {
         console.log('[MyTicketsPage] Detalhes dos pedidos recebidos:');
         data.forEach((order, idx) => {
@@ -83,11 +81,9 @@ const MyTicketsPage = () => {
         });
       }
       
-      // IMPLEMENTAÇÃO EXATA DA PROPOSTA DO PLANO (Fase 3)
       let ordersToSet = data || [];
       
       if (campaignContext?.organizerId) {
-        // Apenas filtre se um ID de organizador for explicitamente fornecido no contexto
         console.log('[MyTicketsPage] 🔍 Filtro por organizerId ATIVADO:', campaignContext.organizerId);
         
         const { data: organizerCampaigns, error: campaignsError } = await supabase
@@ -97,7 +93,6 @@ const MyTicketsPage = () => {
         
         if (campaignsError) {
           console.error('[MyTicketsPage] ❌ Erro ao buscar campanhas do organizador:', campaignsError);
-          // Continua sem filtrar em caso de erro
         } else {
           const organizerCampaignIds = organizerCampaigns?.map(c => c.id) || [];
           console.log('[MyTicketsPage] IDs das campanhas do organizador:', organizerCampaignIds);
@@ -136,7 +131,6 @@ const MyTicketsPage = () => {
     }
   };
 
-  // CORRIGIDO: useEffect com dependência explícita em phoneUser?.phone
   useEffect(() => {
     console.log('[MyTicketsPage] useEffect disparado - Auth:', isPhoneAuthenticated, 'Phone:', phoneUser?.phone);
     
@@ -148,7 +142,6 @@ const MyTicketsPage = () => {
     }
   }, [isPhoneAuthenticated, phoneUser?.phone]);
 
-  // NOVO: Recarrega pedidos quando a página fica visível ou quando retorna de navegação
   useEffect(() => {
     console.log('[MyTicketsPage] Configurando listeners de visibilidade');
     
@@ -159,7 +152,6 @@ const MyTicketsPage = () => {
       }
     };
 
-    // Também recarrega quando o componente recebe foco (útil para navegação SPA)
     const handleFocus = () => {
       if (isPhoneAuthenticated && phoneUser?.phone) {
         console.log('[MyTicketsPage] 🔄 Janela recebeu foco - recarregando pedidos');
@@ -281,7 +273,6 @@ const MyTicketsPage = () => {
 
   useEffect(() => {
     document.title = 'Meus Pedidos';
-
     return () => {
       document.title = 'Rifaqui';
     };
@@ -369,20 +360,11 @@ const MyTicketsPage = () => {
         };
       case 'escuro-cinza':
         return {
-          background: 'bg-[#1A1A1A]', 
-          text: 'text-white', 
-          textSecondary: 'text-gray-400', 
-          cardBg: 'bg-[#2C2C2C]', 
-          border: 'border-[#1f1f1f]', 
-          headerBg: 'bg-[#141414]',
-          userBadgeBg: 'bg-[#2C2C2C]', 
-          userBadgeBorder: 'border-gray-700',
-          paginationContainerBg: 'bg-[#2C2C2C]', 
-          paginationContainerBorder: 'border-gray-700',
-          paginationButtonBg: 'bg-[#3C3C3C]', 
-          paginationButtonText: 'text-gray-200',
-          paginationButtonDisabledBg: 'bg-[#1A1A1A]', 
-          paginationButtonDisabledText: 'text-gray-600'
+          background: 'bg-[#1A1A1A]', text: 'text-white', textSecondary: 'text-gray-400', cardBg: 'bg-[#2C2C2C]', border: 'border-[#1f1f1f]', headerBg: 'bg-[#141414]',
+          userBadgeBg: 'bg-[#2C2C2C]', userBadgeBorder: 'border-gray-700',
+          paginationContainerBg: 'bg-[#2C2C2C]', paginationContainerBorder: 'border-gray-700',
+          paginationButtonBg: 'bg-[#3C3C3C]', paginationButtonText: 'text-gray-200',
+          paginationButtonDisabledBg: 'bg-[#1A1A1A]', paginationButtonDisabledText: 'text-gray-600'
         };
       default:
         return {
@@ -431,11 +413,7 @@ const MyTicketsPage = () => {
                 <img src={organizerProfile.logo_url} alt="Logo" className="h-10 sm:h-14 w-auto max-w-[150px] sm:max-w-[200px] object-contain" />
               ) : (
                 <div className="flex items-center">
-                  <img
-                    src="/logo-chatgpt.png"
-                    alt="Rifaqui"
-                    className="h-10 sm:h-14 w-auto object-contain"
-                    />
+                  <img src="/logo-chatgpt.png" alt="Rifaqui" className="h-10 sm:h-14 w-auto object-contain" />
                   <span className={`ml-2 text-lg sm:text-xl font-bold ${themeClasses.text}`}>Rifaqui</span>
                 </div>
               )}
@@ -496,6 +474,35 @@ const MyTicketsPage = () => {
                   const maxVisibleTickets = 6;
                   const hasMoreTickets = order.ticket_numbers.length > maxVisibleTickets;
 
+                  const getTicketsBadgeInfo = () => {
+                    if (order.status === 'purchased') {
+                      return {
+                        text: 'Números da sorte:',
+                        bgClass: 'bg-green-100 dark:bg-green-900/30',
+                        textClass: 'text-green-700 dark:text-green-400'
+                      };
+                    } else if (order.status === 'reserved') {
+                      return {
+                        text: 'Números reservados:',
+                        bgClass: 'bg-yellow-100 dark:bg-yellow-900/30',
+                        textClass: 'text-yellow-700 dark:text-yellow-400'
+                      };
+                    } else if (order.status === 'expired') {
+                      return {
+                        text: 'Números que estavam reservados:',
+                        bgClass: 'bg-red-100 dark:bg-red-900/30',
+                        textClass: 'text-red-700 dark:text-red-400'
+                      };
+                    }
+                    return {
+                      text: 'Números:',
+                      bgClass: 'bg-gray-100 dark:bg-gray-900/30',
+                      textClass: 'text-gray-700 dark:text-gray-400'
+                    };
+                  };
+
+                  const ticketsBadgeInfo = getTicketsBadgeInfo();
+
                   return (
                     <motion.div 
                       key={order.order_id} 
@@ -541,10 +548,10 @@ const MyTicketsPage = () => {
                                 </>
                               )}
                             </div>
-                            {order.status === 'purchased' && order.ticket_numbers.length > 0 && (
+                            {order.ticket_numbers && order.ticket_numbers.length > 0 && (
                               <div className="mb-2 sm:mb-3">
                                 <div className={`text-xs ${themeClasses.textSecondary} font-semibold mb-1 sm:mb-1.5 flex items-center justify-between`}>
-                                  <span>Números da sorte:</span>
+                                  <span>{ticketsBadgeInfo.text}</span>
                                   {hasMoreTickets && (
                                     <button onClick={() => toggleExpandOrder(order.order_id)} className={`flex items-center gap-1 ${themeClasses.textSecondary} hover:${themeClasses.text} transition-colors text-xs`}>
                                       {isExpanded ? (<><span>Ver menos</span><ChevronUp className="h-3 w-3" /></>) : (<><span>Ver todos</span><ChevronDown className="h-3 w-3" /></>)}
@@ -553,7 +560,7 @@ const MyTicketsPage = () => {
                                 </div>
                                 <div className="flex flex-wrap gap-1 sm:gap-1.5">
                                   {(isExpanded ? order.ticket_numbers : order.ticket_numbers.slice(0, maxVisibleTickets)).map((num) => (
-                                    <span key={num} className="px-1.5 sm:px-2 py-0.5 text-xs font-bold rounded-md bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                    <span key={num} className={`px-1.5 sm:px-2 py-0.5 text-xs font-bold rounded-md ${ticketsBadgeInfo.bgClass} ${ticketsBadgeInfo.textClass}`}>
                                       {formatQuotaNumber(num, order.campaign_id)}
                                     </span>
                                   ))}
@@ -632,7 +639,6 @@ const MyTicketsPage = () => {
         )}
       </main>
 
-      {/* Menu flutuante de redes sociais - Exibido apenas quando há perfil do organizador */}
       {organizerProfile && isPhoneAuthenticated && (
         <SocialMediaFloatingMenu
           socialMediaLinks={organizerProfile.social_media_links}
