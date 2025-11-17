@@ -20,10 +20,6 @@ export interface TicketStatusInfo {
   is_mine: boolean;
   reserved_at: string | null;
   bought_at: string | null;
-  campaign_id?: string;
-  customer_name?: string | null;
-  customer_email?: string | null;
-  customer_phone?: string | null;
 }
 
 export interface PaginatedTicketsResponse {
@@ -39,10 +35,10 @@ export interface ReservationResult {
   quota_number: number;
   status: string;
   message: string;
-  customer_name?: string;
-  customer_email?: string;
-  customer_phone?: string;
-  reserved_at?: string;
+  customer_name?: string; // Adicionado para consistência
+  customer_email?: string; // Adicionado para consistência
+  customer_phone?: string; // Adicionado para consistência
+  reserved_at?: string; // Adicionado para consistência
 }
 
 export interface CustomerTicket {
@@ -153,8 +149,8 @@ export class TicketsAPI {
   static async getCampaignTicketsStatus(
     campaignId: string,
     userId?: string,
-    p_offset: number = 0,
-    p_limit: number = 1000
+    p_offset: number = 0, // ✅ CORRIGIDO: Agora é p_offset
+    p_limit: number = 1000 // ✅ CORRIGIDO: Agora é p_limit
   ): Promise<PaginatedTicketsResponse> {
     try {
       // Busca informações da campanha para obter o total de tickets
@@ -169,7 +165,7 @@ export class TicketsAPI {
         return {
           data: null,
           total: 0,
-          page: p_offset / p_limit + 1,
+          page: p_offset / p_limit + 1, // Calcular page para resposta
           pageSize: p_limit,
           totalPages: 0,
           error: campaignError
@@ -181,7 +177,7 @@ export class TicketsAPI {
         return {
           data: null,
           total: 0,
-          page: p_offset / p_limit + 1,
+          page: p_offset / p_limit + 1, // Calcular page para resposta
           pageSize: p_limit,
           totalPages: 0,
           error: new Error('Campaign not found')
@@ -191,6 +187,7 @@ export class TicketsAPI {
       const totalTickets = campaign.total_tickets;
       const totalPages = Math.ceil(totalTickets / p_limit);
       
+      // ✅ CORRIGIDO: Não recalcular offset. Usar p_offset e p_limit diretamente.
       console.log(`📄 TicketsAPI.getCampaignTicketsStatus - Loading tickets`);
       console.log(`   Campaign ID: ${campaignId}`);
       console.log(`   User ID: ${userId || 'null'}`);
@@ -211,12 +208,13 @@ export class TicketsAPI {
         };
       }
 
+      // ✅ CORREÇÃO APLICADA: Usar p_offset e p_limit corretamente na chamada RPC
       const { data, error } = await supabase
         .rpc('get_campaign_tickets_status', {
           p_campaign_id: campaignId,
           p_user_id: userId || null,
-          p_offset: p_offset,
-          p_limit: p_limit
+          p_offset: p_offset, // ✅ Usar p_offset diretamente
+          p_limit: p_limit    // ✅ Usar p_limit diretamente
         });
 
       if (error) {
@@ -241,9 +239,11 @@ export class TicketsAPI {
       console.log(`✅ TicketsAPI.getCampaignTicketsStatus - Successfully loaded tickets`);
       console.log(`   Tickets received: ${ticketsReceived}`);
       
+      // Calcular quantos tickets esperamos nesta página
       const expectedTickets = Math.min(p_limit, totalTickets - p_offset);
       console.log(`   Expected: ${expectedTickets}`);
 
+      // Validação de sanidade: verificar se recebemos a quantidade esperada
       if (ticketsReceived < expectedTickets && ticketsReceived < totalTickets) {
         console.warn(`⚠️ TicketsAPI.getCampaignTicketsStatus - Warning: Expected ${expectedTickets} tickets but received ${ticketsReceived}`);
         console.warn('   This might indicate an issue with the RPC function or database state');
@@ -312,6 +312,7 @@ export class TicketsAPI {
         };
       }
 
+      // ✅ LOGS DE DEBUG CONFORME O PLANO
       console.log(`🔵 TicketsAPI.reserveTickets - Campaign ID: ${campaignId}`);
       console.log(`🔵 TicketsAPI.reserveTickets - Quota Numbers:`, cleanedQuotaNumbers);
       console.log(`🔵 TicketsAPI.reserveTickets - User ID: ${userId}`);
@@ -562,146 +563,30 @@ export class TicketsAPI {
   }
 
   /**
-   * ✅ FUNÇÃO CORRIGIDA: Busca pedidos por número de telefone
-   * 
-   * Agrupa tickets por order_id e calcula status com base no timeout da campanha.
-   * Esta é a função que MyTicketsPage.tsx usa.
-   * 
-   * ✅ CORREÇÃO: Calcula expiração usando reservation_timeout_minutes da campanha
-   * 
-   * @param phoneNumber - Número de telefone (formato: +5562999999999)
+   * Busca pedidos (orders) por número de telefone
+   * Retorna pedidos agrupados em vez de tickets individuais
+   *
+   * O banco de dados faz matching flexível automaticamente.
+   *
+   * @param phoneNumber - Número de telefone (qualquer formato)
    */
-  static async getOrdersByPhoneNumber(phoneNumber: string): Promise<{ 
-    data: CustomerOrder[] | null; 
-    error: any 
-  }> {
+  static async getOrdersByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerOrder[] | null; error: any }> {
     try {
-      console.log('[TicketsAPI.getOrdersByPhoneNumber] 🔍 Buscando pedidos para:', phoneNumber);
+      console.log(`🔵 TicketsAPI.getOrdersByPhoneNumber - Searching with phone:`, phoneNumber);
 
-      // Buscar TODOS os tickets do usuário COM informação da campanha
-      const { data: tickets, error: ticketsError } = await supabase
-        .from('tickets')
-        .select(`
-          id,
-          quota_number,
-          status,
-          order_id,
-          customer_name,
-          customer_email,
-          customer_phone,
-          reserved_at,
-          bought_at,
-          created_at,
-          campaign:campaigns (
-            id,
-            title,
-            public_id,
-            ticket_price,
-            image_url,
-            reservation_timeout_minutes,
-            prizes (
-              image_url
-            )
-          )
-        `)
-        .eq('customer_phone', phoneNumber)
-        .not('order_id', 'is', null)
-        .order('reserved_at', { ascending: false, nullsFirst: false })
-        .order('created_at', { ascending: false });
-
-      if (ticketsError) {
-        console.error('[TicketsAPI.getOrdersByPhoneNumber] ❌ Erro:', ticketsError);
-        return { data: null, error: ticketsError };
-      }
-
-      if (!tickets || tickets.length === 0) {
-        console.log('[TicketsAPI.getOrdersByPhoneNumber] ℹ️ Nenhum ticket encontrado');
-        return { data: [], error: null };
-      }
-
-      console.log('[TicketsAPI.getOrdersByPhoneNumber] ✅ Tickets encontrados:', tickets.length);
-
-      // Agrupar por order_id
-      const orderMap = new Map<string, CustomerOrder>();
-
-      tickets.forEach((ticket: any) => {
-        const orderId = ticket.order_id;
-        const campaign = ticket.campaign;
-
-        if (!orderId || !campaign) return;
-
-        // ✅ Pega o timeout da campanha (padrão 15 minutos)
-        const timeoutMinutes = campaign.reservation_timeout_minutes || 15;
-
-        // ✅ CÁLCULO CORRETO DE EXPIRAÇÃO
-        let computedStatus: 'purchased' | 'reserved' | 'expired';
-        let expiresAt: string | null = null;
-
-        if (ticket.status === 'comprado') {
-          computedStatus = 'purchased';
-        } else if (ticket.status === 'reservado' && ticket.reserved_at) {
-          const reservedDate = new Date(ticket.reserved_at);
-          const expirationDate = new Date(reservedDate.getTime() + timeoutMinutes * 60 * 1000);
-          const now = new Date();
-
-          expiresAt = expirationDate.toISOString();
-
-          // Se expirou, marca como 'expired'
-          if (now > expirationDate) {
-            computedStatus = 'expired';
-            console.log(`[TicketsAPI] ⏰ Ticket ${ticket.quota_number} EXPIRADO (timeout: ${timeoutMinutes}min)`);
-          } else {
-            computedStatus = 'reserved';
-            const minutesRemaining = Math.floor((expirationDate.getTime() - now.getTime()) / (1000 * 60));
-            console.log(`[TicketsAPI] ✅ Ticket ${ticket.quota_number} ATIVO (${minutesRemaining}min restantes)`);
-          }
-        } else {
-          // Status desconhecido ou disponível (não deveria estar aqui)
-          return;
-        }
-
-        // Se já existe o pedido, adiciona o ticket
-        if (orderMap.has(orderId)) {
-          const existingOrder = orderMap.get(orderId)!;
-          existingOrder.ticket_numbers.push(ticket.quota_number);
-          existingOrder.ticket_count++;
-          existingOrder.total_value += Number(campaign.ticket_price) || 0;
-        } else {
-          // Cria novo pedido
-          const prizeImageUrls = campaign.prizes?.map((p: any) => p.image_url).filter(Boolean) || [];
-
-          orderMap.set(orderId, {
-            order_id: orderId,
-            campaign_id: campaign.id,
-            campaign_title: campaign.title,
-            campaign_public_id: campaign.public_id,
-            status: computedStatus,
-            ticket_count: 1,
-            ticket_numbers: [ticket.quota_number],
-            total_value: Number(campaign.ticket_price) || 0,
-            customer_name: ticket.customer_name,
-            customer_email: ticket.customer_email,
-            customer_phone: ticket.customer_phone,
-            reserved_at: ticket.reserved_at,
-            bought_at: ticket.bought_at,
-            created_at: ticket.created_at,
-            prize_image_urls: prizeImageUrls.length > 0 ? prizeImageUrls : [campaign.image_url],
-            reservation_expires_at: expiresAt,
-          });
-        }
+      const { data, error } = await supabase.rpc('get_orders_by_phone', {
+        p_phone_number: phoneNumber
       });
 
-      const orders = Array.from(orderMap.values());
+      if (error) {
+        console.error('❌ TicketsAPI.getOrdersByPhoneNumber - Error:', error);
+        return { data: null, error };
+      }
 
-      console.log('[TicketsAPI.getOrdersByPhoneNumber] 📦 Pedidos agrupados:', orders.length);
-      orders.forEach(order => {
-        console.log(`  - ${order.order_id}: ${order.status} (${order.ticket_count} tickets)`);
-      });
-
-      return { data: orders, error: null };
-
+      console.log(`✅ TicketsAPI.getOrdersByPhoneNumber - Found ${data?.length || 0} orders`);
+      return { data, error };
     } catch (error) {
-      console.error('[TicketsAPI.getOrdersByPhoneNumber] ❌ Erro inesperado:', error);
+      console.error('❌ TicketsAPI.getOrdersByPhoneNumber - Unexpected error:', error);
       return { data: null, error };
     }
   }
