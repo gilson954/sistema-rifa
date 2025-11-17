@@ -487,21 +487,12 @@ const MyTicketsPage = () => {
                         bgClass: 'bg-yellow-100 dark:bg-yellow-900/30',
                         textClass: 'text-yellow-700 dark:text-yellow-400'
                       };
-                    } else if (order.status === 'expired') {
-                      return {
-                        text: 'Números que estavam reservados:',
-                        bgClass: 'bg-red-100 dark:bg-red-900/30',
-                        textClass: 'text-red-700 dark:text-red-400'
-                      };
                     }
-                    return {
-                      text: 'Números:',
-                      bgClass: 'bg-gray-100 dark:bg-gray-900/30',
-                      textClass: 'text-gray-700 dark:text-gray-400'
-                    };
+                    return null;
                   };
 
                   const ticketsBadgeInfo = getTicketsBadgeInfo();
+                  const shouldShowTickets = order.status === 'purchased' || order.status === 'reserved';
 
                   return (
                     <motion.div 
