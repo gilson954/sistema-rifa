@@ -269,16 +269,16 @@ const CampaignPage = () => {
   }, [campaign?.id]);
 
   useEffect(() => {
-    if (!loading && 
-        campaign?.id && 
-        campaign.campaign_model === 'manual' && 
-        tickets.length === 0 && 
-        !ticketsLoading && 
+    if (!loading &&
+        campaign?.id &&
+        campaign.campaign_model === 'manual' &&
+        tickets.length === 0 &&
+        !ticketsLoading &&
         loadAllTicketsForManualMode) {
       console.log('🔄 CampaignPage: Carregando TODOS os tickets para modo manual');
       console.log('📊 Total de tickets:', campaign.total_tickets);
-      
-      loadAllTicketsForManualMode();
+
+      loadAllTicketsForManualMode(campaign.total_tickets);
     }
   }, [loading, campaign?.id, campaign?.campaign_model, campaign?.total_tickets, tickets.length, ticketsLoading, loadAllTicketsForManualMode]);
 
