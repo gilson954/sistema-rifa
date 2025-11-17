@@ -539,7 +539,7 @@ const MyTicketsPage = () => {
                                 </>
                               )}
                             </div>
-                            {order.ticket_numbers && order.ticket_numbers.length > 0 && (
+                            {shouldShowTickets && ticketsBadgeInfo && order.ticket_numbers && order.ticket_numbers.length > 0 && (
                               <div className="mb-2 sm:mb-3">
                                 <div className={`text-xs ${themeClasses.textSecondary} font-semibold mb-1 sm:mb-1.5 flex items-center justify-between`}>
                                   <span>{ticketsBadgeInfo.text}</span>
@@ -551,7 +551,7 @@ const MyTicketsPage = () => {
                                 </div>
                                 <div className="flex flex-wrap gap-1 sm:gap-1.5">
                                   {(isExpanded ? order.ticket_numbers : order.ticket_numbers.slice(0, maxVisibleTickets)).map((num) => (
-                                    <span key={num} className={`px-1.5 sm:px-2 py-0.5 text-xs font-bold rounded-md ${ticketsBadgeInfo.bgClass} ${ticketsBadgeInfo.textClass}`}>
+                                    <span key={num} className={`px-1.5 sm:px-2 py-0.5 text-xs font-bold rounded-md ${ticketsBadgeInfo!.bgClass} ${ticketsBadgeInfo!.textClass}`}>
                                       {formatQuotaNumber(num, order.campaign_id)}
                                     </span>
                                   ))}
