@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.vite/
+.cache/
+coverage/
+*.log
+*.tmp
+.DS_Store
+public/*.png
+public/*.jpg
+public/*.jpeg
