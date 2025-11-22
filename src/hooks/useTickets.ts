@@ -304,29 +304,52 @@ export const useTickets = (campaignId: string) => {
 
         if (apiError) {
           console.error(`❌ useTickets.reserveTickets - API Error in batch ${batchIndex + 1}:`, apiError);
-          
+
           let errorMessage = `Erro ao reservar cotas (lote ${batchIndex + 1}/${totalBatches})`;
-          
+
           if (typeof apiError === 'object' && apiError !== null) {
-            if ('message' in apiError && apiError.message) {
-              errorMessage = apiError.message as string;
-            } else if ('error' in apiError && apiError.error) {
-              errorMessage = apiError.error as string;
-            } else if ('hint' in apiError && apiError.hint) {
-              errorMessage = apiError.hint as string;
+            const msg = (apiError as any).message || (apiError as any).error || (apiError as any).hint || null;
+            if (typeof msg === 'string') {
+              errorMessage = msg;
+            }
+            const code = (apiError as any).code || (apiError as any).status || null;
+            const normalizedMessage = (msg || '').toLowerCase();
+            if (normalizedMessage.includes('set transaction isolation level')) {
+              errorMessage = 'Erro interno ao iniciar transação. Tente novamente em alguns segundos.';
+            }
+            if (code === 25001) {
+              errorMessage = 'Falha de transação no banco. Repetindo a operação.';
+              console.warn('⚠️ Detected transaction error (25001). Retrying once for this batch...');
+              await new Promise(r => setTimeout(r, 300));
+              const retry = await supabase.rpc('reserve_tickets_by_quantity', {
+                p_campaign_id: campaignId,
+                p_quantity_to_reserve: batchQuantity,
+                p_user_id: user?.id || null,
+                p_customer_name: customerData.name,
+                p_customer_email: customerData.email,
+                p_customer_phone: customerData.phoneNumber,
+                p_reservation_timestamp: reservationTimestamp.toISOString(),
+                p_order_id: orderId
+              });
+              if (!retry.error && retry.data) {
+                const retryResults: ReservationResult[] = retry.data as ReservationResult[];
+                allReservedResults.push(...retryResults);
+                updateTicketsLocally(retryResults, 'reservado');
+                console.log(`✅ Retry for batch ${batchIndex + 1} succeeded: ${retryResults.length} tickets`);
+                continue;
+              }
             }
           } else if (typeof apiError === 'string') {
             errorMessage = apiError;
           }
-          
+
           setError(errorMessage);
-          
-          // Se já reservamos alguns tickets, atualizar o estado com o que conseguimos
+
           if (allReservedResults.length > 0) {
             console.warn(`⚠️ Partial reservation: ${allReservedResults.length} tickets reserved before error`);
             updateTicketsLocally(allReservedResults, 'reservado');
           }
-          
+
           throw new Error(errorMessage);
         }
 
