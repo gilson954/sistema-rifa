@@ -44,6 +44,53 @@ export const useTickets = (campaignId: string) => {
   const [error, setError] = useState<string | null>(null);
   const [reserving, setReserving] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
+  const [campaignMaxQuotaNumber, setCampaignMaxQuotaNumber] = useState<number | null>(null);
+
+  useEffect(() => {
+    setCampaignMaxQuotaNumber(null);
+  }, [campaignId]);
+
+  useEffect(() => {
+    if (campaignId && campaignMaxQuotaNumber !== null) {
+      console.log('🔧 useTickets - campaignMaxQuotaNumber atualizado:', campaignMaxQuotaNumber, 'campanha:', campaignId);
+    }
+  }, [campaignId, campaignMaxQuotaNumber]);
+  const registerMaxQuotaNumber = useCallback(
+    (source: string, reportedValue: number | null | undefined, fallbackTotalTickets?: number) => {
+      const hasReportedValue = typeof reportedValue === 'number' && !Number.isNaN(reportedValue);
+      const fallbackValue =
+        typeof fallbackTotalTickets === 'number'
+          ? Math.max(fallbackTotalTickets - 1, 0)
+          : null;
+
+      if (hasReportedValue) {
+        setCampaignMaxQuotaNumber(prev => {
+          if (prev === reportedValue) {
+            return prev;
+          }
+          console.log(`[useTickets][${source}] maxQuotaNumber recebido: ${reportedValue}`);
+          return reportedValue;
+        });
+        return;
+      }
+
+      if (fallbackValue !== null) {
+        setCampaignMaxQuotaNumber(prev => {
+          if (prev === fallbackValue) {
+            return prev;
+          }
+          console.warn(
+            `[useTickets][${source}] maxQuotaNumber ausente. Aplicando fallback baseado em totalTickets=${fallbackTotalTickets} => ${fallbackValue}`
+          );
+          return fallbackValue;
+        });
+      } else {
+        console.warn(`[useTickets][${source}] maxQuotaNumber ausente e sem fallback dispon�vel`);
+      }
+    },
+    []
+  );
+
 
   /**
    * ✅ FUNÇÃO AUXILIAR: Atualiza tickets localmente com base nos resultados de uma operação
@@ -175,6 +222,8 @@ export const useTickets = (campaignId: string) => {
           return;
         }
 
+        registerMaxQuotaNumber('loadAllTicketsForManualMode', result.maxQuotaNumber, totalTickets);
+
         if (result.data && result.data.length > 0) {
           allTickets.push(...result.data);
           console.log(`✅ Page ${page}/${totalPages} loaded: ${result.data.length} tickets`);
@@ -242,7 +291,7 @@ export const useTickets = (campaignId: string) => {
     } finally {
       setLoading(false);
     }
-  }, [campaignId, user?.id]);
+  }, [campaignId, registerMaxQuotaNumber, user?.id]);
 
   /**
    * Reserva cotas para o usuário atual
@@ -551,6 +600,7 @@ export const useTickets = (campaignId: string) => {
     error,
     reserving,
     purchasing,
+    campaignMaxQuotaNumber,
 
     // ✅ refetchTickets NÃO é exposto - carregamento completo deve ser evitado
     // Se necessário para casos específicos (como QuotaGrid completo), pode ser adicionado aqui
@@ -570,3 +620,4 @@ export const useTickets = (campaignId: string) => {
     isMyTicket
   };
 };
+

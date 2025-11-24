@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 
 interface QuotaGridProps {
   totalQuotas: number;
+  maxQuotaNumber: number;
   selectedQuotas: number[];
   onQuotaSelect: (quotaNumber: number) => void;
   activeFilter: 'all' | 'available' | 'reserved' | 'purchased' | 'my-numbers';
@@ -24,6 +25,7 @@ interface QuotaGridProps {
 
 const QuotaGrid: React.FC<QuotaGridProps> = ({
   totalQuotas,
+  maxQuotaNumber,
   selectedQuotas,
   onQuotaSelect,
   activeFilter,
@@ -42,6 +44,30 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   useEffect(() => {
     console.log("🔵 QuotaGrid: Prop 'selectedQuotas' atualizada:", selectedQuotas);
   }, [selectedQuotas]);
+  const normalizeStatus = (status?: string | null) => {
+    if (!status) return '';
+    return status
+      .toString()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, '');
+  };
+
+  const STATUS_AVAILABLE = 'disponivel';
+  const STATUS_RESERVED = 'reservado';
+  const STATUS_PURCHASED = 'comprado';
+
+  const displayQuotaCeiling = Math.max(
+    typeof maxQuotaNumber === 'number' ? maxQuotaNumber : totalQuotas - 1,
+    -1
+  );
+  const totalSlots = Math.max(displayQuotaCeiling + 1, 0);
+
+  useEffect(() => {
+    console.log(`[QuotaGrid] debug -> totalQuotas: ${totalQuotas} maxQuotaNumber: ${maxQuotaNumber} displayCap: ${displayQuotaCeiling}`);
+  }, [totalQuotas, maxQuotaNumber, displayQuotaCeiling]);
+
 
   const getThemeClasses = (theme: string) => {
     switch (theme) {
@@ -100,11 +126,12 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
 
   const getQuotaStatus = (quotaNumber: number) => {
     const ticket = tickets.find(t => t.quota_number === quotaNumber);
+    const normalizedStatus = normalizeStatus(ticket?.status);
     
     if (!ticket) return 'available';
     
-    if (ticket.status === 'comprado') return 'purchased';
-    if (ticket.status === 'reservado') return 'reserved';
+    if (normalizedStatus === STATUS_PURCHASED) return 'purchased';
+    if (normalizedStatus === STATUS_RESERVED) return 'reserved';
     if (selectedQuotas.includes(quotaNumber)) return 'selected';
     return 'available';
   };
@@ -171,18 +198,18 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   const handleQuotaClick = (quotaNumber: number) => {
     const status = getQuotaStatus(quotaNumber);
     
-    console.log(`🔵 QuotaGrid: Clicado na cota ${quotaNumber}. Modo: ${mode}, Status: ${status}`);
+    console.log(`�Y"� QuotaGrid: Clicado na cota ${quotaNumber}. Modo: ${mode}, Status: ${status}`);
     
     if (status === 'reserved' || status === 'purchased') {
-      console.log(`⚠️ QuotaGrid: Cota ${quotaNumber} não clicável - status: ${status}`);
+      console.log(`�s���? QuotaGrid: Cota ${quotaNumber} nǜo clicǭvel - status: ${status}`);
       return;
     }
     
     if (mode === 'manual' && (status === 'available' || status === 'selected')) {
-      console.log(`✅ QuotaGrid: Chamando onQuotaSelect com: ${quotaNumber}`);
+      console.log(`�o. QuotaGrid: Chamando onQuotaSelect com: ${quotaNumber}`);
       onQuotaSelect(quotaNumber);
     } else {
-      console.log(`⚠️ QuotaGrid: Cota ${quotaNumber} não processada. Modo: ${mode}, Status: ${status}`);
+      console.log(`�s���? QuotaGrid: Cota ${quotaNumber} nǜo processada. Modo: ${mode}, Status: ${status}`);
     }
   };
 
@@ -191,10 +218,10 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   };
 
   const getPadLength = () => {
-    if (totalQuotas === 0) return 1;
-    const maxDisplayNumber = totalQuotas - 1;
-    const calculatedLength = String(maxDisplayNumber).length;
-    console.log(`🔵 getPadLength: totalQuotas=${totalQuotas}, maxDisplayNumber=${maxDisplayNumber}, padLength=${calculatedLength}`);
+    if (totalSlots <= 0) return 1;
+    const maxDisplayNumber = Math.max(displayQuotaCeiling, 0);
+    const calculatedLength = Math.max(String(maxDisplayNumber).length, 1);
+    console.log(`�Y"� getPadLength: totalQuotas=${totalQuotas}, maxDisplayNumber=${maxDisplayNumber}, padLength=${calculatedLength}`);
     return calculatedLength;
   };
 
@@ -204,23 +231,24 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   };
 
   const getFilteredQuotas = () => {
-    const allQuotas = Array.from({ length: totalQuotas }, (_, index) => index);
+    const allQuotas = Array.from({ length: totalSlots }, (_, index) => index);
     
     switch (activeFilter) {
       case 'available':
         return allQuotas.filter(quota => {
           const ticket = tickets.find(t => t.quota_number === quota);
-          return ticket?.status === 'disponível' && !selectedQuotas.includes(quota);
+          const normalizedStatus = normalizeStatus(ticket?.status);
+          return (!ticket || normalizedStatus === STATUS_AVAILABLE) && !selectedQuotas.includes(quota);
         });
       case 'reserved':
         return allQuotas.filter(quota => {
           const ticket = tickets.find(t => t.quota_number === quota);
-          return ticket?.status === 'reservado';
+          return normalizeStatus(ticket?.status) === STATUS_RESERVED;
         });
       case 'purchased':
         return allQuotas.filter(quota => {
           const ticket = tickets.find(t => t.quota_number === quota);
-          return ticket?.status === 'comprado';
+          return normalizeStatus(ticket?.status) === STATUS_PURCHASED;
         });
       case 'my-numbers':
         return allQuotas.filter(quota => {
@@ -234,22 +262,58 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   };
 
   const getFilterCounts = () => {
-    const availableCount = tickets.filter(t => t.status === 'disponível').length;
-    const reservedCount = tickets.filter(t => t.status === 'reservado').length;
-    const purchasedCount = tickets.filter(t => t.status === 'comprado').length;
-    const myNumbersCount = tickets.filter(t => t.is_mine).length + selectedQuotas.length;
-    
+    const normalizedTickets = tickets.map(ticket => ({
+      ...ticket,
+      normalizedStatus: normalizeStatus(ticket.status)
+    }));
+
+    const reservedCount = normalizedTickets.filter(t => t.normalizedStatus === STATUS_RESERVED).length;
+    const purchasedCount = normalizedTickets.filter(t => t.normalizedStatus === STATUS_PURCHASED).length;
+    const explicitAvailableCount = normalizedTickets.filter(t => t.normalizedStatus === STATUS_AVAILABLE).length;
+    const myNumbersCount = normalizedTickets.filter(t => t.is_mine).length + selectedQuotas.length;
+
+    const baseDisplayTotal = Math.max(displayQuotaCeiling, 0);
+    const unavailableCount = reservedCount + purchasedCount;
+    const inferredAvailableFromSlots = Math.max(baseDisplayTotal - unavailableCount, 0);
+    const availableCount = Math.min(
+      Math.max(explicitAvailableCount, inferredAvailableFromSlots),
+      baseDisplayTotal
+    );
+    const adjustedAvailable = Math.max(0, availableCount - selectedQuotas.length);
+
     return {
-      all: totalQuotas,
-      available: Math.max(0, availableCount - selectedQuotas.length),
+      all: baseDisplayTotal,
+      available: adjustedAvailable,
       reserved: reservedCount,
       purchased: purchasedCount,
-      myNumbers: myNumbersCount
+      myNumbers: Math.max(0, myNumbersCount)
     };
   };
 
   const filteredQuotas = getFilteredQuotas();
   const filterCounts = getFilterCounts();
+  const displayDenominator = displayQuotaCeiling >= 0 ? displayQuotaCeiling : Math.max(totalSlots - 1, 0);
+
+  const getActiveFilterDisplayCount = () => {
+    switch (activeFilter) {
+      case 'available':
+        return filterCounts.available;
+      case 'reserved':
+        return filterCounts.reserved;
+      case 'purchased':
+        return filterCounts.purchased;
+      case 'my-numbers':
+        return filterCounts.myNumbers;
+      case 'all':
+      default:
+        return filterCounts.all;
+    }
+  };
+
+  const rawFilterDisplayCount = Math.max(0, getActiveFilterDisplayCount());
+  const normalizedFilterDisplayCount = displayDenominator > 0
+    ? Math.min(rawFilterDisplayCount, displayDenominator)
+    : rawFilterDisplayCount;
 
   return (
     <div className="w-full">
@@ -334,7 +398,7 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
         </div>
         
         <div className={`text-center text-sm ${getThemeClasses(campaignTheme).textSecondary}`}>
-          {activeFilter === 'my-numbers' ? selectedQuotas.length : filteredQuotas.length}/{totalQuotas}
+          {normalizedFilterDisplayCount}/{displayDenominator}
         </div>
       </div>
 
@@ -422,3 +486,14 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
 };
 
 export default QuotaGrid;
+
+
+
+
+
+
+
+
+
+
+

@@ -29,6 +29,7 @@ export interface PaginatedTicketsResponse {
   pageSize: number;
   totalPages: number;
   error: any;
+  maxQuotaNumber?: number | null;
 }
 
 export interface ReservationResult {
@@ -156,7 +157,7 @@ export class TicketsAPI {
       // Busca informações da campanha para obter o total de tickets
       const { data: campaign, error: campaignError } = await supabase
         .from('campaigns')
-        .select('total_tickets')
+        .select('total_tickets, max_quota_number')
         .eq('id', campaignId)
         .maybeSingle();
 
@@ -168,7 +169,8 @@ export class TicketsAPI {
           page: p_offset / p_limit + 1, // Calcular page para resposta
           pageSize: p_limit,
           totalPages: 0,
-          error: campaignError
+          error: campaignError,
+          maxQuotaNumber: null
         };
       }
 
@@ -180,11 +182,16 @@ export class TicketsAPI {
           page: p_offset / p_limit + 1, // Calcular page para resposta
           pageSize: p_limit,
           totalPages: 0,
-          error: new Error('Campaign not found')
+          error: new Error('Campaign not found'),
+          maxQuotaNumber: null
         };
       }
 
       const totalTickets = campaign.total_tickets;
+      const fallbackMaxQuotaNumber = Math.max(totalTickets - 1, 0);
+      const resolvedMaxQuotaNumber = typeof campaign.max_quota_number === 'number'
+        ? campaign.max_quota_number
+        : fallbackMaxQuotaNumber;
       const totalPages = Math.ceil(totalTickets / p_limit);
       
       // ✅ CORRIGIDO: Não recalcular offset. Usar p_offset e p_limit diretamente.
@@ -192,6 +199,7 @@ export class TicketsAPI {
       console.log(`   Campaign ID: ${campaignId}`);
       console.log(`   User ID: ${userId || 'null'}`);
       console.log(`   Total tickets: ${totalTickets}`);
+      console.log(`   max_quota_number (db): ${campaign.max_quota_number ?? 'null'} | fallback: ${fallbackMaxQuotaNumber}`);
       console.log(`   Offset (p_offset): ${p_offset}`);
       console.log(`   Limit (p_limit): ${p_limit}`);
 
@@ -204,7 +212,8 @@ export class TicketsAPI {
           page: p_offset / p_limit + 1,
           pageSize: p_limit,
           totalPages: 0,
-          error: null
+          error: null,
+          maxQuotaNumber: resolvedMaxQuotaNumber
         };
       }
 
@@ -231,7 +240,8 @@ export class TicketsAPI {
           page: p_offset / p_limit + 1,
           pageSize: p_limit,
           totalPages: totalPages,
-          error
+          error,
+          maxQuotaNumber: resolvedMaxQuotaNumber
         };
       }
 
@@ -255,7 +265,8 @@ export class TicketsAPI {
         page: p_offset / p_limit + 1,
         pageSize: p_limit,
         totalPages: totalPages,
-        error: null
+        error: null,
+        maxQuotaNumber: resolvedMaxQuotaNumber
       };
     } catch (error) {
       console.error('❌ TicketsAPI.getCampaignTicketsStatus - Unexpected error:', error);

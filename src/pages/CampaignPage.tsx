@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   Share2,
   Calendar,
@@ -152,9 +152,6 @@ const CampaignPage = () => {
   const loading = isCustomDomain ? loadingByDomain : loadingByPublicId;
   const error = isCustomDomain ? errorByDomain : errorByPublicId;
 
-  // ✅ ATUALIZADO: Variável de controle unificada para disponibilidade da campanha
-  const isCampaignAvailable = campaign?.status === 'active' && campaign?.is_paid !== false;
-
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
   
@@ -168,8 +165,31 @@ const CampaignPage = () => {
     reserveTickets,
     getAvailableTickets,
     reserving,
-    loadAllTicketsForManualMode
+    loadAllTicketsForManualMode,
+    campaignMaxQuotaNumber
   } = useTickets(campaign?.id || '');
+
+  const fallbackMaxQuotaNumber = useMemo(() => {
+    return campaign?.total_tickets ? Math.max(campaign.total_tickets - 1, 0) : 0;
+  }, [campaign?.total_tickets]);
+
+  const derivedMaxQuotaNumber = useMemo(() => {
+    if (campaign?.campaign_model !== 'manual') {
+      return fallbackMaxQuotaNumber;
+    }
+
+    return campaignMaxQuotaNumber ?? campaign?.max_quota_number ?? fallbackMaxQuotaNumber;
+  }, [campaign?.campaign_model, campaignMaxQuotaNumber, campaign?.max_quota_number, fallbackMaxQuotaNumber]);
+
+  const quotaSlotsCount = derivedMaxQuotaNumber + 1;
+
+  useEffect(() => {
+    if (campaign?.campaign_model === 'manual') {
+      console.log('Campaign quotas -> derived:', derivedMaxQuotaNumber, 'hook:', campaignMaxQuotaNumber, 'db:', campaign?.max_quota_number, 'total_tickets:', campaign?.total_tickets);
+    }
+  }, [campaign?.campaign_model, derivedMaxQuotaNumber, campaignMaxQuotaNumber, campaign?.max_quota_number, campaign?.total_tickets]);
+
+  const isCampaignAvailable = campaign?.status === 'active' && campaign?.is_paid !== false;
 
   const { winners, loading: winnersLoading } = useCampaignWinners(campaign?.id);
 
@@ -574,8 +594,8 @@ const CampaignPage = () => {
       return;
     }
 
-    if (quotaNumber < 1 || quotaNumber > campaign.total_tickets) {
-      console.log(`⚠️ CampaignPage: Cota ${quotaNumber} fora do range válido (1-${campaign.total_tickets})`);
+    if (quotaNumber < 0 || quotaNumber > derivedMaxQuotaNumber) {
+      console.log(`[warn] CampaignPage: Cota ${quotaNumber} fora do range valido (0-${derivedMaxQuotaNumber})`);
       return;
     }
 
@@ -1538,7 +1558,8 @@ const CampaignPage = () => {
 
               <div data-quota-grid>
                 <QuotaGrid
-                  totalQuotas={campaign.total_tickets}
+                  totalQuotas={quotaSlotsCount}
+                  maxQuotaNumber={derivedMaxQuotaNumber}
                   selectedQuotas={selectedQuotas}
                   onQuotaSelect={handleQuotaSelect}
                   activeFilter={activeFilter}
@@ -1554,7 +1575,8 @@ const CampaignPage = () => {
                   disabled={!isCampaignAvailable}
                   onReserve={handleOpenReservationModal}
                   reserving={reserving}
-                  loading={ticketsLoading}
+                  loadAllTicketsForManualMode={loadAllTicketsForManualMode}
+                  loadingTickets={ticketsLoading}
                 />
               </div>
 
@@ -2058,3 +2080,4 @@ const CampaignPage = () => {
 };
 
 export default CampaignPage;
+
