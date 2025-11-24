@@ -492,7 +492,7 @@ const MyTicketsPage = () => {
                   };
 
                   const ticketsBadgeInfo = getTicketsBadgeInfo();
-                  const shouldShowTickets = order.status === 'purchased' || order.status === 'reserved';
+                  const shouldShowTickets = order.status === 'purchased';
 
                   return (
                     <motion.div 
