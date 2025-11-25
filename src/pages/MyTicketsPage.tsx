@@ -298,9 +298,9 @@ const MyTicketsPage = () => {
 
   const getStatusInfo = (status: string) => {
     switch (status) {
-      case 'purchased': return { label: 'Pago', icon: CheckCircle, color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-50 dark:bg-green-900/20', borderColor: 'border-green-500', buttonColor: 'bg-green-600' };
-      case 'reserved': return { label: 'Aguardando Pagamento', icon: Clock, color: 'text-yellow-600 dark:text-yellow-400', bgColor: 'bg-yellow-50 dark:bg-yellow-900/20', borderColor: 'border-yellow-500', buttonColor: 'bg-yellow-600' };
-      case 'expired': return { label: 'Compra Cancelada', icon: XCircle, color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-50 dark:bg-red-900/20', borderColor: 'border-red-500', buttonColor: 'bg-red-600' };
+      case 'purchased': return { label: 'Pago', icon: CheckCircle, color: 'text-green-600 dark:text-green-400', bgColor: 'bg-transparent border border-green-600 dark:border-green-400', borderColor: 'border-green-600', buttonColor: 'bg-green-600' };
+      case 'reserved': return { label: 'Aguardando Pagamento', icon: Clock, color: 'text-yellow-600 dark:text-yellow-400', bgColor: 'bg-transparent border border-yellow-600 dark:border-yellow-400', borderColor: 'border-yellow-600', buttonColor: 'bg-yellow-600' };
+      case 'expired': return { label: 'Compra Cancelada', icon: XCircle, color: 'text-red-600 dark:text-red-400', bgColor: 'bg-transparent border border-red-600 dark:border-red-400', borderColor: 'border-red-600', buttonColor: 'bg-red-600' };
       default: return { label: 'Desconhecido', icon: AlertCircle, color: 'text-gray-600 dark:text-gray-400', bgColor: 'bg-gray-50 dark:bg-gray-900/20', borderColor: 'border-gray-500', buttonColor: 'bg-gray-600' };
     }
   };
@@ -417,7 +417,7 @@ const MyTicketsPage = () => {
   const paginatedOrders = orders.slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage);
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 flex flex-col ${themeClasses.background}`}>
+    <div className={`min-h-screen transition-colors duration-300 flex flex-col ${themeClasses.background} overflow-x-hidden`}>
       <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.headerBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
@@ -447,7 +447,7 @@ const MyTicketsPage = () => {
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-8 w-full">
+      <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-8 w-full overflow-x-hidden">
         <div className="mb-4 sm:mb-8">
           <h1 className={`text-2xl sm:text-3xl md:text-4xl font-bold ${themeClasses.text} mb-1 sm:mb-2`}>Meus Pedidos</h1>
           <p className={`text-sm sm:text-base ${themeClasses.textSecondary}`}>Bem-vindo, {phoneUser?.name || 'Cliente'}</p>
@@ -541,14 +541,14 @@ const MyTicketsPage = () => {
                                 </span>
                               </div>
                             </div>
-                            <div className={`inline-flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg ${statusInfo.bgColor} mb-2 sm:mb-3`}>
-                              <StatusIcon className={`h-3 sm:h-4 w-3 sm:w-4 ${statusInfo.color}`} />
-                              <span className={`text-xs font-semibold ${statusInfo.color}`}>{statusInfo.label}</span>
+                            <div className={`inline-flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl ${statusInfo.bgColor} mb-2 sm:mb-3`}>
+                              <StatusIcon className={`h-4 sm:h-5 w-4 sm:w-5 ${statusInfo.color}`} />
+                              <span className={`text-sm sm:text-base font-bold ${statusInfo.color}`}>{statusInfo.label}</span>
                               {order.status === 'reserved' && timeRemaining && timeRemaining !== 'EXPIRADO' && (
                                 <>
-                                  <span className={statusInfo.color}>•</span>
-                                  <Timer className={`h-2.5 sm:h-3 w-2.5 sm:w-3 ${statusInfo.color}`} />
-                                  <span className={`font-mono text-xs font-bold ${statusInfo.color}`}>{timeRemaining}</span>
+                                  <span className={`text-sm sm:text-base ${statusInfo.color}`}>•</span>
+                                  <Timer className={`h-3.5 sm:h-4 w-3.5 sm:w-4 ${statusInfo.color}`} />
+                                  <span className={`font-mono text-sm sm:text-base font-bold ${statusInfo.color}`}>{timeRemaining}</span>
                                 </>
                               )}
                             </div>
@@ -585,12 +585,12 @@ const MyTicketsPage = () => {
                               <span className={`text-lg sm:text-xl font-bold ${themeClasses.text}`}>{formatCurrency(order.total_value)}</span>
                             </div>
                             {order.status === 'reserved' && (
-                              <button onClick={() => handlePayment(order)} className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 shadow-md`}>
+                              <button onClick={() => handlePayment(order)} className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2.5 sm:py-3 rounded-md sm:rounded-lg font-bold text-sm sm:text-base transition-all duration-200 shadow-md`}>
                                 Efetuar Pagamento
                               </button>
                             )}
                             {order.status === 'expired' && (
-                              <button onClick={() => handlePayment(order)} className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2 sm:py-2.5 rounded-md sm:rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 shadow-md`}>
+                              <button onClick={() => handlePayment(order)} className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2.5 sm:py-3 rounded-md sm:rounded-lg font-bold text-sm sm:text-base transition-all duration-200 shadow-md`}>
                                 Ver Detalhes
                               </button>
                             )}
@@ -608,7 +608,7 @@ const MyTicketsPage = () => {
                 <div className={`text-xs sm:text-sm font-medium ${themeClasses.textSecondary} text-center`}>
                   Mostrando <span className="font-bold text-blue-600 dark:text-blue-400">{((currentPage - 1) * ordersPerPage) + 1}</span> a <span className="font-bold text-blue-600 dark:text-blue-400">{Math.min(currentPage * ordersPerPage, orders.length)}</span> de <span className="font-bold text-blue-600 dark:text-blue-400">{orders.length}</span> pedidos
                 </div>
-                <div className="flex items-center gap-1.5 sm:gap-2 w-full justify-center">
+                <div className="flex items-center gap-1.5 sm:gap-2 w-full justify-center flex-wrap">
                   <motion.button 
                     whileHover={{ scale: 1.05 }} 
                     whileTap={{ scale: 0.95 }} 
@@ -618,7 +618,7 @@ const MyTicketsPage = () => {
                   >
                     Ant.
                   </motion.button>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-wrap justify-center">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                       <motion.button 
                         key={page} 

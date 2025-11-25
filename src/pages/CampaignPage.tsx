@@ -295,6 +295,8 @@ const CampaignPage = () => {
   const [showPhoneLoginModal, setShowPhoneLoginModal] = useState(false);
   const [cotasPremiadas, setCotasPremiadas] = useState<CotaPremiada[]>([]);
   const [loadingCotasPremiadas, setLoadingCotasPremiadas] = useState(false);
+  const [processingReservation, setProcessingReservation] = useState(false);
+  const [step2Confirming, setStep2Confirming] = useState(false);
   
   const [customerDataForStep2, setCustomerDataForStep2] = useState<ExistingCustomer | null>(null);
   const [quotaCountForStep2, setQuotaCountForStep2] = useState(0);
@@ -774,6 +776,7 @@ const CampaignPage = () => {
     console.log('📊 Total de cotas a reservar:', totalQuantity);
 
     try {
+      setProcessingReservation(true);
       showInfo('Processando sua reserva...');
 
       const normalizedPhoneNumber = customerData.phoneNumber;
@@ -852,6 +855,7 @@ const CampaignPage = () => {
       showError(error.message || 'Erro ao reservar cotas. Tente novamente.');
       return null;
     } finally {
+      setProcessingReservation(false);
       setShowReservationModal(false);
     }
   }, [campaign, user, reserveTickets, navigate, showSuccess, showError, showInfo, isPhoneAuthenticated, signInWithPhone, resolveQuotaNumbersForReservation]);
@@ -908,8 +912,7 @@ const CampaignPage = () => {
       showError('Erro: dados necessários ausentes.');
       return;
     }
-
-    setShowStep2Modal(false);
+    setStep2Confirming(true);
 
     try {
       showInfo('Processando sua reserva...');
@@ -973,6 +976,9 @@ const CampaignPage = () => {
     } catch (error: any) {
       console.error('❌ EXCEPTION during reservation', error);
       showError(error.message || 'Erro ao reservar cotas.');
+    } finally {
+      setStep2Confirming(false);
+      setShowStep2Modal(false);
     }
   }, [campaign, reserveTickets, navigate, showError, showSuccess, showInfo, orderIdForReservation, reservationTimestampForReservation, resolveQuotaNumbersForReservation]);
 
@@ -2072,7 +2078,7 @@ const CampaignPage = () => {
           gradientClasses={organizerProfile?.gradient_classes}
           customGradientColors={organizerProfile?.custom_gradient_colors}
           campaignTheme={campaignTheme}
-          confirming={reserving}
+          confirming={reserving || step2Confirming}
           orderId={orderIdForReservation}
           reservationTimestamp={reservationTimestampForReservation}
         />
@@ -2093,7 +2099,7 @@ const CampaignPage = () => {
           campaignTitle={campaign.title}
           primaryColor={primaryColor}
           campaignTheme={campaignTheme}
-          reserving={reserving}
+          reserving={reserving || processingReservation}
           reservationTimeoutMinutes={campaign.reservation_timeout_minutes || 15}
           colorMode={organizerProfile?.color_mode}
           gradientClasses={organizerProfile?.gradient_classes}

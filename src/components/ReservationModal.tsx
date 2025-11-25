@@ -1,12 +1,13 @@
 // src/components/ReservationModal.tsx
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Mail, Phone, Shield, CheckCircle, Clock, AlertTriangle, ShoppingCart, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, User, Mail, Shield, CheckCircle, Clock, AlertTriangle, ShoppingCart, ChevronDown, ChevronUp } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { formatReservationTime } from '../utils/timeFormatters';
 import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
 import { CustomerData as ExistingCustomer } from '../utils/customerCheck'; // Import ExistingCustomer type
+import LoadingOverlay from './LoadingOverlay';
 
 interface Country {
   code: string;
@@ -101,6 +102,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   const [confirmPhoneNumber, setConfirmPhoneNumber] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showAllQuotas, setShowAllQuotas] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // CRITICAL FIX: Use useEffect to update formData and selectedCountry when initialCustomerData changes
   useEffect(() => {
@@ -332,34 +334,35 @@ const getThemeClasses = (theme: string) => {
     console.log('🆔 ReservationModal - Received Order ID (from prop):', orderId);
     console.log('⏰ ReservationModal - Received Timestamp (from prop):', reservationTimestamp.toISOString());
 
+    setLoading(true);
     try {
-      console.log('🔐 ReservationModal - Attempting auto-login with:', fullPhoneNumber);
-      const loginResult = await signInWithPhone(fullPhoneNumber, {
-        name: formData.name,
-        email: formData.email
-      });
+      try {
+        console.log('🔐 ReservationModal - Attempting auto-login with:', fullPhoneNumber);
+        const loginResult = await signInWithPhone(fullPhoneNumber, {
+          name: formData.name,
+          email: formData.email
+        });
 
-      if (loginResult.success) {
-        console.log('✅ ReservationModal - Auto-login successful!');
-        showSuccess('Conta criada/logada com sucesso!');
-      } else {
-        console.warn('⚠️ ReservationModal - Auto-login failed:', loginResult.error);
+        if (loginResult.success) {
+          console.log('✅ ReservationModal - Auto-login successful!');
+          showSuccess('Conta criada/logada com sucesso!');
+        } else {
+          console.warn('⚠️ ReservationModal - Auto-login failed:', loginResult.error);
+        }
+      } catch (error) {
+        console.error('❌ ReservationModal - Exception during auto-login:', error);
       }
-    } catch (error) {
-      console.error('❌ ReservationModal - Exception during auto-login:', error);
-    }
-
-    console.log('🎫 ReservationModal - Initiating ticket reservation...');
-    try {
-      // CRITICAL FIX: Passar orderId e reservationTimestamp (recebidos como props) para onReserve
-      await onReserve(customerDataToPass, quotaCount, orderId, reservationTimestamp);
-    } catch (apiError: any) {
-      console.error('❌ ReservationModal - Error during ticket reservation:', apiError);
-      
-      const errorMessage = apiError?.message || 'Erro ao reservar cotas. Tente novamente.';
-      showError(errorMessage);
-      
-      return;
+      console.log('🎫 ReservationModal - Initiating ticket reservation...');
+      try {
+        await onReserve(customerDataToPass, quotaCount, orderId, reservationTimestamp);
+      } catch (apiError: unknown) {
+        console.error('❌ ReservationModal - Error during ticket reservation:', apiError);
+        const errorMessage = apiError instanceof Error ? apiError.message : 'Erro ao reservar cotas. Tente novamente.';
+        showError(errorMessage);
+        return;
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -514,6 +517,7 @@ const getThemeClasses = (theme: string) => {
   return (
     <AnimatePresence mode="wait">
       {isOpen && (
+        <>
         <motion.div
           className={`fixed inset-0 ${theme.overlayBg} backdrop-blur-sm flex items-center justify-center z-50 p-4`}
           variants={overlayVariants}
@@ -1063,6 +1067,8 @@ const getThemeClasses = (theme: string) => {
   }
 `}</style>
         </motion.div>
+        <LoadingOverlay isOpen={loading || reserving} />
+        </>
       )}
     </AnimatePresence>
   );

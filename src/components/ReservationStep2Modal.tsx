@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, CheckCircle, ShoppingCart, Phone } from 'lucide-react';
 import { CustomerData } from '../utils/customerCheck';
+import LoadingOverlay from './LoadingOverlay';
 
 // CRITICAL: Interface para os dados que serão enviados para reserveTickets
 interface CustomerDataForReservation {
@@ -39,8 +40,8 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
   customerData,
   quotaCount,
   totalValue,
-  selectedQuotas,
-  campaignTitle,
+  selectedQuotas: _selectedQuotas,
+  campaignTitle: _campaignTitle,
   primaryColor,
   colorMode,
   gradientClasses,
@@ -317,6 +318,7 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
   return (
     <AnimatePresence mode="wait">
       {isOpen && (
+        <>
         <motion.div
           className={`fixed inset-0 ${theme.overlayBg} backdrop-blur-sm flex items-center justify-center z-50 p-4`}
           variants={overlayVariants}
@@ -329,6 +331,7 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
             className={`rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto ${theme.background} border ${theme.border} ${
               campaignTheme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
             }`}
+            data-selected-count={_selectedQuotas?.length || 0}
             variants={modalVariants}
             initial="hidden"
             animate="visible"
@@ -371,6 +374,7 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
                   <div>
                     <motion.h2 
                       className={`text-2xl font-bold ${theme.text}`}
+                      aria-label={`Sua conta - ${_campaignTitle || ''}`}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.2, duration: 0.4 }}
@@ -646,6 +650,8 @@ const ReservationStep2Modal: React.FC<ReservationStep2ModalProps> = ({
             </motion.div>
           </motion.div>
         </motion.div>
+        <LoadingOverlay isOpen={confirming} />
+        </>
       )}
     </AnimatePresence>
   );

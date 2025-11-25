@@ -1,11 +1,12 @@
 // src/components/ReservationStep1Modal.tsx
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, CheckCircle, ShoppingCart, ArrowRight } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { checkCustomerByPhone, CustomerData as ExistingCustomer } from '../utils/customerCheck';
 import { useAuth } from '../context/AuthContext';
+import LoadingOverlay from './LoadingOverlay';
 
 interface Country {
   code: string;
@@ -37,15 +38,15 @@ const ReservationStep1Modal: React.FC<ReservationStep1ModalProps> = ({
   onExistingCustomer,
   quotaCount,
   totalValue,
-  selectedQuotas,
-  campaignTitle,
+  selectedQuotas: _selectedQuotas,
+  campaignTitle: _campaignTitle,
   primaryColor,
   colorMode,
   gradientClasses,
   customGradientColors,
   campaignTheme
 }) => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { signInWithPhone } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<Country>({
@@ -373,6 +374,7 @@ const getThemeClasses = (theme: string) => {
   return (
     <AnimatePresence mode="wait">
       {isOpen && (
+        <>
         <motion.div
           className={`fixed inset-0 ${theme.overlayBg} backdrop-blur-sm flex items-center justify-center z-50 p-4`}
           variants={overlayVariants}
@@ -383,6 +385,7 @@ const getThemeClasses = (theme: string) => {
         >
           <motion.div
             className="rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto custom-modal-scrollbar"
+            data-selected-count={_selectedQuotas?.length || 0}
             style={{
               backgroundColor: campaignTheme === 'claro' ? '#ffffff' : 
                 campaignTheme === 'escuro' ? '#0f172a' :
@@ -432,6 +435,7 @@ const getThemeClasses = (theme: string) => {
                   <div>
                     <motion.h2 
                       className={`text-2xl font-bold ${theme.text}`}
+                      aria-label={`Sua conta - ${_campaignTitle || ''}`}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.2, duration: 0.4 }}
@@ -626,6 +630,8 @@ const getThemeClasses = (theme: string) => {
   }
 `}</style>
         </motion.div>
+        <LoadingOverlay isOpen={checking} />
+        </>
       )}
     </AnimatePresence>
   );

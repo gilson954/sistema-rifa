@@ -263,6 +263,8 @@ const SalesHistoryPage = () => {
         return 'Compra aprovada';
       case 'reservado':
         return 'Reservado';
+      case 'compra_cancelada':
+        return 'Compra cancelada';
       case 'disponível':
         return 'Disponível';
       default:
@@ -273,9 +275,11 @@ const SalesHistoryPage = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'comprado':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+        return 'bg-transparent border border-green-600 text-green-700 dark:text-green-300';
       case 'reservado':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
+        return 'bg-transparent border border-yellow-600 text-yellow-700 dark:text-yellow-300';
+      case 'compra_cancelada':
+        return 'bg-transparent border border-red-600 text-red-700 dark:text-red-300';
       case 'disponível':
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
       default:
@@ -678,7 +682,7 @@ const SalesHistoryPage = () => {
                           {formatCurrency(transaction.value)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(transaction.status)}`}>
+                          <span className={`inline-flex items-center px-3 py-1.5 text-sm font-bold rounded-lg ${getStatusColor(transaction.status)}`}>
                             {getStatusText(transaction.status)}
                           </span>
                         </td>
@@ -708,7 +712,7 @@ const SalesHistoryPage = () => {
                           {formatQuotaNumber(transaction.quota_number)}
                         </span>
                       </div>
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(transaction.status)}`}>
+                      <span className={`inline-flex items-center px-3 py-1.5 text-sm font-bold rounded-lg ${getStatusColor(transaction.status)}`}>
                         {getStatusText(transaction.status)}
                       </span>
                     </div>
