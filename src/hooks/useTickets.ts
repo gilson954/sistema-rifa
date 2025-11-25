@@ -85,7 +85,7 @@ export const useTickets = (campaignId: string) => {
           return fallbackValue;
         });
       } else {
-        console.warn(`[useTickets][${source}] maxQuotaNumber ausente e sem fallback dispon�vel`);
+        console.warn(`[useTickets][${source}] maxQuotaNumber ausente e sem fallback dispon�vel`);
       }
     },
     []
@@ -308,7 +308,8 @@ export const useTickets = (campaignId: string) => {
     customerData: CustomerData,
     totalQuantity: number,
     orderId: string,
-    reservationTimestamp: Date
+    reservationTimestamp: Date,
+    quotaNumbers?: number[]
   ): Promise<{ reservationId: string; results: ReservationResult[] } | null> => {
     if (!campaignId || totalQuantity === 0) {
       const error = new Error('Dados inválidos para reserva');
@@ -325,6 +326,58 @@ export const useTickets = (campaignId: string) => {
     console.log('🔵 Order ID:', orderId);
 
     try {
+      const explicitQuotaNumbers = Array.isArray(quotaNumbers)
+        ? Array.from(
+            new Set(
+              quotaNumbers
+                .map(num => Number(num))
+                .filter(num => Number.isFinite(num))
+            )
+          )
+        : [];
+
+      if (explicitQuotaNumbers.length > 0) {
+        if (explicitQuotaNumbers.length !== totalQuantity) {
+          console.warn(
+            '[useTickets] reserveTickets - Quota count mismatch',
+            { expected: totalQuantity, received: explicitQuotaNumbers.length }
+          );
+        }
+
+        console.log('🔵 useTickets.reserveTickets - Reserving explicit quotas:', explicitQuotaNumbers);
+
+        const { data, error: manualReservationError } = await TicketsAPI.reserveTickets(
+          campaignId,
+          explicitQuotaNumbers,
+          user?.id || null,
+          customerData.name,
+          customerData.email,
+          customerData.phoneNumber,
+          orderId
+        );
+
+        if (manualReservationError) {
+          console.error('❌ useTickets.reserveTickets - Manual reservation error:', manualReservationError);
+          const manualMessage =
+            (manualReservationError as any)?.message ||
+            (manualReservationError as any)?.hint ||
+            'Erro ao reservar as cotas selecionadas. Tente novamente.';
+          setError(manualMessage);
+          throw new Error(manualMessage);
+        }
+
+        if (!data || data.length === 0) {
+          const message = 'Nenhuma cota foi reservada. Tente selecionar novamente.';
+          console.warn('⚠️ useTickets.reserveTickets - Manual reservation returned empty data');
+          setError(message);
+          throw new Error(message);
+        }
+
+        updateTicketsLocally(data, 'reservado');
+        console.log('✅ useTickets.reserveTickets - Manual reservation complete:', data.length);
+
+        return { reservationId: orderId, results: data };
+      }
       // ✅ BATCHING: Calcular quantos lotes são necessários
       const totalBatches = Math.ceil(totalQuantity / RESERVATION_BATCH_SIZE);
       const allReservedResults: ReservationResult[] = [];
@@ -620,4 +673,8 @@ export const useTickets = (campaignId: string) => {
     isMyTicket
   };
 };
+
+
+
+
 

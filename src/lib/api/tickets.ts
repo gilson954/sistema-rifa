@@ -311,7 +311,8 @@ export class TicketsAPI {
     userId: string | null,
     customerName: string,
     customerEmail: string,
-    customerPhone: string
+    customerPhone: string,
+    orderId?: string
   ): Promise<{ data: ReservationResult[] | null; error: any }> {
     try {
       const cleanedQuotaNumbers = cleanQuotaNumbers(quotaNumbers);
@@ -330,6 +331,7 @@ export class TicketsAPI {
       console.log(`🔵 TicketsAPI.reserveTickets - Customer Name: ${customerName}`);
       console.log(`🔵 TicketsAPI.reserveTickets - Customer Email: ${customerEmail}`);
       console.log(`🔵 TicketsAPI.reserveTickets - Customer Phone (sent to RPC): ${customerPhone}`);
+      console.log(`🔵 TicketsAPI.reserveTickets - Order ID: ${orderId || 'null'}`);
 
       // Se a quantidade de tickets é menor ou igual ao tamanho do lote, faz uma única requisição
       if (cleanedQuotaNumbers.length <= RESERVATION_BATCH_SIZE) {
@@ -340,6 +342,7 @@ export class TicketsAPI {
           p_customer_name: customerName,
           p_customer_email: customerEmail,
           p_customer_phone: customerPhone,
+          p_order_id: orderId || null
         });
 
         if (error) {
@@ -370,6 +373,7 @@ export class TicketsAPI {
           p_customer_name: customerName,
           p_customer_email: customerEmail,
           p_customer_phone: customerPhone,
+          p_order_id: orderId || null
         });
 
         if (error) {

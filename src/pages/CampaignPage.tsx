@@ -22,6 +22,7 @@ import { useNotification } from '../context/NotificationContext';
 import { useCampaignByPublicId, useCampaignByCustomDomain } from '../hooks/useCampaigns';
 import { useTickets } from '../hooks/useTickets';
 import { useCampaignWinners } from '../hooks/useCampaignWinners';
+import { TicketsAPI } from '../lib/api/tickets';
 import QuotaGrid from '../components/QuotaGrid';
 import QuotaSelector from '../components/QuotaSelector';
 import ReservationModal, { CustomerData } from '../components/ReservationModal';
@@ -83,6 +84,22 @@ const maskPhoneNumber = (phone: string | null): string => {
   }
 
   return phone.substring(0, 4) + '****' + phone.substring(phone.length - 2);
+};
+
+const normalizeQuotaStatus = (status?: string | null) => {
+  if (!status) {
+    return '';
+  }
+
+  return status
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+};
+
+const isQuotaStatusAvailable = (status?: string | null) => {
+  const normalized = normalizeQuotaStatus(status);
+  return !normalized || normalized === 'disponivel';
 };
 
 const slideVariants = {
@@ -182,6 +199,79 @@ const CampaignPage = () => {
   }, [campaign?.campaign_model, campaignMaxQuotaNumber, campaign?.max_quota_number, fallbackMaxQuotaNumber]);
 
   const quotaSlotsCount = derivedMaxQuotaNumber + 1;
+
+  const generateAutomaticQuotaSelection = useCallback(
+    async (quantity: number) => {
+      if (!campaign?.id) {
+        throw new Error('Campanha não encontrada.');
+      }
+
+      if (quantity <= 0) {
+        throw new Error('Selecione pelo menos uma cota.');
+      }
+
+      const totalTickets = campaign.total_tickets || 0;
+
+      if (totalTickets <= 0) {
+        throw new Error('Campanha sem total de cotas configurado.');
+      }
+
+      const pageSize = 1000;
+      let offset = 0;
+      let availableSeen = 0;
+      const reservoir: number[] = [];
+
+      while (offset < totalTickets) {
+        const remaining = totalTickets - offset;
+        if (remaining <= 0) {
+          break;
+        }
+
+        const limit = Math.min(pageSize, remaining);
+        const result = await TicketsAPI.getCampaignTicketsStatus(
+          campaign.id,
+          user?.id || undefined,
+          offset,
+          limit
+        );
+
+        if (result.error) {
+          console.error('Erro ao carregar cotas disponíveis para seleção automática:', result.error);
+          throw new Error('Erro ao carregar cotas disponíveis. Tente novamente.');
+        }
+
+        const pageData = result.data || [];
+
+        pageData.forEach(ticket => {
+          if (isQuotaStatusAvailable(ticket.status)) {
+            availableSeen += 1;
+            if (reservoir.length < quantity) {
+              reservoir.push(ticket.quota_number);
+            } else {
+              const replaceIndex = Math.floor(Math.random() * availableSeen);
+              if (replaceIndex < quantity) {
+                reservoir[replaceIndex] = ticket.quota_number;
+              }
+            }
+          }
+        });
+
+        offset += limit;
+      }
+
+      if (reservoir.length < quantity) {
+        throw new Error('Não há cotas disponíveis suficientes para essa quantidade.');
+      }
+
+      for (let i = reservoir.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [reservoir[i], reservoir[j]] = [reservoir[j], reservoir[i]];
+      }
+
+      return reservoir;
+    },
+    [campaign?.id, campaign?.total_tickets, user?.id]
+  );
 
   useEffect(() => {
     if (campaign?.campaign_model === 'manual') {
@@ -639,6 +729,36 @@ const CampaignPage = () => {
     setQuantity(newQuantity);
   }, []);
 
+  const resolveQuotaNumbersForReservation = useCallback(
+    async (totalQuantity: number) => {
+      if (!campaign) {
+        throw new Error('Campanha não encontrada.');
+      }
+
+      if (campaign.campaign_model === 'manual') {
+        if (selectedQuotas.length === 0) {
+          throw new Error('Selecione pelo menos uma cota.');
+        }
+
+        if (selectedQuotas.length !== totalQuantity) {
+          console.warn('Inconsistência entre quantidade selecionada e quantidade informada', {
+            expected: totalQuantity,
+            selected: selectedQuotas.length
+          });
+        }
+
+        return [...selectedQuotas];
+      }
+
+      if (campaign.campaign_model === 'automatic') {
+        return await generateAutomaticQuotaSelection(totalQuantity);
+      }
+
+      return undefined;
+    },
+    [campaign, selectedQuotas, generateAutomaticQuotaSelection]
+  );
+
   const handleReservationSubmit = useCallback(async (
     customerData: CustomerData, 
     totalQuantity: number, 
@@ -658,11 +778,25 @@ const CampaignPage = () => {
 
       const normalizedPhoneNumber = customerData.phoneNumber;
 
+      let quotaNumbersForReservation: number[] | undefined;
+      try {
+        quotaNumbersForReservation = await resolveQuotaNumbersForReservation(totalQuantity);
+      } catch (selectionError) {
+        console.error('Erro ao preparar cotas para reserva:', selectionError);
+        showError(
+          selectionError instanceof Error
+            ? selectionError.message
+            : 'Erro ao preparar as cotas selecionadas.'
+        );
+        return null;
+      }
+
       const reservationResult = await reserveTickets(
         customerData,
         totalQuantity,
         orderId,
-        reservationTimestamp
+        reservationTimestamp,
+        quotaNumbersForReservation
       );
 
       if (reservationResult) {
@@ -720,7 +854,7 @@ const CampaignPage = () => {
     } finally {
       setShowReservationModal(false);
     }
-  }, [campaign, user, reserveTickets, navigate, showSuccess, showError, showInfo, isPhoneAuthenticated, signInWithPhone]);
+  }, [campaign, user, reserveTickets, navigate, showSuccess, showError, showInfo, isPhoneAuthenticated, signInWithPhone, resolveQuotaNumbersForReservation]);
 
   const handleOpenReservationModal = useCallback(() => {
     if (campaign?.campaign_model === 'manual' && selectedQuotas.length === 0) {
@@ -780,11 +914,25 @@ const CampaignPage = () => {
     try {
       showInfo('Processando sua reserva...');
 
+      let quotaNumbersForReservation: number[] | undefined;
+      try {
+        quotaNumbersForReservation = await resolveQuotaNumbersForReservation(totalQuantity);
+      } catch (selectionError) {
+        console.error('Erro ao preparar cotas para reserva (step 2):', selectionError);
+        showError(
+          selectionError instanceof Error
+            ? selectionError.message
+            : 'Erro ao preparar as cotas selecionadas.'
+        );
+        return;
+      }
+
       const reservationResult = await reserveTickets(
         customerData,
         totalQuantity,
         orderIdForReservation,
-        reservationTimestampForReservation
+        reservationTimestampForReservation,
+        quotaNumbersForReservation
       );
 
       if (reservationResult) {
@@ -826,7 +974,7 @@ const CampaignPage = () => {
       console.error('❌ EXCEPTION during reservation', error);
       showError(error.message || 'Erro ao reservar cotas.');
     }
-  }, [campaign, reserveTickets, navigate, showError, showSuccess, showInfo, orderIdForReservation, reservationTimestampForReservation]);
+  }, [campaign, reserveTickets, navigate, showError, showSuccess, showInfo, orderIdForReservation, reservationTimestampForReservation, resolveQuotaNumbersForReservation]);
 
   const handlePreviousImage = () => {
     if (campaign?.prize_image_urls && campaign.prize_image_urls.length > 1) {
