@@ -807,7 +807,7 @@ const CampaignPage = () => {
         );
 
         setReservationCustomerData(customerData);
-        setReservationQuotas(reservationResult.results.map(r => r.quota_number));
+        setReservationQuotas(reservationResult.results.map(r => r.quota_number).sort((a, b) => a - b));
         setReservationTotalValue(totalValue);
 
         setSelectedQuotas([]);
@@ -831,7 +831,7 @@ const CampaignPage = () => {
               customerPhone: normalizedPhoneNumber,
               quotaCount: totalQuantity,
               totalValue: totalValue,
-              selectedQuotas: reservationResult.results.map(r => r.quota_number),
+              selectedQuotas: reservationResult.results.map(r => r.quota_number).sort((a, b) => a - b),
               campaignTitle: campaign.title,
               campaignId: campaign.id,
               campaignPublicId: campaign.public_id,

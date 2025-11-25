@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Clock, Copy, CheckCircle, User, Mail, Phone, Hash, QrCode, AlertTriangle, Timer, Package, DollarSign } from 'lucide-react';
@@ -219,11 +219,10 @@ const PaymentConfirmationPage = () => {
 
   const formatQuotaNumber = (quotaNumber: number): string => {
     if (!campaign?.total_tickets) {
-      return quotaNumber.toString().padStart(3, '0');
+      return quotaNumber.toString().padStart(2, '0');
     }
-    
     const digits = String(campaign.total_tickets - 1).length;
-    return quotaNumber.toString().padStart(digits, '0');
+    return quotaNumber.toString().padStart(Math.max(2, digits), '0');
   };
 
   useEffect(() => {
@@ -387,6 +386,22 @@ const PaymentConfirmationPage = () => {
       }
     };
   }, [themeClasses.scrollbarTrack, themeClasses.scrollbarThumb]);
+
+  const sortedQuotas = useMemo(() => {
+    const arr = reservationData?.selectedQuotas || [];
+    return arr.slice().sort((a, b) => a - b);
+  }, [reservationData?.selectedQuotas]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    if (sortedQuotas.length === 0) return;
+    const check = sortedQuotas.slice().sort((a, b) => a - b);
+    const okOrder = JSON.stringify(sortedQuotas) === JSON.stringify(check);
+    console.assert(okOrder, 'Ordenação de quotas não persistente');
+    const formatted = sortedQuotas.map(q => formatQuotaNumber(q));
+    const okDigits = formatted.every(s => s.length >= 2);
+    console.assert(okDigits, 'Formato de quotas não possui dois dígitos mínimos');
+  }, [sortedQuotas]);
 
   const handleCopyPixKey = async () => {
     const reservationIdClean = reservationData?.reservationId.replace(/-/g, '') || 'mock-key';
@@ -885,7 +900,7 @@ const PaymentConfirmationPage = () => {
                     scrollbarColor: `${themeClasses.scrollbarThumb} ${themeClasses.scrollbarTrack}`
                   }}
                 >
-                  {reservationData.selectedQuotas.map((quota, index) => (
+                  {sortedQuotas.map((quota, index) => (
                     <span
                       key={index}
                       className="inline-flex items-center justify-center px-2 py-1 sm:px-3 sm:py-1.5 bg-green-500 text-white text-xs sm:text-sm font-bold rounded-lg"

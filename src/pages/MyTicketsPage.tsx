@@ -47,7 +47,7 @@ const MyTicketsPage = () => {
 
   const formatQuotaNumber = (numero: number, campaignId: string): string => {
     const displayNumber = numero - 1;
-    const padding = getQuotaNumberPadding(campaignId);
+    const padding = Math.max(2, getQuotaNumberPadding(campaignId));
     return displayNumber.toString().padStart(padding, '0');
   };
 
@@ -184,6 +184,19 @@ const MyTicketsPage = () => {
   }, [orders]);
 
   useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    if (orders.length === 0) return;
+    orders.forEach(order => {
+      const sorted = order.ticket_numbers.slice().sort((a, b) => a - b);
+      const formatted = sorted.map(n => formatQuotaNumber(n, order.campaign_id));
+      const okOrder = JSON.stringify(sorted) === JSON.stringify(sorted.slice().sort((a, b) => a - b));
+      console.assert(okOrder);
+      const okDigits = formatted.every(s => s.length >= 2);
+      console.assert(okDigits);
+    });
+  }, [orders]);
+
+  useEffect(() => {
     const pendingOrders = orders.filter(order => order.status === 'reserved' && order.reservation_expires_at);
     if (pendingOrders.length === 0) return;
     const updateTimers = () => {
@@ -302,7 +315,7 @@ const MyTicketsPage = () => {
           customerPhone: order.customer_phone || '',
           quotaCount: order.ticket_count,
           totalValue: order.total_value,
-          selectedQuotas: order.ticket_numbers,
+          selectedQuotas: order.ticket_numbers.slice().sort((a, b) => a - b),
           campaignTitle: order.campaign_title,
           campaignId: order.campaign_id,
           campaignPublicId: order.campaign_public_id,
@@ -550,11 +563,15 @@ const MyTicketsPage = () => {
                                   )}
                                 </div>
                                 <div className="flex flex-wrap gap-1 sm:gap-1.5">
-                                  {(isExpanded ? order.ticket_numbers : order.ticket_numbers.slice(0, maxVisibleTickets)).map((num) => (
-                                    <span key={num} className={`px-1.5 sm:px-2 py-0.5 text-xs font-bold rounded-md ${ticketsBadgeInfo!.bgClass} ${ticketsBadgeInfo!.textClass}`}>
-                                      {formatQuotaNumber(num, order.campaign_id)}
-                                    </span>
-                                  ))}
+                                  {(() => {
+                                    const sorted = order.ticket_numbers.slice().sort((a, b) => a - b);
+                                    const list = isExpanded ? sorted : sorted.slice(0, maxVisibleTickets);
+                                    return list.map((num) => (
+                                      <span key={num} className={`px-1.5 sm:px-2 py-0.5 text-xs font-bold rounded-md ${ticketsBadgeInfo!.bgClass} ${ticketsBadgeInfo!.textClass}`}>
+                                        {formatQuotaNumber(num, order.campaign_id)}
+                                      </span>
+                                    ));
+                                  })()}
                                   {!isExpanded && hasMoreTickets && (
                                     <button onClick={() => toggleExpandOrder(order.order_id)} className="px-1.5 sm:px-2 py-0.5 text-xs font-bold rounded-md bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                                       +{order.ticket_numbers.length - maxVisibleTickets} mais
