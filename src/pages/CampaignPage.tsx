@@ -1094,7 +1094,9 @@ const CampaignPage = () => {
           rifaquiText: 'text-gray-900',
           calendarBg: '#dbdbdb',
           calendarBorder: '#dbdbdb',
-          calendarText: 'text-gray-900'
+          calendarText: 'text-gray-900',
+          scrollbarTrack: '#d4d6d9',
+          scrollbarThumb: '#9ca3af'
         };
       case 'escuro':
         return {
@@ -1107,7 +1109,9 @@ const CampaignPage = () => {
           rifaquiText: 'text-white',
           calendarBg: '#101625',
           calendarBorder: '#101625',
-          calendarText: 'text-white'
+          calendarText: 'text-white',
+          scrollbarTrack: '#0a0d12',
+          scrollbarThumb: '#4b5563'
         };
       case 'escuro-preto':
         return {
@@ -1120,7 +1124,9 @@ const CampaignPage = () => {
           rifaquiText: 'text-white',
           calendarBg: '#090E1A',
           calendarBorder: '#090E1A',
-          calendarText: 'text-white'
+          calendarText: 'text-white',
+          scrollbarTrack: '#0a0d12',
+          scrollbarThumb: '#374151'
         };
       case 'escuro-cinza':
         return {
@@ -1133,7 +1139,9 @@ const CampaignPage = () => {
           rifaquiText: 'text-white',
           calendarBg: '#141414',
           calendarBorder: '#1f1f1f',
-          calendarText: 'text-white'
+          calendarText: 'text-white',
+          scrollbarTrack: '#1a1a1a',
+          scrollbarThumb: '#404040'
         };
       default:
         return {
@@ -1146,7 +1154,9 @@ const CampaignPage = () => {
           rifaquiText: 'text-gray-900',
           calendarBg: '#FFFFFF',
           calendarBorder: '#E5E7EB',
-          calendarText: 'text-gray-900'
+          calendarText: 'text-gray-900',
+          scrollbarTrack: '#e5e7eb',
+          scrollbarThumb: '#9ca3af'
         };
     }
   };
@@ -1194,6 +1204,57 @@ const CampaignPage = () => {
     return total;
   };
 
+  const campaignTheme = organizerProfile?.theme || 'claro';
+  const primaryColor = organizerProfile?.primary_color || '#3B82F6';
+  const themeClasses = getThemeClasses(campaignTheme);
+
+  useEffect(() => {
+    const styleId = 'description-scrollbar-style';
+    let styleElement = document.getElementById(styleId) as HTMLStyleElement;
+
+    if (!styleElement) {
+      styleElement = document.createElement('style');
+      styleElement.id = styleId;
+      document.head.appendChild(styleElement);
+    }
+
+    styleElement.textContent = `
+      .description-scroll-container::-webkit-scrollbar,
+      .description-scroll-container.custom-scrollbar-light::-webkit-scrollbar,
+      .description-scroll-container.custom-scrollbar-dark::-webkit-scrollbar {
+        width: 8px;
+      }
+      .description-scroll-container::-webkit-scrollbar-track,
+      .description-scroll-container.custom-scrollbar-light::-webkit-scrollbar-track,
+      .description-scroll-container.custom-scrollbar-dark::-webkit-scrollbar-track {
+        background: ${themeClasses.scrollbarTrack};
+        border-radius: 4px;
+      }
+      .description-scroll-container::-webkit-scrollbar-thumb,
+      .description-scroll-container.custom-scrollbar-light::-webkit-scrollbar-thumb,
+      .description-scroll-container.custom-scrollbar-dark::-webkit-scrollbar-thumb {
+        background: ${themeClasses.scrollbarThumb};
+        border-radius: 4px;
+      }
+      .description-scroll-container::-webkit-scrollbar-thumb:hover,
+      .description-scroll-container.custom-scrollbar-light::-webkit-scrollbar-thumb:hover,
+      .description-scroll-container.custom-scrollbar-dark::-webkit-scrollbar-thumb:hover {
+        opacity: 0.8;
+      }
+      .description-scroll-container {
+        scrollbar-color: ${themeClasses.scrollbarThumb} ${themeClasses.scrollbarTrack};
+        scrollbar-width: thin;
+      }
+    `;
+
+    return () => {
+      const element = document.getElementById(styleId);
+      if (element) {
+        element.remove();
+      }
+    };
+  }, [themeClasses.scrollbarTrack, themeClasses.scrollbarThumb]);
+
   if (loading || ticketsLoading) {
     const loadingPrimaryColor = organizerProfile?.primary_color || '#3B82F6';
     const loadingTheme = organizerProfile?.theme || 'claro';
@@ -1228,9 +1289,6 @@ const CampaignPage = () => {
     );
   }
 
-  const campaignTheme = organizerProfile?.theme || 'claro';
-  const primaryColor = organizerProfile?.primary_color || '#3B82F6';
-  const themeClasses = getThemeClasses(campaignTheme);
 
   const isCampaignCompleted = campaign?.status === 'completed' && winners.length > 0;
 
@@ -1870,7 +1928,7 @@ const CampaignPage = () => {
           
           {campaign.description && isValidDescription(campaign.description) ? (
             <div
-              className={`${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2 ${
+              className={`${themeClasses.textSecondary} prose prose-base max-w-none ql-editor overflow-y-auto pr-2 description-scroll-container ${
                 campaignTheme === 'claro' ? 'custom-scrollbar-light' : 'custom-scrollbar-dark'
               }`}
               style={{
