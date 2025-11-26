@@ -1489,7 +1489,8 @@ const CampaignPage = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto transition-all duration-300`}
+          className={getColorClassName(`rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto transition-all duration-300`)}
+          style={getColorStyle(true)}
         >
           <div 
             className="relative group w-full h-[300px] sm:h-[500px] overflow-hidden"
@@ -1532,21 +1533,22 @@ const CampaignPage = () => {
             )}
             
             {campaign.prize_image_urls && campaign.prize_image_urls.length > 1 && (
-              <div className="absolute top-4 right-4 bg-gray-900/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-sm font-semibold z-10">
+              <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-gray-900/80 backdrop-blur-sm text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-xs sm:text-sm font-semibold z-10">
                 {currentImageIndex + 1} / {campaign.prize_image_urls.length}
               </div>
             )}
 
-            <div className="absolute top-4 left-4 bg-gray-900/80 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg z-10">
+          <div 
+            className="absolute top-4 left-4 bg-gray-900/80 backdrop-blur-sm px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg shadow-lg z-10">
               <div className="flex items-center space-x-2">
                 <Gift
                   className="h-4 w-4"
                   style={{ color: '#A855F7' }}
                 />
                 <div className="flex flex-col">
-                  <span className="text-xs text-gray-300 font-medium">Participe por apenas</span>
+                  <span className="text-[11px] sm:text-xs text-gray-300 font-medium">Participe por apenas</span>
                   <span
-                    className={`font-bold text-lg ${getColorClassName('', true)}`}
+                    className={`font-bold text-sm sm:text-base md:text-lg ${getColorClassName('', true)}`}
                     style={getColorStyle(false, true)}
                   >
                     {formatCurrency(campaign.ticket_price)}
@@ -1560,11 +1562,11 @@ const CampaignPage = () => {
           <div className="p-4 space-y-3">
             {!isCampaignCompleted && campaign.show_percentage && (
               <div className="relative">
-                <div className={`w-full rounded-full h-8 overflow-hidden ${
+                <div className={`w-full rounded-full h-6 sm:h-8 overflow-hidden ${
                   campaignTheme === 'claro' ? 'bg-gray-200' : 'bg-gray-700'
                 }`}>
                   <div
-                    className={getColorClassName("h-8 rounded-full transition-all duration-300")}
+                    className={getColorClassName("h-6 sm:h-8 rounded-full transition-all duration-300")}
                     style={{
                       width: `${getProgressPercentage()}%`,
                       ...getColorStyle(true)
@@ -1572,9 +1574,10 @@ const CampaignPage = () => {
                   />
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className={`font-bold text-sm ${
-                    campaignTheme === 'claro' ? 'text-gray-900' : 'text-white'
-                  }`}>
+                  <span
+                    className={`font-bold text-xs sm:text-sm ${getColorClassName('', true)}`}
+                    style={getColorStyle(false, true)}
+                  >
                     {getProgressPercentage()}%
                   </span>
                 </div>
@@ -1583,14 +1586,14 @@ const CampaignPage = () => {
 
             {campaign.show_draw_date && campaign.draw_date && (
               <div 
-                className="flex items-center justify-center p-3 rounded-lg border"
+                className="flex items-center justify-center p-2 sm:p-3 rounded-lg border"
                 style={{ 
                   backgroundColor: themeClasses.calendarBg,
                   borderColor: themeClasses.calendarBorder
                 }}
               >
-                <Calendar className={`h-4 w-4 mr-2 ${themeClasses.calendarText}`} />
-                <span className={`text-sm font-medium ${themeClasses.calendarText}`}>
+                <Calendar className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 ${themeClasses.calendarText}`} />
+                <span className={`text-xs sm:text-sm font-medium ${themeClasses.calendarText}`}>
                   Sorteio: <span className={`font-bold ${themeClasses.calendarText}`}>{formatDate(campaign.draw_date)}</span>
                 </span>
               </div>
@@ -1619,11 +1622,11 @@ const CampaignPage = () => {
             }}
           >
             <div 
-              className={getColorClassName("px-4 py-3 flex items-center justify-center gap-2")}
+              className={getColorClassName("px-2.5 py-2 sm:px-4 sm:py-3 flex items-center justify-center gap-1.5 sm:gap-2")}
               style={getColorStyle(true)}
             >
-              <Trophy className="h-5 w-5 text-white" />
-              <h3 className="text-lg font-bold text-white">
+              <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+              <h3 className="text-base sm:text-lg font-bold text-white">
                 Prêmios
               </h3>
             </div>
@@ -1651,11 +1654,11 @@ const CampaignPage = () => {
             }}
           >
             <div
-              className={getColorClassName("px-4 py-3 flex items-center justify-center gap-2")}
+              className={getColorClassName("px-2.5 py-2 sm:px-4 sm:py-3 flex items-center justify-center gap-1.5 sm:gap-2")}
               style={getColorStyle(true)}
             >
-              <Award className="h-5 w-5 text-white" />
-              <h3 className="text-lg font-bold text-white">
+              <Award className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+              <h3 className="text-base sm:text-lg font-bold text-white">
                 Cotas Premiadas
               </h3>
             </div>
@@ -1695,16 +1698,16 @@ const CampaignPage = () => {
             transition={{ duration: 0.5, delay: 0.5 }}
             className={`${themeClasses.cardBg} rounded-xl ${getCardShadow()} ${getCardHoverShadow()} border ${themeClasses.border} overflow-hidden mb-4 max-w-3xl mx-auto transition-all duration-300`}
           >
-            <div className={`text-center px-6 pt-6 pb-4`}>
-              <h2 className={`text-xl md:text-2xl font-bold ${themeClasses.text} mb-2 flex items-center justify-center gap-2`}>
+            <div className={`text-center px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4`}>
+              <h2 className={`text-lg sm:text-2xl md:text-3xl font-bold ${themeClasses.text} mb-2 flex items-center justify-center gap-2`}>
                 🎁 Promoções Disponíveis
               </h2>
-              <p className={`text-xs md:text-sm ${themeClasses.textSecondary}`}>
+              <p className={`text-[11px] sm:text-xs md:text-sm ${themeClasses.textSecondary}`}>
                 Compre mais cotas e economize! Quanto mais você participar, maiores suas chances de ganhar.
               </p>
             </div>
 
-            <div className="px-4 pb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="px-3 sm:px-4 pb-5 sm:pb-6 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
               {campaign.promotions.map((promo: Promotion) => {
                 const originalValue = promo.ticketQuantity * campaign.ticket_price;
                 const discountPercentage = originalValue > 0 ? Math.round((promo.fixedDiscountAmount / originalValue) * 100) : 0;
@@ -1727,14 +1730,14 @@ const CampaignPage = () => {
                           type="button"
                           onClick={() => handlePromotionClick(promo.ticketQuantity)}
                           disabled={!isCampaignAvailable}
-                          className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
+                          className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
                             themeClasses.cardBg
                           }`}
                         >
-                          <span className={`text-xs md:text-sm font-bold ${themeClasses.text} text-left`}>
-                            {promo.ticketQuantity} cotas por {formatCurrency(finalValue)}
+                          <span className={`text-[11px] sm:text-xs md:text-sm font-bold ${themeClasses.text} text-left`}>
+                            {promo.ticketQuantity} por {formatCurrency(finalValue)}
                           </span>
-                          <span className="flex-shrink-0 px-2 py-0.5 bg-green-500 text-white text-xs font-bold rounded-full">
+                          <span className="flex-shrink-0 px-1.5 sm:px-2 py-0.5 bg-green-500 text-white text-[11px] sm:text-xs font-bold rounded-full">
                             {discountPercentage}%
                           </span>
                         </button>
@@ -1744,17 +1747,17 @@ const CampaignPage = () => {
                         type="button"
                         onClick={() => handlePromotionClick(promo.ticketQuantity)}
                         disabled={!isCampaignAvailable}
-                        className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg transition-all duration-200 border-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                        className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-lg transition-all duration-200 border-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                           themeClasses.cardBg
                         }`}
                         style={{
                           borderColor: organizerProfile?.primary_color || (campaignTheme === 'claro' ? '#d1d5db' : '#4b5563')
                         }}
                       >
-                        <span className={`text-xs md:text-sm font-bold ${themeClasses.text} text-left`}>
-                          {promo.ticketQuantity} cotas por {formatCurrency(finalValue)}
+                        <span className={`text-[11px] sm:text-xs md:text-sm font-bold ${themeClasses.text} text-left`}>
+                          {promo.ticketQuantity} por {formatCurrency(finalValue)}
                         </span>
-                        <span className="flex-shrink-0 px-2 py-0.5 bg-green-500 text-white text-xs font-bold rounded-full">
+                        <span className="flex-shrink-0 px-1.5 sm:px-2 py-0.5 bg-green-500 text-white text-[11px] sm:text-xs font-bold rounded-full">
                           {discountPercentage}%
                         </span>
                       </button>

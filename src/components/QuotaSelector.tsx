@@ -361,20 +361,24 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       </div>
 
       {/* Increment Buttons */}
-      <div className="grid grid-cols-4 gap-2 sm:gap-2.5 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 gap-2 sm:gap-3 lg:gap-4 mb-4">
         {incrementButtons.map((button, index) => (
           <button
             key={index}
             onClick={() => handleIncrement(button.value)}
+            aria-label={`Adicionar ${button.value}`}
+            title={`Adicionar ${button.value}`}
             className={getColorClassName(`
-              relative overflow-hidden
-              text-white py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg 
-              font-bold text-xs sm:text-sm
+              relative overflow-hidden flex items-center justify-center
+              text-white rounded-xl 
+              h-16 sm:h-20 lg:h-24
+              font-bold text-base sm:text-xl lg:text-2xl
               transition-all duration-300
               hover:scale-105 hover:shadow-lg
               active:scale-95
               before:absolute before:inset-0 before:bg-white/0 hover:before:bg-white/10
               before:transition-all before:duration-300
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40
               ${validPopularIndex === index ? 'ring-2 ring-amber-400' : ''}
             `)}
             style={getColorStyle()}
