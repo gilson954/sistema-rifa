@@ -507,7 +507,7 @@ const CampaignPage = () => {
         try {
           const { data, error } = await supabase
             .from('public_profiles_view')
-            .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, quota_selector_buttons, quota_selector_popular_index')
+            .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, quota_selector_buttons, quota_selector_popular_index, cor_organizador')
             .eq('id', campaign.user_id)
             .maybeSingle();
 
@@ -516,7 +516,7 @@ const CampaignPage = () => {
             try {
               const { data: fallback } = await supabase
                 .from('profiles')
-                .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, quota_selector_buttons, quota_selector_popular_index')
+                .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, quota_selector_buttons, quota_selector_popular_index, cor_organizador')
                 .eq('id', campaign.user_id)
                 .maybeSingle();
               if (fallback) setOrganizerProfile(fallback as any);
@@ -537,14 +537,14 @@ const CampaignPage = () => {
 
   useEffect(() => {
     if (!campaign?.user_id) return;
-    const channel = supabase
-      .channel(`profile-buttons-${campaign.user_id}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${campaign.user_id}` }, (payload: any) => {
-        const nextButtons = payload?.new?.quota_selector_buttons;
-        if (!nextButtons) return;
-        setOrganizerProfile(prev => prev ? { ...prev, quota_selector_buttons: nextButtons, quota_selector_popular_index: payload?.new?.quota_selector_popular_index ?? prev.quota_selector_popular_index } : prev);
-      })
-      .subscribe();
+        const channel = supabase
+          .channel(`profile-buttons-${campaign.user_id}`)
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${campaign.user_id}` }, (payload: any) => {
+            const nextButtons = payload?.new?.quota_selector_buttons;
+            if (!nextButtons) return;
+            setOrganizerProfile(prev => prev ? { ...prev, quota_selector_buttons: nextButtons, quota_selector_popular_index: payload?.new?.quota_selector_popular_index ?? prev.quota_selector_popular_index, cor_organizador: payload?.new?.cor_organizador ?? prev.cor_organizador } : prev);
+          })
+          .subscribe();
     return () => {
       try { supabase.removeChannel(channel); } catch {}
     };
@@ -1937,11 +1937,12 @@ const CampaignPage = () => {
                 reserving={reserving}
                 disabled={!isCampaignAvailable}
                 colorMode={organizerProfile?.color_mode}
-                gradientClasses={organizerProfile?.gradient_classes}
-                customGradientColors={organizerProfile?.custom_gradient_colors}
-                buttonsConfig={organizerProfile?.quota_selector_buttons}
-                popularIndexConfig={typeof organizerProfile?.quota_selector_popular_index === 'number' ? organizerProfile?.quota_selector_popular_index : undefined}
-              />
+              gradientClasses={organizerProfile?.gradient_classes}
+              customGradientColors={organizerProfile?.custom_gradient_colors}
+              buttonsConfig={organizerProfile?.quota_selector_buttons}
+              popularIndexConfig={typeof organizerProfile?.quota_selector_popular_index === 'number' ? organizerProfile?.quota_selector_popular_index : undefined}
+              popularButtonColor={organizerProfile?.cor_organizador}
+            />
             </div>
             </>
           )}

@@ -29,6 +29,7 @@ interface QuotaSelectorProps {
   customGradientColors?: string;
   buttonsConfig?: number[];
   popularIndexConfig?: number;
+  popularButtonColor?: string;
 }
 
 const QuotaSelector: React.FC<QuotaSelectorProps> = ({
@@ -49,7 +50,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   gradientClasses,
   customGradientColors,
   buttonsConfig,
-  popularIndexConfig
+  popularIndexConfig,
+  popularButtonColor
 }) => {
   const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -200,7 +202,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     .map((v) => Math.max(1, Math.min(20000, Math.floor(Number(v) || 0))))
     .filter((v, i, arr) => Number.isFinite(v) && v > 0 && arr.indexOf(v) === i)
     .filter((v) => v <= Math.min(maxTicketsPerPurchase, 20000))
-    .slice(0, 8);
+    .slice(0, 6);
   const incrementButtons = normalizedButtons.map((v) => ({ label: `+${v}`, value: v }));
   const validPopularIndex = typeof popularIndexConfig === 'number' && popularIndexConfig >= 0 && popularIndexConfig < incrementButtons.length ? popularIndexConfig : null;
 
@@ -379,12 +381,20 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
               before:absolute before:inset-0 before:bg-white/0 hover:before:bg-white/10
               before:transition-all before:duration-300
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40
-              ${validPopularIndex === index ? 'ring-2 ring-amber-400' : ''}
+              ${validPopularIndex === index ? '' : ''}
             `)}
-            style={getColorStyle()}
+            style={{
+              ...getColorStyle(),
+              boxShadow: validPopularIndex === index && popularButtonColor ? `0 0 0 2px ${popularButtonColor}` : undefined
+            }}
           >
             {validPopularIndex === index && (
-              <span className="absolute -top-2 left-2 z-10 bg-amber-500 text-white text-[10px] sm:text-xs px-2 py-1 rounded-full shadow">Mais popular</span>
+              <span
+                className="absolute -top-2 left-2 z-10 text-white text-[10px] sm:text-xs px-2 py-1 rounded-full shadow"
+                style={{ backgroundColor: popularButtonColor || '#F59E0B' }}
+              >
+                Mais popular
+              </span>
             )}
             <span className="relative z-10">{button.label}</span>
           </button>

@@ -32,7 +32,7 @@ const CustomizationPage = () => {
   const [showDeleteDomainConfirm, setShowDeleteDomainConfirm] = useState(false);
   const [selectedDomainToDelete, setSelectedDomainToDelete] = useState<{ id: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [ticketButtons, setTicketButtons] = useState<number[]>([1, 5, 15, 150, 1000, 5000, 10000]);
+  const [ticketButtons, setTicketButtons] = useState<number[]>([1, 5, 15, 150, 1000, 5000]);
   const [showAddButtonModal, setShowAddButtonModal] = useState(false);
   const [newButtonValue, setNewButtonValue] = useState<number>(1);
   const [newButtonPopular, setNewButtonPopular] = useState<boolean>(false);
@@ -43,6 +43,8 @@ const CustomizationPage = () => {
   const [savingButtons, setSavingButtons] = useState(false);
   const [buttonsError, setButtonsError] = useState<string | null>(null);
   const [popularIndex, setPopularIndex] = useState<number | null>(null);
+  const [popularButtonColor, setPopularButtonColor] = useState<string | null>(null);
+  const [editingPopularColor, setEditingPopularColor] = useState<string>('#F59E0B');
 
   const solidColors = [
     '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16', '#22C55E',
@@ -131,7 +133,7 @@ const CustomizationPage = () => {
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('primary_color, theme, logo_url, color_mode, gradient_classes, custom_gradient_colors, quota_selector_buttons, quota_selector_popular_index')
+            .select('primary_color, theme, logo_url, color_mode, gradient_classes, custom_gradient_colors, quota_selector_buttons, quota_selector_popular_index, cor_organizador')
             .eq('id', user.id)
             .single();
 
@@ -152,7 +154,7 @@ const CustomizationPage = () => {
               const sanitized = raw
                 .map((v) => Math.floor(Number(v)))
                 .filter((v) => Number.isFinite(v) && v > 0 && v <= 20000);
-              if (sanitized.length > 0) setTicketButtons(sanitized);
+              if (sanitized.length > 0) setTicketButtons(sanitized.slice(0, 6));
             }
             if (typeof data.quota_selector_popular_index === 'number') {
               const idx = data.quota_selector_popular_index;
@@ -161,6 +163,10 @@ const CustomizationPage = () => {
               } else {
                 setPopularIndex(null);
               }
+            }
+            if (data.cor_organizador) {
+              setPopularButtonColor(data.cor_organizador);
+              setEditingPopularColor(data.cor_organizador);
             }
           }
         } catch (error) {
@@ -549,6 +555,9 @@ const CustomizationPage = () => {
     setEditingValue(ticketButtons[index]);
     setButtonsError(null);
     setEditingPopular(popularIndex === index);
+    if (popularIndex === index && popularButtonColor) {
+      setEditingPopularColor(popularButtonColor);
+    }
     setShowEditButtonModal(true);
   };
 
@@ -563,7 +572,7 @@ const CustomizationPage = () => {
     setShowEditButtonModal(false);
   };
 
-  const handleSaveEditButton = () => {
+  const handleSaveEditButton = async () => {
     if (editingIndex === null) return;
     const value = Math.floor(editingValue);
     if (!Number.isFinite(value) || value <= 0) {
@@ -579,12 +588,21 @@ const CustomizationPage = () => {
     setTicketButtons(next);
     if (editingPopular) setPopularIndex(editingIndex);
     else if (popularIndex === editingIndex) setPopularIndex(null);
+    if (editingPopular && user) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ cor_organizador: editingPopularColor })
+          .eq('id', user.id);
+        setPopularButtonColor(editingPopularColor);
+      } catch {}
+    }
     setShowEditButtonModal(false);
   };
 
   const handleAddButton = () => {
-    if (ticketButtons.length >= 8) {
-      setButtonsError('Máximo de 8 botões permitido.');
+    if (ticketButtons.length >= 6) {
+      setButtonsError('Máximo de 6 botões permitido.');
       return;
     }
     const value = Math.floor(newButtonValue);
@@ -623,7 +641,7 @@ const CustomizationPage = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ quota_selector_buttons: sanitized, quota_selector_popular_index: popularIndexToSave })
+        .update({ quota_selector_buttons: sanitized, quota_selector_popular_index: popularIndexToSave, cor_organizador: popularButtonColor })
         .eq('id', user.id);
       if (error) {
         showError('Erro ao salvar os botões.');
@@ -756,7 +774,7 @@ const CustomizationPage = () => {
                   <h2 className="text-lg sm:text-2xl font-bold">Botões dos bilhetes</h2>
                 </div>
                 <motion.div 
-                  className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+                  className="grid grid-cols-2 sm:grid-cols-3 gap-3"
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
@@ -769,11 +787,11 @@ const CustomizationPage = () => {
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.98 }}
                       variants={itemVariants}
-                      className={`relative overflow-hidden text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${popularIndex === i ? 'ring-2 ring-amber-400' : ''}`}
-                      style={{ background: 'linear-gradient(90deg, #9333EA, #EC4899, #3B82F6)', backgroundSize: '200% 200%' }}
+                      className={`relative overflow-hidden text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300`}
+                      style={{ background: 'linear-gradient(90deg, #9333EA, #EC4899, #3B82F6)', backgroundSize: '200% 200%', boxShadow: popularIndex === i && popularButtonColor ? `0 0 0 2px ${popularButtonColor}` : undefined }}
                     >
                       {popularIndex === i && (
-                        <span className="absolute -top-2 left-3 z-10 bg-amber-500 text-white text-[10px] sm:text-xs px-2 py-1 rounded-full shadow flex items-center gap-1">
+                        <span className="absolute -top-2 left-3 z-10 text-white text-[10px] sm:text-xs px-2 py-1 rounded-full shadow flex items-center gap-1" style={{ backgroundColor: popularButtonColor || '#F59E0B' }}>
                           <Star className="h-3 w-3" /> Mais popular
                         </span>
                       )}
@@ -781,7 +799,7 @@ const CustomizationPage = () => {
                       <span className="relative z-10">+{v.toLocaleString('pt-BR')}</span>
                     </motion.button>
                   ))}
-                  {ticketButtons.length < 8 && (
+                  {ticketButtons.length < 6 && (
                     <motion.button
                       onClick={() => { setButtonsError(null); setShowAddButtonModal(true); }}
                       whileHover={{ scale: 1.03 }}
@@ -795,7 +813,7 @@ const CustomizationPage = () => {
                 </motion.div>
                 <div className="flex items-center justify-between text-xs text-gray-500">
                   <span>Clique em um botão para editar.</span>
-                  <span>{ticketButtons.length}/8</span>
+                  <span>{ticketButtons.length}/6</span>
                 </div>
                 {buttonsError && (
                   <div className="text-sm text-red-500">{buttonsError}</div>
@@ -890,6 +908,33 @@ const CustomizationPage = () => {
                             <button onClick={() => setEditingPopular(!editingPopular)} className={`ml-auto px-4 py-1 rounded-full text-xs font-bold ${editingPopular ? 'bg-green-600 text-white' : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}>{editingPopular ? 'Ativado' : 'Desativado'}</button>
                           </div>
                           <button onClick={handleDeleteButton} className="px-3 py-2 rounded-lg bg-red-600 text-white flex items-center gap-2"><Trash2 className="h-4 w-4" />Excluir</button>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold">Cor do botão “Mais popular”</label>
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="color"
+                              aria-label="Selecionar cor do botão Mais popular"
+                              value={editingPopularColor}
+                              onChange={(e) => setEditingPopularColor(e.target.value)}
+                              disabled={!editingPopular}
+                              className="h-10 w-14 p-0 border border-gray-300 dark:border-gray-700 rounded"
+                            />
+                            <button
+                              type="button"
+                              className="relative inline-flex items-center justify-center text-white rounded-xl font-bold text-base h-12 min-w-[96px] px-4 shadow-md"
+                              style={{ background: 'linear-gradient(90deg, #9333EA, #EC4899, #3B82F6)', backgroundSize: '200% 200%', boxShadow: `0 0 0 2px ${editingPopularColor}` }}
+                              aria-disabled={!editingPopular}
+                            >
+                              <span
+                                className="absolute top-1 left-1 z-10 text-white text-[10px] px-2 py-0.5 rounded-full shadow whitespace-nowrap pointer-events-none leading-none"
+                                style={{ backgroundColor: editingPopularColor }}
+                              >
+                                Mais popular
+                              </span>
+                              <span className="relative z-0 tracking-tight">+{editingValue}</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
                       <div className="mt-6 flex justify-end gap-3">
