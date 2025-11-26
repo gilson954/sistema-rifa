@@ -755,12 +755,21 @@ const CustomizationPage = () => {
                   <Ticket className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                   <h2 className="text-lg sm:text-2xl font-bold">Botões dos bilhetes</h2>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <motion.div 
+                  className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                >
                   {ticketButtons.map((v, i) => (
-                    <button
+                    <motion.button
                       key={`${v}-${i}`}
                       onClick={() => openEditButton(i)}
-                      className={`relative overflow-hidden text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 hover:scale-105 hover:shadow-lg ${popularIndex === i ? 'ring-2 ring-amber-400' : ''}`}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.98 }}
+                      variants={itemVariants}
+                      className={`relative overflow-hidden text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${popularIndex === i ? 'ring-2 ring-amber-400' : ''}`}
                       style={{ background: 'linear-gradient(90deg, #9333EA, #EC4899, #3B82F6)', backgroundSize: '200% 200%' }}
                     >
                       {popularIndex === i && (
@@ -768,17 +777,25 @@ const CustomizationPage = () => {
                           <Star className="h-3 w-3" /> Mais popular
                         </span>
                       )}
+                      <span className="block text-[10px] sm:text-xs opacity-90">Selecionar</span>
                       <span className="relative z-10">+{v.toLocaleString('pt-BR')}</span>
-                    </button>
+                    </motion.button>
                   ))}
                   {ticketButtons.length < 8 && (
-                    <button
+                    <motion.button
                       onClick={() => { setButtonsError(null); setShowAddButtonModal(true); }}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.98 }}
+                      variants={itemVariants}
                       className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-4 flex items-center justify-center hover:border-purple-500 hover:bg-gray-50 dark:hover:bg-gray-800"
                     >
                       <Plus className="h-6 w-6 text-gray-500" />
-                    </button>
+                    </motion.button>
                   )}
+                </motion.div>
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>Clique em um botão para editar.</span>
+                  <span>{ticketButtons.length}/8</span>
                 </div>
                 {buttonsError && (
                   <div className="text-sm text-red-500">{buttonsError}</div>
@@ -799,9 +816,22 @@ const CustomizationPage = () => {
                   </motion.button>
                 </div>
 
+                <AnimatePresence>
                 {showAddButtonModal && (
-                  <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <motion.div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+                  <motion.div 
+                    key="add-modal-overlay"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+                  >
+                    <motion.div 
+                      variants={modalVariants}
+                      initial="hidden" 
+                      animate="visible" 
+                      exit="exit"
+                      className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-700"
+                    >
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-bold">Adicionar botão</h3>
                         <button onClick={() => setShowAddButtonModal(false)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><X className="h-5 w-5" /></button>
@@ -825,10 +855,24 @@ const CustomizationPage = () => {
                     </motion.div>
                   </motion.div>
                 )}
+                </AnimatePresence>
 
+                <AnimatePresence>
                 {showEditButtonModal && editingIndex !== null && (
-                  <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <motion.div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+                  <motion.div 
+                    key="edit-modal-overlay"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+                  >
+                    <motion.div 
+                      variants={modalVariants}
+                      initial="hidden" 
+                      animate="visible" 
+                      exit="exit"
+                      className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-700"
+                    >
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-bold">Editar botão</h3>
                         <button onClick={() => setShowEditButtonModal(false)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><X className="h-5 w-5" /></button>
@@ -855,6 +899,7 @@ const CustomizationPage = () => {
                     </motion.div>
                   </motion.div>
                 )}
+                </AnimatePresence>
               </motion.div>
             )}
             {/* Cores e tema Tab */}
