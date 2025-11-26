@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CotaPremiada, CotaPremiadaStatus } from '../types/cotasPremiadas';
 import { CotasPremiadasAPI } from '../lib/api/cotasPremiadas';
 import CadastrarCotaPremiadaModal from './CadastrarCotaPremiadaModal';
+import ConfirmModal from './ConfirmModal';
 
 interface CotasPremiadasAdminModalProps {
   isOpen: boolean;
@@ -33,6 +34,8 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
   const [showCadastrarModal, setShowCadastrarModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -118,14 +121,15 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
     }
   };
 
-  const handleDeleteCota = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta cota premiada?')) {
-      return;
-    }
+  const handleDeleteCota = (id: string) => {
+    setDeleteId(id);
+  };
 
+  const confirmDeleteCota = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
     try {
-      const { success, error } = await CotasPremiadasAPI.deleteCotaPremiada(id, campaignId);
-
+      const { success, error } = await CotasPremiadasAPI.deleteCotaPremiada(deleteId, campaignId);
       if (success) {
         onShowNotification('Cota premiada excluída com sucesso!', 'success');
         await loadCotasPremiadas();
@@ -136,6 +140,9 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
     } catch (error) {
       console.error('Exception deleting cota premiada:', error);
       onShowNotification('Erro ao excluir cota premiada', 'error');
+    } finally {
+      setDeleting(false);
+      setDeleteId(null);
     }
   };
 
@@ -405,6 +412,17 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
         onSubmit={handleCreateCota}
         totalTickets={totalTickets}
         loading={submitting}
+      />
+      <ConfirmModal
+        isOpen={!!deleteId}
+        title="Tem certeza que deseja excluir esta cota premiada?"
+        message="Esta ação removerá a cota premiada desta campanha."
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        type="danger"
+        loading={deleting}
+        onConfirm={confirmDeleteCota}
+        onCancel={() => { if (!deleting) setDeleteId(null); }}
       />
     </AnimatePresence>
   );
