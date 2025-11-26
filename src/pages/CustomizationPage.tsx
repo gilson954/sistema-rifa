@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, Plus, ArrowRight, X, Loader2, Trash2, ExternalLink, CheckCircle, AlertCircle, Clock, Sparkles, Palette, Eye } from 'lucide-react';
+import { Upload, Plus, ArrowRight, X, Loader2, Trash2, ExternalLink, CheckCircle, AlertCircle, Clock, Sparkles, Palette, Eye, Ticket, Star, HelpCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { supabase } from '../lib/supabase';
@@ -32,6 +32,17 @@ const CustomizationPage = () => {
   const [showDeleteDomainConfirm, setShowDeleteDomainConfirm] = useState(false);
   const [selectedDomainToDelete, setSelectedDomainToDelete] = useState<{ id: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [ticketButtons, setTicketButtons] = useState<number[]>([1, 5, 15, 150, 1000, 5000, 10000]);
+  const [showAddButtonModal, setShowAddButtonModal] = useState(false);
+  const [newButtonValue, setNewButtonValue] = useState<number>(1);
+  const [newButtonPopular, setNewButtonPopular] = useState<boolean>(false);
+  const [showEditButtonModal, setShowEditButtonModal] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingValue, setEditingValue] = useState<number>(1);
+  const [editingPopular, setEditingPopular] = useState<boolean>(false);
+  const [savingButtons, setSavingButtons] = useState(false);
+  const [buttonsError, setButtonsError] = useState<string | null>(null);
+  const [popularIndex, setPopularIndex] = useState<number | null>(null);
 
   const solidColors = [
     '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16', '#22C55E',
@@ -55,6 +66,7 @@ const CustomizationPage = () => {
   ];
 
   const tabs = [
+    { id: 'botoes-bilhetes', label: 'Botões dos bilhetes', icon: Ticket },
     { id: 'cores-tema', label: 'Cores e tema', icon: Palette },
     { id: 'sua-logo', label: 'Sua logo', icon: Upload },
     { id: 'dominios', label: 'Domínios', icon: ExternalLink }
@@ -119,7 +131,7 @@ const CustomizationPage = () => {
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('primary_color, theme, logo_url, color_mode, gradient_classes, custom_gradient_colors')
+            .select('primary_color, theme, logo_url, color_mode, gradient_classes, custom_gradient_colors, quota_selector_buttons, quota_selector_popular_index')
             .eq('id', user.id)
             .single();
 
@@ -134,6 +146,21 @@ const CustomizationPage = () => {
             if (data.custom_gradient_colors) {
               setCustomGradientColors(JSON.parse(data.custom_gradient_colors));
               setIsCustomGradient(true);
+            }
+            if (Array.isArray(data.quota_selector_buttons)) {
+              const raw = data.quota_selector_buttons as unknown as number[];
+              const sanitized = raw
+                .map((v) => Math.floor(Number(v)))
+                .filter((v) => Number.isFinite(v) && v > 0 && v <= 20000);
+              if (sanitized.length > 0) setTicketButtons(sanitized);
+            }
+            if (typeof data.quota_selector_popular_index === 'number') {
+              const idx = data.quota_selector_popular_index;
+              if (idx >= 0 && idx < (data.quota_selector_buttons?.length || 0)) {
+                setPopularIndex(idx);
+              } else {
+                setPopularIndex(null);
+              }
             }
           }
         } catch (error) {
@@ -285,7 +312,7 @@ const CustomizationPage = () => {
 
     setSaving(true);
     try {
-      let updateData: any = {
+      const updateData: Record<string, unknown> = {
         theme: selectedTheme,
         color_mode: colorMode
       };
@@ -516,6 +543,101 @@ const CustomizationPage = () => {
     setIsCustomGradient(true);
   };
 
+
+  const openEditButton = (index: number) => {
+    setEditingIndex(index);
+    setEditingValue(ticketButtons[index]);
+    setButtonsError(null);
+    setEditingPopular(popularIndex === index);
+    setShowEditButtonModal(true);
+  };
+
+  const handleDeleteButton = () => {
+    if (editingIndex === null) return;
+    const next = ticketButtons.filter((_, i) => i !== editingIndex);
+    setTicketButtons(next);
+    if (popularIndex !== null) {
+      if (editingIndex === popularIndex) setPopularIndex(null);
+      else if (editingIndex < popularIndex) setPopularIndex(popularIndex - 1);
+    }
+    setShowEditButtonModal(false);
+  };
+
+  const handleSaveEditButton = () => {
+    if (editingIndex === null) return;
+    const value = Math.floor(editingValue);
+    if (!Number.isFinite(value) || value <= 0) {
+      setButtonsError('Insira um valor válido.');
+      return;
+    }
+    if (value > 20000) {
+      setButtonsError('Máximo permitido: 20.000.');
+      return;
+    }
+    const next = [...ticketButtons];
+    next[editingIndex] = value;
+    setTicketButtons(next);
+    if (editingPopular) setPopularIndex(editingIndex);
+    else if (popularIndex === editingIndex) setPopularIndex(null);
+    setShowEditButtonModal(false);
+  };
+
+  const handleAddButton = () => {
+    if (ticketButtons.length >= 8) {
+      setButtonsError('Máximo de 8 botões permitido.');
+      return;
+    }
+    const value = Math.floor(newButtonValue);
+    if (!Number.isFinite(value) || value <= 0) {
+      setButtonsError('Insira um valor válido.');
+      return;
+    }
+    if (value > 20000) {
+      setButtonsError('Máximo permitido: 20.000.');
+      return;
+    }
+    const next = [...ticketButtons, value];
+    setTicketButtons(next);
+    setShowAddButtonModal(false);
+    setNewButtonValue(1);
+    if (newButtonPopular) setPopularIndex(next.length - 1);
+    setNewButtonPopular(false);
+  };
+
+  const handleSaveTicketButtons = async () => {
+    if (!user) return;
+    const sanitized = ticketButtons
+      .map((v) => Math.floor(v))
+      .filter((v) => Number.isFinite(v) && v > 0 && v <= 20000);
+    if (sanitized.length === 0) {
+      setButtonsError('Adicione pelo menos um botão.');
+      return;
+    }
+    const popularIndexToSave = (() => {
+      if (popularIndex === null) return null;
+      const val = ticketButtons[popularIndex];
+      const i = sanitized.findIndex((x) => x === val);
+      return i >= 0 ? i : null;
+    })();
+    setSavingButtons(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ quota_selector_buttons: sanitized, quota_selector_popular_index: popularIndexToSave })
+        .eq('id', user.id);
+      if (error) {
+        showError('Erro ao salvar os botões.');
+      } else {
+        showSuccess('Botões salvos com sucesso.');
+      }
+    } catch (error) {
+      console.error('Erro ao salvar botões:', error);
+      showError('Erro ao salvar os botões.');
+    } finally {
+      setSavingButtons(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
       <style>
@@ -620,6 +742,121 @@ const CustomizationPage = () => {
           className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-4 sm:p-8 shadow-lg"
         >
           <AnimatePresence mode="wait">
+            {activeTab === 'botoes-bilhetes' && (
+              <motion.div
+                key="botoes-bilhetes"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center gap-2">
+                  <Ticket className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  <h2 className="text-lg sm:text-2xl font-bold">Botões dos bilhetes</h2>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {ticketButtons.map((v, i) => (
+                    <button
+                      key={`${v}-${i}`}
+                      onClick={() => openEditButton(i)}
+                      className={`relative overflow-hidden text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 hover:scale-105 hover:shadow-lg ${popularIndex === i ? 'ring-2 ring-amber-400' : ''}`}
+                      style={{ background: 'linear-gradient(90deg, #9333EA, #EC4899, #3B82F6)', backgroundSize: '200% 200%' }}
+                    >
+                      {popularIndex === i && (
+                        <span className="absolute -top-2 left-3 z-10 bg-amber-500 text-white text-[10px] sm:text-xs px-2 py-1 rounded-full shadow flex items-center gap-1">
+                          <Star className="h-3 w-3" /> Mais popular
+                        </span>
+                      )}
+                      <span className="relative z-10">+{v.toLocaleString('pt-BR')}</span>
+                    </button>
+                  ))}
+                  {ticketButtons.length < 8 && (
+                    <button
+                      onClick={() => { setButtonsError(null); setShowAddButtonModal(true); }}
+                      className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-4 flex items-center justify-center hover:border-purple-500 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      <Plus className="h-6 w-6 text-gray-500" />
+                    </button>
+                  )}
+                </div>
+                {buttonsError && (
+                  <div className="text-sm text-red-500">{buttonsError}</div>
+                )}
+                <div className="flex gap-3">
+                  <motion.button
+                    onClick={handleSaveTicketButtons}
+                    disabled={savingButtons}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg animate-gradient-x bg-[length:200%_200%] disabled:opacity-50"
+                  >
+                    {savingButtons ? (
+                      <span className="flex items-center gap-2"><Loader2 className="h-5 w-5 animate-spin" /> Salvando...</span>
+                    ) : (
+                      <span className="flex items-center gap-2">Salvar alterações <ArrowRight className="h-5 w-5" /></span>
+                    )}
+                  </motion.button>
+                </div>
+
+                {showAddButtonModal && (
+                  <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <motion.div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-bold">Adicionar botão</h3>
+                        <button onClick={() => setShowAddButtonModal(false)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><X className="h-5 w-5" /></button>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 font-bold">+</span>
+                          <input type="number" min={1} max={20000} value={newButtonValue} onChange={(e) => setNewButtonValue(parseInt(e.target.value || '0', 10))} className="flex-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold">Mais popular</span>
+                          <HelpCircle className="h-4 w-4 text-gray-400" />
+                          <button onClick={() => setNewButtonPopular(!newButtonPopular)} className={`ml-auto px-4 py-1 rounded-full text-xs font-bold ${newButtonPopular ? 'bg-green-600 text-white' : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}>{newButtonPopular ? 'Ativado' : 'Desativado'}</button>
+                        </div>
+                        {buttonsError && <div className="text-sm text-red-500">{buttonsError}</div>}
+                      </div>
+                      <div className="mt-6 flex justify-end gap-3">
+                        <button onClick={() => setShowAddButtonModal(false)} className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700">Cancelar</button>
+                        <button onClick={handleAddButton} className="px-4 py-2 rounded-lg text-white bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600">Adicionar</button>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+
+                {showEditButtonModal && editingIndex !== null && (
+                  <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <motion.div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-bold">Editar botão</h3>
+                        <button onClick={() => setShowEditButtonModal(false)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"><X className="h-5 w-5" /></button>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 font-bold">+</span>
+                          <input type="number" min={1} max={20000} value={editingValue} onChange={(e) => setEditingValue(parseInt(e.target.value || '0', 10))} className="flex-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2" />
+                        </div>
+                        {buttonsError && <div className="text-sm text-red-500">{buttonsError}</div>}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold">Mais popular</span>
+                            <HelpCircle className="h-4 w-4 text-gray-400" />
+                            <button onClick={() => setEditingPopular(!editingPopular)} className={`ml-auto px-4 py-1 rounded-full text-xs font-bold ${editingPopular ? 'bg-green-600 text-white' : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}>{editingPopular ? 'Ativado' : 'Desativado'}</button>
+                          </div>
+                          <button onClick={handleDeleteButton} className="px-3 py-2 rounded-lg bg-red-600 text-white flex items-center gap-2"><Trash2 className="h-4 w-4" />Excluir</button>
+                        </div>
+                      </div>
+                      <div className="mt-6 flex justify-end gap-3">
+                        <button onClick={() => setShowEditButtonModal(false)} className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700">Cancelar</button>
+                        <button onClick={handleSaveEditButton} className="px-4 py-2 rounded-lg text-white bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600">Salvar</button>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </motion.div>
+            )}
             {/* Cores e tema Tab */}
             {activeTab === 'cores-tema' && (
               <motion.div
@@ -647,7 +884,7 @@ const CustomizationPage = () => {
                     animate="visible"
                   >
                     {/* Light Theme */}
-                    {['claro', 'escuro', 'escuro-preto', 'escuro-cinza'].map((theme, index) => {
+                    {['claro', 'escuro', 'escuro-preto', 'escuro-cinza'].map((theme) => {
                       const themeNames = {
                         'claro': 'Claro',
                         'escuro': 'Escuro',

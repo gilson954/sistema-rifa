@@ -174,15 +174,7 @@ export default function Header() {
                     {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                   </button>
                 </div>
-                <button
-                  onClick={() => {
-                    navigate('/my-tickets');
-                    setIsMenuOpen(false);
-                  }}
-                  className="text-white hover:text-purple-400 px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-left hover:bg-gray-800"
-                >
-                  Minhas cotas
-                </button>
+                
                 <button
                   onClick={handleRegisterClick}
                   className="text-white hover:text-purple-400 px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-left hover:bg-purple-600"

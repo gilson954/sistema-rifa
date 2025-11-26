@@ -62,6 +62,8 @@ interface OrganizerProfile {
   color_mode?: string;
   gradient_classes?: string;
   custom_gradient_colors?: string;
+  quota_selector_buttons?: number[];
+  quota_selector_popular_index?: number | null;
 }
 
 const formatNumber = (num: number): string => {
@@ -505,12 +507,20 @@ const CampaignPage = () => {
         try {
           const { data, error } = await supabase
             .from('public_profiles_view')
-            .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors')
+            .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, quota_selector_buttons, quota_selector_popular_index')
             .eq('id', campaign.user_id)
             .maybeSingle();
 
           if (error) {
             console.error('Error loading organizer profile:', error);
+            try {
+              const { data: fallback } = await supabase
+                .from('profiles')
+                .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, quota_selector_buttons, quota_selector_popular_index')
+                .eq('id', campaign.user_id)
+                .maybeSingle();
+              if (fallback) setOrganizerProfile(fallback as any);
+            } catch {}
           } else {
             setOrganizerProfile(data);
           }
@@ -523,6 +533,21 @@ const CampaignPage = () => {
 
       loadOrganizerProfile();
     }
+  }, [campaign?.user_id]);
+
+  useEffect(() => {
+    if (!campaign?.user_id) return;
+    const channel = supabase
+      .channel(`profile-buttons-${campaign.user_id}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${campaign.user_id}` }, (payload: any) => {
+        const nextButtons = payload?.new?.quota_selector_buttons;
+        if (!nextButtons) return;
+        setOrganizerProfile(prev => prev ? { ...prev, quota_selector_buttons: nextButtons, quota_selector_popular_index: payload?.new?.quota_selector_popular_index ?? prev.quota_selector_popular_index } : prev);
+      })
+      .subscribe();
+    return () => {
+      try { supabase.removeChannel(channel); } catch {}
+    };
   }, [campaign?.user_id]);
 
   useEffect(() => {
@@ -1911,6 +1936,8 @@ const CampaignPage = () => {
                 colorMode={organizerProfile?.color_mode}
                 gradientClasses={organizerProfile?.gradient_classes}
                 customGradientColors={organizerProfile?.custom_gradient_colors}
+                buttonsConfig={organizerProfile?.quota_selector_buttons}
+                popularIndexConfig={typeof organizerProfile?.quota_selector_popular_index === 'number' ? organizerProfile?.quota_selector_popular_index : undefined}
               />
             </div>
             </>

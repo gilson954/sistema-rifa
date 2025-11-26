@@ -27,6 +27,8 @@ interface QuotaSelectorProps {
   colorMode?: string;
   gradientClasses?: string;
   customGradientColors?: string;
+  buttonsConfig?: number[];
+  popularIndexConfig?: number;
 }
 
 const QuotaSelector: React.FC<QuotaSelectorProps> = ({
@@ -45,7 +47,9 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   disabled = false,
   colorMode = 'solid',
   gradientClasses,
-  customGradientColors
+  customGradientColors,
+  buttonsConfig,
+  popularIndexConfig
 }) => {
   const [quantity, setQuantity] = useState(Math.max(initialQuantity, minTicketsPerPurchase));
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -191,16 +195,14 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
     }
   };
 
-  const incrementButtons = [
-    { label: '+1', value: 1 },
-    { label: '+5', value: 5 },
-    { label: '+15', value: 15 },
-    { label: '+150', value: 150 },
-    { label: '+1000', value: 1000 },
-    { label: '+5000', value: 5000 },
-    { label: '+10000', value: 10000 },
-    { label: '+20000', value: 20000 }
-  ];
+  const defaultButtons = [1, 5, 15, 150, 1000, 5000, 10000];
+  const normalizedButtons = (Array.isArray(buttonsConfig) && buttonsConfig.length > 0 ? buttonsConfig : defaultButtons)
+    .map((v) => Math.max(1, Math.min(20000, Math.floor(Number(v) || 0))))
+    .filter((v, i, arr) => Number.isFinite(v) && v > 0 && arr.indexOf(v) === i)
+    .filter((v) => v <= Math.min(maxTicketsPerPurchase, 20000))
+    .slice(0, 8);
+  const incrementButtons = normalizedButtons.map((v) => ({ label: `+${v}`, value: v }));
+  const validPopularIndex = typeof popularIndexConfig === 'number' && popularIndexConfig >= 0 && popularIndexConfig < incrementButtons.length ? popularIndexConfig : null;
 
   const handleUpdateQuantity = (newQuantity: number) => {
     const adjustedQuantity = Math.max(minTicketsPerPurchase, newQuantity);
@@ -373,9 +375,13 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
               active:scale-95
               before:absolute before:inset-0 before:bg-white/0 hover:before:bg-white/10
               before:transition-all before:duration-300
+              ${validPopularIndex === index ? 'ring-2 ring-amber-400' : ''}
             `)}
             style={getColorStyle()}
           >
+            {validPopularIndex === index && (
+              <span className="absolute -top-2 left-2 z-10 bg-amber-500 text-white text-[10px] sm:text-xs px-2 py-1 rounded-full shadow">Mais popular</span>
+            )}
             <span className="relative z-10">{button.label}</span>
           </button>
         ))}
