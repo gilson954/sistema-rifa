@@ -68,7 +68,7 @@ const Toast: React.FC<ToastProps> = ({ id, message, type, duration = 5000, onClo
   return (
     <div
       className={`
-        relative flex items-center gap-3 min-w-[320px] max-w-md p-4 rounded-xl
+        relative flex items-center gap-2 md:gap-3 min-w-[240px] md:min-w-[320px] max-w-sm md:max-w-md p-3 md:p-4 rounded-xl
         bg-gradient-to-r ${styles.gradient}
         backdrop-blur-sm border ${styles.borderColor}
         shadow-lg hover:shadow-xl
@@ -80,11 +80,11 @@ const Toast: React.FC<ToastProps> = ({ id, message, type, duration = 5000, onClo
     >
       {/* Icon */}
       <div className="flex-shrink-0">
-        <Icon className={`h-5 w-5 ${styles.iconColor}`} />
+        <Icon className={`h-4 w-4 md:h-5 md:w-5 ${styles.iconColor}`} />
       </div>
 
       {/* Message */}
-      <div className="flex-1 text-sm font-medium text-white">
+      <div className="flex-1 text-xs md:text-sm font-medium text-white">
         {message}
       </div>
 
@@ -99,7 +99,7 @@ const Toast: React.FC<ToastProps> = ({ id, message, type, duration = 5000, onClo
 
       {/* Progress bar */}
       {duration > 0 && (
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 rounded-b-xl overflow-hidden">
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 md:h-1 bg-white/20 rounded-b-xl overflow-hidden">
           <div
             className="h-full bg-white/40 animate-progress"
             style={{ animationDuration: `${duration}ms` }}
