@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle, Zap } from 'lucide-react';
-import { motion, easeOut } from 'framer-motion';
+import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle, Zap, Pencil, Trash2, Plus } from 'lucide-react';
+import { motion, easeOut, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { PaymentsAPI, PaymentIntegrationConfig } from '../lib/api/payments';
+import { formatPixKey } from '../utils/pixValidation';
 import ConfirmModal from '../components/ConfirmModal';
 import ConfigModal from '../components/ConfigModal';
+import PixKeyModal from '../components/pix/PixKeyModal';
+import PixLogo from '../components/pix/PixLogo';
+import { ManualPixAPI, type ManualPixKey } from '../lib/api/manualPix';
 
 const PaymentIntegrationsPage = () => {
   const navigate = useNavigate();
@@ -33,6 +37,12 @@ const PaymentIntegrationsPage = () => {
 
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const [activeTab, setActiveTab] = useState<'automatic' | 'manual'>('automatic');
+  const [pixKeys, setPixKeys] = useState<ManualPixKey[]>([]);
+  const [showAddPixModal, setShowAddPixModal] = useState(false);
+  const [editingPix, setEditingPix] = useState<ManualPixKey | null>(null);
+  const [savingPix, setSavingPix] = useState(false);
 
   const [showDeleteFluxsisConfirm, setShowDeleteFluxsisConfirm] = useState(false);
   const [showDeletePay2mConfirm, setShowDeletePay2mConfirm] = useState(false);
@@ -106,6 +116,15 @@ const PaymentIntegrationsPage = () => {
 
     loadPaymentConfig();
   }, [user]);
+
+  useEffect(() => {
+    const loadPix = async () => {
+      if (!user || activeTab !== 'manual') return;
+      const { data } = await ManualPixAPI.listKeys(user.id);
+      setPixKeys(data || []);
+    };
+    loadPix();
+  }, [user, activeTab]);
 
   const handleGoBack = () => {
     navigate('/dashboard');
@@ -544,15 +563,6 @@ const PaymentIntegrationsPage = () => {
     }
   };
 
-  const infoCardVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: { 
-      opacity: 1, 
-      scale: 1,
-      transition: { duration: 0.4, delay: 0.2, ease: easeOut }
-    }
-  };
-
   const cardVariants = {
     hidden: { opacity: 0, y: 20, scale: 0.95 },
     visible: (i: number) => ({
@@ -570,6 +580,12 @@ const PaymentIntegrationsPage = () => {
       scale: 1.02,
       transition: { duration: 0.3, ease: easeOut }
     }
+  };
+
+  const tabSectionVariants = {
+    hidden: { opacity: 0, y: 10, scale: 0.98 },
+    visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.25, ease: easeOut } },
+    exit: { opacity: 0, y: -10, scale: 0.98, transition: { duration: 0.2, ease: easeOut } }
   };
 
 
@@ -618,12 +634,12 @@ const PaymentIntegrationsPage = () => {
         `}
       </style>
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <motion.div 
-          className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8"
-          variants={headerVariants}
-          initial="hidden"
-          animate="visible"
-        >
+      <motion.div 
+        className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8"
+        variants={headerVariants}
+        initial="hidden"
+        animate="visible"
+      >
           <motion.button
             onClick={handleGoBack}
             className="p-1.5 sm:p-2 hover:bg-white/10 dark:hover:bg-gray-800/50 rounded-lg transition-colors duration-200"
@@ -642,11 +658,33 @@ const PaymentIntegrationsPage = () => {
           </div>
         </motion.div>
 
+        <div className="mb-4 sm:mb-6 bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-1.5 sm:p-2 shadow-lg">
+          <div className="flex space-x-1.5 sm:space-x-2">
+            <button
+              onClick={() => setActiveTab('automatic')}
+              className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl transition-all duration-300 ${activeTab === 'automatic' ? 'bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-white shadow-lg animate-gradient-x bg-[length:200%_200%]' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50'}`}
+            >
+              <Zap className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden sm:inline">Formas automáticas</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('manual')}
+              className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl transition-all duration-300 ${activeTab === 'manual' ? 'bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-white shadow-lg animate-gradient-x bg-[length:200%_200%]' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50'}`}
+            >
+              <PixLogo variant="icon" className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden sm:inline">Formas manuais</span>
+            </button>
+          </div>
+        </div>
+
+        <AnimatePresence mode="wait">
+        {activeTab === 'automatic' && (
         <motion.div 
           className="mb-4 sm:mb-6 rounded-xl sm:rounded-2xl p-3 sm:p-4 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/20 dark:border-blue-800/30"
-          variants={infoCardVariants}
+          variants={tabSectionVariants}
           initial="hidden"
           animate="visible"
+          exit="exit"
         >
           <div className="flex items-start gap-2 sm:gap-3">
             <motion.div 
@@ -666,8 +704,12 @@ const PaymentIntegrationsPage = () => {
             </div>
           </div>
         </motion.div>
+        )}
+        </AnimatePresence>
 
-        <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+        <AnimatePresence mode="wait">
+        {activeTab === 'automatic' && (
+        <motion.div className="grid gap-3 sm:gap-4 md:grid-cols-2" variants={tabSectionVariants} initial="hidden" animate="visible" exit="exit">
           {paymentMethods.map((method, index) => (
             <motion.article
               key={method.id}
@@ -744,7 +786,101 @@ const PaymentIntegrationsPage = () => {
               </motion.button>
             </motion.article>
           ))}
-        </div>
+        </motion.div>
+        )}
+        </AnimatePresence>
+
+        <AnimatePresence mode="wait">
+        {activeTab === 'manual' && (
+          <motion.div className="space-y-4 sm:space-y-6" variants={tabSectionVariants} initial="hidden" animate="visible" exit="exit">
+            <div className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-3 sm:p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <motion.div 
+                    className="w-12 h-12 sm:w-16 sm:h-16 bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm border border-gray-200/20 dark:border-gray-700/20 p-2"
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <PixLogo className="w-full h-full object-contain" />
+                  </motion.div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold">Pix manual</h3>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Cadastre chaves Pix para receber pagamentos manualmente</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowAddPixModal(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 text-white px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold shadow-md">
+                  <Plus className="h-4 w-4" /> Adicionar Pix
+                </button>
+                <button onClick={() => navigate('/dashboard/manual-pix-admin')} className="ml-2 inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold border border-gray-200/30 dark:border-gray-700/30">
+                  Aprovar comprovantes
+                </button>
+              </div>
+              <div className="mt-4 sm:mt-6 space-y-3">
+                {pixKeys.length === 0 ? (
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Nenhuma chave cadastrada</p>
+                ) : (
+                  pixKeys.map((k) => (
+                    <div key={k.id} className="flex items-center justify-between p-3 border border-gray-200/30 dark:border-gray-700/30 rounded-lg">
+                      <div>
+                        <p className="text-sm font-semibold capitalize">{k.key_type}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">{formatPixKey(k.key_type as 'telefone' | 'cpf' | 'cnpj' | 'email' | 'aleatoria', k.key_value)}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">{k.holder_name}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setEditingPix(k)} className="px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-xs">
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button onClick={async () => { setDeleting(true); const { error } = await ManualPixAPI.deleteKey(k.id); if (!error) setPixKeys((prev) => prev.filter((x) => x.id !== k.id)); setDeleting(false); }} className="px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 text-xs">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+        </AnimatePresence>
+        <PixKeyModal
+          show={showAddPixModal}
+          onClose={() => setShowAddPixModal(false)}
+          title="Adicionar Pix"
+          saving={savingPix}
+          onSave={async (payload) => {
+            if (!user) return;
+            setSavingPix(true);
+            const { data, error } = await ManualPixAPI.createKey({ user_id: user.id, ...payload });
+            if (!error && data) {
+              setPixKeys((prev) => [data, ...prev]);
+              setShowAddPixModal(false);
+              showSuccess('Pix adicionado');
+            } else {
+              showError('Erro ao adicionar Pix');
+            }
+            setSavingPix(false);
+          }}
+        />
+        <PixKeyModal
+          show={!!editingPix}
+          onClose={() => setEditingPix(null)}
+          title="Editar Pix"
+          saving={savingPix}
+          initial={editingPix ? { key_type: editingPix.key_type, key_value: editingPix.key_value, holder_name: editingPix.holder_name } : null}
+          onSave={async (payload) => {
+            if (!editingPix) return;
+            setSavingPix(true);
+            const { data, error } = await ManualPixAPI.updateKey(editingPix.id, payload);
+            if (!error && data) {
+              setPixKeys((prev) => prev.map((x) => (x.id === data.id ? data : x)));
+              setEditingPix(null);
+              showSuccess('Pix atualizado');
+            } else {
+              showError('Erro ao atualizar Pix');
+            }
+            setSavingPix(false);
+          }}
+        />
       </main>
 
       <ConfigModal

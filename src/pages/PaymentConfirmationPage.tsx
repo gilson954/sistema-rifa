@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, Copy, CheckCircle, User, Phone, Hash, Timer, Package, DollarSign } from 'lucide-react';
+import { Clock, Copy, CheckCircle, User, Phone, Hash, Timer, Package, DollarSign, Upload } from 'lucide-react';
+import PixLogo from '../components/pix/PixLogo';
 import CampaignHeader from '../components/CampaignHeader';
 import CampaignFooter from '../components/CampaignFooter';
 import SocialMediaFloatingMenu from '../components/SocialMediaFloatingMenu';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { PaymentsAPI } from '../lib/api/payments';
+import { formatPixKey } from '../utils/pixValidation';
+import { ManualPixAPI, type ManualPixKey } from '../lib/api/manualPix';
 
 interface ReservationData {
   reservationId: string;
@@ -57,6 +60,10 @@ const PaymentConfirmationPage = () => {
   const [pixCode, setPixCode] = useState<string>('');
   const [pixQrBase64, setPixQrBase64] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [manualPixKey, setManualPixKey] = useState<ManualPixKey | null>(null);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [uploadingProof, setUploadingProof] = useState<boolean>(false);
+  const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
 
   const reservationData = location.state?.reservationData as ReservationData;
 
@@ -278,6 +285,8 @@ const PaymentConfirmationPage = () => {
 
             if (profile) {
               setOrganizerProfile(profile);
+              const { data: keys } = await ManualPixAPI.listKeys(profile.id);
+              if (keys && keys.length > 0) setManualPixKey(keys[0]);
             }
           }
         }
@@ -783,6 +792,28 @@ const PaymentConfirmationPage = () => {
               ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
               : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
           }`}>
+            {manualPixKey && (
+              <div className="mb-4">
+                <div className="flex items-center gap-2">
+                  <PixLogo variant="icon" className="h-5 w-5" />
+                  <span className={`text-sm font-semibold ${themeClasses.text}`}>Pix manual do organizador</span>
+                </div>
+                <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <div className={`text-xs ${themeClasses.textSecondary}`}>
+                    Tipo
+                    <div className={`text-sm font-medium ${themeClasses.text} capitalize`}>{manualPixKey.key_type}</div>
+                  </div>
+                  <div className={`text-xs ${themeClasses.textSecondary}`}>
+                    Chave
+                    <div className={`text-sm font-medium ${themeClasses.text}`}>{formatPixKey(manualPixKey.key_type as 'telefone' | 'cpf' | 'cnpj' | 'email' | 'aleatoria', manualPixKey.key_value)}</div>
+                  </div>
+                  <div className={`text-xs ${themeClasses.textSecondary}`}>
+                    Titular
+                    <div className={`text-sm font-medium ${themeClasses.text}`}>{manualPixKey.holder_name}</div>
+                  </div>
+                </div>
+              </div>
+            )}
             {creatingPix && (
               <div className="flex items-center gap-2 mb-3 text-xs text-gray-600 dark:text-gray-300">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2" />
@@ -841,6 +872,50 @@ const PaymentConfirmationPage = () => {
             <p className={`text-sm ${themeClasses.text}`}>
               <strong>Atenção:</strong> Este pagamento possui prazo limitado. Caso não seja confirmado dentro do tempo estabelecido, a reserva será cancelada e os números ficarão disponíveis novamente.
             </p>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.35 }}
+          className="mb-8"
+        >
+          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} ${
+            campaignTheme === 'claro' 
+              ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
+              : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
+          }`}>
+            <div className="flex items-center gap-2 mb-3">
+              <Upload className={`h-5 w-5 ${themeClasses.text}`} />
+              <span className={`text-sm font-semibold ${themeClasses.text}`}>Enviar comprovante</span>
+            </div>
+            <input type="file" accept="image/png,image/jpeg" onChange={(e) => setProofFile(e.target.files?.[0] || null)} className={`w-full ${themeClasses.inputBg} ${themeClasses.text} px-4 py-3 rounded-lg border ${themeClasses.border}`} />
+            <div className="mt-3">
+              <button
+                onClick={async () => {
+                  if (!proofFile || !organizerProfile) return;
+                  setUploadingProof(true);
+                  const { error } = await ManualPixAPI.uploadProof(
+                    proofFile,
+                    reservationData.reservationId,
+                    reservationData.campaignId,
+                    organizerProfile.id,
+                    reservationData.customerName,
+                    reservationData.customerPhone
+                  );
+                  setUploadingProof(false);
+                  setUploadSuccess(!error);
+                }}
+                disabled={!proofFile || uploadingProof}
+                className="px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white rounded-lg font-bold transition-all duration-200 shadow-md"
+              >
+                {uploadingProof ? 'Enviando...' : 'Enviar comprovante'}
+              </button>
+              {uploadSuccess && (
+                <p className="mt-2 text-xs text-green-600">Comprovante enviado. Aguarde aprovação.</p>
+              )}
+            </div>
           </div>
         </motion.div>
 

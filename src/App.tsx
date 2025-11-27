@@ -17,6 +17,7 @@ import CreateCampaignStep3Page from './pages/CreateCampaignStep3Page';
 import CampaignPage from './pages/CampaignPage';
 import PaymentConfirmationPage from './pages/PaymentConfirmationPage';
 import PaymentIntegrationsPage from './pages/PaymentIntegrationsPage';
+import ManualPixAdminPage from './pages/ManualPixAdminPage';
 import AffiliationsPage from './pages/AffiliationsPage';
 import AffiliatesManagementPage from './pages/AffiliatesManagementPage';
 import AffiliateAreaPage from './pages/AffiliateAreaPage';
@@ -265,19 +266,20 @@ function App() {
           />
 
           {/* Dashboard Protegido */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardLayout />
-              </ProtectedRoute>
-            }
-          >
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
             <Route index element={<DashboardPage />} />
             <Route path="create-campaign" element={<CreateCampaignStep1Page />} />
             <Route path="create-campaign/step-2" element={<CreateCampaignStep2Page />} />
             <Route path="create-campaign/step-3" element={<CreateCampaignStep3Page />} />
-            <Route path="integrations" element={<PaymentIntegrationsPage />} />
+          <Route path="integrations" element={<PaymentIntegrationsPage />} />
+          <Route path="manual-pix-admin" element={<ManualPixAdminPage />} />
             <Route path="affiliations" element={<AffiliationsPage />} />
             <Route path="affiliations/manage" element={<AffiliatesManagementPage />} />
             <Route path="affiliations/area" element={<AffiliateAreaPage />} />
