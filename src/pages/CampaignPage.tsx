@@ -507,7 +507,7 @@ const CampaignPage = () => {
         try {
           const { data, error } = await supabase
             .from('public_profiles_view')
-            .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, quota_selector_buttons, quota_selector_popular_index, cor_organizador')
+            .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, quota_selector_buttons, quota_selector_popular_index')
             .eq('id', campaign.user_id)
             .maybeSingle();
 
@@ -522,7 +522,16 @@ const CampaignPage = () => {
               if (fallback) setOrganizerProfile(fallback as any);
             } catch {}
           } else {
-            setOrganizerProfile(data);
+            try {
+              const { data: colorRow } = await supabase
+                .from('profiles')
+                .select('cor_organizador')
+                .eq('id', campaign.user_id)
+                .maybeSingle();
+              setOrganizerProfile({ ...(data as any), cor_organizador: colorRow?.cor_organizador });
+            } catch {
+              setOrganizerProfile(data as any);
+            }
           }
         } catch (error) {
           console.error('Error loading organizer profile:', error);
