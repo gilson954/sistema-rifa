@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Phone, Mail, User, Search, Calendar, DollarSign, ShoppingCart } from 'lucide-react';
+import { X, Phone, Mail, User, Search } from 'lucide-react';
 import { formatCurrency } from '../utils/currency';
 import { supabase } from '../lib/supabase';
 
