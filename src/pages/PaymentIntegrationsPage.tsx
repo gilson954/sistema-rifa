@@ -16,16 +16,19 @@ const PaymentIntegrationsPage = () => {
   const [showPay2mModal, setShowPay2mModal] = useState(false);
   const [showPaggueModal, setShowPaggueModal] = useState(false);
   const [showEfiBankModal, setShowEfiBankModal] = useState(false);
+  const [showSuitPayModal, setShowSuitPayModal] = useState(false);
 
   const [fluxsisConfig, setFluxsisConfig] = useState({ api_key: '', secret_key: '', webhook_url: '' });
   const [pay2mConfig, setPay2mConfig] = useState({ api_key: '', secret_key: '', webhook_url: '' });
   const [paggueConfig, setPaggueConfig] = useState({ api_key: '', secret_key: '', webhook_url: '' });
   const [efiBankConfig, setEfiBankConfig] = useState({ client_id: '', client_secret: '', webhook_url: '' });
+  const [suitPayConfig, setSuitPayConfig] = useState({ client_id: '', client_secret: '', webhook_url: '' });
 
   const [isFluxsisConfigured, setIsFluxsisConfigured] = useState(false);
   const [isPay2mConfigured, setIsPay2mConfigured] = useState(false);
   const [isPaggueConfigured, setIsPaggueConfigured] = useState(false);
   const [isEfiBankConfigured, setIsEfiBankConfigured] = useState(false);
+  const [isSuitPayConfigured, setIsSuitPayConfigured] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -34,6 +37,7 @@ const PaymentIntegrationsPage = () => {
   const [showDeletePay2mConfirm, setShowDeletePay2mConfirm] = useState(false);
   const [showDeletePaggueConfirm, setShowDeletePaggueConfirm] = useState(false);
   const [showDeleteEfiBankConfirm, setShowDeleteEfiBankConfirm] = useState(false);
+  const [showDeleteSuitPayConfirm, setShowDeleteSuitPayConfirm] = useState(false);
 
   useEffect(() => {
     const loadPaymentConfig = async () => {
@@ -75,14 +79,24 @@ const PaymentIntegrationsPage = () => {
             setIsPaggueConfigured(!!data.paggue.api_key);
           }
 
-          if (data.efi_bank) {
-            setEfiBankConfig({
-              client_id: data.efi_bank.client_id || '',
-              client_secret: data.efi_bank.client_secret || '',
-              webhook_url: data.efi_bank.webhook_url || ''
-            });
-            setIsEfiBankConfigured(!!data.efi_bank.client_id);
-          }
+        if (data.efi_bank) {
+          setEfiBankConfig({
+            client_id: data.efi_bank.client_id || '',
+            client_secret: data.efi_bank.client_secret || '',
+            webhook_url: data.efi_bank.webhook_url || ''
+          });
+          setIsEfiBankConfigured(!!data.efi_bank.client_id);
+        }
+
+        if (data.suitpay) {
+          const suit = data.suitpay;
+          setSuitPayConfig({
+            client_id: suit.client_id || '',
+            client_secret: suit.client_secret || '',
+            webhook_url: suit.webhook_url || ''
+          });
+          setIsSuitPayConfigured(!!suit.client_id);
+        }
         }
       } catch (error) {
         console.error('Error loading payment configurations:', error);
@@ -328,6 +342,10 @@ const PaymentIntegrationsPage = () => {
     setShowEfiBankModal(true);
   };
 
+  const handleSuitPayConfig = () => {
+    setShowSuitPayModal(true);
+  };
+
   const handleSaveEfiBankConfig = async () => {
     if (!user || !efiBankConfig.client_id.trim() || !efiBankConfig.client_secret.trim()) {
       showWarning('Por favor, preencha todos os campos obrigatórios');
@@ -368,6 +386,78 @@ const PaymentIntegrationsPage = () => {
 
   const handleDeleteEfiBankConfig = () => {
     setShowDeleteEfiBankConfirm(true);
+  };
+
+  const handleSaveSuitPayConfig = async () => {
+    if (!user || !suitPayConfig.client_id.trim() || !suitPayConfig.client_secret.trim()) {
+      showWarning('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: currentConfig } = await PaymentsAPI.getPaymentConfig(user.id);
+      const updatedConfig: PaymentIntegrationConfig = {
+        ...currentConfig,
+        suitpay: {
+          client_id: suitPayConfig.client_id,
+          client_secret: suitPayConfig.client_secret,
+          webhook_url: suitPayConfig.webhook_url,
+          configured_at: new Date().toISOString()
+        }
+      };
+
+      const { error } = await PaymentsAPI.updatePaymentConfig(user.id, updatedConfig);
+      
+      if (error) {
+        console.error('Error saving SuitPay config:', error);
+        showError('Erro ao salvar configuração. Tente novamente.');
+      } else {
+        setIsSuitPayConfigured(true);
+        setShowSuitPayModal(false);
+        showSuccess('Configuração do SuitPay salva com sucesso!');
+        localStorage.setItem('isPaymentConfigured', 'true');
+      }
+    } catch (error) {
+      console.error('Error saving SuitPay config:', error);
+      showError('Erro ao salvar configuração. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteSuitPayConfig = () => {
+    setShowDeleteSuitPayConfirm(true);
+  };
+
+  const confirmDeleteSuitPayConfig = async () => {
+    if (!user) return;
+
+    setDeleting(true);
+    try {
+      const { data: currentConfig } = await PaymentsAPI.getPaymentConfig(user.id);
+      const updatedConfig: PaymentIntegrationConfig = { ...currentConfig };
+      delete updatedConfig.suitpay;
+
+      const { error } = await PaymentsAPI.updatePaymentConfig(user.id, updatedConfig);
+      
+      if (error) {
+        console.error('Error deleting SuitPay config:', error);
+        showError('Erro ao remover configuração. Tente novamente.');
+      } else {
+        setIsSuitPayConfigured(false);
+        setSuitPayConfig({ client_id: '', client_secret: '', webhook_url: '' });
+        setShowSuitPayModal(false);
+        setShowDeleteSuitPayConfirm(false);
+        showSuccess('Configuração do SuitPay removida com sucesso!');
+      }
+    } catch (error) {
+      console.error('Error deleting SuitPay config:', error);
+      showError('Erro ao remover configuração. Tente novamente.');
+    } finally {
+      setDeleting(false);
+      setShowDeleteSuitPayConfirm(false);
+    }
   };
 
   const confirmDeleteEfiBankConfig = async () => {
@@ -432,6 +522,14 @@ const PaymentIntegrationsPage = () => {
       description: 'Banco digital com soluções de pagamento',
       isConfigured: isEfiBankConfigured,
       onConfigure: handleEfiBankConfig
+    },
+    {
+      id: 'suitpay',
+      name: 'SuitPay',
+      logo: '/suitpay.svg',
+      description: 'PIX com split automático e webhook seguro',
+      isConfigured: isSuitPayConfigured,
+      onConfigure: handleSuitPayConfig
     }
   ];
 
@@ -515,7 +613,28 @@ const PaymentIntegrationsPage = () => {
     tap: { scale: 0.95 }
   };
 
-  const ConfigModal = ({ 
+  type ConfigField = {
+    name: string;
+    label: string;
+    type: 'text' | 'password' | 'url';
+    placeholder: string;
+    required: boolean;
+  };
+
+  type ConfigModalProps = {
+    show: boolean;
+    onClose: () => void;
+    title: string;
+    config: Record<string, string>;
+    setConfig: (cfg: Record<string, string>) => void;
+    onSave: () => void;
+    onDelete: () => void;
+    isConfigured: boolean;
+    fields: ConfigField[];
+    helper?: React.ReactNode;
+  };
+
+  const ConfigModal: React.FC<ConfigModalProps> = ({ 
     show, 
     onClose, 
     title, 
@@ -524,8 +643,9 @@ const PaymentIntegrationsPage = () => {
     onSave, 
     onDelete, 
     isConfigured,
-    fields
-  }: any) => (
+    fields,
+    helper
+  }) => (
     <AnimatePresence>
       {show && (
         <motion.div 
@@ -570,7 +690,12 @@ const PaymentIntegrationsPage = () => {
             </motion.p>
 
             <div className="space-y-3 sm:space-y-4">
-              {fields.map((field: any, index: number) => (
+              {helper && (
+                <div className="rounded-lg p-3 border border-purple-200/40 dark:border-purple-800/40 bg-purple-50/60 dark:bg-purple-900/20 text-xs sm:text-sm text-gray-700 dark:text-gray-300">
+                  {helper}
+                </div>
+              )}
+              {fields.map((field: ConfigField, index: number) => (
                 <motion.div
                   key={field.name}
                   initial={{ opacity: 0, x: -20 }}
@@ -825,6 +950,35 @@ const PaymentIntegrationsPage = () => {
       </main>
 
       <ConfigModal
+        show={showSuitPayModal}
+        onClose={() => setShowSuitPayModal(false)}
+        title="Configurar SuitPay"
+        config={suitPayConfig}
+        setConfig={setSuitPayConfig}
+        onSave={handleSaveSuitPayConfig}
+        onDelete={handleDeleteSuitPayConfig}
+        isConfigured={isSuitPayConfigured}
+        helper={(
+          <div className="space-y-2">
+            <p>
+              Para obter suas credenciais, acesse o painel da SuitPay com seu login.
+            </p>
+            <p>
+              No menu lateral, navegue até <span className="font-semibold">VENDAS</span> → <span className="font-semibold">GATEWAY DE PAGAMENTO</span> → <span className="font-semibold">Chaves API</span> e siga as instruções exibidas para criar as chaves.
+            </p>
+            <p>
+              Ao finalizar, serão apresentados o <span className="font-semibold">Client ID (ci)</span> e o <span className="font-semibold">Client Secret (cs)</span>. Informe esses dados nos campos abaixo.
+            </p>
+          </div>
+        )}
+        fields={[
+          { name: 'client_id', label: 'Client ID (ci)', type: 'text', placeholder: 'Seu Client ID da SuitPay', required: true },
+          { name: 'client_secret', label: 'Client Secret (cs)', type: 'password', placeholder: 'Seu Client Secret da SuitPay', required: true },
+          { name: 'webhook_url', label: 'Webhook URL', type: 'url', placeholder: 'https://seusite.com/webhooks/suitpay', required: false }
+        ]}
+      />
+
+      <ConfigModal
         show={showFluxsisModal}
         onClose={() => setShowFluxsisModal(false)}
         title="Configurar Fluxsis"
@@ -910,6 +1064,18 @@ const PaymentIntegrationsPage = () => {
         loading={deleting}
         onConfirm={confirmDeletePay2mConfig}
         onCancel={() => setShowDeletePay2mConfirm(false)}
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteSuitPayConfirm}
+        title="Remover Configuração"
+        message="Tem certeza que deseja remover a configuração do SuitPay? Esta ação não pode ser desfeita."
+        confirmText="Remover"
+        cancelText="Cancelar"
+        type="danger"
+        loading={deleting}
+        onConfirm={confirmDeleteSuitPayConfig}
+        onCancel={() => setShowDeleteSuitPayConfirm(false)}
       />
 
       <ConfirmModal

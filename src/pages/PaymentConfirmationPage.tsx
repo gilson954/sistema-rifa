@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, Copy, CheckCircle, User, Mail, Phone, Hash, QrCode, AlertTriangle, Timer, Package, DollarSign } from 'lucide-react';
+import { Clock, Copy, CheckCircle, User, Phone, Hash, Timer, Package, DollarSign } from 'lucide-react';
 import CampaignHeader from '../components/CampaignHeader';
 import CampaignFooter from '../components/CampaignFooter';
 import SocialMediaFloatingMenu from '../components/SocialMediaFloatingMenu';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import { PaymentsAPI } from '../lib/api/payments';
 
 interface ReservationData {
   reservationId: string;
@@ -34,7 +35,7 @@ interface OrganizerProfile {
   color_mode?: string;
   gradient_classes?: string;
   custom_gradient_colors?: string;
-  social_media_links?: any;
+  social_media_links?: unknown;
 }
 
 interface Campaign {
@@ -50,9 +51,12 @@ const PaymentConfirmationPage = () => {
   const [isExpired, setIsExpired] = useState(false);
   const [copiedPix, setCopiedPix] = useState(false);
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
-  const [campaignModel, setCampaignModel] = useState<string>('manual');
   const [campaignImageUrl, setCampaignImageUrl] = useState<string>('');
   const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [creatingPix, setCreatingPix] = useState<boolean>(false);
+  const [pixCode, setPixCode] = useState<string>('');
+  const [pixQrBase64, setPixQrBase64] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const reservationData = location.state?.reservationData as ReservationData;
 
@@ -254,7 +258,6 @@ const PaymentConfirmationPage = () => {
         }
 
         if (campaignData) {
-          setCampaignModel(campaignData.campaign_model || 'manual');
           setCampaign({ total_tickets: campaignData.total_tickets || 100 });
           
           if (campaignData.prize_image_urls && campaignData.prize_image_urls.length > 0) {
@@ -283,6 +286,40 @@ const PaymentConfirmationPage = () => {
 
     loadOrganizerProfile();
   }, [reservationData]);
+
+  useEffect(() => {
+    const createSuitPayPix = async () => {
+      if (!reservationData || !organizerProfile?.id) return;
+      if (!reservationData.selectedQuotas || reservationData.selectedQuotas.length === 0) return;
+
+      setCreatingPix(true);
+      setCreateError(null);
+
+      try {
+        const { data, error } = await PaymentsAPI.createSuitPayPayment({
+          campaign_id: reservationData.campaignId,
+          quota_numbers: reservationData.selectedQuotas,
+          user_id: organizerProfile.id,
+          payer_email: reservationData.customerEmail || '',
+          payment_method: 'pix',
+          total_amount: reservationData.totalValue,
+        });
+
+        if (error || !data) {
+          setCreateError('Falha ao gerar cobrança PIX. Tente novamente.');
+        } else {
+          setPixCode(data.qr_code || '');
+          setPixQrBase64(data.qr_code_base64 || null);
+        }
+      } catch {
+        setCreateError('Erro inesperado ao gerar PIX.');
+      } finally {
+        setCreatingPix(false);
+      }
+    };
+
+    createSuitPayPix();
+  }, [organizerProfile, reservationData]);
 
   useEffect(() => {
     const faviconLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
@@ -405,7 +442,7 @@ const PaymentConfirmationPage = () => {
 
   const handleCopyPixKey = async () => {
     const reservationIdClean = reservationData?.reservationId.replace(/-/g, '') || 'mock-key';
-    const pixKey = `00020126580014br.gov.bcb.pix0136${reservationIdClean}5204000053039865802BR5925RIFAQUI PAGAMENTOS LTDA6009SAO PAULO62070503***6304ABCD`;
+    const pixKey = pixCode || `00020126580014br.gov.bcb.pix0136${reservationIdClean}5204000053039865802BR5925RIFAQUI PAGAMENTOS LTDA6009SAO PAULO62070503***6304ABCD`;
     
     console.log('🔵 PaymentConfirmationPage - PIX Key generated:', pixKey);
     
@@ -746,16 +783,23 @@ const PaymentConfirmationPage = () => {
               ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
               : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
           }`}>
+            {creatingPix && (
+              <div className="flex items-center gap-2 mb-3 text-xs text-gray-600 dark:text-gray-300">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2" />
+                <span>Gerando PIX...</span>
+              </div>
+            )}
             <div className="flex items-center justify-between mb-4">
               <input
                 type="text"
                 readOnly
-                value={`00020126580014br.gov.bcb.pix0136${reservationData.reservationId.replace(/-/g, '')}5204000053039865802BR5925RIFAQUI...`}
+                value={pixCode ? pixCode : `00020126580014br.gov.bcb.pix0136${reservationData.reservationId.replace(/-/g, '')}5204000053039865802BR5925RIFAQUI...`}
                 className={`flex-1 ${themeClasses.inputBg} ${themeClasses.text} px-4 py-3 rounded-lg border ${themeClasses.border} font-mono text-sm`}
               />
               <button
                 onClick={handleCopyPixKey}
-                className="ml-3 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition-all duration-200 shadow-md flex items-center gap-2"
+                disabled={creatingPix}
+                className="ml-3 px-6 py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-300 disabled:cursor-not-allowed text-white rounded-lg font-bold transition-all duration-200 shadow-md flex items-center gap-2"
               >
                 {copiedPix ? (
                   <>
@@ -770,6 +814,16 @@ const PaymentConfirmationPage = () => {
                 )}
               </button>
             </div>
+            {createError && (
+              <div className="mt-3 text-xs text-red-600 dark:text-red-400">
+                {createError}
+              </div>
+            )}
+            {pixQrBase64 && (
+              <div className="mt-4 flex items-center justify-center">
+                <img src={pixQrBase64} alt="QR Code PIX" className="w-40 h-40 rounded-lg shadow" />
+              </div>
+            )}
           </div>
         </motion.div>
 

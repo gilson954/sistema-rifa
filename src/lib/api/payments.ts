@@ -11,7 +11,7 @@ export interface StripePayment {
   qr_code_data?: string;
   qr_code_image_url?: string;
   client_secret?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -63,6 +63,12 @@ export interface PaymentIntegrationConfig {
     webhook_url: string;
     configured_at: string;
   };
+  suitpay?: {
+    client_id: string;
+    client_secret: string;
+    webhook_url: string;
+    configured_at: string;
+  };
   // Future integrations can be added here
   // pay2m?: { ... };
   // paggue?: { ... };
@@ -92,7 +98,7 @@ export class PaymentsAPI {
    */
   static async createStripeCheckout(
     request: CreateStripePaymentRequest
-  ): Promise<{ data: StripeCheckoutResponse | null; error: any }> {
+  ): Promise<{ data: StripeCheckoutResponse | null; error: unknown }> {
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const response = await fetch(`${supabaseUrl}/functions/v1/stripe-checkout`, {
@@ -120,7 +126,7 @@ export class PaymentsAPI {
   /**
    * Get payment status by campaign ID
    */
-  static async getPaymentByCampaign(campaignId: string): Promise<{ data: StripePayment | null; error: any }> {
+  static async getPaymentByCampaign(campaignId: string): Promise<{ data: StripePayment | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('payments')
@@ -140,7 +146,7 @@ export class PaymentsAPI {
   /**
    * Get user's payment integration configuration
    */
-  static async getPaymentConfig(userId: string): Promise<{ data: PaymentIntegrationConfig | null; error: any }> {
+  static async getPaymentConfig(userId: string): Promise<{ data: PaymentIntegrationConfig | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -165,7 +171,7 @@ export class PaymentsAPI {
   static async updatePaymentConfig(
     userId: string, 
     config: PaymentIntegrationConfig
-  ): Promise<{ error: any }> {
+  ): Promise<{ error: unknown }> {
     try {
       const { error } = await supabase
         .from('profiles')
@@ -185,7 +191,7 @@ export class PaymentsAPI {
    */
   static async createMercadoPagoPayment(
     request: CreatePaymentRequest
-  ): Promise<{ data: PaymentResponse | null; error: any }> {
+  ): Promise<{ data: PaymentResponse | null; error: unknown }> {
     try {
       // Generate external reference for tracking
       const externalReference = `campaign_${request.campaign_id}_tickets_${request.quota_numbers.join(',')}`;
@@ -223,7 +229,8 @@ export class PaymentsAPI {
         data.fluxsis?.api_key ||
         data.pay2m?.api_key ||
         data.paggue?.api_key ||
-        data.efi_bank?.client_id
+        data.efi_bank?.client_id ||
+        data.suitpay?.client_id
         // Add other payment methods here as they are implemented
       );
     } catch (error) {
@@ -238,7 +245,7 @@ export class PaymentsAPI {
    */
   static async createFluxsisPayment(
     request: CreatePaymentRequest
-  ): Promise<{ data: PaymentResponse | null; error: any }> {
+  ): Promise<{ data: PaymentResponse | null; error: unknown }> {
     try {
       // Generate external reference for tracking
       const externalReference = `campaign_${request.campaign_id}_tickets_${request.quota_numbers.join(',')}`;
@@ -266,7 +273,7 @@ export class PaymentsAPI {
    */
   static async createPay2mPayment(
     request: CreatePaymentRequest
-  ): Promise<{ data: PaymentResponse | null; error: any }> {
+  ): Promise<{ data: PaymentResponse | null; error: unknown }> {
     try {
       // Generate external reference for tracking
       const externalReference = `campaign_${request.campaign_id}_tickets_${request.quota_numbers.join(',')}`;
@@ -294,7 +301,7 @@ export class PaymentsAPI {
    */
   static async createPagguePayment(
     request: CreatePaymentRequest
-  ): Promise<{ data: PaymentResponse | null; error: any }> {
+  ): Promise<{ data: PaymentResponse | null; error: unknown }> {
     try {
       // Generate external reference for tracking
       const externalReference = `campaign_${request.campaign_id}_tickets_${request.quota_numbers.join(',')}`;
@@ -322,7 +329,7 @@ export class PaymentsAPI {
    */
   static async createEfiBankPayment(
     request: CreatePaymentRequest
-  ): Promise<{ data: PaymentResponse | null; error: any }> {
+  ): Promise<{ data: PaymentResponse | null; error: unknown }> {
     try {
       // Generate external reference for tracking
       const externalReference = `campaign_${request.campaign_id}_tickets_${request.quota_numbers.join(',')}`;
@@ -340,6 +347,37 @@ export class PaymentsAPI {
       return { data: mockResponse, error: null };
     } catch (error) {
       console.error('Error creating Efi Bank payment:', error);
+      return { data: null, error };
+    }
+  }
+
+  /**
+   * Create a payment with SuitPay
+   * Server-side call via Supabase Edge Function
+   */
+  static async createSuitPayPayment(
+    request: CreatePaymentRequest & { request_number?: string }
+  ): Promise<{ data: PaymentResponse | null; error: unknown }> {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/suitpay-create-pix`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Falha ao criar PIX na SuitPay');
+      }
+
+      return { data: result as PaymentResponse, error: null };
+    } catch (error) {
+      console.error('Error creating SuitPay PIX:', error);
       return { data: null, error };
     }
   }
