@@ -44,6 +44,7 @@ DECLARE
   v_customer_phone text;
   v_customer_name text;
   v_has_notifications boolean := false;
+  v_has_manual_proofs boolean := false;
 BEGIN
   PERFORM set_config('search_path', 'public', true);
 
@@ -62,7 +63,18 @@ BEGIN
   SELECT COUNT(*) INTO v_updated_count FROM updated_rows;
 
   IF v_updated_count = 0 THEN
-    RAISE EXCEPTION 'No reserved tickets updated for order % in campaign %', p_order_id, p_campaign_id;
+    -- Idempotência: se já estiverem compradas, considerar sucesso
+    IF EXISTS (
+      SELECT 1 FROM public.tickets t
+      WHERE t.campaign_id = p_campaign_id AND t.order_id = p_order_id AND t.status = 'comprado'
+    ) THEN
+      -- Marcar comprovante como aprovado e seguir
+      UPDATE public.manual_payment_proofs
+      SET status = 'approved', updated_at = now()
+      WHERE order_id = p_order_id AND campaign_id = p_campaign_id;
+    ELSE
+      RAISE EXCEPTION 'No reserved tickets updated for order % in campaign %', p_order_id, p_campaign_id;
+    END IF;
   END IF;
 
   SELECT COUNT(*) INTO v_pending_after
@@ -73,9 +85,16 @@ BEGIN
     RAISE EXCEPTION 'Integrity check failed: % tickets still reserved after approval for order %', v_pending_after, p_order_id;
   END IF;
 
-  UPDATE public.manual_payment_proofs
-  SET status = 'approved', updated_at = now()
-  WHERE order_id = p_order_id AND campaign_id = p_campaign_id;
+  SELECT EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'manual_payment_proofs'
+  ) INTO v_has_manual_proofs;
+
+  IF v_has_manual_proofs THEN
+    UPDATE public.manual_payment_proofs
+    SET status = 'approved', updated_at = now()
+    WHERE order_id = p_order_id AND campaign_id = p_campaign_id;
+  END IF;
 
   PERFORM public.log_cleanup_operation(
     p_operation_type := 'manual_payment_approved',
@@ -120,3 +139,4 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 GRANT EXECUTE ON FUNCTION public.approve_manual_payment(text, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.approve_manual_payment(text, uuid) TO anon;
