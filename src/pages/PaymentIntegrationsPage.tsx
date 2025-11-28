@@ -43,6 +43,11 @@ const PaymentIntegrationsPage = () => {
   const [showAddPixModal, setShowAddPixModal] = useState(false);
   const [editingPix, setEditingPix] = useState<ManualPixKey | null>(null);
   const [savingPix, setSavingPix] = useState(false);
+  const [activePrimary, setActivePrimary] = useState<'manual_pix' | 'pay2m' | 'fluxsis' | 'paggue' | 'efi_bank' | 'suitpay'>(() => {
+    const v = localStorage.getItem('activePaymentMethod');
+    const allowed = ['manual_pix','pay2m','fluxsis','paggue','efi_bank','suitpay'];
+    return allowed.includes(v || '') ? (v as 'manual_pix' | 'pay2m' | 'fluxsis' | 'paggue' | 'efi_bank' | 'suitpay') : 'pay2m';
+  });
 
   const [showDeleteFluxsisConfirm, setShowDeleteFluxsisConfirm] = useState(false);
   const [showDeletePay2mConfirm, setShowDeletePay2mConfirm] = useState(false);
@@ -766,6 +771,24 @@ const PaymentIntegrationsPage = () => {
                     </div>
                   </div>
                 </div>
+                {(['pay2m','suitpay','fluxsis','paggue','efi_bank'].includes(method.id)) && (
+                  <button
+                    onClick={() => {
+                      const key = method.id as 'pay2m' | 'fluxsis' | 'paggue' | 'efi_bank' | 'suitpay';
+                      setActivePrimary(key);
+                      localStorage.setItem('activePaymentMethod', key);
+                      showSuccess(`${method.name} definido como principal`);
+                    }}
+                    aria-pressed={activePrimary === method.id}
+                    className={`relative inline-flex items-center w-12 h-6 rounded-full border ${activePrimary === method.id ? 'bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-white border-transparent' : 'bg-gray-200 dark:bg-gray-800 border-gray-300/50 dark:border-gray-700/50'}`}
+                  >
+                    <motion.span
+                      className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow"
+                      animate={{ x: activePrimary === method.id ? 24 : 0 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    />
+                  </button>
+                )}
               </div>
               
               <motion.button
@@ -808,12 +831,25 @@ const PaymentIntegrationsPage = () => {
                     <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Cadastre chaves Pix para receber pagamentos manualmente</p>
                   </div>
                 </div>
-                <button onClick={() => setShowAddPixModal(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 text-white px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold shadow-md">
-                  <Plus className="h-4 w-4" /> Adicionar Pix
-                </button>
-                <button onClick={() => navigate('/dashboard/manual-pix-admin')} className="ml-2 inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold border border-gray-200/30 dark:border-gray-700/30">
-                  Aprovar comprovantes
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => { setActivePrimary('manual_pix'); localStorage.setItem('activePaymentMethod', 'manual_pix'); showSuccess('Pix manual definido como principal'); }}
+                    aria-pressed={activePrimary === 'manual_pix'}
+                    className={`relative inline-flex items-center w-12 h-6 rounded-full border ${activePrimary === 'manual_pix' ? 'bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-white border-transparent' : 'bg-gray-200 dark:bg-gray-800 border-gray-300/50 dark:border-gray-700/50'}`}
+                  >
+                    <motion.span
+                      className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow"
+                      animate={{ x: activePrimary === 'manual_pix' ? 24 : 0 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    />
+                  </button>
+                  <button onClick={() => setShowAddPixModal(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 text-white px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold shadow-md">
+                    <Plus className="h-4 w-4" /> Adicionar Pix
+                  </button>
+                  <button onClick={() => navigate('/dashboard/manual-pix-admin')} className="ml-2 inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold border border-gray-200/30 dark:border-gray-700/30">
+                    Aprovar comprovantes
+                  </button>
+                </div>
               </div>
               <div className="mt-4 sm:mt-6 space-y-3">
                 {pixKeys.length === 0 ? (

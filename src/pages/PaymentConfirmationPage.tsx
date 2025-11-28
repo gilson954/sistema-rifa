@@ -64,6 +64,11 @@ const PaymentConfirmationPage = () => {
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [uploadingProof, setUploadingProof] = useState<boolean>(false);
   const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
+  const [activePrimary, setActivePrimary] = useState<'manual_pix' | 'pay2m' | 'fluxsis' | 'paggue' | 'efi_bank' | 'suitpay'>(() => {
+    const v = localStorage.getItem('activePaymentMethod');
+    const allowed = ['manual_pix','pay2m','fluxsis','paggue','efi_bank','suitpay'];
+    return allowed.includes(v || '') ? (v as 'manual_pix' | 'pay2m' | 'fluxsis' | 'paggue' | 'efi_bank' | 'suitpay') : 'pay2m';
+  });
 
   const reservationData = location.state?.reservationData as ReservationData;
 
@@ -299,6 +304,7 @@ const PaymentConfirmationPage = () => {
   useEffect(() => {
     const createSuitPayPix = async () => {
       if (!reservationData || !organizerProfile?.id) return;
+      if (activePrimary === 'manual_pix') return;
       if (!reservationData.selectedQuotas || reservationData.selectedQuotas.length === 0) return;
 
       setCreatingPix(true);
@@ -328,7 +334,18 @@ const PaymentConfirmationPage = () => {
     };
 
     createSuitPayPix();
-  }, [organizerProfile, reservationData]);
+  }, [organizerProfile, reservationData, activePrimary]);
+
+  useEffect(() => {
+    const update = () => {
+      const v = localStorage.getItem('activePaymentMethod');
+      const allowed = ['manual_pix','pay2m','fluxsis','paggue','efi_bank','suitpay'];
+      setActivePrimary(allowed.includes(v || '') ? (v as 'manual_pix' | 'pay2m' | 'fluxsis' | 'paggue' | 'efi_bank' | 'suitpay') : 'pay2m');
+    };
+    update();
+    window.addEventListener('storage', update);
+    return () => window.removeEventListener('storage', update);
+  }, []);
 
   useEffect(() => {
     const faviconLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
@@ -753,32 +770,61 @@ const PaymentConfirmationPage = () => {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="mb-8"
         >
-          <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
-                1
+          {activePrimary === 'manual_pix' ? (
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
+                  1
+                </div>
+                <p className={`${themeClasses.text} pt-1 font-medium`}>
+                  Copie a chave PIX exibida abaixo.
+                </p>
               </div>
-              <p className={`${themeClasses.text} pt-1 font-medium`}>
-                Copie o código de pagamento PIX apresentado abaixo.
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
-                2
+              <div className="flex items-start gap-3">
+                <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
+                  2
+                </div>
+                <p className={`${themeClasses.text} pt-1 font-medium`}>
+                  No aplicativo do seu banco, escolha pagar via PIX usando "Chave".
+                </p>
               </div>
-              <p className={`${themeClasses.text} pt-1 font-medium`}>
-                Acesse seu aplicativo bancário e escolha pagar via PIX.
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
-                3
+              <div className="flex items-start gap-3">
+                <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
+                  3
+                </div>
+                <p className={`${themeClasses.text} pt-1 font-medium`}>
+                  Cole a chave e confirme o pagamento. Em seguida, envie o comprovante.
+                </p>
               </div>
-              <p className={`${themeClasses.text} pt-1 font-medium`}>
-                Cole o código copiado na opção "PIX Copia e Cola" e finalize o pagamento.
-              </p>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
+                  1
+                </div>
+                <p className={`${themeClasses.text} pt-1 font-medium`}>
+                  Copie o código de pagamento apresentado abaixo.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
+                  2
+                </div>
+                <p className={`${themeClasses.text} pt-1 font-medium`}>
+                  Acesse seu aplicativo bancário e escolha pagar pelo método selecionado.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
+                  3
+                </div>
+                <p className={`${themeClasses.text} pt-1 font-medium`}>
+                  Cole o código e finalize o pagamento.
+                </p>
+              </div>
+            </div>
+          )}
         </motion.div>
 
         <motion.div
@@ -792,7 +838,7 @@ const PaymentConfirmationPage = () => {
               ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
               : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
           }`}>
-            {manualPixKey && (
+            {manualPixKey && activePrimary === 'manual_pix' && (
               <div className="mb-4">
                 <div className="flex items-center gap-2">
                   <PixLogo variant="icon" className="h-5 w-5" />
@@ -820,37 +866,39 @@ const PaymentConfirmationPage = () => {
                 <span>Gerando PIX...</span>
               </div>
             )}
-            <div className="flex items-center justify-between mb-4">
-              <input
-                type="text"
-                readOnly
-                value={pixCode ? pixCode : `00020126580014br.gov.bcb.pix0136${reservationData.reservationId.replace(/-/g, '')}5204000053039865802BR5925RIFAQUI...`}
-                className={`flex-1 ${themeClasses.inputBg} ${themeClasses.text} px-4 py-3 rounded-lg border ${themeClasses.border} font-mono text-sm`}
-              />
-              <button
-                onClick={handleCopyPixKey}
-                disabled={creatingPix}
-                className="ml-3 px-6 py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-300 disabled:cursor-not-allowed text-white rounded-lg font-bold transition-all duration-200 shadow-md flex items-center gap-2"
-              >
-                {copiedPix ? (
-                  <>
-                    <CheckCircle className="h-5 w-5" />
-                    <span className="hidden sm:inline">Copiado</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-5 w-5" />
-                    <span className="hidden sm:inline">Copiar</span>
-                  </>
-                )}
-              </button>
-            </div>
+            {activePrimary !== 'manual_pix' && (
+              <div className="flex items-center justify-between mb-4">
+                <input
+                  type="text"
+                  readOnly
+                  value={pixCode ? pixCode : `00020126580014br.gov.bcb.pix0136${reservationData.reservationId.replace(/-/g, '')}5204000053039865802BR5925RIFAQUI...`}
+                  className={`flex-1 ${themeClasses.inputBg} ${themeClasses.text} px-4 py-3 rounded-lg border ${themeClasses.border} font-mono text-sm`}
+                />
+                <button
+                  onClick={handleCopyPixKey}
+                  disabled={creatingPix}
+                  className="ml-3 px-6 py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-300 disabled:cursor-not-allowed text-white rounded-lg font-bold transition-all duration-200 shadow-md flex items-center gap-2"
+                >
+                  {copiedPix ? (
+                    <>
+                      <CheckCircle className="h-5 w-5" />
+                      <span className="hidden sm:inline">Copiado</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-5 w-5" />
+                      <span className="hidden sm:inline">Copiar</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
             {createError && (
               <div className="mt-3 text-xs text-red-600 dark:text-red-400">
                 {createError}
               </div>
             )}
-            {pixQrBase64 && (
+            {pixQrBase64 && activePrimary !== 'manual_pix' && (
               <div className="mt-4 flex items-center justify-center">
                 <img src={pixQrBase64} alt="QR Code PIX" className="w-40 h-40 rounded-lg shadow" />
               </div>
@@ -875,49 +923,51 @@ const PaymentConfirmationPage = () => {
           </div>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.35 }}
-          className="mb-8"
-        >
-          <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} ${
-            campaignTheme === 'claro' 
-              ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
-              : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
-          }`}>
-            <div className="flex items-center gap-2 mb-3">
-              <Upload className={`h-5 w-5 ${themeClasses.text}`} />
-              <span className={`text-sm font-semibold ${themeClasses.text}`}>Enviar comprovante</span>
+        {activePrimary === 'manual_pix' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.35 }}
+            className="mb-8"
+          >
+            <div className={`${themeClasses.cardBg} rounded-2xl p-6 border ${themeClasses.border} ${
+              campaignTheme === 'claro' 
+                ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
+                : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
+            }`}>
+              <div className="flex items-center gap-2 mb-3">
+                <Upload className={`h-5 w-5 ${themeClasses.text}`} />
+                <span className={`text-sm font-semibold ${themeClasses.text}`}>Enviar comprovante</span>
+              </div>
+              <input type="file" accept="image/png,image/jpeg" onChange={(e) => setProofFile(e.target.files?.[0] || null)} className={`w-full ${themeClasses.inputBg} ${themeClasses.text} px-4 py-3 rounded-lg border ${themeClasses.border}`} />
+              <div className="mt-3">
+                <button
+                  onClick={async () => {
+                    if (!proofFile || !organizerProfile) return;
+                    setUploadingProof(true);
+                    const { error } = await ManualPixAPI.uploadProof(
+                      proofFile,
+                      reservationData.reservationId,
+                      reservationData.campaignId,
+                      organizerProfile.id,
+                      reservationData.customerName,
+                      reservationData.customerPhone
+                    );
+                    setUploadingProof(false);
+                    setUploadSuccess(!error);
+                  }}
+                  disabled={!proofFile || uploadingProof}
+                  className="px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white rounded-lg font-bold transition-all duration-200 shadow-md"
+                >
+                  {uploadingProof ? 'Enviando...' : 'Enviar comprovante'}
+                </button>
+                {uploadSuccess && (
+                  <p className="mt-2 text-xs text-green-600">Comprovante enviado. Aguarde aprovação.</p>
+                )}
+              </div>
             </div>
-            <input type="file" accept="image/png,image/jpeg" onChange={(e) => setProofFile(e.target.files?.[0] || null)} className={`w-full ${themeClasses.inputBg} ${themeClasses.text} px-4 py-3 rounded-lg border ${themeClasses.border}`} />
-            <div className="mt-3">
-              <button
-                onClick={async () => {
-                  if (!proofFile || !organizerProfile) return;
-                  setUploadingProof(true);
-                  const { error } = await ManualPixAPI.uploadProof(
-                    proofFile,
-                    reservationData.reservationId,
-                    reservationData.campaignId,
-                    organizerProfile.id,
-                    reservationData.customerName,
-                    reservationData.customerPhone
-                  );
-                  setUploadingProof(false);
-                  setUploadSuccess(!error);
-                }}
-                disabled={!proofFile || uploadingProof}
-                className="px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white rounded-lg font-bold transition-all duration-200 shadow-md"
-              >
-                {uploadingProof ? 'Enviando...' : 'Enviar comprovante'}
-              </button>
-              {uploadSuccess && (
-                <p className="mt-2 text-xs text-green-600">Comprovante enviado. Aguarde aprovação.</p>
-              )}
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
