@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -33,9 +33,6 @@ import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import PaymentCancelledPage from './pages/PaymentCancelledPage';
 import SalesHistoryPage from './pages/SalesHistoryPage';
 import SuggestionsPage from './pages/SuggestionsPage';
-import MultiStepFormContainer from './components/MultiStepFormContainer';
-import { MultiStepFormProvider } from './context/MultiStepFormContext';
-import { initialFormData } from './lib/validations/formSteps';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import RealizarSorteioPage from './pages/RealizarSorteioPage';

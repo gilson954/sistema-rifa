@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Clock, Copy, CheckCircle, User, Phone, Hash, Timer, Package, DollarSign, Upload } from 'lucide-react';
@@ -695,7 +695,11 @@ const PaymentConfirmationPage = () => {
 
         {organizerProfile && (
           <SocialMediaFloatingMenu
-            socialMediaLinks={organizerProfile.social_media_links}
+            socialMediaLinks={
+              typeof organizerProfile.social_media_links === 'object'
+                ? (organizerProfile.social_media_links as Record<string, string | boolean | null>)
+                : undefined
+            }
             primaryColor={organizerProfile.primary_color || '#3B82F6'}
             colorMode={organizerProfile.color_mode || 'solid'}
             gradientClasses={organizerProfile.gradient_classes || ''}
@@ -1108,7 +1112,11 @@ const PaymentConfirmationPage = () => {
 
       {organizerProfile && (
         <SocialMediaFloatingMenu
-          socialMediaLinks={organizerProfile.social_media_links}
+          socialMediaLinks={
+            typeof organizerProfile.social_media_links === 'object'
+              ? (organizerProfile.social_media_links as Record<string, string | boolean | null>)
+              : undefined
+          }
           primaryColor={organizerProfile.primary_color || '#3B82F6'}
           colorMode={organizerProfile.color_mode || 'solid'}
           gradientClasses={organizerProfile.gradient_classes || ''}
