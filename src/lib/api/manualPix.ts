@@ -123,26 +123,10 @@ export const ManualPixAPI = {
   },
 
   async approveProof(proofId: string, orderId: string, campaignId: string) {
-    const { data: updatedTickets, error: approveError } = await supabase.rpc('approve_manual_payment', {
+    const { data: updatedTickets, error } = await supabase.rpc('approve_manual_payment', {
       p_order_id: orderId,
       p_campaign_id: campaignId
     });
-    if (approveError) return { data: null, error: approveError };
-    const { error } = await supabase
-      .from('manual_payment_proofs')
-      .update({ status: 'approved' })
-      .eq('id', proofId);
-    try {
-      const { data: authUser } = await supabase.auth.getUser();
-      const quotaNumbers = (updatedTickets || []).map((t: any) => t.quota_number);
-      await supabase.rpc('log_cleanup_operation', {
-        p_operation_type: 'manual_payment_approved',
-        p_campaign_id: campaignId,
-        p_status: 'success',
-        p_message: `Manual PIX approval for order ${orderId}`,
-        p_details: { proof_id: proofId, order_id: orderId, quota_numbers: quotaNumbers, approved_by: authUser.user?.id, approved_at: new Date().toISOString() }
-      });
-    } catch {}
     return { data: updatedTickets, error };
   },
 
