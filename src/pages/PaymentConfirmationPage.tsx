@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Clock, Copy, CheckCircle, User, Phone, Hash, Timer, Package, DollarSign, Upload } from 'lucide-react';
@@ -62,6 +62,7 @@ const PaymentConfirmationPage = () => {
   const [createError, setCreateError] = useState<string | null>(null);
   const [manualPixKey, setManualPixKey] = useState<ManualPixKey | null>(null);
   const [proofFile, setProofFile] = useState<File | null>(null);
+  const proofInputRef = useRef<HTMLInputElement>(null);
   const [uploadingProof, setUploadingProof] = useState<boolean>(false);
   const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
   const [activePrimary, setActivePrimary] = useState<'manual_pix' | 'pay2m' | 'fluxsis' | 'paggue' | 'efi_bank' | 'suitpay'>(() => {
@@ -943,7 +944,28 @@ const PaymentConfirmationPage = () => {
                 <Upload className={`h-5 w-5 ${themeClasses.text}`} />
                 <span className={`text-sm font-semibold ${themeClasses.text}`}>Enviar comprovante</span>
               </div>
-              <input type="file" accept="image/png,image/jpeg" onChange={(e) => setProofFile(e.target.files?.[0] || null)} className={`w-full ${themeClasses.inputBg} ${themeClasses.text} px-4 py-3 rounded-lg border ${themeClasses.border}`} />
+              <input
+                ref={proofInputRef}
+                id="proofFileInput"
+                type="file"
+                accept="image/png,image/jpeg"
+                onChange={(e) => setProofFile(e.target.files?.[0] || null)}
+                className="hidden"
+              />
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  aria-label="Selecionar comprovante (PNG ou JPG)"
+                  onClick={() => proofInputRef.current?.click()}
+                  className={`inline-flex items-center gap-2 ${themeClasses.inputBg} ${themeClasses.text} px-4 py-3 rounded-lg border ${themeClasses.border}`}
+                >
+                  <Upload className="h-4 w-4" />
+                  <span>Selecionar arquivo</span>
+                </button>
+                <span className={`text-xs ${themeClasses.textSecondary}`}>
+                  {proofFile ? proofFile.name : 'Nenhum arquivo selecionado'}
+                </span>
+              </div>
               <div className="mt-3">
                 <button
                   onClick={async () => {

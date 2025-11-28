@@ -13,6 +13,7 @@ import {
   Menu,
   LogOut,
   MessageSquare,
+  QrCode,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -62,6 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const menuItems = [
     { icon: LayoutGrid, label: 'Campanhas (Home)', path: '/dashboard' },
     { icon: CreditCard, label: 'Métodos de pagamentos', path: '/dashboard/integrations' },
+    { icon: QrCode, label: 'Aprovação de PIX', path: '/dashboard/pix-approval' },
     { icon: Users, label: 'Afiliações', path: '/dashboard/affiliations' },
     { icon: Share2, label: 'Redes sociais', path: '/dashboard/social-media' },
     { icon: BarChart3, label: 'Pixels e Analytics', path: '/dashboard/analytics' },

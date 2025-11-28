@@ -846,7 +846,7 @@ const PaymentIntegrationsPage = () => {
                   <button onClick={() => setShowAddPixModal(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-600 text-white px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold shadow-md">
                     <Plus className="h-4 w-4" /> Adicionar Pix
                   </button>
-                  <button onClick={() => navigate('/dashboard/manual-pix-admin')} className="ml-2 inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold border border-gray-200/30 dark:border-gray-700/30">
+                  <button onClick={() => navigate('/dashboard/pix-approval')} className="ml-2 inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold border border-gray-200/30 dark:border-gray-700/30">
                     Aprovar comprovantes
                   </button>
                 </div>

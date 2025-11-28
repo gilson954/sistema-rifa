@@ -18,6 +18,8 @@ import CampaignPage from './pages/CampaignPage';
 import PaymentConfirmationPage from './pages/PaymentConfirmationPage';
 import PaymentIntegrationsPage from './pages/PaymentIntegrationsPage';
 import ManualPixAdminPage from './pages/ManualPixAdminPage';
+import PixApprovalCampaignsPage from './pages/PixApprovalCampaignsPage';
+import CampaignPixApprovalPage from './pages/CampaignPixApprovalPage';
 import AffiliationsPage from './pages/AffiliationsPage';
 import AffiliatesManagementPage from './pages/AffiliatesManagementPage';
 import AffiliateAreaPage from './pages/AffiliateAreaPage';
@@ -277,6 +279,8 @@ function App() {
             <Route path="create-campaign/step-3" element={<CreateCampaignStep3Page />} />
           <Route path="integrations" element={<PaymentIntegrationsPage />} />
           <Route path="manual-pix-admin" element={<ManualPixAdminPage />} />
+          <Route path="pix-approval" element={<PixApprovalCampaignsPage />} />
+          <Route path="pix-approval/:campaignId" element={<CampaignPixApprovalPage />} />
             <Route path="affiliations" element={<AffiliationsPage />} />
             <Route path="affiliations/manage" element={<AffiliatesManagementPage />} />
             <Route path="affiliations/area" element={<AffiliateAreaPage />} />

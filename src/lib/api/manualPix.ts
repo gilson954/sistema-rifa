@@ -89,6 +89,39 @@ export const ManualPixAPI = {
     return { data: withSigned, error: null };
   },
 
+  async listPendingByCampaign(campaignId: string) {
+    const { data, error } = await supabase
+      .from('manual_payment_proofs')
+      .select('*')
+      .eq('campaign_id', campaignId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    if (error) return { data: null, error };
+
+    const { data: campaign } = await supabase
+      .from('campaigns')
+      .select('ticket_price')
+      .eq('id', campaignId)
+      .maybeSingle();
+
+    const ticketPrice = Number(campaign?.ticket_price || 0);
+
+    const enriched = await Promise.all((data || []).map(async (p: any) => {
+      const { data: tickets } = await supabase
+        .from('tickets')
+        .select('quota_number,status')
+        .eq('campaign_id', campaignId)
+        .eq('order_id', p.order_id)
+        .order('quota_number');
+      const quotas = (tickets || []).map(t => t.quota_number);
+      const totalValue = quotas.length * ticketPrice;
+      const { data: signed } = await supabase.storage.from('manual-payment-proofs').createSignedUrl(p.image_url, 60 * 60);
+      return { ...p, quotas, total_value: totalValue, signed_url: signed?.signedUrl || null };
+    }));
+
+    return { data: enriched, error: null };
+  },
+
   async approveProof(proofId: string, orderId: string, campaignId: string) {
     const { data: updatedTickets, error: approveError } = await supabase.rpc('approve_manual_payment', {
       p_order_id: orderId,
@@ -99,11 +132,30 @@ export const ManualPixAPI = {
       .from('manual_payment_proofs')
       .update({ status: 'approved' })
       .eq('id', proofId);
+    try {
+      const { data: authUser } = await supabase.auth.getUser();
+      const quotaNumbers = (updatedTickets || []).map((t: any) => t.quota_number);
+      await supabase.rpc('log_cleanup_operation', {
+        p_operation_type: 'manual_payment_approved',
+        p_campaign_id: campaignId,
+        p_status: 'success',
+        p_message: `Manual PIX approval for order ${orderId}`,
+        p_details: { proof_id: proofId, order_id: orderId, quota_numbers: quotaNumbers, approved_by: authUser.user?.id, approved_at: new Date().toISOString() }
+      });
+    } catch {}
     return { data: updatedTickets, error };
   },
 
   async rejectProof(proofId: string) {
     const { error: rpcError } = await supabase.rpc('reject_manual_payment', { p_proof_id: proofId });
+    try {
+      await supabase.rpc('log_cleanup_operation', {
+        p_operation_type: 'manual_payment_rejected',
+        p_status: 'warning',
+        p_message: `Manual PIX proof ${proofId} rejected`,
+        p_details: { proof_id: proofId }
+      });
+    } catch {}
     return { error: rpcError };
   }
 };
