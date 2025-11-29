@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Search, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { StatusBadge } from '../components/StatusBadge';
 import { useNotification } from '../context/NotificationContext';
 import { ManualPixAPI } from '../lib/api/manualPix';
 import { CampaignAPI } from '../lib/api/campaigns';
 import { supabase } from '../lib/supabase';
-import { motion, AnimatePresence } from 'framer-motion';
+import { formatCurrency } from '../utils/currency';
 
 type PendingRow = {
   id: string;
@@ -215,8 +217,16 @@ const CampaignPixApprovalPage = () => {
     return rows.filter(r => passSearch(r) && passStatus(r) && passValue(r) && passDate(r));
   }, [rows, search, statusFilter, minValue, maxValue, dateFrom, dateTo]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
-  const pagedRows = filteredRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const sortedRows = useMemo(() => {
+    return [...filteredRows].sort((a, b) => {
+      const da = new Date(a.reserved_at || a.created_at);
+      const db = new Date(b.reserved_at || b.created_at);
+      return db.getTime() - da.getTime();
+    });
+  }, [filteredRows]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedRows.length / pageSize));
+  const pagedRows = sortedRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const formatTimeLabel = (iso?: string) => {
     const d = iso ? new Date(iso) : new Date();
     const now = new Date();
@@ -304,10 +314,10 @@ const CampaignPixApprovalPage = () => {
             <div>
               <div className="text-xs text-gray-600 mb-1">Status</div>
               <div className="flex items-center gap-2 flex-wrap">
-                <button aria-pressed={statusFilter.pending} onClick={() => { const next = { ...statusFilter, pending: !statusFilter.pending }; setStatusFilter(next); applyFiltersToParams({ statusFilter: next }); }} className={`px-2 py-1 rounded-lg border text-xs ${statusFilter.pending ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-gray-100 text-gray-700 border-gray-200'}`}>Pendente</button>
-                <button aria-pressed={statusFilter.approved} onClick={() => { const next = { ...statusFilter, approved: !statusFilter.approved }; setStatusFilter(next); applyFiltersToParams({ statusFilter: next }); }} className={`px-2 py-1 rounded-lg border text-xs ${statusFilter.approved ? 'border' : ''}`} style={statusFilter.approved ? { backgroundColor: 'rgba(76, 175, 80, 0.12)', color: '#4CAF50', borderColor: '#4CAF50' } : { backgroundColor: '#F3F4F6', color: '#374151', borderColor: '#D1D5DB' }}>Aprovado</button>
-                <button aria-pressed={statusFilter.rejected} onClick={() => { const next = { ...statusFilter, rejected: !statusFilter.rejected }; setStatusFilter(next); applyFiltersToParams({ statusFilter: next }); }} className={`px-2 py-1 rounded-lg border text-xs ${statusFilter.rejected ? 'border' : ''}`} style={statusFilter.rejected ? { backgroundColor: 'rgba(244, 67, 54, 0.12)', color: '#F44336', borderColor: '#F44336' } : { backgroundColor: '#F3F4F6', color: '#374151', borderColor: '#D1D5DB' }}>Rejeitado</button>
-                <button aria-pressed={statusFilter.expired} onClick={() => { const next = { ...statusFilter, expired: !statusFilter.expired }; setStatusFilter(next); applyFiltersToParams({ statusFilter: next }); }} className={`px-2 py-1 rounded-lg border text-xs ${statusFilter.expired ? 'border' : ''}`} style={statusFilter.expired ? { backgroundColor: 'rgba(245, 158, 11, 0.12)', color: '#F59E0B', borderColor: '#F59E0B' } : { backgroundColor: '#F3F4F6', color: '#374151', borderColor: '#D1D5DB' }}>Expirado</button>
+                <motion.button aria-pressed={statusFilter.pending} onClick={() => { const next = { ...statusFilter, pending: !statusFilter.pending }; setStatusFilter(next); applyFiltersToParams({ statusFilter: next }); }} className={`px-2 py-1 rounded-lg border text-xs bg-transparent ${statusFilter.pending ? 'text-yellow-700 border-yellow-500' : 'text-gray-700 border-gray-300'}`} whileHover={{ scale: 1.05, boxShadow: '0 0 12px rgba(245, 158, 11, 0.25)' }} transition={{ duration: 0.3 }}>Pendente</motion.button>
+                <motion.button aria-pressed={statusFilter.approved} onClick={() => { const next = { ...statusFilter, approved: !statusFilter.approved }; setStatusFilter(next); applyFiltersToParams({ statusFilter: next }); }} className={`px-2 py-1 rounded-lg border text-xs bg-transparent ${statusFilter.approved ? 'text-green-700 border-green-500' : 'text-gray-700 border-gray-300'}`} whileHover={{ scale: 1.05, boxShadow: '0 0 12px rgba(34, 197, 94, 0.25)' }} transition={{ duration: 0.3 }}>Aprovado</motion.button>
+                <motion.button aria-pressed={statusFilter.rejected} onClick={() => { const next = { ...statusFilter, rejected: !statusFilter.rejected }; setStatusFilter(next); applyFiltersToParams({ statusFilter: next }); }} className={`px-2 py-1 rounded-lg border text-xs bg-transparent ${statusFilter.rejected ? 'text-red-700 border-red-500' : 'text-gray-700 border-gray-300'}`} whileHover={{ scale: 1.05, boxShadow: '0 0 12px rgba(239, 68, 68, 0.25)' }} transition={{ duration: 0.3 }}>Rejeitado</motion.button>
+                <motion.button aria-pressed={statusFilter.expired} onClick={() => { const next = { ...statusFilter, expired: !statusFilter.expired }; setStatusFilter(next); applyFiltersToParams({ statusFilter: next }); }} className={`px-2 py-1 rounded-lg border text-xs bg-transparent ${statusFilter.expired ? 'text-gray-700 border-gray-400' : 'text-gray-700 border-gray-300'}`} whileHover={{ scale: 1.05, boxShadow: '0 0 12px rgba(156, 163, 175, 0.25)' }} transition={{ duration: 0.3 }}>Expirado</motion.button>
               </div>
             </div>
           </div>
@@ -350,35 +360,34 @@ const CampaignPixApprovalPage = () => {
               <AnimatePresence>
                 {pagedRows.map((r) => (
                   <motion.div key={r.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="px-2">
-                    <div className="flex items-start justify-between py-3 border-b border-gray-200/40 dark:border-gray-700/40">
+                    <motion.div
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Abrir pedido ${r.order_id}`}
+                      onClick={() => navigate(`/dashboard/pix-approval/${r.campaign_id}/pendente/${r.order_id}`)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(`/dashboard/pix-approval/${r.campaign_id}/pendente/${r.order_id}`); }}
+                      className="flex items-start justify-between py-3 border-b cursor-pointer"
+                      style={{ borderColor: r.status === 'approved' ? '#22C55E' : r.status === 'rejected' ? '#EF4444' : r.status === 'expired' ? '#9CA3AF' : '#F59E0B' }}
+                      whileHover={{ scale: 1.05, boxShadow: r.status === 'approved' ? '0 3px 16px rgba(34, 197, 94, 0.2)' : r.status === 'rejected' ? '0 3px 16px rgba(239, 68, 68, 0.2)' : r.status === 'expired' ? '0 3px 16px rgba(156, 163, 175, 0.2)' : '0 3px 16px rgba(245, 158, 11, 0.2)' }}
+                      transition={{ duration: 0.3 }}
+                    >
                     <div className="flex items-start gap-3">
                         <div>
-                          <button
-                            onClick={() => navigate(`/dashboard/pix-approval/${r.campaign_id}/pendente/${r.order_id}`)}
-                            className="text-base font-semibold text-gray-900 dark:text-white"
-                          >
+                          <div className="text-base font-semibold text-gray-900 dark:text-white">
                             <span className="inline-flex items-center gap-2">
-                              {r.status === 'pending' && (
-                                <span className="rounded-full px-2 py-0.5 text-xs font-semibold bg-yellow-100 text-yellow-800 border border-yellow-200">Pendente</span>
-                              )}
-                              {r.status === 'approved' && (
-                                <span className="rounded-full px-2 py-0.5 text-xs font-semibold bg-green-100 text-green-800 border border-green-200">Aprovado</span>
-                              )}
-                              {r.status === 'rejected' && (
-                                <span className="rounded-full px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-800 border border-red-200">Rejeitado</span>
-                              )}
-                              {r.status === 'expired' && (
-                                <span className="rounded-full px-2 py-0.5 text-xs font-semibold border" style={{ backgroundColor: 'rgba(244, 67, 54, 0.12)', color: '#F44336', borderColor: '#F44336' }}>Expirado</span>
-                              )}
+                              {r.status === 'pending' && (<StatusBadge status="pending" />)}
+                              {r.status === 'approved' && (<StatusBadge status="approved" />)}
+                              {r.status === 'rejected' && (<StatusBadge status="rejected" />)}
+                              {r.status === 'expired' && (<StatusBadge status="expired" />)}
                             </span>
-                          </button>
+                          </div>
                           <div className="text-sm text-gray-700 dark:text-gray-300">{r.customer_name || '—'}</div>
-                          <div className={`text-sm font-semibold ${r.status === 'approved' ? 'text-green-700' : (r.status === 'expired' || r.status === 'rejected') ? 'text-red-700' : 'text-yellow-700'}`}>R$ {Number(r.total_value || 0).toFixed(2)}</div>
+                          <div className={`text-sm font-semibold ${r.status === 'approved' ? 'text-green-700' : (r.status === 'rejected') ? 'text-red-700' : (r.status === 'expired') ? 'text-gray-700' : 'text-yellow-700'}`}>{formatCurrency(r.total_value || 0)}</div>
                           <div className="text-sm text-gray-600">{r.quotas_count || 0} números</div>
                         </div>
                       </div>
                       <div className="text-xs text-gray-500">{formatTimeLabel(r.reserved_at || r.created_at)}</div>
-                    </div>
+                    </motion.div>
                   </motion.div>
                 ))}
               </AnimatePresence>

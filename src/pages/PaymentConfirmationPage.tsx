@@ -635,7 +635,7 @@ const PaymentConfirmationPage = () => {
                   <p className={`text-sm ${themeClasses.textSecondary} mb-2`}>
                     Sorteio pela Loteria Federal!
                   </p>
-                  <span className="inline-block px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
+                  <span className="inline-block px-3 py-1 text-xs font-bold rounded-full border bg-transparent text-red-700 border-red-500">
                     Cancelado
                   </span>
                 </div>
@@ -1089,7 +1089,7 @@ const PaymentConfirmationPage = () => {
                 <p className={`text-sm ${themeClasses.textSecondary} mb-2`}>
                   Concorra a prêmios incríveis!
                 </p>
-                <span className={`inline-block px-3 py-1 ${purchaseConfirmed ? 'bg-emerald-600' : 'bg-green-500'} text-white text-xs font-bold rounded-full`}>
+                <span className={`inline-block px-3 py-1 text-xs font-bold rounded-full border bg-transparent ${purchaseConfirmed ? 'text-emerald-700 border-emerald-500' : 'text-green-700 border-green-500'}`}>
                   {purchaseConfirmed ? 'Compra confirmada' : 'Reservado'}
                 </span>
               </div>

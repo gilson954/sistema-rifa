@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Ticket, Calendar, CheckCircle, Clock, XCircle, AlertCircle, LogOut, Timer, ChevronDown, ChevronUp } from 'lucide-react';
@@ -35,6 +35,16 @@ const MyTicketsPage = () => {
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [campaignTotalTicketsMap, setCampaignTotalTicketsMap] = useState<Record<string, number>>({});
   const ordersPerPage = 5;
+
+  const sortedOrders = useMemo(() => {
+    return orders.slice().sort((a, b) => {
+      const ta = new Date(a.bought_at || a.reserved_at || a.created_at).getTime();
+      const tb = new Date(b.bought_at || b.reserved_at || b.created_at).getTime();
+      return tb - ta;
+    });
+  }, [orders]);
+  const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
+  const paginatedOrders = sortedOrders.slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage);
 
   const campaignContext = location.state as { campaignId?: string; organizerId?: string } | null;
 
@@ -410,11 +420,21 @@ const MyTicketsPage = () => {
     );
   }
 
-  if (!isPhoneAuthenticated) return null;
-
   const themeClasses = getThemeClasses(campaignTheme);
-  const totalPages = Math.ceil(orders.length / ordersPerPage);
-  const paginatedOrders = orders.slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage);
+
+  if (!isPhoneAuthenticated) {
+    return (
+      <div className={`min-h-screen ${themeClasses.background} transition-colors duration-300 flex items-center justify-center`}>
+        <div className={`${themeClasses.cardBg} rounded-2xl border ${themeClasses.border} p-8 text-center max-w-md w-full`}>
+          <h3 className={`text-xl font-bold ${themeClasses.text}`}>Faça login para ver seus pedidos</h3>
+          <p className={`${themeClasses.textSecondary} mt-2`}>Autentique seu telefone para acessar Minhas Cotas.</p>
+          <button onClick={() => navigate('/')} className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-bold">
+            Ir para a página inicial
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen transition-colors duration-300 flex flex-col ${themeClasses.background} overflow-x-hidden`}>
@@ -505,7 +525,7 @@ const MyTicketsPage = () => {
                   };
 
                   const ticketsBadgeInfo = getTicketsBadgeInfo();
-                  const shouldShowTickets = order.status === 'purchased';
+                  const shouldShowTickets = false;
 
                   return (
                     <motion.div 
@@ -530,7 +550,7 @@ const MyTicketsPage = () => {
                             <div className="flex flex-col gap-1 sm:gap-2 mb-2 sm:mb-3">
                               <div className="flex items-center text-xs">
                                 <Calendar className={`h-2.5 sm:h-3 w-2.5 sm:w-3 mr-1 sm:mr-1.5 ${themeClasses.textSecondary}`} />
-                                <span className={themeClasses.textSecondary}>{formatDate(order.reserved_at || order.created_at)}</span>
+                                <span className={themeClasses.textSecondary}>{formatDate(order.bought_at || order.reserved_at || order.created_at)}</span>
                               </div>
                               <div className="flex items-center text-xs">
                                 <motion.div animate={{ scale: [1, 1.2, 1], rotate: [0, 5, -5, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }} className="mr-1 sm:mr-1.5">
@@ -587,6 +607,11 @@ const MyTicketsPage = () => {
                             {order.status === 'reserved' && (
                               <button onClick={() => handlePayment(order)} className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2.5 sm:py-3 rounded-md sm:rounded-lg font-bold text-sm sm:text-base transition-all duration-200 shadow-md`}>
                                 Efetuar Pagamento
+                              </button>
+                            )}
+                            {order.status === 'purchased' && (
+                              <button onClick={() => handlePayment(order)} className={`w-full ${statusInfo.buttonColor} hover:opacity-90 text-white py-2.5 sm:py-3 rounded-md sm:rounded-lg font-bold text-sm sm:text-base transition-all duration-200 shadow-md`}>
+                                Ver Detalhes
                               </button>
                             )}
                             {order.status === 'expired' && (

@@ -275,16 +275,16 @@ export default function PixPendingOrderPage() {
                     <span className="text-gray-600 dark:text-gray-400">Status</span>
                     <span>
                       {order.status === 'approved' && (
-                        <span className="rounded-full px-2 py-0.5 text-xs font-semibold border" style={{ backgroundColor: 'rgba(76, 175, 80, 0.12)', color: '#4CAF50', borderColor: '#4CAF50' }}>Aprovado</span>
+                        <span className="rounded-full px-2 py-0.5 text-xs font-semibold bg-transparent text-green-700 border border-green-500">Aprovado</span>
                       )}
                       {order.status === 'rejected' && (
-                        <span className="rounded-full px-2 py-0.5 text-xs font-semibold border" style={{ backgroundColor: 'rgba(244, 67, 54, 0.12)', color: '#F44336', borderColor: '#F44336' }}>Rejeitado</span>
+                        <span className="rounded-full px-2 py-0.5 text-xs font-semibold bg-transparent text-red-700 border border-red-500">Rejeitado</span>
                       )}
                       {order.status === 'expired' && (
-                        <span className="rounded-full px-2 py-0.5 text-xs font-semibold border" style={{ backgroundColor: 'rgba(245, 158, 11, 0.12)', color: '#F59E0B', borderColor: '#F59E0B' }}>Expirado</span>
+                        <span className="rounded-full px-2 py-0.5 text-xs font-semibold bg-transparent text-red-700 border border-red-500">Expirado</span>
                       )}
                       {order.status === 'pending' && (
-                        <span className="rounded-full px-2 py-0.5 text-xs font-semibold bg-yellow-100 text-yellow-800 border border-yellow-200">Pendente</span>
+                        <span className="rounded-full px-2 py-0.5 text-xs font-semibold bg-transparent text-yellow-700 border border-yellow-500">Pendente</span>
                       )}
                     </span>
                   </div>
