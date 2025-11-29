@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { SuggestionsAPI, Suggestion, CreateSuggestionInput } from '../lib/api/suggestions';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 export const useSuggestions = () => {
   const { user } = useAuth();
@@ -79,10 +79,13 @@ export const useAdminSuggestions = () => {
     setLoading(false);
   }, []);
 
-  const updateSuggestionStatus = async (id: string, status: string) => {
+  const updateSuggestionStatus = async (
+    id: string,
+    status: 'new' | 'in_progress' | 'resolved' | 'rejected'
+  ) => {
     const { data: suggestion, error: apiError } = await SuggestionsAPI.updateSuggestionStatus({
       id,
-      status: status as any
+      status
     });
 
     if (apiError) {

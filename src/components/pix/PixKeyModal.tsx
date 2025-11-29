@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, easeOut } from 'framer-motion';
-import { X, Save, Pencil, Plus, User } from 'lucide-react';
+import { X, Save, User } from 'lucide-react';
 import { formatPixKey, isValidPixKey, PixKeyType } from '../../utils/pixValidation';
 
 type PixKeyModalProps = {

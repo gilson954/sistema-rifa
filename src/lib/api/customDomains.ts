@@ -8,7 +8,7 @@ export interface CustomDomain {
   user_id: string;
   is_verified: boolean;
   ssl_status: 'pending' | 'active' | 'failed';
-  dns_instructions: any;
+  dns_instructions: DNSInstructions;
   created_at: string;
   updated_at: string;
 }
@@ -23,7 +23,15 @@ interface UpdateCustomDomainInput {
   campaign_id?: string;
   is_verified?: boolean;
   ssl_status?: 'pending' | 'active' | 'failed';
-  dns_instructions?: any;
+  dns_instructions?: DNSInstructions;
+}
+
+interface DNSInstructions {
+  type: string;
+  name: string;
+  value: string;
+  instructions: { pt: string; en: string };
+  steps: string[];
 }
 
 export class CustomDomainsAPI {
@@ -33,7 +41,7 @@ export class CustomDomainsAPI {
   static async createCustomDomain(
     data: CreateCustomDomainInput, 
     userId: string
-  ): Promise<{ data: CustomDomain | null; error: any }> {
+  ): Promise<{ data: CustomDomain | null; error: unknown }> {
     try {
       // Normaliza o domínio (remove protocolo, www, etc.)
       const normalizedDomain = this.normalizeDomain(data.domain_name);
@@ -71,7 +79,7 @@ export class CustomDomainsAPI {
   /**
    * Busca domínios personalizados do usuário
    */
-  static async getUserCustomDomains(userId: string): Promise<{ data: CustomDomain[] | null; error: any }> {
+  static async getUserCustomDomains(userId: string): Promise<{ data: CustomDomain[] | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('custom_domains')
@@ -92,7 +100,7 @@ export class CustomDomainsAPI {
   /**
    * Busca um domínio personalizado por nome
    */
-  static async getCustomDomainByName(domainName: string): Promise<{ data: CustomDomain | null; error: any }> {
+  static async getCustomDomainByName(domainName: string): Promise<{ data: CustomDomain | null; error: unknown }> {
     try {
       const normalizedDomain = this.normalizeDomain(domainName);
       
@@ -112,7 +120,7 @@ export class CustomDomainsAPI {
   /**
    * Atualiza um domínio personalizado
    */
-  static async updateCustomDomain(data: UpdateCustomDomainInput): Promise<{ data: CustomDomain | null; error: any }> {
+  static async updateCustomDomain(data: UpdateCustomDomainInput): Promise<{ data: CustomDomain | null; error: unknown }> {
     try {
       const { id, ...updateData } = data;
 
@@ -133,7 +141,7 @@ export class CustomDomainsAPI {
   /**
    * Deleta um domínio personalizado
    */
-  static async deleteCustomDomain(id: string, userId: string): Promise<{ error: any }> {
+  static async deleteCustomDomain(id: string, userId: string): Promise<{ error: unknown }> {
     try {
       const { error } = await supabase
         .from('custom_domains')
@@ -151,7 +159,7 @@ export class CustomDomainsAPI {
   /**
    * Verifica o status DNS de um domínio
    */
-  static async verifyDNS(domainId: string): Promise<{ data: { verified: boolean; ssl_ready: boolean } | null; error: any }> {
+  static async verifyDNS(domainId: string): Promise<{ data: { verified: boolean; ssl_ready: boolean } | null; error: unknown }> {
     try {
       // Esta função faria uma verificação DNS real
       // Por enquanto, simula a verificação
@@ -236,7 +244,7 @@ export class CustomDomainsAPI {
   /**
    * Gera instruções DNS para o usuário
    */
-  private static generateDNSInstructions(domain: string): any {
+  private static generateDNSInstructions(domain: string): DNSInstructions {
     // Em produção, você substituiria 'meuapp.com' pelo seu domínio real
     const targetDomain = 'meuapp.com'; // ou o domínio do seu app no Netlify
     

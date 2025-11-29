@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle, XCircle } from 'lucide-react';
 import PixLogo from '../components/pix/PixLogo';
-import { useAuth } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../hooks/useAuth';
+import { useNotification } from '../hooks/useNotification';
 import { ManualPixAPI } from '../lib/api/manualPix';
 
 type Proof = {

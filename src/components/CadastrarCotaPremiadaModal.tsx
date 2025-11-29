@@ -53,8 +53,9 @@ const CadastrarCotaPremiadaModal: React.FC<CadastrarCotaPremiadaModalProps> = ({
       setNumeroCota('');
       setPremio('');
       setError('');
-    } catch (err: any) {
-      setError(err.message || 'Erro ao cadastrar cota premiada');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao cadastrar cota premiada';
+      setError(message);
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, Mail, User, Search } from 'lucide-react';
 import { formatCurrency } from '../utils/currency';
@@ -42,13 +42,7 @@ const BuyerContactModal: React.FC<BuyerContactModalProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 21;
 
-  useEffect(() => {
-    if (isOpen && ticketData) {
-      loadPurchaseDetails();
-    }
-  }, [isOpen, ticketData]);
-
-  const loadPurchaseDetails = async () => {
+  const loadPurchaseDetails = useCallback(async () => {
     setLoading(true);
     try {
       const { data: tickets, error: ticketsError } = await supabase
@@ -83,7 +77,15 @@ const BuyerContactModal: React.FC<BuyerContactModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignId, ticketData]);
+
+  useEffect(() => {
+    if (isOpen && ticketData) {
+      loadPurchaseDetails();
+    }
+  }, [isOpen, ticketData, loadPurchaseDetails]);
+
+  
 
   const filteredQuotas = purchaseDetails?.quotas.filter(quota =>
     quota.toString().includes(searchQuery)

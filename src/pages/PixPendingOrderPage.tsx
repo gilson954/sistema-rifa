@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, User, Phone, Mail, CreditCard, Calendar, MessageCircle, Eye } from 'lucide-react';
-import { useNotification } from '../context/NotificationContext';
+import { useNotification } from '../hooks/useNotification';
 import { ManualPixAPI } from '../lib/api/manualPix';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -51,12 +51,7 @@ export default function PixPendingOrderPage() {
         showError('Erro ao carregar pedido');
       }
       setOrder((data as OrderDetails) || null);
-      if (data) {
-        const od = data as OrderDetails;
-        
-        
-        
-      }
+
       setLoading(false);
     };
     load();

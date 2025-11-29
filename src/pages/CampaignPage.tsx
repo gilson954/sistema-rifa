@@ -13,9 +13,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../hooks/useTheme';
+import { useNotification } from '../hooks/useNotification';
 import { useCampaignByPublicId, useCampaignByCustomDomain } from '../hooks/useCampaigns';
 import { useTickets } from '../hooks/useTickets';
 import { useCampaignWinners } from '../hooks/useCampaignWinners';

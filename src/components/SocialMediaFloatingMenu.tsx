@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Share2, X } from 'lucide-react';
-import { socialMediaConfig } from './SocialMediaIcons';
+import { socialMediaConfig } from './SocialMediaConfig';
 
 interface SocialMediaFloatingMenuProps {
   socialMediaLinks?: Record<string, string | boolean | null>;
@@ -70,7 +70,7 @@ const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
     platform: string; 
     url: string; 
     label: string; 
-    icon: any; 
+    icon: React.ComponentType<{ size?: number; className?: string }>; 
     color: string 
   }> = [];
 

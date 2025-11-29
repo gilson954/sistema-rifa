@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   MessageSquare,
   Search,
-  Filter,
   Eye,
   CheckCircle,
   Clock,
   XCircle,
-  AlertTriangle,
   Bug,
   Lightbulb,
   Zap,
@@ -22,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SuggestionsAPI, Suggestion } from '../lib/api/suggestions';
-import { useNotification } from '../context/NotificationContext';
+import { useNotification } from '../hooks/useNotification';
 import ConfirmModal from '../components/ConfirmModal';
 
 const AdminSuggestionsPage = () => {
@@ -46,7 +44,7 @@ const AdminSuggestionsPage = () => {
   const [deleting, setDeleting] = useState(false);
 
   // Fetch suggestions
-  const fetchSuggestions = async () => {
+  const fetchSuggestions = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await SuggestionsAPI.getAllSuggestions();
@@ -63,11 +61,11 @@ const AdminSuggestionsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
 
   useEffect(() => {
     fetchSuggestions();
-  }, []);
+  }, [fetchSuggestions]);
 
   // Filter suggestions
   useEffect(() => {
@@ -110,12 +108,15 @@ const AdminSuggestionsPage = () => {
     setShowDetailsModal(true);
   };
 
-  const handleUpdateStatus = async (suggestionId: string, newStatus: string) => {
+  const handleUpdateStatus = async (
+    suggestionId: string,
+    newStatus: 'new' | 'in_progress' | 'resolved' | 'rejected'
+  ) => {
     setUpdating(true);
     try {
-      const { data, error } = await SuggestionsAPI.updateSuggestionStatus({
+      const { error } = await SuggestionsAPI.updateSuggestionStatus({
         id: suggestionId,
-        status: newStatus as any
+        status: newStatus
       });
 
       if (error) {
@@ -124,17 +125,18 @@ const AdminSuggestionsPage = () => {
 
       // Update local state
       setSuggestions(prev => 
-        prev.map(s => s.id === suggestionId ? { ...s, status: newStatus as any } : s)
+        prev.map(s => s.id === suggestionId ? { ...s, status: newStatus } : s)
       );
 
       if (selectedSuggestion && selectedSuggestion.id === suggestionId) {
-        setSelectedSuggestion(prev => prev ? { ...prev, status: newStatus as any } : null);
+        setSelectedSuggestion(prev => prev ? { ...prev, status: newStatus } : null);
       }
 
       showSuccess('Status atualizado com sucesso!');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating suggestion status:', error);
-      showError(error?.message || 'Erro ao atualizar status');
+      const message = error instanceof Error ? error.message : 'Erro ao atualizar status';
+      showError(message);
     } finally {
       setUpdating(false);
     }
@@ -165,9 +167,10 @@ const AdminSuggestionsPage = () => {
       }
 
       showSuccess('Sugestão excluída com sucesso!');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting suggestion:', error);
-      showError(error?.message || 'Erro ao excluir sugestão');
+      const message = error instanceof Error ? error.message : 'Erro ao excluir sugestão';
+      showError(message);
     } finally {
       setDeleting(false);
       setShowDeleteConfirm(false);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sun, Moon, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../hooks/useTheme';
 
 interface AuthHeaderProps {
   backTo?: 'home' | 'login';

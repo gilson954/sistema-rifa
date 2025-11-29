@@ -58,7 +58,7 @@ const step3Schema = z.object({
 });
 
 // Schema completo do formulário (para validação final)
-const fullFormSchema = z.object({
+const _fullFormSchema = z.object({
   step1: step1Schema,
   step2: step2Schema,
   step3: step3Schema,
@@ -68,7 +68,7 @@ const fullFormSchema = z.object({
 export type Step1Data = z.infer<typeof step1Schema>;
 export type Step2Data = z.infer<typeof step2Schema>;
 export type Step3Data = z.infer<typeof step3Schema>;
-export type FullFormData = z.infer<typeof fullFormSchema>;
+export type FullFormData = z.infer<typeof _fullFormSchema>;
 
 // Mapeamento de schemas por nome de etapa
 export const schemas = {

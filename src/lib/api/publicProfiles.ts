@@ -7,8 +7,8 @@ export interface PublicProfile {
   primary_color: string | null;
   theme: string | null;
   logo_url: string | null;
-  social_media_links: any | null;
-  payment_integrations_config: any | null;
+  social_media_links: Record<string, unknown> | null;
+  payment_integrations_config: Record<string, unknown> | null;
   color_mode: string | null;
   gradient_classes: string | null;
   custom_gradient_colors: string | null;
@@ -24,7 +24,7 @@ export class PublicProfilesAPI {
    * Get public profile data for campaign customization
    * Uses the public_profiles_view which only exposes safe columns
    */
-  static async getPublicProfile(userId: string): Promise<{ data: PublicProfile | null; error: any }> {
+  static async getPublicProfile(userId: string): Promise<{ data: PublicProfile | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('public_profiles_view')
@@ -41,7 +41,7 @@ export class PublicProfilesAPI {
   /**
    * Get multiple public profiles by user IDs
    */
-  static async getPublicProfiles(userIds: string[]): Promise<{ data: PublicProfile[] | null; error: any }> {
+  static async getPublicProfiles(userIds: string[]): Promise<{ data: PublicProfile[] | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('public_profiles_view')
@@ -58,7 +58,7 @@ export class PublicProfilesAPI {
    * Get organizer logo and name for dynamic favicon and page title
    * This function is used by App.tsx to set the favicon and title dynamically
    */
-  static async getOrganizerLogo(userId: string): Promise<{ data: OrganizerLogoData | null; error: any }> {
+  static async getOrganizerLogo(userId: string): Promise<{ data: OrganizerLogoData | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('public_profiles_view')

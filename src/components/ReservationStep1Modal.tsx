@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, CheckCircle, ShoppingCart, ArrowRight } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { checkCustomerByPhone, CustomerData as ExistingCustomer } from '../utils/customerCheck';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import LoadingOverlay from './LoadingOverlay';
 
 interface Country {

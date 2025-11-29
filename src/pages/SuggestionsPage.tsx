@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Send, Lightbulb, Bug, Zap, MessageSquare, AlertTriangle, CheckCircle, User, Mail, FileText, Upload, X, File } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion'; // 1. Importação do Framer Motion
-import { useAuth } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../hooks/useAuth';
+import { useNotification } from '../hooks/useNotification';
 import { SuggestionsAPI, CreateSuggestionInput } from '../lib/api/suggestions';
 import { supabase } from '../lib/supabase';
 

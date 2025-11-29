@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Search, X, Phone } from 'lucide-react';
+import { ChevronDown, Search, X } from 'lucide-react';
 import FlagIcon from './FlagIcon';
 
 interface Country {

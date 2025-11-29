@@ -1,39 +1,17 @@
 // src/components/DashboardHeader.tsx
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Bell, Sun, Moon, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
+import { useTheme } from '../hooks/useTheme';
+import { useAuth } from '../hooks/useAuth';
+ 
 
 const DashboardHeader: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [profile, setProfile] = useState<{ name: string } | null>(null);
-
-  useEffect(() => {
-    if (user) {
-      const fetchProfile = async () => {
-        try {
-          const { data } = await supabase
-            .from('profiles')
-            .select('name')
-            .eq('id', user.id);
-
-          if (data && data.length > 0) {
-            setProfile(data[0]);
-          }
-        } catch (err) {
-          // fail silently — não é crítico para o título
-          console.error('Erro ao buscar profile no header', err);
-        }
-      };
-
-      fetchProfile();
-    }
-  }, [user]);
+  
 
   const handleSignOut = async () => {
     await signOut();

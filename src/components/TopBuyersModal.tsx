@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trophy, TrendingUp, Ticket, DollarSign, Medal, Crown, Award, User } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -32,13 +32,7 @@ const TopBuyersModal: React.FC<TopBuyersModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isOpen && campaignId) {
-      fetchRanking();
-    }
-  }, [isOpen, campaignId]);
-
-  const fetchRanking = async () => {
+  const fetchRanking = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -57,7 +51,15 @@ const TopBuyersModal: React.FC<TopBuyersModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignId]);
+
+  useEffect(() => {
+    if (isOpen && campaignId) {
+      fetchRanking();
+    }
+  }, [isOpen, campaignId, fetchRanking]);
+
+  
 
   const getRankIcon = (position: number) => {
     switch (position) {

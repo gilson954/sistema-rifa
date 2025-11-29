@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, Plus, ArrowRight, X, Loader2, Trash2, ExternalLink, CheckCircle, AlertCircle, Clock, Sparkles, Palette, Eye, Ticket, Star, HelpCircle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../hooks/useAuth';
+import { useNotification } from '../hooks/useNotification';
 import { supabase } from '../lib/supabase';
 import { CustomDomainsAPI, CustomDomain } from '../lib/api/customDomains';
 import ConfirmModal from '../components/ConfirmModal';

@@ -9,7 +9,7 @@ import { formatCurrency } from '../utils/currency';
 import CampaignFooter from '../components/CampaignFooter';
 import PhoneLoginModal from '../components/PhoneLoginModal';
 import SocialMediaFloatingMenu from '../components/SocialMediaFloatingMenu';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 interface OrganizerProfile {
   id: string;

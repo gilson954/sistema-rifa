@@ -16,7 +16,7 @@ export const FavoritesAPI = {
   /**
    * Adiciona uma campanha aos favoritos
    */
-  async addFavorite(customerPhone: string, campaignId: string): Promise<{ data: FavoriteCampaign | null; error: any }> {
+  async addFavorite(customerPhone: string, campaignId: string): Promise<{ data: FavoriteCampaign | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('favorite_campaigns')
@@ -45,7 +45,7 @@ export const FavoritesAPI = {
   /**
    * Remove uma campanha dos favoritos
    */
-  async removeFavorite(customerPhone: string, campaignId: string): Promise<{ error: any }> {
+  async removeFavorite(customerPhone: string, campaignId: string): Promise<{ error: unknown }> {
     try {
       const { error } = await supabase
         .from('favorite_campaigns')
@@ -91,7 +91,7 @@ export const FavoritesAPI = {
   /**
    * Busca todas as campanhas favoritas de um usuário
    */
-  async getFavorites(customerPhone: string): Promise<{ data: Campaign[] | null; error: any }> {
+  async getFavorites(customerPhone: string): Promise<{ data: Campaign[] | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('favorite_campaigns')
@@ -133,9 +133,10 @@ export const FavoritesAPI = {
       }
 
       // Extrair apenas os dados da campanha
-      const campaigns = data
-        ?.map((item: any) => item.campaigns)
-        .filter((campaign: any) => campaign !== null) as Campaign[];
+      type FavoriteRow = { campaigns: Campaign | null };
+      const campaigns = (data as FavoriteRow[] | null)
+        ?.map((item) => item.campaigns)
+        .filter((campaign): campaign is Campaign => campaign !== null) as Campaign[];
 
       return { data: campaigns || [], error: null };
     } catch (error) {
@@ -147,7 +148,7 @@ export const FavoritesAPI = {
   /**
    * Toggle favorite status (adiciona se não existir, remove se existir)
    */
-  async toggleFavorite(customerPhone: string, campaignId: string): Promise<{ isFavorite: boolean; error: any }> {
+  async toggleFavorite(customerPhone: string, campaignId: string): Promise<{ isFavorite: boolean; error: unknown }> {
     try {
       const isFav = await this.isFavorite(customerPhone, campaignId);
 

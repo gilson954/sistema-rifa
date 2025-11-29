@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, ArrowRight } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { TicketsAPI } from '../lib/api/tickets';
 
 interface Country {

@@ -5,7 +5,7 @@ import { translateAuthError } from '../utils/errorTranslators'; // ✅ Importe a
 interface CleanupResult {
   deleted_count: number;
   error_count: number;
-  details: any[];
+  details: unknown[];
 }
 
 interface CleanupLog {
@@ -15,7 +15,7 @@ interface CleanupLog {
   campaign_title?: string;
   status: 'success' | 'error' | 'warning';
   message?: string;
-  details?: any;
+  details?: unknown;
   created_at: string;
 }
 

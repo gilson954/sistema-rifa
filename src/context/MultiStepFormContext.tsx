@@ -6,7 +6,7 @@ interface MultiStepFormContextType {
   formData: FullFormData;
   errors: Record<string, string>;
   isStepValid: Record<string, boolean>;
-  updateStepData: (stepName: keyof typeof schemas, data: any) => void;
+  updateStepData: (stepName: keyof typeof schemas, data: Record<string, unknown>) => void;
   validateStep: (stepName: keyof typeof schemas) => boolean;
   validateAllSteps: () => boolean;
   resetForm: () => void;
@@ -30,10 +30,10 @@ export const MultiStepFormProvider: React.FC<MultiStepFormProviderProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isStepValid, setIsStepValid] = useState<Record<string, boolean>>({});
 
-  const updateStepData = useCallback((stepName: keyof typeof schemas, data: any) => {
+  const updateStepData = useCallback((stepName: keyof typeof schemas, data: Record<string, unknown>) => {
     setFormData(prev => ({
       ...prev,
-      [stepName]: { ...prev[stepName], ...data }
+      [stepName]: { ...prev[stepName] as Record<string, unknown>, ...data }
     }));
     
     // Limpa erros dos campos que foram atualizados

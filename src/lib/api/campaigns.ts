@@ -4,14 +4,14 @@ import { CreateCampaignInput, UpdateCampaignInput, createCampaignSchema, updateC
 import { Campaign, CampaignStatus } from '../../types/campaign';
 import { generateUniqueSlugAndPublicId } from '../../utils/slugGenerator';
 import { ZodError } from 'zod';
-import { STRIPE_PRODUCTS, getPublicationProductByRevenue } from '../../stripe-config';
+import { getPublicationProductByRevenue, type StripeProduct } from '../../stripe-config';
 import { translateAuthError } from '../../utils/errorTranslators'; // ✅ Importado
 
 export class CampaignAPI {
   /**
    * Cria uma nova campanha
    */
-  static async createCampaign(data: CreateCampaignInput, userId: string): Promise<{ data: Campaign | null; error: any }> {
+  static async createCampaign(data: CreateCampaignInput, userId: string): Promise<{ data: Campaign | null; error: unknown }> {
     try {
       try {
         createCampaignSchema.parse(data);
@@ -64,7 +64,7 @@ export class CampaignAPI {
   /**
    * Atualiza uma campanha existente
    */
-  static async updateCampaign(data: UpdateCampaignInput): Promise<{ data: Campaign | null; error: any }> {
+  static async updateCampaign(data: UpdateCampaignInput): Promise<{ data: Campaign | null; error: unknown }> {
     try {
       try {
         console.log('🔧 [API DEBUG] Data being validated:', JSON.stringify(data, null, 2));
@@ -125,7 +125,7 @@ export class CampaignAPI {
   /**
    * Busca campanhas do usuário
    */
-  static async getUserCampaigns(userId: string, status?: CampaignStatus): Promise<{ data: Campaign[] | null; error: any }> {
+  static async getUserCampaigns(userId: string, status?: CampaignStatus): Promise<{ data: Campaign[] | null; error: unknown }> {
     try {
       const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
       let query = supabase
@@ -148,7 +148,7 @@ export class CampaignAPI {
   /**
    * Busca uma campanha por ID
    */
-  static async getCampaignById(id: string): Promise<{ data: Campaign | null; error: any }> {
+  static async getCampaignById(id: string): Promise<{ data: Campaign | null; error: unknown }> {
     try {
       console.log('Fetching campaign by ID:', id);
       const { data, error } = await supabase
@@ -175,7 +175,7 @@ export class CampaignAPI {
   /**
    * Busca uma campanha pelo public_id
    */
-  static async getCampaignByPublicId(publicId: string): Promise<{ data: Campaign | null; error: any }> {
+  static async getCampaignByPublicId(publicId: string): Promise<{ data: Campaign | null; error: unknown }> {
     try {
       console.log('Fetching campaign by public_id:', publicId);
       const { data, error } = await supabase
@@ -202,7 +202,7 @@ export class CampaignAPI {
   /**
    * Busca uma campanha por domínio personalizado
    */
-  static async getCampaignByCustomDomain(domain: string): Promise<{ data: Campaign | null; error: any }> {
+  static async getCampaignByCustomDomain(domain: string): Promise<{ data: Campaign | null; error: unknown }> {
     try {
       const { data: customDomainData, error: domainError } = await supabase
         .from('custom_domains')
@@ -239,7 +239,7 @@ export class CampaignAPI {
   /**
    * Deleta uma campanha
    */
-  static async deleteCampaign(id: string, userId: string): Promise<{ error: any }> {
+  static async deleteCampaign(id: string, userId: string): Promise<{ error: unknown }> {
     try {
       const { error } = await supabase
         .from('campaigns')
@@ -257,7 +257,7 @@ export class CampaignAPI {
   /**
    * Publica uma campanha
    */
-  static async publishCampaign(id: string, userId: string): Promise<{ data: Campaign | null; error: any }> {
+  static async publishCampaign(id: string, userId: string): Promise<{ data: Campaign | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('campaigns')
@@ -280,7 +280,7 @@ export class CampaignAPI {
   /**
    * Busca campanhas ativas
    */
-  static async getActiveCampaigns(limit = 10): Promise<{ data: Campaign[] | null; error: any }> {
+  static async getActiveCampaigns(limit = 10): Promise<{ data: Campaign[] | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('campaigns')
@@ -307,7 +307,7 @@ export class CampaignAPI {
    * Busca a campanha em destaque de um organizador
    * Se nenhuma campanha foi manualmente destacada, retorna a mais recente ativa/concluída e paga
    */
-  static async getFeaturedCampaign(userId: string): Promise<{ data: Campaign | null; error: any }> {
+  static async getFeaturedCampaign(userId: string): Promise<{ data: Campaign | null; error: unknown }> {
     try {
       const { data: manuallyFeatured, error: featuredError } = await supabase
         .from('campaigns')
@@ -351,7 +351,7 @@ export class CampaignAPI {
   /**
    * Busca todas as campanhas ativas e concluídas de um organizador (exceto a em destaque)
    */
-  static async getOrganizerPublicCampaigns(userId: string, excludeFeatured = true): Promise<{ data: Campaign[] | null; error: any }> {
+  static async getOrganizerPublicCampaigns(userId: string, excludeFeatured = true): Promise<{ data: Campaign[] | null; error: unknown }> {
     try {
       let query = supabase
         .from('campaigns')
@@ -376,7 +376,7 @@ export class CampaignAPI {
   /**
    * Alterna o status de destaque de uma campanha
    */
-  static async toggleFeaturedCampaign(campaignId: string, userId: string, isFeatured: boolean): Promise<{ data: Campaign | null; error: any }> {
+  static async toggleFeaturedCampaign(campaignId: string, userId: string, isFeatured: boolean): Promise<{ data: Campaign | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('campaigns')

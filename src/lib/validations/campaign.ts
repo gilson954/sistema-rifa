@@ -179,7 +179,7 @@ export const updateCampaignSchema = createCampaignSchema.partial().omit({
 });
 
 // Schema para validação do formulário (frontend)
-const campaignFormSchema = z.object({
+const _campaignFormSchema = z.object({
   title: z
     .string()
     .min(3, 'O título deve ter pelo menos 3 caracteres')
@@ -247,4 +247,3 @@ const campaignFormSchema = z.object({
 
 export type CreateCampaignInput = z.infer<typeof createCampaignSchema>;
 export type UpdateCampaignInput = z.infer<typeof updateCampaignSchema>;
-type CampaignFormInput = z.infer<typeof campaignFormSchema>;

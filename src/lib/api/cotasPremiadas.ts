@@ -10,7 +10,7 @@ export class CotasPremiadasAPI {
   static async getCotasPremiadasByCampaign(
     campaignId: string,
     statusFilter?: CotaPremiadaStatus
-  ): Promise<{ data: CotaPremiada[] | null; error: any }> {
+  ): Promise<{ data: CotaPremiada[] | null; error: unknown }> {
     try {
       let query = supabase
         .from('cotas_premiadas')
@@ -38,7 +38,7 @@ export class CotasPremiadasAPI {
 
   static async createCotaPremiada(
     data: CreateCotaPremiadaData
-  ): Promise<{ data: CotaPremiada | null; error: any }> {
+  ): Promise<{ data: CotaPremiada | null; error: unknown }> {
     try {
       const isDuplicate = await this.checkDuplicate(
         data.campaign_id,
@@ -89,7 +89,7 @@ export class CotasPremiadasAPI {
 
   static async updateCotaPremiada(
     updates: UpdateCotaPremiadaData
-  ): Promise<{ data: CotaPremiada | null; error: any }> {
+  ): Promise<{ data: CotaPremiada | null; error: unknown }> {
     try {
       const { id, ...updateData } = updates;
 
@@ -115,7 +115,7 @@ export class CotasPremiadasAPI {
   static async deleteCotaPremiada(
     id: string,
     campaignId: string
-  ): Promise<{ success: boolean; error: any }> {
+  ): Promise<{ success: boolean; error: unknown }> {
     try {
       const { error } = await supabase
         .from('cotas_premiadas')
@@ -138,7 +138,7 @@ export class CotasPremiadasAPI {
   static async toggleVisibilidade(
     campaignId: string,
     visible: boolean
-  ): Promise<{ success: boolean; error: any }> {
+  ): Promise<{ success: boolean; error: unknown }> {
     try {
       const { error } = await supabase
         .from('campaigns')
@@ -239,7 +239,7 @@ export class CotasPremiadasAPI {
 
   static subscribeToCotasPremiadas(
     campaignId: string,
-    callback: (payload: any) => void
+    callback: (payload: unknown) => void
   ) {
     const channel = supabase
       .channel(`cotas_premiadas_${campaignId}`)

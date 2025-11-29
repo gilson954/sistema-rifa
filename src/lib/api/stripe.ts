@@ -1,6 +1,6 @@
 // src/lib/api/stripe.ts
 import { supabase } from '../supabase';
-import { STRIPE_PRODUCTS, getProductByPriceId } from '../../stripe-config';
+import { getProductByPriceId } from '../../stripe-config';
 import { translateAuthError } from '../../utils/errorTranslators'; // ✅ Importado
 
 export interface StripeCheckoutRequest {
@@ -49,7 +49,7 @@ export interface StripeOrder {
   amount_total: number;
   currency: string;
   payment_status: string;
-  metadata: any;
+  metadata: unknown;
   created_at: string;
   updated_at: string;
 }
@@ -60,7 +60,7 @@ export class StripeAPI {
    */
   static async createCheckoutSession(
     request: StripeCheckoutRequest
-  ): Promise<{ data: StripeCheckoutResponse | null; error: any }> {
+  ): Promise<{ data: StripeCheckoutResponse | null; error: unknown }> {
     try {
       const product = getProductByPriceId(request.priceId);
       if (!product) {
@@ -110,7 +110,7 @@ export class StripeAPI {
   /**
    * Get user's Stripe customer record
    */
-  static async getStripeCustomer(userId: string): Promise<{ data: StripeCustomer | null; error: any }> {
+  static async getStripeCustomer(userId: string): Promise<{ data: StripeCustomer | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('stripe_customers')
@@ -129,7 +129,7 @@ export class StripeAPI {
   /**
    * Get user's active subscriptions
    */
-  static async getUserSubscriptions(userId: string): Promise<{ data: StripeSubscription[] | null; error: any }> {
+  static async getUserSubscriptions(userId: string): Promise<{ data: StripeSubscription[] | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('stripe_subscriptions')
@@ -149,7 +149,7 @@ export class StripeAPI {
   /**
    * Get user's orders
    */
-  static async getUserOrders(userId: string): Promise<{ data: StripeOrder[] | null; error: any }> {
+  static async getUserOrders(userId: string): Promise<{ data: StripeOrder[] | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('stripe_orders')
@@ -168,7 +168,7 @@ export class StripeAPI {
   /**
    * Get order by session ID
    */
-  static async getOrderBySessionId(sessionId: string): Promise<{ data: StripeOrder | null; error: any }> {
+  static async getOrderBySessionId(sessionId: string): Promise<{ data: StripeOrder | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('stripe_orders')

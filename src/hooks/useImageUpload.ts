@@ -127,7 +127,7 @@ export const useImageUpload = (): UseImageUploadReturn => {
         const filePath = `${userId}/${fileName}`;
 
         // Upload to Supabase Storage
-        const { data, error } = await supabase.storage
+        const { error } = await supabase.storage
           .from('prize-images')
           .upload(filePath, image.file, {
             cacheControl: '3600',

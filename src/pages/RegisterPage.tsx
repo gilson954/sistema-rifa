@@ -2,7 +2,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 import AuthHeader from '../components/AuthHeader'
 import { translateAuthError } from '../utils/errorTranslators'
 import { motion } from 'framer-motion'

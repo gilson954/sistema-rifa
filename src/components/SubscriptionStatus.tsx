@@ -12,7 +12,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   className = '', 
   showDetails = true 
 }) => {
-  const { subscriptions, loading, getActiveSubscription, getSubscriptionProduct } = useStripe();
+  const { loading, getActiveSubscription, getSubscriptionProduct } = useStripe();
 
   if (loading) {
     return (

@@ -28,7 +28,7 @@ export interface PaginatedTicketsResponse {
   page: number;
   pageSize: number;
   totalPages: number;
-  error: any;
+  error: unknown;
   maxQuotaNumber?: number | null;
 }
 
@@ -81,15 +81,15 @@ const RESERVATION_BATCH_SIZE = 500;
 /**
  * Função helper para limpar e garantir que o array contenha apenas números inteiros
  */
-const cleanQuotaNumbers = (quotaNumbers: any[]): number[] => {
+const cleanQuotaNumbers = (quotaNumbers: Array<number | string | { quota_number: number }>): number[] => {
   return quotaNumbers
     .map(item => {
       // Se o item é um objeto com propriedade quota_number, extraia o valor
       if (typeof item === 'object' && item !== null && 'quota_number' in item) {
-        return parseInt(item.quota_number, 10);
+        return parseInt(String(item.quota_number), 10);
       }
       // Caso contrário, tente converter diretamente para número inteiro
-      return parseInt(item, 10);
+      return parseInt(String(item), 10);
     })
     .filter(num => !isNaN(num)); // Filtra valores inválidos (NaN)
 };
@@ -284,7 +284,7 @@ export class TicketsAPI {
   /**
    * Busca todos os tickets de uma campanha específica (dados completos)
    */
-  static async getCampaignTickets(campaignId: string): Promise<{ data: Ticket[] | null; error: any }> {
+  static async getCampaignTickets(campaignId: string): Promise<{ data: Ticket[] | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('tickets')
@@ -313,7 +313,7 @@ export class TicketsAPI {
     customerEmail: string,
     customerPhone: string,
     orderId?: string
-  ): Promise<{ data: ReservationResult[] | null; error: any }> {
+  ): Promise<{ data: ReservationResult[] | null; error: unknown }> {
     try {
       const cleanedQuotaNumbers = cleanQuotaNumbers(quotaNumbers);
 
@@ -401,7 +401,7 @@ export class TicketsAPI {
     campaignId: string,
     quotaNumbers: number[],
     userId: string
-  ): Promise<{ data: ReservationResult[] | null; error: any }> {
+  ): Promise<{ data: ReservationResult[] | null; error: unknown }> {
     try {
       const cleanedQuotaNumbers = cleanQuotaNumbers(quotaNumbers);
 
@@ -428,7 +428,7 @@ export class TicketsAPI {
   /**
    * Libera reservas expiradas (função administrativa)
    */
-  static async releaseExpiredReservations(): Promise<{ data: any[] | null; error: any }> {
+  static async releaseExpiredReservations(): Promise<{ data: { campaign_id: string; quota_number: number; old_status: string; new_status: string; message: string }[] | null; error: unknown }> {
     try {
       const { data, error } = await supabase.rpc('release_expired_reservations');
       return { data, error };
@@ -444,7 +444,7 @@ export class TicketsAPI {
   static async getUserTicketsInCampaign(
     campaignId: string,
     userId: string
-  ): Promise<{ data: Ticket[] | null; error: any }> {
+  ): Promise<{ data: Ticket[] | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('tickets')
@@ -474,7 +474,7 @@ export class TicketsAPI {
   static async getTicketsByPhoneNumber(
     phoneNumber: string,
     retryOnEmpty: boolean = true
-  ): Promise<{ data: CustomerTicket[] | null; error: any }> {
+  ): Promise<{ data: CustomerTicket[] | null; error: unknown }> {
     try {
       console.log(`🔵 TicketsAPI.getTicketsByPhoneNumber - Searching with phone:`, phoneNumber);
 
@@ -530,19 +530,35 @@ export class TicketsAPI {
           console.log('This indicates an issue with the get_tickets_by_phone function.');
 
           // Transformar os dados da query direta para o formato esperado
-          const transformedData: CustomerTicket[] = directData.map((ticket: any) => ({
-            ticket_id: ticket.id,
-            campaign_id: ticket.campaign_id,
-            campaign_title: ticket.campaigns?.title || '',
-            campaign_public_id: ticket.campaigns?.public_id || null,
-            prize_image_urls: ticket.campaigns?.prize_image_urls || null,
-            quota_number: ticket.quota_number,
-            status: ticket.status,
-            bought_at: ticket.bought_at,
-            customer_name: ticket.customer_name,
-            customer_email: ticket.customer_email,
-            customer_phone: ticket.customer_phone
-          }));
+        interface DirectTicketQueryRow {
+          id: string;
+          campaign_id: string;
+          quota_number: number;
+          status: string;
+          bought_at: string | null;
+          reserved_at: string | null;
+          customer_name: string | null;
+          customer_email: string | null;
+          customer_phone: string | null;
+          campaigns?: {
+            title?: string;
+            public_id?: string | null;
+            prize_image_urls?: string[] | null;
+          } | null;
+        }
+        const transformedData: CustomerTicket[] = (directData as DirectTicketQueryRow[]).map((ticket) => ({
+          ticket_id: ticket.id,
+          campaign_id: ticket.campaign_id,
+          campaign_title: ticket.campaigns?.title || '',
+          campaign_public_id: ticket.campaigns?.public_id || null,
+          prize_image_urls: ticket.campaigns?.prize_image_urls || null,
+          quota_number: ticket.quota_number,
+          status: ticket.status,
+          bought_at: ticket.bought_at,
+          customer_name: ticket.customer_name,
+          customer_email: ticket.customer_email,
+          customer_phone: ticket.customer_phone
+        }));
 
           return { data: transformedData, error: null };
         }
@@ -585,7 +601,7 @@ export class TicketsAPI {
    *
    * @param phoneNumber - Número de telefone (qualquer formato)
    */
-  static async getOrdersByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerOrder[] | null; error: any }> {
+  static async getOrdersByPhoneNumber(phoneNumber: string): Promise<{ data: CustomerOrder[] | null; error: unknown }> {
     try {
       console.log(`🔵 TicketsAPI.getOrdersByPhoneNumber - Searching with phone:`, phoneNumber);
 

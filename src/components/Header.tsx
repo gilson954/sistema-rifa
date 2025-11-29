@@ -2,8 +2,8 @@
 import React from 'react';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../hooks/useTheme';
+import { useAuth } from '../hooks/useAuth';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Ticket, Calendar, CheckCircle, Clock, XCircle, AlertCircle, LogOut, Timer, ChevronDown, ChevronUp } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import CampaignFooter from '../components/CampaignFooter';
 import SocialMediaFloatingMenu from '../components/SocialMediaFloatingMenu';
 import { TicketsAPI, CustomerOrder } from '../lib/api/tickets';
@@ -42,24 +42,24 @@ const MyTicketsPage = () => {
       const tb = new Date(b.bought_at || b.reserved_at || b.created_at).getTime();
       return tb - ta;
     });
-  }, [orders, formatQuotaNumber]);
+  }, [orders]);
   const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
   const paginatedOrders = sortedOrders.slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage);
 
   const campaignContext = location.state as { campaignId?: string; organizerId?: string } | null;
 
-  const getQuotaNumberPadding = (campaignId: string): number => {
+  const getQuotaNumberPadding = useCallback((campaignId: string): number => {
     const totalTickets = campaignTotalTicketsMap[campaignId];
     if (!totalTickets || totalTickets === 0) return 4;
     const maxDisplayNumber = totalTickets - 1;
     return String(maxDisplayNumber).length;
-  };
+  }, [campaignTotalTicketsMap]);
 
-  const formatQuotaNumber = (numero: number, campaignId: string): string => {
+  const formatQuotaNumber = useCallback((numero: number, campaignId: string): string => {
     const displayNumber = numero - 1;
     const padding = Math.max(2, getQuotaNumberPadding(campaignId));
     return displayNumber.toString().padStart(padding, '0');
-  };
+  }, [getQuotaNumberPadding]);
 
   const loadUserOrders = useCallback(async (phone: string) => {
     setLoading(true);
@@ -204,7 +204,7 @@ const MyTicketsPage = () => {
       const okDigits = formatted.every(s => s.length >= 2);
       console.assert(okDigits);
     });
-  }, [orders]);
+  }, [orders, formatQuotaNumber]);
 
   useEffect(() => {
     const pendingOrders = orders.filter(order => order.status === 'reserved' && order.reservation_expires_at);

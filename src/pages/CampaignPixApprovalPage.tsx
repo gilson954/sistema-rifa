@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StatusBadge } from '../components/StatusBadge';
-import { useNotification } from '../context/NotificationContext';
+import { useNotification } from '../hooks/useNotification';
 import { ManualPixAPI } from '../lib/api/manualPix';
 import { CampaignAPI } from '../lib/api/campaigns';
 import { supabase } from '../lib/supabase';

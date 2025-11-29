@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Mail, Shield, CheckCircle, Clock, AlertTriangle, ShoppingCart, ChevronDown, ChevronUp } from 'lucide-react';
 import CountryPhoneSelect from './CountryPhoneSelect';
 import { formatReservationTime } from '../utils/timeFormatters';
-import { useNotification } from '../context/NotificationContext';
-import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../hooks/useNotification';
+import { useAuth } from '../hooks/useAuth';
 import { CustomerData as ExistingCustomer } from '../utils/customerCheck'; // Import ExistingCustomer type
 import LoadingOverlay from './LoadingOverlay';
 

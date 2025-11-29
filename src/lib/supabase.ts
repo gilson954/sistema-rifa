@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import type { Promotion, Prize } from '../types/promotion'
 
 const rawUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const rawKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
@@ -40,8 +41,8 @@ export type Database = {
           campaign_model: string | null
           expires_at: string | null
           prize_image_urls: string[] | null
-          promotions: any[] | null
-          prizes: any | null
+          promotions: Promotion[] | null
+          prizes: Prize[] | null
           show_percentage: boolean
           public_id: string | null
           reservation_timeout_minutes: number | null
@@ -76,8 +77,8 @@ export type Database = {
           campaign_model?: string | null
           expires_at?: string | null
           prize_image_urls?: string[] | null
-          promotions?: any[] | null
-          prizes?: any | null
+          promotions?: Promotion[] | null
+          prizes?: Prize[] | null
           show_percentage?: boolean
           public_id?: string | null
           reservation_timeout_minutes?: number | null
@@ -111,8 +112,8 @@ export type Database = {
           campaign_model?: string | null
           expires_at?: string | null
           prize_image_urls?: string[] | null
-          promotions?: any[] | null
-          prizes?: any | null
+          promotions?: Promotion[] | null
+          prizes?: Prize[] | null
           show_percentage?: boolean
           public_id?: string | null
           reservation_timeout_minutes?: number | null
@@ -167,8 +168,8 @@ export type Database = {
           primary_color: string | null
           theme: 'light' | 'dark' | 'escuro-cinza' | null
           logo_url: string | null
-          social_media_links: any | null
-          payment_integrations_config: any | null
+          social_media_links: Record<string, string> | null
+          payment_integrations_config: unknown | null
           cpf: string | null
           phone_number: string | null
           color_mode: string | null
@@ -186,8 +187,8 @@ export type Database = {
           primary_color?: string | null
           theme?: 'light' | 'dark' | 'escuro-cinza' | null
           logo_url?: string | null
-          social_media_links?: any | null
-          payment_integrations_config?: any | null
+          social_media_links?: Record<string, string> | null
+          payment_integrations_config?: unknown | null
           cpf?: string | null
           phone_number?: string | null
           color_mode?: string | null
@@ -205,8 +206,8 @@ export type Database = {
           primary_color?: string | null
           theme?: 'light' | 'dark' | 'escuro-cinza' | null
           logo_url?: string | null
-          social_media_links?: any | null
-          payment_integrations_config?: any | null
+          social_media_links?: Record<string, string> | null
+          payment_integrations_config?: unknown | null
           cpf?: string | null
           phone_number?: string | null
           color_mode?: string | null
@@ -266,7 +267,7 @@ export type Database = {
           user_id: string
           is_verified: boolean | null
           ssl_status: string | null
-          dns_instructions: any | null
+          dns_instructions: unknown | null
           created_at: string | null
           updated_at: string | null
         }
@@ -277,7 +278,7 @@ export type Database = {
           user_id: string
           is_verified?: boolean | null
           ssl_status?: string | null
-          dns_instructions?: any | null
+          dns_instructions?: unknown | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -288,7 +289,7 @@ export type Database = {
           user_id?: string
           is_verified?: boolean | null
           ssl_status?: string | null
-          dns_instructions?: any | null
+          dns_instructions?: unknown | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -305,7 +306,7 @@ export type Database = {
           qr_code_data: string | null
           qr_code_image_url: string | null
           client_secret: string | null
-          metadata: any | null
+          metadata: unknown | null
           created_at: string
           updated_at: string
         }
@@ -320,7 +321,7 @@ export type Database = {
           qr_code_data?: string | null
           qr_code_image_url?: string | null
           client_secret?: string | null
-          metadata?: any | null
+          metadata?: unknown | null
           created_at?: string
           updated_at?: string
         }
@@ -335,7 +336,7 @@ export type Database = {
           qr_code_data?: string | null
           qr_code_image_url?: string | null
           client_secret?: string | null
-          metadata?: any | null
+          metadata?: unknown | null
           created_at?: string
           updated_at?: string
         }
@@ -350,7 +351,7 @@ export type Database = {
           amount_total: number
           currency: string
           payment_status: string
-          metadata: any | null
+          metadata: unknown | null
           created_at: string
           updated_at: string
         }
@@ -363,7 +364,7 @@ export type Database = {
           amount_total: number
           currency?: string
           payment_status: string
-          metadata?: any | null
+          metadata?: unknown | null
           created_at?: string
           updated_at?: string
         }
@@ -376,7 +377,7 @@ export type Database = {
           amount_total?: number
           currency?: string
           payment_status?: string
-          metadata?: any | null
+          metadata?: unknown | null
           created_at?: string
           updated_at?: string
         }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CotaPremiada, CotaPremiadaStatus } from '../types/cotasPremiadas';
+import { CotaPremiada } from '../types/cotasPremiadas';
 import { CotasPremiadasAPI } from '../lib/api/cotasPremiadas';
 import CadastrarCotaPremiadaModal from './CadastrarCotaPremiadaModal';
 import ConfirmModal from './ConfirmModal';
@@ -37,20 +37,7 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      loadCotasPremiadas();
-      const channel = CotasPremiadasAPI.subscribeToCotasPremiadas(campaignId, () => {
-        loadCotasPremiadas();
-      });
-
-      return () => {
-        channel.unsubscribe();
-      };
-    }
-  }, [isOpen, campaignId]);
-
-  const loadCotasPremiadas = async () => {
+  const loadCotasPremiadas = React.useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await CotasPremiadasAPI.getCotasPremiadasByCampaign(campaignId);
@@ -66,7 +53,22 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignId, onShowNotification]);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadCotasPremiadas();
+      const channel = CotasPremiadasAPI.subscribeToCotasPremiadas(campaignId, () => {
+        loadCotasPremiadas();
+      });
+
+      return () => {
+        channel.unsubscribe();
+      };
+    }
+  }, [isOpen, campaignId, loadCotasPremiadas]);
+
+  
 
   const handleToggleVisibility = async () => {
     setTogglingVisibility(true);
@@ -112,10 +114,11 @@ const CotasPremiadasAdminModal: React.FC<CotasPremiadasAdminModalProps> = ({
         setShowCadastrarModal(false);
         await loadCotasPremiadas();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating cota premiada:', error);
-      onShowNotification(error.message || 'Erro ao cadastrar cota premiada', 'error');
-      throw error;
+      const message = error instanceof Error ? error.message : 'Erro ao cadastrar cota premiada';
+      onShowNotification(message, 'error');
+      throw new Error(message);
     } finally {
       setSubmitting(false);
     }

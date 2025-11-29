@@ -1,7 +1,7 @@
 // src/hooks/useTickets.ts
 import { useState, useCallback, useEffect } from 'react';
 import { TicketsAPI, TicketStatusInfo, ReservationResult } from '../lib/api/tickets';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 
 interface CustomerData {
@@ -358,10 +358,14 @@ export const useTickets = (campaignId: string) => {
 
         if (manualReservationError) {
           console.error('❌ useTickets.reserveTickets - Manual reservation error:', manualReservationError);
-          const manualMessage =
-            (manualReservationError as any)?.message ||
-            (manualReservationError as any)?.hint ||
-            'Erro ao reservar as cotas selecionadas. Tente novamente.';
+          let manualMessage = 'Erro ao reservar as cotas selecionadas. Tente novamente.';
+          if (typeof manualReservationError === 'string') {
+            manualMessage = manualReservationError;
+          } else if (typeof manualReservationError === 'object' && manualReservationError !== null) {
+            const msg = 'message' in manualReservationError ? (manualReservationError as { message?: string }).message : undefined;
+            const hint = 'hint' in manualReservationError ? (manualReservationError as { hint?: string }).hint : undefined;
+            manualMessage = msg || hint || manualMessage;
+          }
           setError(manualMessage);
           throw new Error(manualMessage);
         }
@@ -410,11 +414,20 @@ export const useTickets = (campaignId: string) => {
           let errorMessage = `Erro ao reservar cotas (lote ${batchIndex + 1}/${totalBatches})`;
 
           if (typeof apiError === 'object' && apiError !== null) {
-            const msg = (apiError as any).message || (apiError as any).error || (apiError as any).hint || null;
+            const msg = (
+              ('message' in apiError && (apiError as { message?: string }).message) ||
+              ('error' in apiError && (apiError as { error?: string }).error) ||
+              ('hint' in apiError && (apiError as { hint?: string }).hint) ||
+              null
+            );
             if (typeof msg === 'string') {
               errorMessage = msg;
             }
-            const code = (apiError as any).code || (apiError as any).status || null;
+            const code = (
+              ('code' in apiError && (apiError as { code?: number | string }).code) ||
+              ('status' in apiError && (apiError as { status?: number | string }).status) ||
+              null
+            );
             const normalizedMessage = (msg || '').toLowerCase();
             if (normalizedMessage.includes('set transaction isolation level')) {
               errorMessage = 'Erro interno ao iniciar transação. Tente novamente em alguns segundos.';
@@ -504,7 +517,7 @@ export const useTickets = (campaignId: string) => {
    * 
    * ✅ ATUALIZAÇÃO GRANULAR: Apenas os tickets comprados são atualizados no estado
    */
-  const finalizePurchase = async (quotaNumbers: number[]): Promise<{ data: ReservationResult[] | null; error: any }> => {
+  const finalizePurchase = async (quotaNumbers: number[]): Promise<{ data: ReservationResult[] | null; error: unknown }> => {
     if (!user || !campaignId || quotaNumbers.length === 0) {
       const error = new Error('Usuário não autenticado ou dados inválidos');
       console.error('❌ useTickets.finalizePurchase - Invalid data');
@@ -529,8 +542,8 @@ export const useTickets = (campaignId: string) => {
         let errorMessage = 'Erro ao finalizar compra';
         
         if (typeof apiError === 'object' && apiError !== null) {
-          if ('message' in apiError && apiError.message) {
-            errorMessage = apiError.message as string;
+          if ('message' in apiError && (apiError as { message?: string }).message) {
+            errorMessage = (apiError as { message?: string }).message as string;
           }
         } else if (typeof apiError === 'string') {
             errorMessage = apiError;
@@ -620,20 +633,22 @@ export const useTickets = (campaignId: string) => {
           
           // ✅ Aplicar mudança granularmente usando o payload.new
           if (payload.new && typeof payload.new === 'object') {
-            const changedTicket = payload.new as any;
-            
-            // Criar um ReservationResult a partir do payload
-            const result: ReservationResult = {
-              quota_number: changedTicket.quota_number,
-              customer_name: changedTicket.customer_name,
-              customer_email: changedTicket.customer_email,
-              customer_phone: changedTicket.customer_phone,
-              reserved_at: changedTicket.reserved_at
+            const nt = payload.new as {
+              quota_number: number;
+              customer_name?: string | null;
+              customer_email?: string | null;
+              customer_phone?: string | null;
+              reserved_at?: string | null;
+              status: string;
             };
-
-            // Determinar o novo status
-            const newStatus = changedTicket.status as 'reservado' | 'comprado';
-            
+            const result: ReservationResult = {
+              quota_number: nt.quota_number,
+              customer_name: nt.customer_name,
+              customer_email: nt.customer_email,
+              customer_phone: nt.customer_phone,
+              reserved_at: nt.reserved_at
+            };
+            const newStatus = nt.status as 'reservado' | 'comprado';
             console.log(`🔄 Applying real-time update for ticket ${result.quota_number} -> ${newStatus}`);
             updateTicketsLocally([result], newStatus);
           }

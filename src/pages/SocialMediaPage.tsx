@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Plus, X, ArrowRight, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
  
-import { useAuth } from "../context/AuthContext";
-import { useNotification } from "../context/NotificationContext";
+import { useAuth } from "../hooks/useAuth";
+import { useNotification } from "../hooks/useNotification";
 import { supabase } from "../lib/supabase";
-import { socialMediaConfig } from "../components/SocialMediaIcons";
+import { socialMediaConfig } from "../components/SocialMediaConfig";
 
 interface SocialNetwork {
   id: string;

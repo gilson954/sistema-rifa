@@ -6,7 +6,7 @@ import PixLogo from '../components/pix/PixLogo';
 import CampaignHeader from '../components/CampaignHeader';
 import CampaignFooter from '../components/CampaignFooter';
 import SocialMediaFloatingMenu from '../components/SocialMediaFloatingMenu';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { PaymentsAPI } from '../lib/api/payments';
 import { formatPixKey } from '../utils/pixValidation';

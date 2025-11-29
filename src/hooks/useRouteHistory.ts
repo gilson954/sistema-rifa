@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 const ROUTE_STORAGE_KEY = 'rifaqui_last_route';
 const ROUTE_TIMESTAMP_KEY = 'rifaqui_route_timestamp';
@@ -9,7 +9,6 @@ const ROUTE_EXPIRY_TIME = 30 * 60 * 1000;
 
 export const useRouteHistory = () => {
   const location = useLocation();
-  const navigate = useNavigate();
 
   // Salva a rota atual no localStorage
   const saveCurrentRoute = (pathname: string) => {
@@ -18,7 +17,7 @@ export const useRouteHistory = () => {
       localStorage.setItem(ROUTE_TIMESTAMP_KEY, Date.now().toString());
     } catch (error) {
       console.warn('Failed to save route to localStorage:', error);
-    }
+}
   };
 
   // Recupera a última rota salva

@@ -1,24 +1,9 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import ToastContainer, { ToastData } from '../components/ToastContainer';
 import { ToastType } from '../components/Toast';
+import NotificationContext, { type NotificationContextType } from './notification-context';
 
-interface NotificationContextType {
-  showNotification: (message: string, type: ToastType, duration?: number) => void;
-  showSuccess: (message: string, duration?: number) => void;
-  showError: (message: string, duration?: number) => void;
-  showWarning: (message: string, duration?: number) => void;
-  showInfo: (message: string, duration?: number) => void;
-}
-
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
-
-export const useNotification = () => {
-  const context = useContext(NotificationContext);
-  if (!context) {
-    throw new Error('useNotification must be used within a NotificationProvider');
-  }
-  return context;
-};
+ 
 
 interface NotificationProviderProps {
   children: React.ReactNode;

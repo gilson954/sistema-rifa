@@ -2,11 +2,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogOut, Ticket } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 interface CampaignHeaderProps {
   logoUrl?: string;
-  organizerName?: string;
   organizerId?: string;
   primaryColor?: string;
   colorMode?: string;
@@ -19,7 +18,6 @@ interface CampaignHeaderProps {
 
 const CampaignHeader: React.FC<CampaignHeaderProps> = ({
   logoUrl,
-  organizerName,
   organizerId,
   primaryColor = '#3B82F6',
   colorMode = 'solid',

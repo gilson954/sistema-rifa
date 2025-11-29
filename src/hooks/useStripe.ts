@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { StripeAPI, StripeSubscription, StripeOrder } from '../lib/api/stripe';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { STRIPE_PRODUCTS, getProductByPriceId } from '../stripe-config';
 
 export const useStripe = () => {
@@ -10,7 +10,7 @@ export const useStripe = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
@@ -42,11 +42,11 @@ export const useStripe = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchUserData();
-  }, [user]);
+  }, [fetchUserData]);
 
   const createCheckout = async (priceId: string, campaignId?: string) => {
     if (!user) {

@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Minus, Plus, TrendingUp } from 'lucide-react';
 import { calculateTotalWithPromotions } from '../utils/currency';
+import type { Promotion } from '../types/promotion';
 
 interface PromotionInfo {
-  promotion: any;
+  promotion: Promotion;
   originalTotal: number;
   promotionalTotal: number;
   savings: number;
@@ -18,7 +19,7 @@ interface QuotaSelectorProps {
   initialQuantity?: number;
   mode: 'manual' | 'automatic';
   promotionInfo?: PromotionInfo | null;
-  promotions?: any[];
+  promotions?: Promotion[];
   primaryColor?: string | null;
   campaignTheme: string;
   onReserve?: () => void;
@@ -66,11 +67,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   const lastNotifiedQuantityRef = useRef<number>(quantity);
   const isExternalUpdateRef = useRef(false);
 
-  // ✅ FASE 2: Renderiza null se o modo não for 'automatic'
-  // Isso garante que QuotaSelector só aparece em campanhas automáticas
-  if (mode !== 'automatic') {
-    return null;
-  }
+  
 
   // ✅ Sincroniza com initialQuantity quando muda externamente (promoções)
   useEffect(() => {
@@ -100,7 +97,7 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
         onQuantityChange(validQuantity);
       });
     }
-  }, [initialQuantity, minTicketsPerPurchase]); // ✅ Removido onQuantityChange das dependências
+  }, [initialQuantity, minTicketsPerPurchase, onQuantityChange, quantity]);
 
   // ✅ Novo useEffect para sincronizar quantity com parent quando mudar internamente
   useEffect(() => {
@@ -116,6 +113,8 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
       onQuantityChange(quantity);
     }
   }, [quantity, onQuantityChange]);
+
+  
 
   const getThemeClasses = (theme: string) => {
     switch (theme) {
@@ -348,6 +347,10 @@ const QuotaSelector: React.FC<QuotaSelectorProps> = ({
   };
 
   const theme = getThemeClasses(campaignTheme);
+
+  if (mode !== 'automatic') {
+    return null;
+  }
 
   return (
     <div className={`quota-selector rounded-xl shadow-md p-4 sm:p-5 border transition-all duration-300 ${theme.cardBg} ${theme.border}`}>

@@ -7,7 +7,7 @@ import { Prize } from '../types/promotion';
 import { CampaignAPI } from '../lib/api/campaigns';
 import { SorteioAPI, TicketValidationResult } from '../lib/api/sorteio';
 import ConfirmarSorteioModal from '../components/ConfirmarSorteioModal';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 interface PrizeDrawInput {
   prizeId: string;

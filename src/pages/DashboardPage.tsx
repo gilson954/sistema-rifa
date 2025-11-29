@@ -18,8 +18,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { Campaign } from '../types/campaign';
-import { useAuth } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../hooks/useAuth';
+import { useNotification } from '../hooks/useNotification';
 import { CampaignAPI } from '../lib/api/campaigns';
 import { supabase } from '../lib/supabase';
 import CotasPremiadasAdminModal from '../components/CotasPremiadasAdminModal';

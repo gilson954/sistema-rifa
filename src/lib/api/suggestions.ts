@@ -59,7 +59,7 @@ export class SuggestionsAPI {
     file: File,
     userId: string,
     suggestionId: string
-  ): Promise<{ url: string | null; error: any }> {
+  ): Promise<{ url: string | null; error: unknown }> {
     try {
       const validation = this.validateAttachment(file);
       if (!validation.valid) {
@@ -70,7 +70,7 @@ export class SuggestionsAPI {
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `${userId}/${suggestionId}/${fileName}`;
 
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('suggestion-attachments')
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -95,7 +95,7 @@ export class SuggestionsAPI {
   /**
    * Remove um arquivo do Supabase Storage
    */
-  static async deleteAttachment(attachmentUrl: string): Promise<{ error: any }> {
+  static async deleteAttachment(attachmentUrl: string): Promise<{ error: unknown }> {
     try {
       const url = new URL(attachmentUrl);
       const pathParts = url.pathname.split('/suggestion-attachments/');
@@ -126,14 +126,23 @@ export class SuggestionsAPI {
   static async createSuggestion(
     data: CreateSuggestionInput,
     userId?: string
-  ): Promise<{ data: Suggestion | null; error: any }> {
+  ): Promise<{ data: Suggestion | null; error: unknown }> {
     try {
       const { attachment, ...suggestionInput } = data;
-
-      const suggestionData: any = {
+      type NewSuggestionRow = {
+        user_id: string | null;
+        user_name: string;
+        user_email: string;
+        subject: string;
+        type: 'bug_report' | 'feature_request' | 'improvement' | 'other';
+        priority: 'low' | 'medium' | 'high';
+        message: string;
+        status: 'new' | 'in_progress' | 'resolved' | 'rejected';
+      };
+      const suggestionData: NewSuggestionRow = {
         ...suggestionInput,
         user_id: userId || null,
-        status: 'new' as const
+        status: 'new'
       };
 
       const { data: suggestion, error: insertError } = await supabase
@@ -188,7 +197,7 @@ export class SuggestionsAPI {
   /**
    * Busca sugestões do usuário atual
    */
-  static async getUserSuggestions(userId: string): Promise<{ data: Suggestion[] | null; error: any }> {
+  static async getUserSuggestions(userId: string): Promise<{ data: Suggestion[] | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('suggestions')
@@ -210,7 +219,7 @@ export class SuggestionsAPI {
   /**
    * Busca todas as sugestões (apenas para administradores)
    */
-  static async getAllSuggestions(): Promise<{ data: Suggestion[] | null; error: any }> {
+  static async getAllSuggestions(): Promise<{ data: Suggestion[] | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('suggestions')
@@ -233,7 +242,7 @@ export class SuggestionsAPI {
    */
   static async updateSuggestionStatus(
     data: UpdateSuggestionInput
-  ): Promise<{ data: Suggestion | null; error: any }> {
+  ): Promise<{ data: Suggestion | null; error: unknown }> {
     try {
       const { id, ...updateData } = data;
 
@@ -258,7 +267,7 @@ export class SuggestionsAPI {
   /**
    * Deleta uma sugestão (apenas para administradores)
    */
-  static async deleteSuggestion(id: string): Promise<{ error: any }> {
+  static async deleteSuggestion(id: string): Promise<{ error: unknown }> {
     try {
       const { data: suggestion } = await supabase
         .from('suggestions')
@@ -297,7 +306,7 @@ export class SuggestionsAPI {
       resolved: number; 
       rejected: number; 
     } | null; 
-    error: any 
+    error: unknown 
   }> {
     try {
       const { count: total } = await supabase

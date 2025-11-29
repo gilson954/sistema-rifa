@@ -1,6 +1,6 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 import { useRouteHistory } from '../hooks/useRouteHistory'
 
 interface ProtectedRouteProps {
@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useAuth()
   const location = useLocation()
-  const { restoreLastRoute } = useRouteHistory()
+  useRouteHistory()
 
   if (loading) {
     return (

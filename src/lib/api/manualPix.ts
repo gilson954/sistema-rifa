@@ -12,6 +12,44 @@ export interface ManualPixKey {
   updated_at: string;
 }
 
+export type ManualProofStatus = 'pending' | 'approved' | 'rejected' | 'expired';
+
+export interface ManualPaymentProof {
+  id: string;
+  order_id: string;
+  campaign_id: string;
+  organizer_id: string;
+  customer_phone: string | null;
+  customer_name: string | null;
+  image_url: string;
+  status: ManualProofStatus;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ManualPaymentProofWithSigned extends ManualPaymentProof {
+  signed_url: string | null;
+}
+
+export interface TicketSummary {
+  quota_number: number;
+  status: string;
+  customer_email: string | null;
+  reserved_at: string | null;
+  reservation_expires_at: string | null;
+}
+
+export interface ManualPaymentOrderEnriched extends ManualPaymentProof {
+  quotas_count: number;
+  total_value: number;
+  customer_email: string | null;
+  reserved_at: string | null;
+  payment_method: string;
+  whatsapp_url: string | null;
+  signed_url: string | null;
+}
+
 export const ManualPixAPI = {
   async listKeys(userId: string) {
     const { data, error } = await supabase
@@ -73,15 +111,15 @@ export const ManualPixAPI = {
     return { data, error };
   },
 
-  async listPendingProofs(organizerId: string) {
+  async listPendingProofs(organizerId: string): Promise<{ data: ManualPaymentProofWithSigned[] | null; error: unknown }> {
     const { data, error } = await supabase
       .from('manual_payment_proofs')
       .select('*')
       .eq('organizer_id', organizerId)
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
-    if (error) return { data, error };
-    const proofs = (data || []) as any[];
+    if (error) return { data: null, error };
+    const proofs = (data || []) as ManualPaymentProof[];
     const withSigned = await Promise.all(proofs.map(async (p) => {
       const { data: signed } = await supabase.storage.from('manual-payment-proofs').createSignedUrl(p.image_url, 60 * 60);
       return { ...p, signed_url: signed?.signedUrl || null };
@@ -89,7 +127,7 @@ export const ManualPixAPI = {
     return { data: withSigned, error: null };
   },
 
-  async listOrdersByCampaign(campaignId: string) {
+  async listOrdersByCampaign(campaignId: string): Promise<{ data: ManualPaymentOrderEnriched[] | null; error: unknown }> {
     const { data, error } = await supabase
       .from('manual_payment_proofs')
       .select('*')
@@ -106,8 +144,7 @@ export const ManualPixAPI = {
 
     const ticketPrice = Number(campaign?.ticket_price || 0);
 
-    const enriched = await Promise.all((data || []).map(async (p: any) => {
-      // Attempt to mark as expired when applicable before enrichment
+    const enriched = await Promise.all(((data || []) as ManualPaymentProof[]).map(async (p) => {
       try {
         if (p.status === 'pending') {
           await supabase.rpc('expire_manual_payment_if_needed', { p_order_id: p.order_id, p_campaign_id: campaignId });
@@ -119,12 +156,13 @@ export const ManualPixAPI = {
         .select('quota_number,status,customer_email,reserved_at,reservation_expires_at')
         .eq('campaign_id', campaignId)
         .eq('order_id', p.order_id);
-      const quotasCount = (tickets || []).length;
+      const ticketRows = (tickets || []) as TicketSummary[];
+      const quotasCount = ticketRows.length;
       const totalValue = quotasCount * ticketPrice;
-      const customerEmail = tickets?.[0]?.customer_email || null;
-      const reservedAt = tickets?.[0]?.reserved_at || p.created_at;
-      const expiresAt = (tickets || []).reduce((acc:any, t:any) => acc ? acc : t.reservation_expires_at, null);
-      const hasPurchased = (tickets || []).some((t:any) => t.status === 'comprado');
+      const customerEmail = ticketRows?.[0]?.customer_email || null;
+      const reservedAt = ticketRows?.[0]?.reserved_at || p.created_at;
+      const expiresAt = ticketRows.reduce<string | null>((acc, t) => acc ?? (t.reservation_expires_at ?? null), null);
+      const hasPurchased = ticketRows.some((t) => t.status === 'comprado');
       const isExpired = p.status === 'pending' && expiresAt ? (new Date(expiresAt).getTime() < Date.now() && !hasPurchased) : false;
       const nextStatus = isExpired ? 'expired' : p.status;
       const { data: signed } = await supabase.storage.from('manual-payment-proofs').createSignedUrl(p.image_url, 60 * 60);
@@ -144,7 +182,7 @@ export const ManualPixAPI = {
     return { data: enriched, error: null };
   },
 
-  async getOrderDetails(campaignId: string, orderId: string) {
+  async getOrderDetails(campaignId: string, orderId: string): Promise<{ data: ManualPaymentOrderEnriched | null; error: unknown }> {
     const { data, error } = await supabase
       .from('manual_payment_proofs')
       .select('*')
@@ -152,7 +190,7 @@ export const ManualPixAPI = {
       .eq('order_id', orderId)
       .maybeSingle();
     if (error) return { data: null, error };
-    if (!data) return { data: null, error: { message: 'Pedido não encontrado' } };
+    if (!data) return { data: null, error: new Error('Pedido não encontrado') };
 
     const { data: campaign } = await supabase
       .from('campaigns')
@@ -161,7 +199,6 @@ export const ManualPixAPI = {
       .maybeSingle();
     const ticketPrice = Number(campaign?.ticket_price || 0);
 
-    // Try to mark as expired if needed before fetch
     try { await supabase.rpc('expire_manual_payment_if_needed', { p_order_id: orderId, p_campaign_id: campaignId }); } catch (e) { void e }
 
     const { data: tickets } = await supabase
@@ -171,13 +208,14 @@ export const ManualPixAPI = {
       .eq('order_id', orderId)
       .order('quota_number');
 
-    const quotasCount = (tickets || []).length;
+    const ticketRows = (tickets || []) as TicketSummary[];
+    const quotasCount = ticketRows.length;
     const totalValue = quotasCount * ticketPrice;
-    const customerEmail = tickets?.[0]?.customer_email || null;
-    const reservedAt = tickets?.[0]?.reserved_at || data.created_at;
+    const customerEmail = ticketRows?.[0]?.customer_email || null;
+    const reservedAt = ticketRows?.[0]?.reserved_at || data.created_at;
     const { data: signed } = await supabase.storage.from('manual-payment-proofs').createSignedUrl(data.image_url, 60 * 60);
-    const expiresAt = (tickets || []).reduce((acc:any, t:any) => acc ? acc : t.reservation_expires_at, null);
-    const hasPurchased = (tickets || []).some((t:any) => t.status === 'comprado');
+    const expiresAt = ticketRows.reduce<string | null>((acc, t) => acc ?? (t.reservation_expires_at ?? null), null);
+    const hasPurchased = ticketRows.some((t) => t.status === 'comprado');
     const isExpired = data.status === 'pending' && expiresAt ? (new Date(expiresAt).getTime() < Date.now() && !hasPurchased) : false;
     const nextStatus = isExpired ? 'expired' : data.status;
 
@@ -219,7 +257,7 @@ export const ManualPixAPI = {
     return { error: proofError || ticketsError || null };
   },
 
-  async approveProof(_proofId: string, orderId: string, campaignId: string) {
+  async approveProof(_proofId: string, orderId: string, campaignId: string): Promise<{ data: { quota_number: number; updated: boolean }[] | null; error: unknown }> {
     const { data: updatedTickets, error } = await supabase.rpc('approve_manual_payment', {
       p_order_id: orderId,
       p_campaign_id: campaignId

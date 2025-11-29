@@ -186,13 +186,7 @@ export const SorteioAPI = {
             .eq('customer_phone', ticket.customer_phone)
             .eq('status', 'comprado');
 
-          const { data: payments } = await supabase
-            .from('tickets')
-            .select('quota_number')
-            .eq('campaign_id', request.campaignId)
-            .eq('customer_phone', ticket.customer_phone)
-            .eq('status', 'comprado')
-            .limit(1);
+          // Removed unused query
 
           return {
             ...ticket,
@@ -270,7 +264,7 @@ export const SorteioAPI = {
     }
   },
 
-  async getWinners(campaignId: string): Promise<{ data: Winner[] | null; error: any }> {
+  async getWinners(campaignId: string): Promise<{ data: Winner[] | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('campaign_winners')
@@ -285,7 +279,7 @@ export const SorteioAPI = {
     }
   },
 
-  async getWinnerById(winnerId: string): Promise<{ data: Winner | null; error: any }> {
+  async getWinnerById(winnerId: string): Promise<{ data: Winner | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('campaign_winners')
@@ -300,7 +294,7 @@ export const SorteioAPI = {
     }
   },
 
-  async getWinnerTickets(campaignId: string, winnerPhone: string): Promise<{ data: WinnerTicket[] | null; error: any }> {
+  async getWinnerTickets(campaignId: string, winnerPhone: string): Promise<{ data: WinnerTicket[] | null; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('tickets')

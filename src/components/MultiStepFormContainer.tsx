@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle, AlertCircle, Save } from 'lucide-react';
 import { useMultiStepForm } from '../context/MultiStepFormContext';
-import { useNotification } from '../context/NotificationContext';
+import { useNotification } from '../hooks/useNotification';
 import { schemas } from '../lib/validations/formSteps';
 import Step1 from '../pages/FormStep1';
 import Step2 from '../pages/FormStep2';

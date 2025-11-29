@@ -15,7 +15,7 @@ import {
   MessageSquare,
   QrCode,
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import SubscriptionStatus from './SubscriptionStatus';
 

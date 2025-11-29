@@ -1,40 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { TicketsAPI } from '../lib/api/tickets'
-
-interface PhoneUser {
-  id: string
-  phone: string
-  name: string
-  email: string
-  isPhoneAuth: boolean
-}
-
-interface AuthContextType {
-  user: User | null
-  session: Session | null
-  isAdmin: boolean | null
-  loading: boolean
-  phoneUser: PhoneUser | null
-  isPhoneAuthenticated: boolean
-  signIn: (email: string, password: string) => Promise<{ error: any }>
-  signInWithGoogle: () => Promise<{ error: any }>
-  signUp: (email: string, password: string, name: string, redirectTo?: string) => Promise<{ error: any }>
-  signInWithPhone: (phone: string, userData?: { name: string; email: string }) => Promise<{ success: boolean; error?: any; user?: PhoneUser }>
-  signOut: () => Promise<void>
-  updateProfile: (data: { name?: string; avatar_url?: string }) => Promise<{ error: any }>
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
-export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
-}
+import { AuthContext, type PhoneUser } from './auth-context'
 
 interface AuthProviderProps {
   children: React.ReactNode
@@ -277,7 +245,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const signOut = async () => {
+  const signOut = React.useCallback(async () => {
     try {
       // Only attempt to sign out if there's a valid session
       if (session) {
@@ -314,10 +282,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.warn('Failed to clear route history on logout:', error)
       }
     }
-  }
+  }, [session])
 
   useEffect(() => {
-    const handler = (e: any) => {
+    const handler = (e: PromiseRejectionEvent) => {
       const reason = e?.reason
       const message = typeof reason === 'string' ? reason : (reason?.message || '')
       if (message && message.includes('Invalid Refresh Token')) {
