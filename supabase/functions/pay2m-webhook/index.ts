@@ -247,14 +247,14 @@ Deno.serve(async (req: Request) => {
       }
     )
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('💥 Error processing Pay2m webhook:', error)
-    
+    const errMsg = error instanceof Error ? error.message : 'Unknown error'
     return new Response(
       JSON.stringify({ 
         success: false,
         error: 'Internal server error',
-        message: error.message 
+        message: errMsg 
       } as Pay2mWebhookResponse),
       { 
         status: 500, 

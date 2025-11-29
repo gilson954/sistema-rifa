@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Trophy, Calendar, Users, ChevronLeft, ChevronRight, Ticket } from 'lucide-react';
+import { Trophy, Calendar, ChevronLeft, ChevronRight, Ticket } from 'lucide-react';
 import { CampaignAPI } from '../lib/api/campaigns';
 import { Campaign } from '../types/campaign';
 import { supabase } from '../lib/supabase';
@@ -16,8 +16,8 @@ interface OrganizerProfile {
   name: string;
   avatar_url?: string;
   logo_url?: string;
-  social_media_links?: any;
-  payment_integrations_config?: any;
+  social_media_links?: Record<string, unknown>;
+  payment_integrations_config?: Record<string, unknown>;
   primary_color?: string;
   theme?: string;
   color_mode?: string;
@@ -28,7 +28,7 @@ interface OrganizerProfile {
 const OrganizerHomePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-  const { user, isPhoneAuthenticated } = useAuth();
+  const { isPhoneAuthenticated } = useAuth();
   const [featuredCampaign, setFeaturedCampaign] = useState<Campaign | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);

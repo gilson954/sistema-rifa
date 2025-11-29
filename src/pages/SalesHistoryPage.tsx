@@ -7,7 +7,6 @@ import {
   Download, 
   BarChart3, 
   Users, 
-  DollarSign,
   Clock,
   CheckCircle,
   AlertTriangle,

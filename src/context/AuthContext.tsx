@@ -248,9 +248,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const phoneUserData: PhoneUser = {
         id: `phone_${phone.replace(/\D/g, '')}`,
-        phone: phone, // ✅ Usa exatamente como recebido
-        name: firstTicket.customer_name,
-        email: firstTicket.customer_email,
+        phone: phone,
+        name: firstTicket.customer_name ?? '',
+        email: firstTicket.customer_email ?? '',
         isPhoneAuth: true
       }
 
@@ -315,6 +315,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     }
   }
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      const reason = e?.reason
+      const message = typeof reason === 'string' ? reason : (reason?.message || '')
+      if (message && message.includes('Invalid Refresh Token')) {
+        e?.preventDefault?.()
+        signOut()
+      }
+    }
+    window.addEventListener('unhandledrejection', handler)
+    return () => window.removeEventListener('unhandledrejection', handler)
+  }, [signOut])
 
   const updateProfile = async (data: { name?: string; avatar_url?: string }) => {
     if (!user) return { error: new Error('No user logged in') }

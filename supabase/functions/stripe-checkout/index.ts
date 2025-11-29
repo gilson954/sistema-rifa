@@ -398,14 +398,14 @@ Deno.serve(async (req: Request) => {
       }
     )
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('💥 Error creating Stripe checkout:', error)
-    
+    const errMsg = error instanceof Error ? error.message : 'Unknown error'
     return new Response(
       JSON.stringify({
         success: false,
         error: 'Internal server error',
-        message: error.message
+        message: errMsg
       } as CheckoutResponse),
       {
         status: 500,

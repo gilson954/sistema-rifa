@@ -41,8 +41,8 @@ const countries: Country[] = [
 
 const AccountPage: React.FC = () => {
   const { user, signOut } = useAuth();
-  const { orders, getCompletedOrders } = useStripe();
-  const { showSuccess, showError, showInfo } = useNotification();
+  const { getCompletedOrders } = useStripe();
+  const { showSuccess, showError } = useNotification();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
@@ -129,7 +129,7 @@ const AccountPage: React.FC = () => {
     };
 
     fetchUserProfile();
-  }, [user]);
+  }, [user, selectedCountry]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -251,9 +251,10 @@ const AccountPage: React.FC = () => {
         setShowEditModal(false);
         showSuccess('Dados salvos com sucesso!');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving user data:', err);
-      showError(translateAuthError(err.message || 'Erro ao salvar dados. Tente novamente.'));
+      const message = err instanceof Error ? err.message : 'Erro ao salvar dados. Tente novamente.';
+      showError(translateAuthError(message));
     }
   };
 
@@ -278,9 +279,10 @@ const AccountPage: React.FC = () => {
         setResetLinkSent(true);
         showSuccess(`Link de redefinição enviado para ${user.email}! Verifique sua caixa de entrada (e também a pasta de spam).`);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error sending reset link:', err);
-      showError(translateAuthError(err.message || 'Erro ao enviar link de redefinição. Tente novamente.'));
+      const message = err instanceof Error ? err.message : 'Erro ao enviar link de redefinição. Tente novamente.';
+      showError(translateAuthError(message));
     } finally {
       setSendingResetLink(false);
     }
@@ -314,9 +316,10 @@ const AccountPage: React.FC = () => {
       showSuccess('Conta excluída com sucesso');
       await signOut();
       window.location.href = '/login';
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error deleting account:', err);
-      showError(translateAuthError(err.message || 'Erro ao excluir conta. Tente novamente.'));
+      const message = err instanceof Error ? err.message : 'Erro ao excluir conta. Tente novamente.';
+      showError(translateAuthError(message));
     } finally {
       setDeleting(false);
       setShowDeleteConfirmModal(false);

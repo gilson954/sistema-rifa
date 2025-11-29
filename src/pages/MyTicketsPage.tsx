@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Ticket, Calendar, CheckCircle, Clock, XCircle, AlertCircle, LogOut, Timer, ChevronDown, ChevronUp } from 'lucide-react';
@@ -18,7 +18,7 @@ interface OrganizerProfile {
   color_mode?: string;
   gradient_classes?: string;
   custom_gradient_colors?: string;
-  social_media_links?: any;
+  social_media_links?: Record<string, unknown>;
 }
 
 const MyTicketsPage = () => {
@@ -42,7 +42,7 @@ const MyTicketsPage = () => {
       const tb = new Date(b.bought_at || b.reserved_at || b.created_at).getTime();
       return tb - ta;
     });
-  }, [orders]);
+  }, [orders, formatQuotaNumber]);
   const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
   const paginatedOrders = sortedOrders.slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage);
 
@@ -61,7 +61,7 @@ const MyTicketsPage = () => {
     return displayNumber.toString().padStart(padding, '0');
   };
 
-  const loadUserOrders = async (phone: string) => {
+  const loadUserOrders = useCallback(async (phone: string) => {
     setLoading(true);
     setError(null);
     try {
@@ -139,7 +139,7 @@ const MyTicketsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignContext]);
 
   useEffect(() => {
     console.log('[MyTicketsPage] useEffect disparado - Auth:', isPhoneAuthenticated, 'Phone:', phoneUser?.phone);
@@ -150,7 +150,7 @@ const MyTicketsPage = () => {
     } else {
       console.log('[MyTicketsPage] ⏳ Aguardando autenticação ou telefone do usuário');
     }
-  }, [isPhoneAuthenticated, phoneUser?.phone]);
+  }, [isPhoneAuthenticated, phoneUser?.phone, loadUserOrders]);
 
   useEffect(() => {
     console.log('[MyTicketsPage] Configurando listeners de visibilidade');
@@ -177,7 +177,7 @@ const MyTicketsPage = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
     };
-  }, [isPhoneAuthenticated, phoneUser?.phone]);
+  }, [isPhoneAuthenticated, phoneUser?.phone, loadUserOrders]);
 
   useEffect(() => {
     const loadCampaignTotalTickets = async () => {
@@ -441,7 +441,7 @@ const MyTicketsPage = () => {
       <header className={`shadow-sm border-b ${themeClasses.border} ${themeClasses.headerBg}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
-            <button onClick={() => { organizerProfile?.id ? navigate(`/org/${organizerProfile.id}`) : navigate('/'); }} className="flex items-center hover:opacity-80 transition-opacity duration-200">
+            <button onClick={() => { if (organizerProfile?.id) { navigate(`/org/${organizerProfile.id}`) } else { navigate('/') } }} className="flex items-center hover:opacity-80 transition-opacity duration-200">
               {organizerProfile?.logo_url ? (
                 <img src={organizerProfile.logo_url} alt="Logo" className="h-10 sm:h-14 w-auto max-w-[150px] sm:max-w-[200px] object-contain" />
               ) : (

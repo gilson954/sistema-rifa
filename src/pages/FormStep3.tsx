@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, FileText, Eye, AlertTriangle, CheckCircle, User, Mail, Phone, MapPin } from 'lucide-react';
+import { Shield, Eye, AlertTriangle, CheckCircle, User, Mail, Phone, MapPin } from 'lucide-react';
 import { useMultiStepForm } from '../context/MultiStepFormContext';
 import { Step3Data } from '../lib/validations/formSteps';
 

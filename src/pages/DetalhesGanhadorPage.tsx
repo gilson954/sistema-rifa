@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Trophy, User, Phone, Mail, CreditCard, Calendar, DollarSign, Ticket, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
-import { SorteioAPI, Winner } from '../lib/api/sorteio';
+import { SorteioAPI, Winner, WinnerTicket } from '../lib/api/sorteio';
 import { CampaignAPI } from '../lib/api/campaigns';
 
 const formatCurrency = (value: number) => {
@@ -39,7 +39,7 @@ const DetalhesGanhadorPage: React.FC = () => {
   const { campaignId, winnerId } = useParams<{ campaignId: string; winnerId: string }>();
   const navigate = useNavigate();
   const [winner, setWinner] = useState<Winner | null>(null);
-  const [tickets, setTickets] = useState<any[]>([]);
+  const [tickets, setTickets] = useState<WinnerTicket[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -47,11 +47,7 @@ const DetalhesGanhadorPage: React.FC = () => {
   const ticketsPerPage = 50;
   const maxVisibleTicketsCollapsed = 50;
 
-  useEffect(() => {
-    loadData();
-  }, [winnerId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!winnerId || !campaignId) return;
 
     setLoading(true);
@@ -79,9 +75,13 @@ const DetalhesGanhadorPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [winnerId, campaignId, getWinnerTickets]);
 
-  const getWinnerTickets = async () => {
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const getWinnerTickets = useCallback(async () => {
     if (!winnerId || !campaignId) return [];
 
     const winnerResult = await SorteioAPI.getWinnerById(winnerId);
@@ -93,7 +93,7 @@ const DetalhesGanhadorPage: React.FC = () => {
     );
 
     return ticketsResult.data || [];
-  };
+  }, [winnerId, campaignId]);
 
   // ✅ Calculate padding length based on maximum 0-indexed ticket number (totalTicketsCampaign - 1)
   const getQuotaNumberPadding = () => {

@@ -161,14 +161,14 @@ Deno.serve(async (req: Request) => {
       }
     )
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('💥 Unexpected error in delete account function:', error)
-    
+    const errMsg = error instanceof Error ? error.message : 'Unknown error'
     return new Response(
       JSON.stringify({
         success: false,
         message: 'Erro interno do servidor',
-        error: error.message
+        error: errMsg
       } as DeleteAccountResponse),
       {
         status: 500,

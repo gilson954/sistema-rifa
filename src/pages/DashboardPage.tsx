@@ -108,7 +108,6 @@ const getStatusText = (status: string) => {
 };
 
 const DashboardPage: React.FC = () => {
-  const [showRevenue, setShowRevenue] = useState(false);
   const [displayPaymentSetupCard, setDisplayPaymentSetupCard] = useState(true);
   const navigate = useNavigate();
   const { campaigns, loading: campaignsLoading, fetchCampaigns } = useCampaigns();
@@ -121,7 +120,26 @@ const DashboardPage: React.FC = () => {
   const [showMaiorMenorCotaModal, setShowMaiorMenorCotaModal] = useState(false);
   const [selectedCampaignForMaiorMenor, setSelectedCampaignForMaiorMenor] = useState<Campaign | null>(null);
   const [showBuyerContactModal, setShowBuyerContactModal] = useState(false);
-  const [selectedBuyerData, setSelectedBuyerData] = useState<any>(null);
+  interface TopBuyer {
+    customer_phone: string;
+    customer_name?: string;
+    customer_email?: string;
+    total_spent?: number;
+    ticket_count?: number;
+  }
+
+  interface BuyerContactData {
+    id?: string;
+    quota_number?: number;
+    customer_name?: string;
+    customer_email?: string;
+    customer_phone?: string;
+    bought_at?: string;
+    total_value?: number;
+    ticket_count?: number;
+  }
+
+  const [selectedBuyerData, setSelectedBuyerData] = useState<BuyerContactData | null>(null);
   const [showTopBuyersModal, setShowTopBuyersModal] = useState(false);
   const [selectedCampaignForRanking, setSelectedCampaignForRanking] = useState<Campaign | null>(null);
 
@@ -154,7 +172,7 @@ const DashboardPage: React.FC = () => {
     if (currentPage > newTotalPages) {
       setCurrentPage(1);
     }
-  }, [campaigns, pageSize]);
+  }, [campaigns, pageSize, currentPage]);
 
   // Check if payment is configured on component mount and when user changes
   useEffect(() => {
@@ -304,7 +322,7 @@ const DashboardPage: React.FC = () => {
     setSelectedCampaignForRanking(null);
   };
 
-  const handleViewBuyerFromRanking = (buyer: any) => {
+  const handleViewBuyerFromRanking = (buyer: TopBuyer) => {
     setSelectedBuyerData({
       id: buyer.customer_phone,
       quota_number: 0,
@@ -324,7 +342,7 @@ const DashboardPage: React.FC = () => {
     setSelectedCampaignForMaiorMenor(null);
   };
 
-  const handleViewBuyerDetails = (ticketData: any) => {
+  const handleViewBuyerDetails = (ticketData: BuyerContactData) => {
     setSelectedBuyerData(ticketData);
     setShowBuyerContactModal(true);
   };

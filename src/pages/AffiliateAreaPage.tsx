@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, ExternalLink, Users, Mail, DollarSign } from 'lucide-react';
+import { ArrowLeft, Users, Mail, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const AffiliateAreaPage = () => {

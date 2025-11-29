@@ -177,7 +177,18 @@ const CreateCampaignStep1Page = () => {
         if ('message' in error && typeof error.message === 'string') {
           errorMessage = error.message;
         } else if ('details' in error && Array.isArray(error.details)) {
-          errorMessage = error.details.map((detail: any) => detail.message).join(', ');
+          const messages = (error.details as unknown[])
+            .map((detail) => {
+              if (detail && typeof detail === 'object' && 'message' in detail) {
+                const msg = (detail as { message: unknown }).message;
+                return typeof msg === 'string' ? msg : '';
+              }
+              return '';
+            })
+            .filter(Boolean);
+          if (messages.length > 0) {
+            errorMessage = messages.join(', ');
+          }
         }
       }
       

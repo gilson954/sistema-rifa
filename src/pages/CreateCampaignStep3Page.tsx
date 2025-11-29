@@ -7,11 +7,6 @@ import { StripeAPI } from '../lib/api/stripe';
 import { STRIPE_PRODUCTS, formatPrice } from '../stripe-config';
 import { translateAuthError } from '../utils/errorTranslators';
 
-declare global {
-  interface Window {
-    Stripe: any;
-  }
-}
 
 const getTimeRemaining = (expiresAt: string) => {
   const now = new Date().getTime();
@@ -38,24 +33,18 @@ const getTimeRemaining = (expiresAt: string) => {
 const CreateCampaignStep3Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('pix');
+  const [selectedPaymentMethod, _setSelectedPaymentMethod] = useState('pix');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [stripe, setStripe] = useState<any | null>(null);
   const [processing, setProcessing] = useState(false);
   const [paymentStatusMessage, setPaymentStatusMessage] = useState('');
-  const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
-  const [pixCopyPasteCode, setPixCopyPasteCode] = useState<string | null>(null);
+  const [qrCodeImage, _setQrCodeImage] = useState<string | null>(null);
+  const [pixCopyPasteCode, _setPixCopyPasteCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   
   const campaignId = new URLSearchParams(location.search).get('id') || '';
   const { campaign, loading: isLoading } = useCampaign(campaignId || '');
 
-  React.useEffect(() => {
-    if (window.Stripe && import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY) {
-      const stripeInstance = window.Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-      setStripe(stripeInstance);
-    }
-  }, []);
+  
 
   const campaignTitle = campaign?.title || 'Sua Campanha';
   const totalTickets = campaign?.total_tickets || 0;
@@ -118,10 +107,13 @@ const CreateCampaignStep3Page = () => {
         throw new Error(translateAuthError('URL de checkout não encontrada'));
       }
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error processing payment:', error);
       setPaymentStatusMessage('Falha no pagamento');
-      alert(translateAuthError(error?.message || 'Erro ao processar pagamento. Tente novamente.'));
+      const message = (error && typeof error === 'object' && 'message' in error && typeof (error as { message: unknown }).message === 'string')
+        ? (error as { message: string }).message
+        : 'Erro ao processar pagamento. Tente novamente.';
+      alert(translateAuthError(message));
       setProcessing(false);
     }
   };
@@ -150,7 +142,7 @@ const CreateCampaignStep3Page = () => {
     );
   };
 
-  const currentImage = prizeImages[currentImageIndex];
+  
   const estimatedRevenue = totalTickets * ticketPrice;
   const publicationTaxProduct = STRIPE_PRODUCTS.find(p => p.mode === 'payment' && estimatedRevenue >= (p.minRevenue || 0) && estimatedRevenue <= (p.maxRevenue || Infinity));
 

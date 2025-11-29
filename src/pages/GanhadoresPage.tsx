@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft, Trophy, Ticket, User, Sparkles, CheckCircle } from 'lucide-react';
@@ -14,16 +14,17 @@ const GanhadoresPage: React.FC = () => {
   const [winners, setWinners] = useState<Winner[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+  const showSuccessFlag = (location.state as { showSuccess?: boolean } | null)?.showSuccess;
 
   useEffect(() => {
-    if (location.state?.showSuccess) {
+    if (showSuccessFlag) {
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      const timer = setTimeout(() => setShowSuccess(false), 3000);
+      return () => clearTimeout(timer);
     }
-    loadData();
-  }, [campaignId]);
+  }, [showSuccessFlag]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!campaignId) return;
 
     setLoading(true);
@@ -46,7 +47,11 @@ const GanhadoresPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignId]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleWinnerClick = (winnerId: string) => {
     navigate(`/dashboard/campaigns/${campaignId}/ganhador/${winnerId}`);

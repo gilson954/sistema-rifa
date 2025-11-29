@@ -1,6 +1,6 @@
 // src/pages/RegisterPage.tsx
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import AuthHeader from '../components/AuthHeader'
@@ -34,7 +34,6 @@ const RegisterPage = () => {
   const [success, setSuccess] = useState(false)
 
   const { signUp, signInWithGoogle } = useAuth()
-  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

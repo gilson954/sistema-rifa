@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Search, Plus, UserPlus, X, ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Search, Plus, X, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const AffiliatesManagementPage = () => {

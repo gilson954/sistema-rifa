@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Campaign, CampaignStatus } from '../types/campaign';
+import { CreateCampaignInput, UpdateCampaignInput } from '../lib/validations/campaign';
 import { CampaignAPI } from '../lib/api/campaigns';
 import { useAuth } from '../context/AuthContext';
 
@@ -34,7 +35,7 @@ export const useCampaigns = (status?: CampaignStatus) => {
     fetchCampaigns();
   }, [user, status]);
 
-  const createCampaign = async (data: any) => {
+  const createCampaign = async (data: CreateCampaignInput) => {
     if (!user) throw new Error('Usuário não autenticado');
 
     setLoading(true);
@@ -53,7 +54,7 @@ export const useCampaigns = (status?: CampaignStatus) => {
     return campaign;
   };
 
-  const updateCampaign = async (data: any) => {
+  const updateCampaign = async (data: UpdateCampaignInput) => {
     setLoading(true);
     const { data: campaign, error: apiError } = await CampaignAPI.updateCampaign(data);
 

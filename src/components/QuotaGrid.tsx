@@ -21,6 +21,9 @@ interface QuotaGridProps {
   
   loadAllTicketsForManualMode: (totalTickets: number) => Promise<void>;
   loadingTickets: boolean;
+  disabled?: boolean;
+  onReserve?: (selectedQuotas: number[]) => void;
+  reserving?: boolean;
 }
 
 const QuotaGrid: React.FC<QuotaGridProps> = ({
@@ -32,13 +35,13 @@ const QuotaGrid: React.FC<QuotaGridProps> = ({
   onFilterChange,
   mode,
   tickets,
-  currentUserId,
+  currentUserId: _currentUserId,
   campaignTheme,
   primaryColor,
   colorMode = 'solid',
   gradientClasses,
   customGradientColors,
-  loadAllTicketsForManualMode,
+  loadAllTicketsForManualMode: _loadAllTicketsForManualMode,
   loadingTickets
 }) => {
   useEffect(() => {

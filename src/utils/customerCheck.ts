@@ -21,7 +21,7 @@ export interface CustomerData {
  */
 export async function checkCustomerByPhone(
   phoneNumber: string
-): Promise<{ data: CustomerData | null; error: any }> {
+): Promise<{ data: CustomerData | null; error: unknown }> {
   try {
     // ✅ CORREÇÃO: NÃO normaliza - usa exatamente como recebido
     console.log('🔵 customerCheck.checkCustomerByPhone - Input phone (NO normalization):', phoneNumber);

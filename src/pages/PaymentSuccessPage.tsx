@@ -3,13 +3,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, ArrowRight, Home, Receipt, Loader2, Calendar, CreditCard, DollarSign, Sparkles } from 'lucide-react';
 import { StripeAPI } from '../lib/api/stripe';
 import { getProductByPriceId, formatPrice } from '../stripe-config';
-import { useAuth } from '../context/AuthContext';
 import { useCampaignWithRefetch } from '../hooks/useCampaigns';
 
 const PaymentSuccessPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

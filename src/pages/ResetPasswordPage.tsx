@@ -64,9 +64,10 @@ const ResetPasswordPage = () => {
           navigate('/login');
         }, 3000);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error updating password:', err);
-      setError(translateAuthError(err.message || 'Erro inesperado. Tente novamente.'));
+      const message = typeof err === 'object' && err && 'message' in err ? (err as { message?: string }).message || 'Erro inesperado. Tente novamente.' : 'Erro inesperado. Tente novamente.';
+      setError(translateAuthError(message));
       setLoading(false);
     }
   };

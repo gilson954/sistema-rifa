@@ -19,6 +19,13 @@ export interface Winner {
   updated_at: string;
 }
 
+export interface WinnerTicket {
+  id: string;
+  quota_number: number;
+  status: string;
+  bought_at: string;
+}
+
 export interface TicketValidationResult {
   isValid: boolean;
   isSold: boolean;
@@ -293,7 +300,7 @@ export const SorteioAPI = {
     }
   },
 
-  async getWinnerTickets(campaignId: string, winnerPhone: string): Promise<{ data: any[] | null; error: any }> {
+  async getWinnerTickets(campaignId: string, winnerPhone: string): Promise<{ data: WinnerTicket[] | null; error: any }> {
     try {
       const { data, error } = await supabase
         .from('tickets')

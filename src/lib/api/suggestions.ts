@@ -300,20 +300,36 @@ export class SuggestionsAPI {
     error: any 
   }> {
     try {
-      const { data, error } = await supabase
+      const { count: total } = await supabase
         .from('suggestions')
-        .select('status');
+        .select('*', { head: true, count: 'exact' });
 
-      if (error) {
-        throw new Error(translateAuthError(error.message));
-      }
+      const { count: newCount } = await supabase
+        .from('suggestions')
+        .select('*', { head: true, count: 'exact' })
+        .eq('status', 'new');
+
+      const { count: inProgressCount } = await supabase
+        .from('suggestions')
+        .select('*', { head: true, count: 'exact' })
+        .eq('status', 'in_progress');
+
+      const { count: resolvedCount } = await supabase
+        .from('suggestions')
+        .select('*', { head: true, count: 'exact' })
+        .eq('status', 'resolved');
+
+      const { count: rejectedCount } = await supabase
+        .from('suggestions')
+        .select('*', { head: true, count: 'exact' })
+        .eq('status', 'rejected');
 
       const stats = {
-        total: data?.length || 0,
-        new: data?.filter(s => s.status === 'new').length || 0,
-        in_progress: data?.filter(s => s.status === 'in_progress').length || 0,
-        resolved: data?.filter(s => s.status === 'resolved').length || 0,
-        rejected: data?.filter(s => s.status === 'rejected').length || 0,
+        total: total || 0,
+        new: newCount || 0,
+        in_progress: inProgressCount || 0,
+        resolved: resolvedCount || 0,
+        rejected: rejectedCount || 0,
       };
 
       return { data: stats, error: null };

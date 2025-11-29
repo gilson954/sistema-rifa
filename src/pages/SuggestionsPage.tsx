@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, Lightbulb, Bug, Zap, MessageSquare, AlertTriangle, CheckCircle, User, Mail, FileText, Upload, X, File, Image } from 'lucide-react';
+import { Send, Lightbulb, Bug, Zap, MessageSquare, AlertTriangle, CheckCircle, User, Mail, FileText, Upload, X, File } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion'; // 1. Importação do Framer Motion
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
@@ -193,15 +193,18 @@ const SuggestionsPage = () => {
     setErrors(prev => ({ ...prev, attachment: '' }));
   };
 
-  const handleTypeChange = (type: string) => {
-    setFormData(prev => ({ ...prev, type: type as any }));
+  type SuggestionType = CreateSuggestionInput['type'];
+  type SuggestionPriority = CreateSuggestionInput['priority'];
+
+  const handleTypeChange = (type: SuggestionType) => {
+    setFormData(prev => ({ ...prev, type }));
     if (errors.type) {
       setErrors(prev => ({ ...prev, type: '' }));
     }
   };
 
-  const handlePriorityChange = (priority: string) => {
-    setFormData(prev => ({ ...prev, priority: priority as any }));
+  const handlePriorityChange = (priority: SuggestionPriority) => {
+    setFormData(prev => ({ ...prev, priority }));
     if (errors.priority) {
       setErrors(prev => ({ ...prev, priority: '' }));
     }
@@ -250,7 +253,7 @@ const SuggestionsPage = () => {
     setSubmitting(true);
 
     try {
-      const { data, error } = await SuggestionsAPI.createSuggestion(formData, user?.id);
+      const { error } = await SuggestionsAPI.createSuggestion(formData, user?.id);
 
       if (error) {
         throw error;
@@ -270,9 +273,10 @@ const SuggestionsPage = () => {
       setSelectedFile(null);
       setFilePreview(null);
       
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error submitting suggestion:', error);
-      showError(error?.message || 'Erro ao enviar sugestão. Tente novamente.');
+      const message = typeof error === 'object' && error && 'message' in error ? (error as { message?: string }).message || 'Erro ao enviar sugestão. Tente novamente.' : 'Erro ao enviar sugestão. Tente novamente.';
+      showError(message);
     } finally {
       setSubmitting(false);
     }
@@ -302,7 +306,6 @@ const SuggestionsPage = () => {
     );
   }
 
-  const selectedType = feedbackTypes.find(type => type.value === formData.type);
 
   // 4. Conteúdo da Página Principal com Animações
   return (

@@ -9,7 +9,7 @@ const corsHeaders = {
 interface CleanupResult {
   deleted_count: number
   error_count: number
-  details: any[]
+  details: unknown[]
 }
 
 interface CleanupResponse {
@@ -112,14 +112,14 @@ Deno.serve(async (req: Request) => {
       }
     )
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('💥 Unexpected error in cleanup function:', error)
-    
+    const errMsg = error instanceof Error ? error.message : 'Unknown error'
     return new Response(
       JSON.stringify({
         success: false,
         message: 'Unexpected error during cleanup',
-        error: error.message
+        error: errMsg
       } as CleanupResponse),
       {
         status: 500,

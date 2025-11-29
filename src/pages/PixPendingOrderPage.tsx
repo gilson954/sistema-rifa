@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, User, Phone, Mail, CreditCard, Calendar, MessageCircle, Eye } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
@@ -34,11 +34,10 @@ export default function PixPendingOrderPage() {
   const [processing, setProcessing] = useState(false);
   const [order, setOrder] = useState<OrderDetails | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('PIX Manual');
-  const [formError, setFormError] = useState<string | null>(null);
+  
+  
+  
+  
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | null>(null);
   const [confirmLoading, setConfirmLoading] = useState(false);
@@ -53,10 +52,10 @@ export default function PixPendingOrderPage() {
       }
       setOrder((data as OrderDetails) || null);
       if (data) {
-        setName((data as any).customer_name || '');
-        setPhone((data as any).customer_phone || '');
-        setEmail((data as any).customer_email || '');
-        setPaymentMethod((data as any).payment_method || 'PIX Manual');
+        const od = data as OrderDetails;
+        
+        
+        
       }
       setLoading(false);
     };
@@ -64,7 +63,7 @@ export default function PixPendingOrderPage() {
   }, [campaignId, orderId, showError]);
 
   useEffect(() => {
-    let timer: any;
+    let timer: ReturnType<typeof setInterval> | null = null;
     if (campaignId && orderId) {
       timer = setInterval(async () => {
         const { data } = await ManualPixAPI.getOrderDetails(campaignId, orderId);
@@ -79,7 +78,7 @@ export default function PixPendingOrderPage() {
     const channel = supabase
       .channel(`manual_proof_order_${campaignId}_${orderId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'manual_payment_proofs', filter: `campaign_id=eq.${campaignId}` }, (payload) => {
-        const updated = payload.new as any;
+        const updated = payload.new as { order_id: string; status: OrderDetails['status'] };
         if (updated.order_id === orderId) {
           setOrder(prev => prev ? { ...prev, status: updated.status } : prev);
         }
@@ -88,42 +87,13 @@ export default function PixPendingOrderPage() {
     return () => { supabase.removeChannel(channel); };
   }, [campaignId, orderId]);
 
-  const isValidEmail = useMemo(() => {
-    if (!email) return true;
-    return /\S+@\S+\.\S+/.test(email);
-  }, [email]);
+  
 
-  const isValidPhone = useMemo(() => {
-    const digits = String(phone || '').replace(/\D/g, '');
-    return digits.length >= 10 && digits.length <= 14;
-  }, [phone]);
+  
 
-  const canSubmit = useMemo(() => {
-    return name.trim().length > 0 && isValidPhone && isValidEmail && paymentMethod.length > 0;
-  }, [name, isValidPhone, isValidEmail, paymentMethod]);
+  
 
-  const handleSaveContact = async () => {
-    if (!order) return;
-    if (!canSubmit) {
-      setFormError('Preencha os campos corretamente');
-      return;
-    }
-    setFormError(null);
-    setProcessing(true);
-    const { error } = await ManualPixAPI.updateOrderContact(order.campaign_id, order.order_id, {
-      name,
-      phone,
-      email,
-      payment_method: paymentMethod,
-    });
-    setProcessing(false);
-    if (error) {
-      showError('Falha ao salvar');
-      return;
-    }
-    setOrder(prev => prev ? { ...prev, customer_name: name, customer_phone: phone, customer_email: email, payment_method: paymentMethod } : prev);
-    showSuccess('Dados atualizados');
-  };
+  
 
     const performApprove = async () => {
       if (!order) {
@@ -137,7 +107,7 @@ export default function PixPendingOrderPage() {
       setConfirmLoading(false);
       setConfirmOpen(false);
       if (error) {
-        const msg = String((error as any)?.message || '').toLowerCase();
+        const msg = typeof error === 'object' && error && 'message' in error ? String((error as { message?: string }).message || '').toLowerCase() : '';
         if (msg.includes('expired')) {
           showError('Pedido expirado — não pode ser aprovado');
           setOrder(prev => prev ? { ...prev, status: 'expired' } : prev);
@@ -170,12 +140,8 @@ export default function PixPendingOrderPage() {
     };
 
     const openConfirm = (action: 'approve' | 'reject') => {
-      try {
-        setConfirmAction(action);
-        setConfirmOpen(true);
-      } catch (e) {
-        showError('Falha ao abrir modal de confirmação');
-      }
+      setConfirmAction(action);
+      setConfirmOpen(true);
     };
 
   return (

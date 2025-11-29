@@ -48,7 +48,7 @@ export const createCampaignSchema = z.object({
   
   draw_method: z
     .enum(['Loteria Federal', 'Sorteador.com.br', 'Live no Instagram', 'Live no Youtube', 'Live no TikTok', 'Outros'], {
-      errorMap: () => ({ message: 'Selecione um método de sorteio válido' })
+      message: 'Selecione um método de sorteio válido'
     })
     .transform(val => val.trim()),
   
@@ -56,7 +56,7 @@ export const createCampaignSchema = z.object({
     .string()
     .min(10, 'Número de telefone inválido')
     .max(20, 'Número de telefone muito longo')
-    .regex(/^[\d\s\-\(\)\+]+$/, 'Formato de telefone inválido')
+    .regex(/^[\d\s\-()+]+$/, 'Formato de telefone inválido')
     .transform(val => val.trim())
     .optional()
     .nullable(),

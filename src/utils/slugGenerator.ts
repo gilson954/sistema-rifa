@@ -208,41 +208,4 @@ export async function generateUniqueSlugAndPublicId(
   return { slug, publicId };
 }
 
-/**
- * Valida se um slug tem formato válido
- */
-function isValidSlug(slug: string): boolean {
-  if (!slug || typeof slug !== 'string') {
-    return false;
-  }
-
-  if (slug.length < 3 || slug.length > 50) {
-    return false;
-  }
-
-  const slugRegex = /^[a-z0-9-]+$/;
-  if (!slugRegex.test(slug)) {
-    return false;
-  }
-
-  if (slug.startsWith('-') || slug.endsWith('-')) {
-    return false;
-  }
-
-  if (slug.includes('--')) {
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Sanitiza um slug fornecido pelo usuário
- */
-function sanitizeSlug(slug: string): string {
-  if (!slug || typeof slug !== 'string') {
-    return '';
-  }
-
-  return generateBaseSlug(slug);
-}
+ 

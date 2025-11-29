@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Search, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StatusBadge } from '../components/StatusBadge';
 import { useNotification } from '../context/NotificationContext';
@@ -30,16 +30,17 @@ type PendingRow = {
 
 const CampaignPixApprovalPage = () => {
   const navigate = useNavigate();
-  const { showError, showSuccess } = useNotification();
+  const { showError } = useNotification();
   const { campaignId } = useParams<{ campaignId: string }>();
 
   const [rows, setRows] = useState<PendingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-  const [campaignTitle, setCampaignTitle] = useState<string>('');
+  const [campaignTitle, setCampaignTitle] = useState('');
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  
   const [statusFilter, setStatusFilter] = useState<{ pending: boolean; approved: boolean; rejected: boolean; expired: boolean }>({ pending: true, approved: true, rejected: true, expired: true });
   const [minValue, setMinValue] = useState('');
   const [maxValue, setMaxValue] = useState('');
@@ -129,24 +130,7 @@ const CampaignPixApprovalPage = () => {
     setCurrentPage(1);
   };
 
-  const clearFilters = () => {
-    const clearedStatus = { pending: true, approved: true, rejected: true, expired: true };
-    setStatusFilter(clearedStatus);
-    setMinValue('');
-    setMaxValue('');
-    setDateFrom('');
-    setDateTo('');
-    setSearch('');
-    setCurrentPage(1);
-    applyFiltersToParams({
-      search: '',
-      statusFilter: clearedStatus,
-      minValue: '',
-      maxValue: '',
-      dateFrom: '',
-      dateTo: ''
-    });
-  };
+  
 
   useEffect(() => {
     const load = async () => {
@@ -167,7 +151,7 @@ const CampaignPixApprovalPage = () => {
     const channel = supabase
       .channel(`manual_proofs_${campaignId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'manual_payment_proofs', filter: `campaign_id=eq.${campaignId}` }, (payload) => {
-        const updated = payload.new as any;
+        const updated = payload.new as { id: string; status?: PendingRow['status'] };
         setRows(prev => prev.map(r => r.id === updated.id ? { ...r, status: updated.status } : r));
       })
       .subscribe();
@@ -286,7 +270,7 @@ const CampaignPixApprovalPage = () => {
           <button onClick={() => navigate('/dashboard/pix-approval')} className="p-2 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-xl sm:text-2xl font-bold mx-auto">Minhas vendas</h1>
+          <h1 className="text-xl sm:text-2xl font-bold mx-auto">Minhas vendas{campaignTitle ? ` — ${campaignTitle}` : ''}</h1>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-sm rounded-2xl border border-gray-200/20 dark:border-gray-700/30 p-4">

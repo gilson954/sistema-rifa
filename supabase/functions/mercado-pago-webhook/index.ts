@@ -256,13 +256,13 @@ Deno.serve(async (req: Request) => {
       }
     )
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('💥 Error processing Mercado Pago webhook:', error)
-    
+    const errMsg = error instanceof Error ? error.message : 'Unknown error'
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error',
-        message: error.message 
+        message: errMsg 
       }),
       { 
         status: 500, 

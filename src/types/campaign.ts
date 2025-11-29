@@ -7,6 +7,7 @@ export interface Campaign {
   prize_image_url: string | null;
   ticket_price: number;
   total_tickets: number;
+  max_quota_number?: number;
   sold_tickets: number;
   start_date: string;
   end_date: string;
@@ -98,3 +99,4 @@ export interface CampaignFormData {
   initialFilter: 'all' | 'available';
   campaignModel: 'manual' | 'automatic';
 }
+import { Promotion, Prize } from './promotion'

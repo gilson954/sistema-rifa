@@ -91,8 +91,7 @@ const CustomizationPage = () => {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.5,
-        ease: [0.25, 0.1, 0.25, 1]
+        duration: 0.5
       }
     }
   };
@@ -103,8 +102,7 @@ const CustomizationPage = () => {
       opacity: 1,
       scale: 1,
       transition: {
-        duration: 0.3,
-        ease: [0.25, 0.1, 0.25, 1]
+        duration: 0.3
       }
     },
     exit: {
@@ -595,7 +593,7 @@ const CustomizationPage = () => {
           .update({ cor_organizador: editingPopularColor })
           .eq('id', user.id);
         setPopularButtonColor(editingPopularColor);
-      } catch {}
+      } catch (e) { void e }
     }
     setShowEditButtonModal(false);
   };
@@ -1243,13 +1241,13 @@ const CustomizationPage = () => {
                               transition={{ delay: index * 0.05 }}
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
-                              onClick={() => colorMode === 'gradient' && setSelectedGradient(gradient.classes)}
-                              disabled={colorMode === 'solid'}
+                              onClick={() => setSelectedGradient(gradient.classes)}
+                              disabled={false}
                               className={`group relative overflow-hidden rounded-xl sm:rounded-2xl transition-all duration-300 ${
                                 selectedGradient === gradient.classes && !isCustomGradient
                                   ? 'ring-2 sm:ring-4 ring-purple-500 shadow-2xl scale-105'
                                   : 'hover:scale-105 hover:shadow-xl'
-                              } ${colorMode === 'solid' ? 'cursor-not-allowed' : ''}`}
+                              }`}
                             >
                               <div className={`h-20 sm:h-24 bg-gradient-to-r ${gradient.classes} animate-gradient-x bg-[length:200%_200%]`}></div>
                               {selectedGradient === gradient.classes && !isCustomGradient && (
@@ -1283,12 +1281,12 @@ const CustomizationPage = () => {
                                 Suas cores personalizadas
                               </h3>
                               <motion.button
-                                onClick={colorMode === 'gradient' ? handleRandomGradient : undefined}
-                                disabled={colorMode === 'solid'}
+                                onClick={handleRandomGradient}
+                                disabled={false}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 className={`w-full sm:w-auto px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-lg text-white rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 ${
-                                  colorMode === 'solid' ? 'opacity-50 cursor-not-allowed' : ''
+                                  ''
                                 }`}
                               >
                                 <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -1763,7 +1761,7 @@ const CustomizationPage = () => {
                       <motion.div 
                         className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:h-12 border-b-4 border-purple-600 mx-auto mb-3 sm:mb-4"
                         animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        transition={{ duration: 1, repeat: Infinity }}
                       ></motion.div>
                       <p className="text-gray-600 dark:text-gray-400 font-medium text-sm sm:text-base">Carregando domínios...</p>
                     </div>

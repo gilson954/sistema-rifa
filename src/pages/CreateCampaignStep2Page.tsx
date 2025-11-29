@@ -18,7 +18,7 @@ const CreateCampaignStep2Page = () => {
   const location = useLocation();
   
   const campaignId = new URLSearchParams(location.search).get('id');
-  const { campaign, loading: campaignLoading, refetch } = useCampaignWithRefetch(campaignId || '');
+  const { campaign, loading: campaignLoading, refetch: _refetch } = useCampaignWithRefetch(campaignId || '');
   
   const {
     images,
@@ -43,7 +43,7 @@ const CreateCampaignStep2Page = () => {
     showDrawDateOption: 'no-date' as 'show-date' | 'no-date'
   });
 
-  const [showInlineDatePicker, setShowInlineDatePicker] = useState(false);
+  const [_showInlineDatePicker, setShowInlineDatePicker] = useState(false);
   const [showDateTimeModal, setShowDateTimeModal] = useState(false);
   const [showPromotionModal, setShowPromotionModal] = useState(false);
   const [showPrizesModal, setShowPrizesModal] = useState(false);
@@ -158,9 +158,7 @@ const CreateCampaignStep2Page = () => {
     }
   };
 
-  const handleDrawDateChange = (date: Date | null) => {
-    setFormData(prev => ({ ...prev, drawDate: date }));
-  };
+  
 
   const handleOpenDateTimeModal = () => {
     setShowDateTimeModal(true);

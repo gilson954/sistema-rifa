@@ -3,24 +3,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Share2, X } from 'lucide-react';
 import { socialMediaConfig } from './SocialMediaIcons';
 
-// Tipos para as props do componente
-interface SocialMediaLink {
-  platform: string;
-  url: string;
-  enabled?: boolean;
-}
-
 interface SocialMediaFloatingMenuProps {
   socialMediaLinks?: Record<string, string | boolean | null>;
   whatsappSupport?: string | null;
   whatsappGroup?: string | null;
   primaryColor?: string;
-  secondaryColor?: string;
-  useGradient?: boolean;
   animatedGradient?: boolean;
   colorMode?: string;
   gradientClasses?: string;
   customGradientColors?: string;
+  campaignTheme?: string;
 }
 
 /**
@@ -35,8 +27,7 @@ const SocialMediaFloatingMenu: React.FC<SocialMediaFloatingMenuProps> = ({
   whatsappSupport = null,
   whatsappGroup = null,
   primaryColor = '#3B82F6',
-  secondaryColor = '#8B5CF6',
-  useGradient = false,
+  
   animatedGradient = false,
   colorMode = 'solid',
   gradientClasses = '',

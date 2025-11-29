@@ -1,6 +1,7 @@
 /**
  * Utility functions for Brazilian currency formatting and parsing
  */
+import type { Promotion } from '../types/promotion';
 
 export const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat('pt-BR', {
@@ -43,8 +44,19 @@ export const formatInputCurrency = (value: string): string => {
 export const calculateTotalWithPromotions = (
   quantity: number,
   ticketPrice: number,
-  promotions: any[] = []
-): { total: number; appliedPromotions: any[]; breakdown: any[] } => {
+  promotions: Promotion[] = []
+): {
+  total: number;
+  appliedPromotions: Promotion[];
+  breakdown: Array<{
+    type: 'promotion' | 'normal';
+    quantity: number;
+    unitPrice: number;
+    total: number;
+    promotion?: Promotion;
+    timesApplied?: number;
+  }>;
+} => {
   if (quantity <= 0 || ticketPrice <= 0) {
     return { total: 0, appliedPromotions: [], breakdown: [] };
   }
@@ -59,7 +71,7 @@ export const calculateTotalWithPromotions = (
   }
 
   // Encontra a melhor promoção aplicável (maior quantidade que seja <= quantity)
-  const applicablePromotions = promotions.filter(promo => promo.ticketQuantity <= quantity);
+  const applicablePromotions = promotions.filter((promo) => promo.ticketQuantity <= quantity);
   
   if (applicablePromotions.length === 0) {
     // Nenhuma promoção aplicável, cobra preço normal
@@ -83,8 +95,15 @@ export const calculateTotalWithPromotions = (
   // Calcula cotas restantes (se houver)
   const remainingQuantity = quantity - promotionQuantity;
   let totalValue = 0;
-  const appliedPromotions: any[] = [bestPromotion];
-  const breakdown: any[] = [];
+  const appliedPromotions: Promotion[] = [bestPromotion];
+  const breakdown: Array<{
+    type: 'promotion' | 'normal';
+    quantity: number;
+    unitPrice: number;
+    total: number;
+    promotion?: Promotion;
+    timesApplied?: number;
+  }> = [];
 
   // Adiciona o valor da promoção
   totalValue += promotionTotal;

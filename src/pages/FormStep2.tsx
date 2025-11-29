@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Hash, Building, Globe, Bell, MessageCircle } from 'lucide-react';
+import { MapPin, Hash, Building, Globe, MessageCircle, Mail, Phone, AlertCircle } from 'lucide-react';
 import { useMultiStepForm } from '../context/MultiStepFormContext';
 import { Step2Data, formatCEP } from '../lib/validations/formSteps';
 
@@ -240,11 +240,5 @@ const FormStep2: React.FC = () => {
     </div>
   );
 };
-
-const estados = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
-];
 
 export default FormStep2;

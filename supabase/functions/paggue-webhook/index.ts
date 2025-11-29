@@ -24,7 +24,7 @@ interface PaggueWebhookPayload {
       name?: string
       cpf?: string
     }
-    metadata?: any
+    metadata?: unknown
   }
 }
 
@@ -250,12 +250,12 @@ Deno.serve(async (req: Request) => {
 
   } catch (error) {
     console.error('💥 Error processing Paggue webhook:', error)
-    
+    const message = typeof error === 'object' && error && 'message' in error ? (error as { message?: string }).message || 'Internal server error' : 'Internal server error'
     return new Response(
       JSON.stringify({ 
         success: false,
         error: 'Internal server error',
-        message: error.message 
+        message
       } as PaggueWebhookResponse),
       { 
         status: 500, 

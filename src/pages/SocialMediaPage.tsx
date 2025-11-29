@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Plus, X, ArrowRight, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+ 
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
 import { supabase } from "../lib/supabase";
@@ -15,7 +15,7 @@ interface SocialNetwork {
 }
 
 const SocialMediaPage = () => {
-  const navigate = useNavigate();
+  
   const { user } = useAuth();
   const { showSuccess, showError } = useNotification();
   const [showModal, setShowModal] = useState(false);

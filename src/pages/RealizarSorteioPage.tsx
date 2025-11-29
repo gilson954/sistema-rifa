@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Trophy, Calendar, DollarSign, Users, CheckCircle, XCircle, Loader2, Sparkles } from 'lucide-react';
@@ -45,11 +45,7 @@ const RealizarSorteioPage: React.FC = () => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  useEffect(() => {
-    loadCampaign();
-  }, [campaignId]);
-
-  const loadCampaign = async () => {
+  const loadCampaign = useCallback(async () => {
     if (!campaignId) return;
 
     setLoading(true);
@@ -104,7 +100,11 @@ const RealizarSorteioPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignId, navigate, user]);
+
+  useEffect(() => {
+    loadCampaign();
+  }, [campaignId, loadCampaign]);
 
   const handleTicketNumberChange = async (prizeId: string, value: string) => {
     const numericValue = value.replace(/\D/g, '');

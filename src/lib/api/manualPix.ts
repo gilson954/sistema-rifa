@@ -112,7 +112,7 @@ export const ManualPixAPI = {
         if (p.status === 'pending') {
           await supabase.rpc('expire_manual_payment_if_needed', { p_order_id: p.order_id, p_campaign_id: campaignId });
         }
-      } catch {}
+      } catch (e) { void e }
 
       const { data: tickets } = await supabase
         .from('tickets')
@@ -162,7 +162,7 @@ export const ManualPixAPI = {
     const ticketPrice = Number(campaign?.ticket_price || 0);
 
     // Try to mark as expired if needed before fetch
-    try { await supabase.rpc('expire_manual_payment_if_needed', { p_order_id: orderId, p_campaign_id: campaignId }); } catch {}
+    try { await supabase.rpc('expire_manual_payment_if_needed', { p_order_id: orderId, p_campaign_id: campaignId }); } catch (e) { void e }
 
     const { data: tickets } = await supabase
       .from('tickets')
@@ -219,7 +219,7 @@ export const ManualPixAPI = {
     return { error: proofError || ticketsError || null };
   },
 
-  async approveProof(proofId: string, orderId: string, campaignId: string) {
+  async approveProof(_proofId: string, orderId: string, campaignId: string) {
     const { data: updatedTickets, error } = await supabase.rpc('approve_manual_payment', {
       p_order_id: orderId,
       p_campaign_id: campaignId
@@ -236,7 +236,7 @@ export const ManualPixAPI = {
         p_message: `Manual PIX proof ${proofId} rejected`,
         p_details: { proof_id: proofId }
       });
-    } catch {}
+    } catch (e) { void e }
     return { error: rpcError };
   }
 };

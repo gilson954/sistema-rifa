@@ -30,8 +30,9 @@ const ForgotPasswordPage = () => {
         setSuccess(true);
         setLoading(false);
       }
-    } catch (err: any) {
-      setError(translateAuthError(err?.message || 'Erro inesperado. Tente novamente.'));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erro inesperado. Tente novamente.';
+      setError(translateAuthError(msg));
       setLoading(false);
     }
   };

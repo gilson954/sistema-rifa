@@ -235,13 +235,14 @@ const PaymentConfirmationPage = () => {
     return baseClasses;
   };
 
-  const formatQuotaNumber = (quotaNumber: number): string => {
-    if (!campaign?.total_tickets) {
+  const formatQuotaNumber = useCallback((quotaNumber: number): string => {
+    const total = campaign?.total_tickets;
+    if (!total) {
       return quotaNumber.toString().padStart(2, '0');
     }
-    const digits = String(campaign.total_tickets - 1).length;
+    const digits = String(total - 1).length;
     return quotaNumber.toString().padStart(Math.max(2, digits), '0');
-  };
+  }, [campaign?.total_tickets]);
 
   useEffect(() => {
     if (!reservationData) {
@@ -422,7 +423,8 @@ const PaymentConfirmationPage = () => {
       if (!reservationData?.campaignId || !reservationData?.reservationId) return;
       try {
         const { data } = await ManualPixAPI.getOrderDetails(reservationData.campaignId, reservationData.reservationId);
-        if (data && (data as any).status === 'approved') {
+        const status = (data as { status?: string } | null)?.status;
+        if (status === 'approved') {
           setPurchaseConfirmed(true);
           return;
         }
@@ -434,7 +436,7 @@ const PaymentConfirmationPage = () => {
           .eq('status', 'comprado')
           .limit(1);
         if (bought && bought.length > 0) setPurchaseConfirmed(true);
-      } catch {}
+      } catch (e) { void e }
     };
     checkInitialStatus();
   }, [reservationData?.campaignId, reservationData?.reservationId]);
@@ -447,7 +449,7 @@ const PaymentConfirmationPage = () => {
     const proofsChannel = supabase
       .channel(`manual_proofs_${campaignId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'manual_payment_proofs', filter: `campaign_id=eq.${campaignId}` }, (payload) => {
-        const updated: any = payload.new;
+        const updated = payload.new as { order_id?: string; status?: string };
         if (updated.order_id === orderId && updated.status === 'approved') {
           setPurchaseConfirmed(true);
         }
@@ -457,7 +459,7 @@ const PaymentConfirmationPage = () => {
     const ticketsChannel = supabase
       .channel(`tickets_${campaignId}_${orderId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tickets', filter: `order_id=eq.${orderId}` }, (payload) => {
-        const updated: any = payload.new;
+        const updated = payload.new as { campaign_id?: string; order_id?: string; status?: string };
         if (updated.campaign_id === campaignId && updated.order_id === orderId && updated.status === 'comprado') {
           setPurchaseConfirmed(true);
         }
@@ -476,7 +478,7 @@ const PaymentConfirmationPage = () => {
         if (typeof mod.runPaymentConfirmationLogicTests === 'function') {
           mod.runPaymentConfirmationLogicTests();
         }
-      }).catch(() => {});
+      }).catch((e) => { void e });
     }
   }, []);
 
@@ -529,7 +531,7 @@ const PaymentConfirmationPage = () => {
     const formatted = sortedQuotas.map(q => formatQuotaNumber(q));
     const okDigits = formatted.every(s => s.length >= 2);
     console.assert(okDigits, 'Formato de quotas não possui dois dígitos mínimos');
-  }, [sortedQuotas]);
+  }, [sortedQuotas, formatQuotaNumber]);
 
   const handleCopyPixKey = async () => {
     const reservationIdClean = reservationData?.reservationId.replace(/-/g, '') || 'mock-key';

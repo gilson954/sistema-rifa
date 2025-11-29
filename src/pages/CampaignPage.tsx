@@ -1,14 +1,11 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
-  Share2,
   Calendar,
   Users,
   Trophy,
   ChevronLeft,
   ChevronRight,
-  Eye,
   Gift,
-  ExternalLink,
   AlertTriangle,
   FileText,
   Ticket,
@@ -38,7 +35,7 @@ import { Promotion } from '../types/promotion';
 import { CotaPremiada } from '../types/cotasPremiadas';
 import { formatCurrency } from '../utils/currency';
 import { calculateTotalWithPromotions } from '../utils/currency';
-import { socialMediaConfig, shareSectionConfig } from '../components/SocialMediaIcons';
+// import { socialMediaConfig } from '../components/SocialMediaIcons';
 import { supabase } from '../lib/supabase';
 import { CotasPremiadasAPI } from '../lib/api/cotasPremiadas';
 
@@ -55,8 +52,8 @@ interface OrganizerProfile {
   name: string;
   avatar_url?: string;
   logo_url?: string;
-  social_media_links?: any;
-  payment_integrations_config?: any;
+  social_media_links?: unknown;
+  payment_integrations_config?: unknown;
   primary_color?: string;
   theme?: string;
   color_mode?: string;
@@ -64,11 +61,12 @@ interface OrganizerProfile {
   custom_gradient_colors?: string;
   quota_selector_buttons?: number[];
   quota_selector_popular_index?: number | null;
+  cor_organizador?: string;
 }
 
-const formatNumber = (num: number): string => {
-  return new Intl.NumberFormat('pt-BR').format(num);
-};
+// const formatNumber = (num: number): string => {
+//   return new Intl.NumberFormat('pt-BR').format(num);
+// };
 
 const maskPhoneNumber = (phone: string | null): string => {
   if (!phone) return 'Não informado';
@@ -131,8 +129,8 @@ const slideVariants = {
 const CampaignPage = () => {
   const { publicId } = useParams<{ publicId: string }>();
   const navigate = useNavigate();
-  const { user, isPhoneAuthenticated, phoneUser, signInWithPhone } = useAuth();
-  const { theme } = useTheme();
+  const { user, isPhoneAuthenticated, signInWithPhone } = useAuth();
+  const { theme: _theme } = useTheme();
   const { showSuccess, showError, showWarning, showInfo } = useNotification();
 
   const isValidDescription = (description: string): boolean => {
@@ -174,13 +172,13 @@ const CampaignPage = () => {
   const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [loadingOrganizer, setLoadingOrganizer] = useState(false);
   
-  const [campaignPaid, setCampaignPaid] = useState<boolean>(false);
-  const [loadingPaymentStatus, setLoadingPaymentStatus] = useState<boolean>(true);
+  const [_campaignPaid, setCampaignPaid] = useState<boolean>(false);
+  const [_loadingPaymentStatus, setLoadingPaymentStatus] = useState<boolean>(true);
 
   const {
     tickets,
     loading: ticketsLoading,
-    error: ticketsError,
+    error: _ticketsError,
     reserveTickets,
     getAvailableTickets,
     reserving,
@@ -296,7 +294,7 @@ const CampaignPage = () => {
   const [showCotasPremiadasModal, setShowCotasPremiadasModal] = useState(false);
   const [showPhoneLoginModal, setShowPhoneLoginModal] = useState(false);
   const [cotasPremiadas, setCotasPremiadas] = useState<CotaPremiada[]>([]);
-  const [loadingCotasPremiadas, setLoadingCotasPremiadas] = useState(false);
+  const [_loadingCotasPremiadas, setLoadingCotasPremiadas] = useState(false);
   const [processingReservation, setProcessingReservation] = useState(false);
   const [step2Confirming, setStep2Confirming] = useState(false);
   
@@ -305,10 +303,10 @@ const CampaignPage = () => {
   const [orderIdForReservation, setOrderIdForReservation] = useState<string | null>(null);
   const [reservationTimestampForReservation, setReservationTimestampForReservation] = useState<Date | null>(null);
   
-  const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomer | null>(null);
-  const [reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
-  const [reservationQuotas, setReservationQuotas] = useState<number[]>([]);
-  const [reservationTotalValue, setReservationTotalValue] = useState(0);
+  const [_existingCustomerData, setExistingCustomerData] = useState<ExistingCustomer | null>(null);
+  const [_reservationCustomerData, setReservationCustomerData] = useState<CustomerData | null>(null);
+  const [_reservationQuotas, setReservationQuotas] = useState<number[]>([]);
+  const [_reservationTotalValue, setReservationTotalValue] = useState(0);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [fullscreenImageIndex, setFullscreenImageIndex] = useState<number | null>(null);
@@ -481,7 +479,7 @@ const CampaignPage = () => {
     return isBackground ? { backgroundColor: primaryColor } : { color: primaryColor };
   };
 
-  const getColorClassName = (baseClasses: string = '', isText: boolean = false) => {
+  const getColorClassName = (baseClasses: string = '') => {
     const colorMode = organizerProfile?.color_mode || 'solid';
 
     if (colorMode === 'gradient') {
@@ -519,8 +517,8 @@ const CampaignPage = () => {
                 .select('id, name, avatar_url, logo_url, social_media_links, payment_integrations_config, primary_color, theme, color_mode, gradient_classes, custom_gradient_colors, quota_selector_buttons, quota_selector_popular_index, cor_organizador')
                 .eq('id', campaign.user_id)
                 .maybeSingle();
-              if (fallback) setOrganizerProfile(fallback as any);
-            } catch {}
+              if (fallback) setOrganizerProfile(fallback as OrganizerProfile);
+            } catch (e) { void e }
           } else {
             try {
               const { data: colorRow } = await supabase
@@ -528,9 +526,9 @@ const CampaignPage = () => {
                 .select('cor_organizador')
                 .eq('id', campaign.user_id)
                 .maybeSingle();
-              setOrganizerProfile({ ...(data as any), cor_organizador: colorRow?.cor_organizador });
+              setOrganizerProfile({ ...(data as OrganizerProfile), cor_organizador: colorRow?.cor_organizador });
             } catch {
-              setOrganizerProfile(data as any);
+              setOrganizerProfile(data as OrganizerProfile);
             }
           }
         } catch (error) {
@@ -548,14 +546,15 @@ const CampaignPage = () => {
     if (!campaign?.user_id) return;
         const channel = supabase
           .channel(`profile-buttons-${campaign.user_id}`)
-          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${campaign.user_id}` }, (payload: any) => {
-            const nextButtons = payload?.new?.quota_selector_buttons;
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${campaign.user_id}` }, (payload) => {
+            const newRow = (payload && typeof payload === 'object' && 'new' in payload) ? (payload as { new?: Record<string, unknown> }).new : undefined;
+            const nextButtons = Array.isArray(newRow?.quota_selector_buttons) ? (newRow!.quota_selector_buttons as number[]) : undefined;
             if (!nextButtons) return;
-            setOrganizerProfile(prev => prev ? { ...prev, quota_selector_buttons: nextButtons, quota_selector_popular_index: payload?.new?.quota_selector_popular_index ?? prev.quota_selector_popular_index, cor_organizador: payload?.new?.cor_organizador ?? prev.cor_organizador } : prev);
+            setOrganizerProfile(prev => prev ? { ...prev, quota_selector_buttons: nextButtons, quota_selector_popular_index: (newRow?.quota_selector_popular_index as number | null) ?? prev.quota_selector_popular_index, cor_organizador: (newRow?.cor_organizador as string | undefined) ?? prev.cor_organizador } : prev);
           })
           .subscribe();
     return () => {
-      try { supabase.removeChannel(channel); } catch {}
+      try { supabase.removeChannel(channel); } catch (e) { void e }
     };
   }, [campaign?.user_id]);
 
@@ -759,7 +758,7 @@ const CampaignPage = () => {
       console.log(`✅ CampaignPage: Adicionando cota ${quotaNumber}. Nova seleção FINAL:`, newSelection);
       return newSelection;
     });
-  }, [campaign, tickets, showWarning]);
+  }, [campaign, tickets, showWarning, derivedMaxQuotaNumber]);
 
   const handleQuantityChange = useCallback((newQuantity: number) => {
     setQuantity(newQuantity);
@@ -884,15 +883,18 @@ const CampaignPage = () => {
       }
 
       return null;
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Error during reservation:', error);
-      showError(error.message || 'Erro ao reservar cotas. Tente novamente.');
+      const message = (error && typeof error === 'object' && 'message' in error && typeof (error as { message: unknown }).message === 'string')
+        ? (error as { message: string }).message
+        : 'Erro ao reservar cotas. Tente novamente.';
+      showError(message);
       return null;
     } finally {
       setProcessingReservation(false);
       setShowReservationModal(false);
     }
-  }, [campaign, user, reserveTickets, navigate, showSuccess, showError, showInfo, isPhoneAuthenticated, signInWithPhone, resolveQuotaNumbersForReservation]);
+  }, [campaign, reserveTickets, navigate, showSuccess, showError, showInfo, isPhoneAuthenticated, signInWithPhone, resolveQuotaNumbersForReservation]);
 
   const handleOpenReservationModal = useCallback(() => {
     if (campaign?.campaign_model === 'manual' && selectedQuotas.length === 0) {
@@ -1007,9 +1009,12 @@ const CampaignPage = () => {
       } else {
         showError('Erro ao reservar cotas.');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ EXCEPTION during reservation', error);
-      showError(error.message || 'Erro ao reservar cotas.');
+      const message = (error && typeof error === 'object' && 'message' in error && typeof (error as { message: unknown }).message === 'string')
+        ? (error as { message: string }).message
+        : 'Erro ao reservar cotas.';
+      showError(message);
     } finally {
       setStep2Confirming(false);
       setShowStep2Modal(false);
@@ -1048,13 +1053,13 @@ const CampaignPage = () => {
     setFullscreenImageIndex(imageIndex);
   };
 
-  const handleCloseFullscreen = () => {
+  const handleCloseFullscreen = useCallback(() => {
     setFullscreenImageIndex(null);
     setTouchStartX(null);
     setTouchEndX(null);
-  };
+  }, []);
 
-  const goToPreviousFullscreenImage = () => {
+  const goToPreviousFullscreenImage = useCallback(() => {
     if (fullscreenImageIndex === null || !campaign?.prize_image_urls) return;
     
     const totalImages = campaign.prize_image_urls.length;
@@ -1063,9 +1068,9 @@ const CampaignPage = () => {
     setFullscreenImageIndex(prev => 
       prev === 0 ? totalImages - 1 : (prev || 0) - 1
     );
-  };
+  }, [fullscreenImageIndex, campaign?.prize_image_urls]);
 
-  const goToNextFullscreenImage = () => {
+  const goToNextFullscreenImage = useCallback(() => {
     if (fullscreenImageIndex === null || !campaign?.prize_image_urls) return;
     
     const totalImages = campaign.prize_image_urls.length;
@@ -1074,7 +1079,7 @@ const CampaignPage = () => {
     setFullscreenImageIndex(prev => 
       prev === totalImages - 1 ? 0 : (prev || 0) + 1
     );
-  };
+  }, [fullscreenImageIndex, campaign?.prize_image_urls]);
 
   useEffect(() => {
     if (fullscreenImageIndex === null) return;
@@ -1094,7 +1099,7 @@ const CampaignPage = () => {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [fullscreenImageIndex]);
+  }, [fullscreenImageIndex, goToPreviousFullscreenImage, goToNextFullscreenImage, handleCloseFullscreen]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartX(e.targetTouches[0].clientX);
@@ -1440,7 +1445,7 @@ const CampaignPage = () => {
                       <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
                         <Gift className="h-5 w-5 flex-shrink-0" style={{ color: primaryColor }} />
                         <h3
-                          className={`font-bold text-base truncate ${getColorClassName('', true)}`}
+                          className={`font-bold text-base truncate ${getColorClassName('')}`}
                           style={getColorStyle(false, true)}
                           title={winner.prize_name}
                         >
@@ -1453,7 +1458,7 @@ const CampaignPage = () => {
                           Número Vencedor
                         </p>
                         <div
-                          className={`text-3xl font-extrabold ${getColorClassName('', true)}`}
+                          className={`text-3xl font-extrabold ${getColorClassName('')}`}
                           style={getColorStyle(false, true)}
                         >
                           {winner.ticket_number.toString().padStart(5, '0')}
@@ -1557,7 +1562,7 @@ const CampaignPage = () => {
                 <div className="flex flex-col">
                   <span className="text-[11px] sm:text-xs text-gray-300 font-medium">Participe por apenas</span>
                   <span
-                    className={`font-bold text-sm sm:text-base md:text-lg ${getColorClassName('', true)}`}
+                    className={`font-bold text-sm sm:text-base md:text-lg ${getColorClassName('')}`}
                     style={getColorStyle(false, true)}
                   >
                     {formatCurrency(campaign.ticket_price)}
@@ -1584,7 +1589,7 @@ const CampaignPage = () => {
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span
-                    className={`font-bold text-xs sm:text-sm ${getColorClassName('', true)}`}
+                    className={`font-bold text-xs sm:text-sm ${getColorClassName('')}`}
                     style={getColorStyle(false, true)}
                   >
                     {getProgressPercentage()}%
