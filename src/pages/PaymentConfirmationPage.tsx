@@ -65,6 +65,7 @@ const PaymentConfirmationPage = () => {
   const proofInputRef = useRef<HTMLInputElement>(null);
   const [uploadingProof, setUploadingProof] = useState<boolean>(false);
   const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
+  const [purchaseConfirmed, setPurchaseConfirmed] = useState<boolean>(false);
   const [activePrimary, setActivePrimary] = useState<'manual_pix' | 'pay2m' | 'fluxsis' | 'paggue' | 'efi_bank' | 'suitpay'>(() => {
     const v = localStorage.getItem('activePaymentMethod');
     const allowed = ['manual_pix','pay2m','fluxsis','paggue','efi_bank','suitpay'];
@@ -417,6 +418,69 @@ const PaymentConfirmationPage = () => {
   }, [reservationData?.expiresAt]);
 
   useEffect(() => {
+    const checkInitialStatus = async () => {
+      if (!reservationData?.campaignId || !reservationData?.reservationId) return;
+      try {
+        const { data } = await ManualPixAPI.getOrderDetails(reservationData.campaignId, reservationData.reservationId);
+        if (data && (data as any).status === 'approved') {
+          setPurchaseConfirmed(true);
+          return;
+        }
+        const { data: bought } = await supabase
+          .from('tickets')
+          .select('id')
+          .eq('campaign_id', reservationData.campaignId)
+          .eq('order_id', reservationData.reservationId)
+          .eq('status', 'comprado')
+          .limit(1);
+        if (bought && bought.length > 0) setPurchaseConfirmed(true);
+      } catch {}
+    };
+    checkInitialStatus();
+  }, [reservationData?.campaignId, reservationData?.reservationId]);
+
+  useEffect(() => {
+    if (!reservationData?.campaignId || !reservationData?.reservationId) return;
+    const campaignId = reservationData.campaignId;
+    const orderId = reservationData.reservationId;
+
+    const proofsChannel = supabase
+      .channel(`manual_proofs_${campaignId}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'manual_payment_proofs', filter: `campaign_id=eq.${campaignId}` }, (payload) => {
+        const updated: any = payload.new;
+        if (updated.order_id === orderId && updated.status === 'approved') {
+          setPurchaseConfirmed(true);
+        }
+      })
+      .subscribe();
+
+    const ticketsChannel = supabase
+      .channel(`tickets_${campaignId}_${orderId}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tickets', filter: `order_id=eq.${orderId}` }, (payload) => {
+        const updated: any = payload.new;
+        if (updated.campaign_id === campaignId && updated.order_id === orderId && updated.status === 'comprado') {
+          setPurchaseConfirmed(true);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(proofsChannel);
+      supabase.removeChannel(ticketsChannel);
+    };
+  }, [reservationData?.campaignId, reservationData?.reservationId]);
+
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      import('../__tests__/paymentConfirmationLogic.spec').then(mod => {
+        if (typeof mod.runPaymentConfirmationLogicTests === 'function') {
+          mod.runPaymentConfirmationLogicTests();
+        }
+      }).catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
     const styleId = 'quota-scrollbar-style';
     let styleElement = document.getElementById(styleId) as HTMLStyleElement;
     
@@ -735,25 +799,26 @@ const PaymentConfirmationPage = () => {
           transition={{ duration: 0.5 }}
           className="mb-8"
         >
-          <div className={`${themeClasses.cardBg} rounded-xl sm:rounded-2xl p-3 sm:p-6 border-2 border-yellow-500 ${
+          <div className={`${themeClasses.cardBg} rounded-xl sm:rounded-2xl p-3 sm:p-6 border-2 ${purchaseConfirmed ? 'border-green-600' : 'border-yellow-500'} ${
             campaignTheme === 'claro' 
-              ? 'shadow-[0_8px_30px_-8px_rgba(234,179,8,0.3),0_4px_15px_-4px_rgba(234,179,8,0.2)]'
-              : 'shadow-[0_8px_30px_-8px_rgba(234,179,8,0.6),0_4px_15px_-4px_rgba(234,179,8,0.4)]'
+              ? (purchaseConfirmed ? 'shadow-[0_8px_30px_-8px_rgba(34,197,94,0.3),0_4px_15px_-4px_rgba(34,197,94,0.2)]' : 'shadow-[0_8px_30px_-8px_rgba(234,179,8,0.3),0_4px_15px_-4px_rgba(234,179,8,0.2)]')
+              : (purchaseConfirmed ? 'shadow-[0_8px_30px_-8px_rgba(34,197,94,0.6),0_4px_15px_-4px_rgba(34,197,94,0.4)]' : 'shadow-[0_8px_30px_-8px_rgba(234,179,8,0.6),0_4px_15px_-4px_rgba(234,179,8,0.4)]')
           }`}>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
               <div className="flex items-center gap-2.5 sm:gap-4 w-full sm:w-auto">
-                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg sm:rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                <div className={`w-10 h-10 sm:w-14 sm:h-14 ${purchaseConfirmed ? 'bg-gradient-to-br from-green-500 to-emerald-600' : 'bg-gradient-to-br from-yellow-400 to-orange-500'} rounded-lg sm:rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0`}>
                   <CheckCircle className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h2 className={`text-base sm:text-xl md:text-2xl font-bold ${themeClasses.text} leading-tight`}>
-                    Aguardando Confirmação!
+                    {purchaseConfirmed ? 'Compra confirmada' : 'Aguardando Confirmação!'}
                   </h2>
                   <p className={`text-xs sm:text-sm ${themeClasses.textSecondary} mt-0.5`}>
-                    Complete o pagamento
+                    {purchaseConfirmed ? 'Pagamento aprovado e seus números foram liberados' : 'Complete o pagamento'}
                   </p>
                 </div>
               </div>
+              {!purchaseConfirmed && (
               <div className="text-center w-full sm:w-auto bg-yellow-50 dark:bg-yellow-900/10 rounded-lg p-2 sm:p-0 sm:bg-transparent">
                 <div className={`text-xs sm:text-sm ${themeClasses.textSecondary} mb-0.5 sm:mb-1`}>
                   Tempo restante
@@ -765,6 +830,7 @@ const PaymentConfirmationPage = () => {
                   {timeRemaining === 'Expirado' ? '' : timeRemaining.includes('d') ? '' : timeRemaining.includes('h') ? '' : 'minutos'}
                 </div>
               </div>
+              )}
             </div>
           </div>
         </motion.div>
@@ -775,7 +841,7 @@ const PaymentConfirmationPage = () => {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="mb-8"
         >
-          {activePrimary === 'manual_pix' ? (
+          {!purchaseConfirmed && activePrimary === 'manual_pix' ? (
             <div className="space-y-4">
               <div className="flex items-start gap-3">
                 <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
@@ -802,7 +868,7 @@ const PaymentConfirmationPage = () => {
                 </p>
               </div>
             </div>
-          ) : (
+          ) : (!purchaseConfirmed && (
             <div className="space-y-4">
               <div className="flex items-start gap-3">
                 <div className={`w-8 h-8 ${themeClasses.stepBg} ${themeClasses.stepText} rounded-md flex items-center justify-center font-bold flex-shrink-0`}>
@@ -829,7 +895,7 @@ const PaymentConfirmationPage = () => {
                 </p>
               </div>
             </div>
-          )}
+          ))}
         </motion.div>
 
         <motion.div
@@ -843,7 +909,7 @@ const PaymentConfirmationPage = () => {
               ? 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.2),0_4px_15px_-4px_rgba(0,0,0,0.12)]'
               : 'shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6),0_4px_15px_-4px_rgba(0,0,0,0.4)]'
           }`}>
-            {manualPixKey && activePrimary === 'manual_pix' && (
+            {manualPixKey && activePrimary === 'manual_pix' && !purchaseConfirmed && (
               <div className="mb-4">
                 <div className="flex items-center gap-2">
                   <PixLogo variant="icon" className="h-5 w-5" />
@@ -865,13 +931,13 @@ const PaymentConfirmationPage = () => {
                 </div>
               </div>
             )}
-            {creatingPix && (
+            {creatingPix && !purchaseConfirmed && (
               <div className="flex items-center gap-2 mb-3 text-xs text-gray-600 dark:text-gray-300">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2" />
                 <span>Gerando PIX...</span>
               </div>
             )}
-            {activePrimary !== 'manual_pix' && (
+            {activePrimary !== 'manual_pix' && !purchaseConfirmed && (
               <div className="flex items-center justify-between mb-4">
                 <input
                   type="text"
@@ -898,12 +964,12 @@ const PaymentConfirmationPage = () => {
                 </button>
               </div>
             )}
-            {createError && (
+            {createError && !purchaseConfirmed && (
               <div className="mt-3 text-xs text-red-600 dark:text-red-400">
                 {createError}
               </div>
             )}
-            {pixQrBase64 && activePrimary !== 'manual_pix' && (
+            {pixQrBase64 && activePrimary !== 'manual_pix' && !purchaseConfirmed && (
               <div className="mt-4 flex items-center justify-center">
                 <img src={pixQrBase64} alt="QR Code PIX" className="w-40 h-40 rounded-lg shadow" />
               </div>
@@ -917,6 +983,7 @@ const PaymentConfirmationPage = () => {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="mb-8"
         >
+          {!purchaseConfirmed && (
           <div className={`${themeClasses.inputBg} rounded-xl p-4 border-l-4 border-yellow-500 ${
             campaignTheme === 'claro' 
               ? 'shadow-[0_4px_15px_-4px_rgba(0,0,0,0.1)]'
@@ -926,9 +993,10 @@ const PaymentConfirmationPage = () => {
               <strong>Atenção:</strong> Este pagamento possui prazo limitado. Caso não seja confirmado dentro do tempo estabelecido, a reserva será cancelada e os números ficarão disponíveis novamente.
             </p>
           </div>
+          )}
         </motion.div>
 
-        {activePrimary === 'manual_pix' && (
+        {activePrimary === 'manual_pix' && !purchaseConfirmed && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1021,8 +1089,8 @@ const PaymentConfirmationPage = () => {
                 <p className={`text-sm ${themeClasses.textSecondary} mb-2`}>
                   Concorra a prêmios incríveis!
                 </p>
-                <span className="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
-                  Reservado
+                <span className={`inline-block px-3 py-1 ${purchaseConfirmed ? 'bg-emerald-600' : 'bg-green-500'} text-white text-xs font-bold rounded-full`}>
+                  {purchaseConfirmed ? 'Compra confirmada' : 'Reservado'}
                 </span>
               </div>
             </div>
@@ -1115,7 +1183,7 @@ const PaymentConfirmationPage = () => {
                   ))}
                 </div>
                 <p className={`text-xs ${themeClasses.textSecondary}`}>
-                  Seus números serão liberados assim que o pagamento for confirmado.
+                  {purchaseConfirmed ? 'Seus números foram liberados.' : 'Seus números serão liberados assim que o pagamento for confirmado.'}
                 </p>
               </div>
             ) : (
