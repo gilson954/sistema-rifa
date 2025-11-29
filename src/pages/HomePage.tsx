@@ -43,7 +43,13 @@ const HomePage = () => {
     );
   }
 
-  if (user) return null;
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-gray-950">
+        <div className="animate-spin rounded-full h-20 w-20 border-t-2 border-purple-400"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen bg-animated-gradient dark:bg-animated-gradient-dark text-gray-900 dark:text-gray-100 overflow-x-hidden">

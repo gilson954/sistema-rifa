@@ -124,7 +124,8 @@ export const ManualPixAPI = {
       const customerEmail = tickets?.[0]?.customer_email || null;
       const reservedAt = tickets?.[0]?.reserved_at || p.created_at;
       const expiresAt = (tickets || []).reduce((acc:any, t:any) => acc ? acc : t.reservation_expires_at, null);
-      const isExpired = p.status === 'pending' && expiresAt ? new Date(expiresAt).getTime() < Date.now() : false;
+      const hasPurchased = (tickets || []).some((t:any) => t.status === 'comprado');
+      const isExpired = p.status === 'pending' && expiresAt ? (new Date(expiresAt).getTime() < Date.now() && !hasPurchased) : false;
       const nextStatus = isExpired ? 'expired' : p.status;
       const { data: signed } = await supabase.storage.from('manual-payment-proofs').createSignedUrl(p.image_url, 60 * 60);
       return {
@@ -176,7 +177,8 @@ export const ManualPixAPI = {
     const reservedAt = tickets?.[0]?.reserved_at || data.created_at;
     const { data: signed } = await supabase.storage.from('manual-payment-proofs').createSignedUrl(data.image_url, 60 * 60);
     const expiresAt = (tickets || []).reduce((acc:any, t:any) => acc ? acc : t.reservation_expires_at, null);
-    const isExpired = data.status === 'pending' && expiresAt ? new Date(expiresAt).getTime() < Date.now() : false;
+    const hasPurchased = (tickets || []).some((t:any) => t.status === 'comprado');
+    const isExpired = data.status === 'pending' && expiresAt ? (new Date(expiresAt).getTime() < Date.now() && !hasPurchased) : false;
     const nextStatus = isExpired ? 'expired' : data.status;
 
     return {

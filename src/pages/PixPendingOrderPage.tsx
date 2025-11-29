@@ -5,6 +5,7 @@ import { useNotification } from '../context/NotificationContext';
 import { ManualPixAPI } from '../lib/api/manualPix';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+import ConfirmModal from '../components/ConfirmModal';
 
 type OrderDetails = {
   id: string;
@@ -38,6 +39,9 @@ export default function PixPendingOrderPage() {
   const [email, setEmail] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('PIX Manual');
   const [formError, setFormError] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -121,11 +125,17 @@ export default function PixPendingOrderPage() {
     showSuccess('Dados atualizados');
   };
 
-    const handleApprove = async () => {
-      if (!order) return;
+    const performApprove = async () => {
+      if (!order) {
+        showError('Pedido não carregado');
+        return;
+      }
+      setConfirmLoading(true);
       setProcessing(true);
       const { error } = await ManualPixAPI.approveProof(order.id, order.order_id, order.campaign_id);
       setProcessing(false);
+      setConfirmLoading(false);
+      setConfirmOpen(false);
       if (error) {
         const msg = String((error as any)?.message || '').toLowerCase();
         if (msg.includes('expired')) {
@@ -140,17 +150,32 @@ export default function PixPendingOrderPage() {
       showSuccess('Pagamento aprovado e cotas liberadas');
     };
 
-    const handleReject = async () => {
-      if (!order) return;
+    const performReject = async () => {
+      if (!order) {
+        showError('Pedido não carregado');
+        return;
+      }
+      setConfirmLoading(true);
       setProcessing(true);
       const { error } = await ManualPixAPI.rejectProof(order.id);
       setProcessing(false);
+      setConfirmLoading(false);
+      setConfirmOpen(false);
       if (error) {
         showError('Falha ao rejeitar');
         return;
       }
       setOrder(prev => prev ? { ...prev, status: 'rejected' } : prev);
       showSuccess('Comprovante rejeitado');
+    };
+
+    const openConfirm = (action: 'approve' | 'reject') => {
+      try {
+        setConfirmAction(action);
+        setConfirmOpen(true);
+      } catch (e) {
+        showError('Falha ao abrir modal de confirmação');
+      }
     };
 
   return (
@@ -310,7 +335,7 @@ export default function PixPendingOrderPage() {
               <div className="flex items-center gap-3">
                 <motion.button
                   disabled={processing || order.status !== 'pending'}
-                  onClick={handleApprove}
+                  onClick={() => openConfirm('approve')}
                   className="px-3 py-1.5 rounded-lg text-white text-xs disabled:opacity-50"
                   style={{ backgroundColor: '#4CAF50' }}
                   whileHover={!(processing || order.status !== 'pending') ? { scale: 1.05 } : {}}
@@ -320,7 +345,7 @@ export default function PixPendingOrderPage() {
                 </motion.button>
                 <motion.button
                   disabled={processing || order.status !== 'pending'}
-                  onClick={handleReject}
+                  onClick={() => openConfirm('reject')}
                   className="px-3 py-1.5 rounded-lg text-white text-xs disabled:opacity-50"
                   style={{ backgroundColor: '#F44336' }}
                   whileHover={!(processing || order.status !== 'pending') ? { scale: 1.05 } : {}}
@@ -346,6 +371,29 @@ export default function PixPendingOrderPage() {
           )}
         </AnimatePresence>
       </motion.main>
+
+      <ConfirmModal
+        isOpen={confirmOpen}
+        title={confirmAction === 'approve' ? 'Confirmar aprovação' : 'Confirmar rejeição'}
+        message={confirmAction === 'approve' ? 'Você deseja aprovar este comprovante? Esta ação liberará as cotas.' : 'Você deseja rejeitar este comprovante? Esta ação não poderá ser desfeita.'}
+        confirmText="Confirma"
+        cancelText="Cancela"
+        type={confirmAction === 'approve' ? 'info' : 'danger'}
+        loading={confirmLoading}
+        onConfirm={() => {
+          if (confirmAction === 'approve') {
+            void performApprove();
+          } else if (confirmAction === 'reject') {
+            void performReject();
+          }
+        }}
+        onCancel={() => {
+          if (!confirmLoading) {
+            setConfirmOpen(false);
+            setConfirmAction(null);
+          }
+        }}
+      />
     </div>
   );
 }

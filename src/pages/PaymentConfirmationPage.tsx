@@ -393,7 +393,7 @@ const PaymentConfirmationPage = () => {
 
       if (difference <= 0) {
         setTimeRemaining('Expirado');
-        setIsExpired(true);
+        setIsExpired(purchaseConfirmed ? false : true);
         return;
       }
 
@@ -415,7 +415,7 @@ const PaymentConfirmationPage = () => {
     const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [reservationData?.expiresAt]);
+  }, [reservationData?.expiresAt, purchaseConfirmed]);
 
   useEffect(() => {
     const checkInitialStatus = async () => {
@@ -565,7 +565,7 @@ const PaymentConfirmationPage = () => {
     );
   }
 
-  if (isExpired) {
+  if (isExpired && !purchaseConfirmed) {
     return (
       <div className={`min-h-screen ${themeClasses.background} transition-colors duration-300 flex flex-col`}>
         <CampaignHeader
